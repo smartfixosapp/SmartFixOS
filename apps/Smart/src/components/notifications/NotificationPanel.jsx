@@ -22,11 +22,20 @@ export default function NotificationPanel() {
   }, []);
 
   useEffect(() => {
-    if (user) {
-      loadData();
-      const interval = setInterval(loadData, 60000);
-      return () => clearInterval(interval);
-    }
+    if (!user) return;
+    loadData();
+
+    // Pause polling when the screen is hidden / phone locked to save battery.
+    let interval = null;
+    const start = () => { if (!interval) interval = setInterval(loadData, 60000); };
+    const stop = () => { if (interval) { clearInterval(interval); interval = null; } };
+    const onVis = () => {
+      if (document.hidden) stop();
+      else { start(); loadData(); }
+    };
+    if (!document.hidden) start();
+    document.addEventListener("visibilitychange", onVis);
+    return () => { stop(); document.removeEventListener("visibilitychange", onVis); };
   }, [user]);
 
   const loadUser = async () => {
