@@ -132,6 +132,16 @@ const routes = {
   '/trackParcel': trackParcelHandler,
   '/ai/gemini-summary': geminiSummaryHandler,
 };
+// In production, silence console.log/info/debug to reduce log noise (~221 calls
+// across handlers). Keep console.error and console.warn for visibility into
+// real problems. Set DENO_ENV=development to re-enable verbose logging.
+if (Deno.env.get("DENO_ENV") === "production") {
+  const noop = () => {};
+  console.log = noop;
+  console.info = noop;
+  console.debug = noop;
+}
+
 const port = parseInt(Deno.env.get("FUNCTIONS_PORT") || "8686");
 console.log(`🌐 Functions server port is ${port}`);
 Deno.serve({ port, hostname: "::" }, async (req) => {
