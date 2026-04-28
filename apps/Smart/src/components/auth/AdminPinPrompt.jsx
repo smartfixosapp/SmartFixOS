@@ -67,15 +67,23 @@ export default function AdminPinPrompt({ onSuccess, onCancel }) {
   const [lockout,  setLockout]    = useState({ locked: false, remaining: 0 });
   const inputRef = useRef(null);
 
-  // Lockout countdown timer
+  // Lockout countdown timer — pauses when the screen is hidden to save battery
   useEffect(() => {
     const tick = () => {
       const info = getLockoutInfo();
       setLockout(info);
     };
     tick();
-    const id = setInterval(tick, 30000);
-    return () => clearInterval(id);
+    let id = null;
+    const start = () => { if (!id) id = setInterval(tick, 30000); };
+    const stop = () => { if (id) { clearInterval(id); id = null; } };
+    const onVis = () => {
+      if (document.hidden) stop();
+      else { tick(); start(); }
+    };
+    if (!document.hidden) start();
+    document.addEventListener("visibilitychange", onVis);
+    return () => { stop(); document.removeEventListener("visibilitychange", onVis); };
   }, []);
 
   useEffect(() => {
