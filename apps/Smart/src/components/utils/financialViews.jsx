@@ -237,14 +237,23 @@ export function useFinancialKPIs(dateFrom, dateTo, refreshInterval = 5 * 60 * 10
 
     loadKPIs();
 
-    // Auto-refresh
+    // Auto-refresh — only while the screen is visible (saves battery on mobile)
+    let onVis = null;
     if (refreshInterval > 0) {
-      refreshTimer = setInterval(loadKPIs, refreshInterval);
+      const start = () => { if (!refreshTimer) refreshTimer = setInterval(loadKPIs, refreshInterval); };
+      const stop = () => { if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; } };
+      onVis = () => {
+        if (document.hidden) stop();
+        else { loadKPIs(); start(); }
+      };
+      if (!document.hidden) start();
+      document.addEventListener("visibilitychange", onVis);
     }
 
     return () => {
       isMounted = false;
       if (refreshTimer) clearInterval(refreshTimer);
+      if (onVis) document.removeEventListener("visibilitychange", onVis);
     };
   }, [dateFrom, dateTo, refreshInterval]);
 
