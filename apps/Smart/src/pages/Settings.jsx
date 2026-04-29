@@ -940,10 +940,7 @@ export default function SettingsPage() {
     })();
 
     return (
-      <div
-        className="min-h-dvh apple-surface apple-type p-4 sm:p-6 relative"
-        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 10px)" }}
-      >
+      <div className="min-h-dvh apple-surface apple-type p-4 sm:p-6 relative">
         <div className="max-w-5xl mx-auto">
           {/* Section Header estilo iOS Settings detail */}
           <div className="mb-5">
@@ -1599,10 +1596,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div
-      className="min-h-dvh apple-surface apple-type p-4 sm:p-6 relative"
-      style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 10px)" }}
-    >
+    <div className="min-h-dvh apple-surface apple-type p-4 sm:p-6 relative">
       <div className="app-container">
         {/* ── Hero Header estilo iOS Settings ── */}
         <div className="mb-6">

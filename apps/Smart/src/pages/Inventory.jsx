@@ -1578,10 +1578,10 @@ Maximo 150 palabras. Texto plano, sin markdown.`
   };
 
   return (
-    <div ref={containerRef} className="min-h-dvh apple-surface apple-type overflow-y-auto apple-scroll pb-24" style={{ WebkitOverflowScrolling: 'touch' }}>
+    <div ref={containerRef} className="min-h-dvh apple-surface apple-type overflow-y-auto apple-scroll" style={{ WebkitOverflowScrolling: 'touch' }}>
       {/* Pull-to-refresh indicator ELIMINADO */}
 
-      <div className="app-container py-4 sm:py-6" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 16px)" }}>
+      <div className="app-container py-4 sm:py-6">
         {/* ── Header estilo iOS (large title + acciones) ─────────── */}
         <div className="flex items-end justify-between gap-3 mb-5">
           <div className="min-w-0 flex-1">
