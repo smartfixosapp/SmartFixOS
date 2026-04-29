@@ -84,7 +84,7 @@ export default function Receipt() {
   }, [autoPrint, loading, order]);
 
   if (loading) return (
-    <div className="min-h-screen apple-surface apple-type flex items-center justify-center">
+    <div className="min-h-dvh apple-surface apple-type flex items-center justify-center">
       <div className="flex gap-1.5">
         {[0,1,2].map(i => (
           <span key={i} className="w-2 h-2 rounded-full bg-apple-blue animate-bounce"
@@ -95,7 +95,7 @@ export default function Receipt() {
   );
 
   if (error) return (
-    <div className="min-h-screen apple-surface apple-type flex items-center justify-center px-6">
+    <div className="min-h-dvh apple-surface apple-type flex items-center justify-center px-6">
       <div className="text-center space-y-3">
         <p className="apple-text-large-title">❌</p>
         <p className="apple-text-title3 apple-label-primary">{error}</p>
@@ -208,7 +208,7 @@ export default function Receipt() {
   );
 
   return (
-    <div className="min-h-screen apple-surface apple-type flex flex-col items-center px-4 py-8 print:bg-white print:text-black">
+    <div className="min-h-dvh apple-surface apple-type flex flex-col items-center px-4 py-8 print:bg-white print:text-black">
       <div className="w-full max-w-sm space-y-6">
 
         {/* Logo / Biz name */}

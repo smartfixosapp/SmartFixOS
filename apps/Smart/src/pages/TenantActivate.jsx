@@ -297,7 +297,7 @@ export default function TenantActivate() {
   // ── Render states ─────────────────────────────────────────────────────────
   if (status === 'validating') {
     return (
-      <div className="min-h-screen apple-surface apple-type flex items-center justify-center">
+      <div className="min-h-dvh apple-surface apple-type flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-apple-blue animate-spin mx-auto mb-4" />
           <p className="apple-text-body apple-label-secondary">Validando tu enlace de activación…</p>
@@ -308,7 +308,7 @@ export default function TenantActivate() {
 
   if (status === 'invalid') {
     return (
-      <div className="min-h-screen apple-surface apple-type flex items-center justify-center px-4">
+      <div className="min-h-dvh apple-surface apple-type flex items-center justify-center px-4">
         <div className="max-w-md w-full text-center">
           <div className="apple-card rounded-apple-xl p-10 shadow-apple-lg">
             <div className="w-20 h-20 rounded-apple-sm bg-apple-red/15 flex items-center justify-center mx-auto mb-4">
@@ -329,7 +329,7 @@ export default function TenantActivate() {
 
   if (status === 'done') {
     return (
-      <div className="min-h-screen apple-surface apple-type flex items-center justify-center px-4">
+      <div className="min-h-dvh apple-surface apple-type flex items-center justify-center px-4">
         <div className="max-w-md w-full text-center">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
@@ -355,7 +355,7 @@ export default function TenantActivate() {
 
   if (status === 'saving') {
     return (
-      <div className="min-h-screen apple-surface apple-type flex items-center justify-center">
+      <div className="min-h-dvh apple-surface apple-type flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-apple-blue animate-spin mx-auto mb-4" />
           <p className="apple-text-headline apple-label-primary mb-1">Activando tu cuenta…</p>
@@ -370,7 +370,7 @@ export default function TenantActivate() {
   const stepIcons  = [Building2, Phone, Clock, Lock];
 
   return (
-    <div className="min-h-screen apple-surface apple-type flex flex-col items-center justify-start py-8 px-4">
+    <div className="min-h-dvh apple-surface apple-type flex flex-col items-center justify-start py-8 px-4">
       {/* Header */}
       <div className="w-full max-w-2xl mx-auto mb-6">
         <div className="text-center mb-6">

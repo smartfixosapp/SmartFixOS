@@ -37,7 +37,7 @@ export default function MenuPage() {
   const navigate = useNavigate();
 
   return (
-    // IMPORTANTE: h-full en lugar de min-h-screen para evitar desbordamiento que activa barras del navegador
+    // IMPORTANTE: h-full en lugar de min-h-dvh para evitar desbordamiento que activa barras del navegador
     <div className="h-full apple-surface apple-type p-6 pb-20 animate-in fade-in duration-300 overflow-y-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">

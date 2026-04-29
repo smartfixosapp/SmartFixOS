@@ -19,7 +19,7 @@ class POSErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-black text-white flex items-center justify-center p-6">
+        <div className="min-h-dvh bg-black text-white flex items-center justify-center p-6">
           <div className="max-w-xl w-full border border-red-500/40 rounded-2xl p-6 bg-red-950/20">
             <h2 className="text-xl font-bold text-red-300 mb-2">Error en POS</h2>
             <p className="text-sm text-red-200 mb-4">

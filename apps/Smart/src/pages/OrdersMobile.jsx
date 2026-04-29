@@ -187,7 +187,7 @@ export default function OrdersMobile() {
   const activeStatuses = ORDER_STATUSES.filter(s => s.isActive);
 
   return (
-    <div className="min-h-screen apple-surface apple-type pb-20 overscroll-none" style={{ overscrollBehavior: "none" }}>
+    <div className="min-h-dvh apple-surface apple-type pb-20 overscroll-none" style={{ overscrollBehavior: "none" }}>
       {/* ── Header estilo iOS: large title + acciones ───────────────── */}
       <div
         className="sticky top-0 z-20 apple-surface-secondary px-4 pt-2 pb-3 border-b border-[rgb(var(--separator)/0.29)]"

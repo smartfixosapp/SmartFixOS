@@ -207,7 +207,7 @@ export default function AuditLogPage() {
   const uniqueEntities = useMemo(() => [...new Set(logs.map((log) => log.entity_type).filter(Boolean))], [logs]);
 
   return (
-    <div className="min-h-screen apple-surface apple-type p-6 pb-24">
+    <div className="min-h-dvh apple-surface apple-type p-6 pb-24">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
         <div>

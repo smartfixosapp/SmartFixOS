@@ -941,7 +941,7 @@ export default function SettingsPage() {
 
     return (
       <div
-        className="min-h-screen apple-surface apple-type p-4 sm:p-6 relative"
+        className="min-h-dvh apple-surface apple-type p-4 sm:p-6 relative"
         style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 10px)" }}
       >
         <div className="max-w-5xl mx-auto">
@@ -1600,7 +1600,7 @@ export default function SettingsPage() {
 
   return (
     <div
-      className="min-h-screen apple-surface apple-type p-4 sm:p-6 relative"
+      className="min-h-dvh apple-surface apple-type p-4 sm:p-6 relative"
       style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 10px)" }}
     >
       <div className="app-container">

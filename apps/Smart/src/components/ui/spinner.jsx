@@ -67,7 +67,7 @@ export function PageSpinner({ message, className, ...props }) {
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center min-h-screen bg-[#0a0a0c] text-white/60",
+        "flex flex-col items-center justify-center min-h-dvh bg-[#0a0a0c] text-white/60",
         className
       )}
       {...props}

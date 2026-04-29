@@ -127,7 +127,7 @@ Toast.displayName = "Toast";
 
 function AccessDenied() {
   return (
-    <div className="min-h-screen grid place-items-center bg-[#0D0D0D] text-white p-6">
+    <div className="min-h-dvh grid place-items-center bg-[#0D0D0D] text-white p-6">
       <div className="max-w-md text-center space-y-3">
         <h2 className="text-2xl font-bold">Acceso denegado</h2>
         <p className="text-gray-400">Solo administradores o managers pueden ver Configuración.</p>
@@ -899,7 +899,7 @@ function SettingsPage() {
 
   if (!authChecked) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0D0D0D] to-[#1A1A1A] text-white p-6 flex items-center justify-center">
+      <div className="min-h-dvh bg-gradient-to-br from-[#0D0D0D] to-[#1A1A1A] text-white p-6 flex items-center justify-center">
         <div className="animate-pulse text-gray-400">Cargando configuración…</div>
       </div>
     );
@@ -907,7 +907,7 @@ function SettingsPage() {
   if (!isAllowed) return <AccessDenied />;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0D0D0D] to-[#1A1A1A] text-white"
+    <div className="min-h-dvh bg-gradient-to-br from-[#0D0D0D] to-[#1A1A1A] text-white"
          style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 72px)" }}>
       <Toast ref={toastRef} />
 
@@ -1399,7 +1399,7 @@ export default function MasterSettingsHub() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0D0D0D] to-[#1A1A1A] text-white">
+    <div className="min-h-dvh bg-gradient-to-br from-[#0D0D0D] to-[#1A1A1A] text-white">
       {/* Sticky Header con indicador de cambios */}
       <div className="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">

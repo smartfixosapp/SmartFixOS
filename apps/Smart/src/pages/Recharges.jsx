@@ -132,7 +132,7 @@ export default function Recharges() {
   };
 
   return (
-    <div className="min-h-screen apple-surface apple-type py-3 sm:py-6">
+    <div className="min-h-dvh apple-surface apple-type py-3 sm:py-6">
       <div className="app-container">
         {/* Header con estadísticas */}
         <div className="apple-card p-6 mb-6">

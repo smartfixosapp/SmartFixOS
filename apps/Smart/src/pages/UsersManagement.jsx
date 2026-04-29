@@ -1175,7 +1175,7 @@ export default function UsersManagement() {
   // Vista de Control de Tiempo
   if (activeView === "time") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-emerald-950 to-slate-900 py-4">
+      <div className="min-h-dvh bg-gradient-to-br from-slate-950 via-emerald-950 to-slate-900 py-4">
         <div className="app-container">
           <button
             onClick={() => setActiveView("users")}
@@ -1192,7 +1192,7 @@ export default function UsersManagement() {
   // Vista de Información del Negocio
   if (activeView === "business_info") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-orange-950 to-slate-900 p-4">
+      <div className="min-h-dvh bg-gradient-to-br from-slate-950 via-orange-950 to-slate-900 p-4">
         <div className="max-w-4xl mx-auto">
           <button onClick={() => setActiveView("users")}
             className="flex items-center gap-2 text-white/50 hover:text-white mb-6 text-sm font-bold transition-colors">
@@ -1395,7 +1395,7 @@ export default function UsersManagement() {
   // Vista de Métodos de Pago
   if (activeView === "payment_methods") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-green-950 to-slate-900 p-4">
+      <div className="min-h-dvh bg-gradient-to-br from-slate-950 via-green-950 to-slate-900 p-4">
         <div className="max-w-4xl mx-auto">
           <button onClick={() => setActiveView("users")}
             className="flex items-center gap-2 text-white/50 hover:text-white mb-6 text-sm font-bold transition-colors">
@@ -1521,7 +1521,7 @@ export default function UsersManagement() {
   }
 
   return (
-    <div className="min-h-screen apple-surface apple-type py-4 sm:py-6 lg:py-8 pb-24">
+    <div className="min-h-dvh apple-surface apple-type py-4 sm:py-6 lg:py-8 pb-24">
       <div className="app-container space-y-6">
 
         {/* Header Apple Style */}

@@ -125,7 +125,7 @@ export default function TenantLoginSignup() {
   };
 
   return (
-    <div className="apple-type min-h-screen apple-surface flex items-center justify-center p-4">
+    <div className="apple-type min-h-dvh apple-surface flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

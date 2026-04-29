@@ -79,7 +79,7 @@ export default function SettingsNav() {
 
   return (
     <div
-      className="min-h-screen apple-surface apple-type p-4 pb-28"
+      className="min-h-dvh apple-surface apple-type p-4 pb-28"
       style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 10px)" }}
     >
       {/* Header estilo iOS */}

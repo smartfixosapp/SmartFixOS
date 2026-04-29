@@ -99,7 +99,7 @@ export default function CustomerApproval() {
 
   if (pageStatus === STATUS.loading) {
     return (
-      <div className="min-h-screen apple-surface apple-type flex items-center justify-center">
+      <div className="min-h-dvh apple-surface apple-type flex items-center justify-center">
         <div className="w-6 h-6 border-2 border-apple-blue/20 border-t-apple-blue rounded-full animate-spin" />
       </div>
     );
@@ -107,7 +107,7 @@ export default function CustomerApproval() {
 
   if (pageStatus === STATUS.notFound || pageStatus === STATUS.error) {
     return (
-      <div className="min-h-screen apple-surface apple-type flex items-center justify-center px-4">
+      <div className="min-h-dvh apple-surface apple-type flex items-center justify-center px-4">
         <div className="text-center">
           <div className="w-14 h-14 rounded-apple-sm bg-apple-orange/12 flex items-center justify-center mx-auto mb-4">
             <AlertTriangle className="w-7 h-7 text-apple-orange" />
@@ -121,7 +121,7 @@ export default function CustomerApproval() {
 
   if (pageStatus === STATUS.approved) {
     return (
-      <div className="min-h-screen apple-surface apple-type flex items-center justify-center px-4">
+      <div className="min-h-dvh apple-surface apple-type flex items-center justify-center px-4">
         <div className="text-center">
           <div className="w-16 h-16 rounded-apple-sm bg-apple-green/12 flex items-center justify-center mx-auto mb-4">
             <CheckCircle2 className="w-9 h-9 text-apple-green" />
@@ -136,7 +136,7 @@ export default function CustomerApproval() {
 
   if (pageStatus === STATUS.rejected) {
     return (
-      <div className="min-h-screen apple-surface apple-type flex items-center justify-center px-4">
+      <div className="min-h-dvh apple-surface apple-type flex items-center justify-center px-4">
         <div className="text-center">
           <div className="w-16 h-16 rounded-apple-sm bg-apple-red/12 flex items-center justify-center mx-auto mb-4">
             <XCircle className="w-9 h-9 text-apple-red" />
@@ -152,7 +152,7 @@ export default function CustomerApproval() {
   if (pageStatus === STATUS.alreadyActed) {
     const acted = order?.customer_approval_status;
     return (
-      <div className="min-h-screen apple-surface apple-type flex items-center justify-center px-4">
+      <div className="min-h-dvh apple-surface apple-type flex items-center justify-center px-4">
         <div className="text-center">
           <div className={`w-14 h-14 rounded-apple-sm ${acted === "approved" ? "bg-apple-green/12" : "bg-apple-red/12"} flex items-center justify-center mx-auto mb-4`}>
             {acted === "approved" ? (
@@ -173,7 +173,7 @@ export default function CustomerApproval() {
 
   // STATUS.ready — show estimate
   return (
-    <div className="min-h-screen apple-surface apple-type">
+    <div className="min-h-dvh apple-surface apple-type">
       <div className="max-w-lg mx-auto px-4 py-8 space-y-5">
 
         {/* Header */}

@@ -84,7 +84,7 @@ function StuckSessionRecovery() {
   }, []);
 
   return (
-    <div className="min-h-screen apple-surface apple-type flex items-center justify-center p-6">
+    <div className="min-h-dvh apple-surface apple-type flex items-center justify-center p-6">
       <div className="text-center space-y-5 max-w-sm">
         <div className="mx-auto animate-spin rounded-full h-10 w-10 border-[3px] border-apple-blue border-t-transparent" />
         <div className="space-y-1">
@@ -2816,7 +2816,7 @@ export default function PinAccess() {
   if (step === "welcome") {
     return (
       <div
-        className="min-h-screen bg-[#000000] text-white overflow-y-auto selection:bg-cyan-500/30 font-sans"
+        className="min-h-dvh bg-[#000000] text-white overflow-y-auto selection:bg-cyan-500/30 font-sans"
         style={{
           paddingTop: "max(env(safe-area-inset-top), 0px)",
           paddingBottom: "max(env(safe-area-inset-bottom), 0px)"

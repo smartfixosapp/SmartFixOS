@@ -59,7 +59,7 @@ export default function VerifyEmail() {
   };
 
   return (
-    <div className="min-h-screen bg-[#000000] text-white flex items-center justify-center p-4">
+    <div className="min-h-dvh bg-[#000000] text-white flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}

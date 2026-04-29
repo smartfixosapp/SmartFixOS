@@ -1295,7 +1295,7 @@ export default function SuperAdmin() {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen apple-surface apple-type">
+    <div className="min-h-dvh apple-surface apple-type">
 
       {/* ── Note Modal ── */}
       <AnimatePresence>

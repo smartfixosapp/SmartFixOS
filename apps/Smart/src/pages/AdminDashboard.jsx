@@ -136,7 +136,7 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="min-h-screen apple-surface apple-type py-6">
+    <div className="min-h-dvh apple-surface apple-type py-6">
       <div className="app-container">
         {/* Header */}
         <div className="mb-8">

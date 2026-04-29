@@ -82,7 +82,7 @@ export default function Pricing() {
   };
 
   return (
-    <div className="min-h-screen bg-[#000000] text-white overflow-y-auto selection:bg-cyan-500/30">
+    <div className="min-h-dvh bg-[#000000] text-white overflow-y-auto selection:bg-cyan-500/30">
       {/* Nav */}
       <nav className="liquid-glass-strong sticky top-0 z-50 border-b border-white/5">
         <div className="app-container h-16 flex items-center justify-between">

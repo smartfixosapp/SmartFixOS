@@ -145,7 +145,7 @@ export default function Customers() {
 
   return (
     <div
-      className="min-h-screen apple-surface apple-type pb-28"
+      className="min-h-dvh apple-surface apple-type pb-28"
       style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 6px)" }}
     >
       <div className="max-w-full mx-auto px-4 sm:px-5 lg:px-8 py-4 relative z-10">

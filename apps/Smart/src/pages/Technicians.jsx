@@ -210,14 +210,14 @@ export default function Technicians() {
 
   if (loading) {
     return (
-      <div className="min-h-screen apple-surface apple-type p-4 sm:p-6 flex items-center justify-center">
+      <div className="min-h-dvh apple-surface apple-type p-4 sm:p-6 flex items-center justify-center">
         <div className="animate-spin w-12 h-12 border-4 border-apple-red border-t-transparent rounded-full" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen apple-surface apple-type py-4 sm:py-6">
+    <div className="min-h-dvh apple-surface apple-type py-4 sm:py-6">
       <div className="app-container space-y-6">
         {/* Header */}
         <div className="apple-card p-6">

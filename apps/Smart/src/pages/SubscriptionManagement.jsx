@@ -77,7 +77,7 @@ export default function SubscriptionManagement() {
   const suspendedTenants = tenants.filter(t => t.status === "suspended");
 
   return (
-    <div className="min-h-screen apple-surface apple-type p-6">
+    <div className="min-h-dvh apple-surface apple-type p-6">
       <div className="max-w-6xl mx-auto">
         <h1 className="apple-text-large-title apple-label-primary mb-8">Gestión de Suscripciones</h1>
 

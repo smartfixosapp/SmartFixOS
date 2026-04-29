@@ -122,7 +122,7 @@ Si preguntan por el estado, explica el estado actual de forma amigable.`;
 
   if (loading) {
     return (
-      <div className="min-h-screen apple-surface apple-type flex items-center justify-center">
+      <div className="min-h-dvh apple-surface apple-type flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin w-12 h-12 border-[3px] border-apple-blue/20 border-t-apple-blue rounded-full mx-auto mb-4"></div>
           <p className="apple-text-body apple-label-secondary">Cargando información...</p>
@@ -133,7 +133,7 @@ Si preguntan por el estado, explica el estado actual de forma amigable.`;
 
   if (error || !order) {
     return (
-      <div className="min-h-screen apple-surface apple-type flex items-center justify-center p-4">
+      <div className="min-h-dvh apple-surface apple-type flex items-center justify-center p-4">
         <div className="max-w-md w-full apple-card p-8 text-center">
           <div className="w-14 h-14 rounded-apple-sm bg-apple-red/12 flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="w-8 h-8 text-apple-red" />
@@ -158,7 +158,7 @@ Si preguntan por el estado, explica el estado actual de forma amigable.`;
   );
 
   return (
-    <div className="min-h-screen apple-surface apple-type p-4 md:p-8">
+    <div className="min-h-dvh apple-surface apple-type p-4 md:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header with Branding */}
         <div className="text-center mb-8">

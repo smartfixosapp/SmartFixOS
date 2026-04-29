@@ -41,7 +41,7 @@ export default function CustomerDisplay() {
   const { cart, customer, total, status, orderInfo } = data;
 
   return (
-    <div className="min-h-screen apple-surface apple-type p-8 flex flex-col">
+    <div className="min-h-dvh apple-surface apple-type p-8 flex flex-col">
       {/* Header */}
       <div
         className="flex items-center justify-between pb-6 mb-8"

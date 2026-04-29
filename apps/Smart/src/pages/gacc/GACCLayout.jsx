@@ -241,7 +241,7 @@ export default function GACCLayout({ activeSection, onSectionChange, onOpenPalet
   if (!authorized) return null;
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-white flex">
+    <div className="min-h-dvh bg-[#09090b] text-white flex">
 
       {/* ── Sidebar (desktop) ── */}
       <aside

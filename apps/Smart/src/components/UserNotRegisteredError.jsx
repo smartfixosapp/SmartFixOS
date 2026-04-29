@@ -2,7 +2,7 @@ import React from 'react';
 
 const UserNotRegisteredError = () => {
   return (
-    <div className="apple-type flex flex-col items-center justify-center min-h-screen apple-surface">
+    <div className="apple-type flex flex-col items-center justify-center min-h-dvh apple-surface">
       <div className="max-w-md w-full p-8 apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0">
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-apple-sm bg-apple-orange/15">

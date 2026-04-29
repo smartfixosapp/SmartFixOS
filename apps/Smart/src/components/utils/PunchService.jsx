@@ -367,7 +367,7 @@ export default function Punches() {
   const isAdmin = session?.userRole === "admin";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0D0D0D] to-[#1A1A1A] text-white p-4 md:p-6">
+    <div className="min-h-dvh bg-gradient-to-br from-[#0D0D0D] to-[#1A1A1A] text-white p-4 md:p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">

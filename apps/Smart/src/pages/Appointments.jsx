@@ -61,7 +61,7 @@ export default function Appointments() {
     appts.filter(a => a.scheduled_date && isSameDay(new Date(a.scheduled_date), day));
 
   return (
-    <div className="min-h-screen apple-surface apple-type flex flex-col">
+    <div className="min-h-dvh apple-surface apple-type flex flex-col">
       {/* Header */}
       <div
         className="flex items-center justify-between px-4 py-3 shrink-0"
