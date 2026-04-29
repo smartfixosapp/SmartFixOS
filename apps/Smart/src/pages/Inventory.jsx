@@ -295,7 +295,7 @@ function QuickStockAdjust({ item, onClose, onSave }) {
             <p className="text-white font-semibold text-sm truncate max-w-[220px]">{item.name}</p>
             <p className="text-white/40 text-xs mt-0.5">Stock actual: <span className="text-white font-bold">{currentStock}</span></p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/50 hover:text-white">✕</button>
+          <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/50 hover:text-white" aria-label="Cerrar">✕</button>
         </div>
 
         {/* Mode selector */}
