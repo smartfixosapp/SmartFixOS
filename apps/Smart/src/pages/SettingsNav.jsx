@@ -78,10 +78,7 @@ export default function SettingsNav() {
   };
 
   return (
-    <div
-      className="min-h-dvh apple-surface apple-type p-4 pb-28"
-      style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 10px)" }}
-    >
+    <div className="min-h-dvh apple-surface apple-type p-4">
       {/* Header estilo iOS */}
       <div className="flex items-center gap-2 mb-6">
         <button

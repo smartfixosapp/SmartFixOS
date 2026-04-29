@@ -873,7 +873,7 @@ export default function Dashboard() {
         />
       )}
 
-      <div className="px-2 md:px-6 lg:px-8 xl:px-12 pt-[calc(env(safe-area-inset-top,0px)+6px)] md:pt-3 lg:pt-4 pb-[calc(80px+env(safe-area-inset-bottom,0px))] md:pb-3 flex-1 min-h-0 flex flex-col">
+      <div className="px-2 md:px-6 lg:px-8 xl:px-12 pt-1.5 md:pt-3 lg:pt-4 pb-2 md:pb-3 flex-1 min-h-0 flex flex-col">
         <div className="app-container-wide flex-1 min-h-0 flex flex-col">
           
           {/* === DESKTOP: PULSO — layout horizontal estilo Apple === */}

@@ -2817,13 +2817,12 @@ export default function PinAccess() {
     return (
       <div
         className="min-h-dvh bg-[#000000] text-white overflow-y-auto selection:bg-cyan-500/30 font-sans"
-        style={{
-          paddingTop: "max(env(safe-area-inset-top), 0px)",
-          paddingBottom: "max(env(safe-area-inset-bottom), 0px)"
-        }}
       >
         {/* Navigation */}
-        <nav className="liquid-glass-strong sticky top-0 z-50 border-b border-white/5">
+        <nav
+          className="liquid-glass-strong sticky top-0 z-50 border-b border-white/5"
+          style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
+        >
           <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <img
@@ -2842,7 +2841,7 @@ export default function PinAccess() {
         </nav>
 
         {/* Main Content */}
-        <div className="app-container py-8 sm:py-16">
+        <div className="app-container py-4 sm:py-16">
           
           <div className="text-center mb-12 flex flex-col items-center gap-4">
             <Button

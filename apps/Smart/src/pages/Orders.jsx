@@ -575,10 +575,9 @@ export default function OrdersPage() {
   return (
     <div
       ref={containerRef}
-      className="min-h-dvh apple-surface apple-type pb-24 overflow-y-auto"
+      className="min-h-dvh apple-surface apple-type overflow-y-auto"
       style={{
-        WebkitOverflowScrolling: "touch",
-        paddingTop: "calc(env(safe-area-inset-top, 0px) + 6px)"
+        WebkitOverflowScrolling: "touch"
       }}
     >
       {/* Pull-to-refresh indicator ELIMINADO */}
