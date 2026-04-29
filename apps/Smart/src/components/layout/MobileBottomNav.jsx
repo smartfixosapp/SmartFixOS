@@ -159,7 +159,7 @@ export default function MobileBottomNav() {
         hasPanelsOpen ? "h-0" : ""
       )}
       style={!hasPanelsOpen ? {
-        height: "calc(72px + clamp(16px, env(safe-area-inset-bottom, 28px), 44px))"
+        height: "calc(70px + clamp(8px, env(safe-area-inset-bottom, 12px), 20px))"
       } : undefined}
     />
   );
@@ -177,10 +177,10 @@ export default function MobileBottomNav() {
       style={{
         position: "fixed",
         bottom: "var(--nav-gap-fix, 0px)",
-        paddingBottom: "clamp(16px, env(safe-area-inset-bottom, 28px), 44px)",
+        paddingBottom: "clamp(8px, env(safe-area-inset-bottom, 12px), 20px)",
         paddingLeft: "12px",
         paddingRight: "12px",
-        paddingTop: "8px",
+        paddingTop: "6px",
         background: "transparent",
         border: "none",
         boxShadow: "none",
