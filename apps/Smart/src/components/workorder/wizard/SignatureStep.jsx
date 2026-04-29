@@ -167,7 +167,7 @@ export default function SignatureStep({ formData, updateFormData }) {
       {/* Modal FULLSCREEN con canvas centrado */}
       <Dialog open={showDialog} onOpenChange={() => {}}>
         <DialogContent
-          className="fixed inset-0 w-screen h-screen max-w-none m-0 apple-surface border-0 flex flex-col"
+          className="fixed inset-0 w-screen h-dvh max-w-none m-0 apple-surface border-0 flex flex-col"
           style={{ zIndex: 99999 }}
           onPointerDownOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}

@@ -911,7 +911,7 @@ Máximo 30 palabras en total.`;
     }
   };
 
-  if (loadingDrawer) return <div className="h-screen flex items-center justify-center bg-black"><Loader2 className="w-8 h-8 animate-spin text-cyan-400" /></div>;
+  if (loadingDrawer) return <div className="h-dvh flex items-center justify-center bg-black"><Loader2 className="w-8 h-8 animate-spin text-cyan-400" /></div>;
 
   if (!currentDrawer) {
     return (

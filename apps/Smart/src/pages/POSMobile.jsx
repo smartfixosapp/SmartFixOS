@@ -852,7 +852,7 @@ export default function POSMobile() {
   };
 
   if (loadingDrawer) return (
-    <div className="h-screen flex items-center justify-center apple-surface">
+    <div className="h-dvh flex items-center justify-center apple-surface">
       <Loader2 className="w-7 h-7 animate-spin text-apple-blue" />
     </div>
   );
@@ -881,7 +881,7 @@ export default function POSMobile() {
   }
 
   return (
-    <div className="h-screen apple-surface flex flex-col overflow-hidden apple-type">
+    <div className="h-dvh apple-surface flex flex-col overflow-hidden apple-type">
       {/* ── Header estilo iOS: large title + acciones ─── */}
       <div
         className="flex-shrink-0 apple-surface-secondary px-5 pb-4 z-20 relative"
