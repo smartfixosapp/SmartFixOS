@@ -159,7 +159,7 @@ export default function MobileBottomNav() {
         hasPanelsOpen ? "h-0" : ""
       )}
       style={!hasPanelsOpen ? {
-        height: "calc(70px + clamp(8px, env(safe-area-inset-bottom, 12px), 20px))"
+        height: "70px"
       } : undefined}
     />
   );
@@ -177,7 +177,7 @@ export default function MobileBottomNav() {
       style={{
         position: "fixed",
         bottom: "var(--nav-gap-fix, 0px)",
-        paddingBottom: "clamp(8px, env(safe-area-inset-bottom, 12px), 20px)",
+        paddingBottom: "0px",
         paddingLeft: "12px",
         paddingRight: "12px",
         paddingTop: "6px",
