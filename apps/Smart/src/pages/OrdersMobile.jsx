@@ -209,6 +209,26 @@ export default function OrdersMobile() {
               <span className="text-lg leading-none font-light">+</span>
               <span>Nueva</span>
             </button>
+            {/* Cola de trabajo — paridad con el sidebar del iPad.
+                Tap abre un bottom sheet con todas las órdenes accionables ordenadas por #.
+                Badge muestra el conteo cuando hay > 0. */}
+            <button
+              onClick={() => setShowQueueSheet(true)}
+              className="apple-press relative w-9 h-9 rounded-full bg-apple-blue/15 flex items-center justify-center text-apple-blue"
+              aria-label="Cola de trabajo"
+            >
+              <ListOrdered className="w-[18px] h-[18px]" />
+              {(() => {
+                const ACTIONABLE = new Set(["intake", "diagnosing", "in_progress", "warranty"]);
+                const n = (orders || []).filter(o => ACTIONABLE.has(getEffectiveOrderStatus(o))).length;
+                if (!n) return null;
+                return (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-apple-red text-white text-[9px] font-bold flex items-center justify-center tabular-nums">
+                    {n > 99 ? "99+" : n}
+                  </span>
+                );
+              })()}
+            </button>
             <button
               onClick={() => document.querySelector('.orders-chatbot-trigger')?.click()}
               className="apple-press w-9 h-9 rounded-full bg-apple-blue/15 flex items-center justify-center text-apple-blue"
