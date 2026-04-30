@@ -150,25 +150,7 @@ export default function Customers() {
     >
       <div className="max-w-full mx-auto px-4 sm:px-5 lg:px-8 py-4 relative z-10">
 
-        {/* ── JENAI Customer Insights ── */}
-        <div className="mb-4">
-          <JENAIInsightBanner
-            context="customers"
-            data={{
-              totalCustomers: stats.total,
-              vipCount: stats.vip,
-              newThisMonth: stats.newThisMonth,
-              inactiveCount: customers.filter(c => {
-                if (!c.updated_at && !c.created_at) return true;
-                const last = new Date(c.updated_at || c.created_at);
-                return (Date.now() - last.getTime()) > 30 * 86400000;
-              }).length,
-              topCustomer: [...customers].sort((a, b) => (b.total_orders || 0) - (a.total_orders || 0))[0]?.full_name || "N/A",
-            }}
-            accentColor="blue"
-            autoLoad={false}
-          />
-        </div>
+        {/* JENAI insights removido — IA solo vive en Finanzas → Órdenes de Compra. */}
 
         {/* ── HEADER estilo iOS ────────────────────────────── */}
         <div className="flex items-end justify-between gap-3 mb-5">
