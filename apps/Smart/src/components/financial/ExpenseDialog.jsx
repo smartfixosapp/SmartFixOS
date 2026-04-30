@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TrendingDown, DollarSign, Calendar } from "lucide-react";
-import AIExpenseCategorizor from "./AIExpenseCategorizor";
+// AIExpenseCategorizor removido — IA solo vive en Órdenes de Compra.
 import { toast } from "sonner";
 import {
   PAYMENT_METHOD_LABELS,
