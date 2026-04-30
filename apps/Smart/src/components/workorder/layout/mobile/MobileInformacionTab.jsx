@@ -121,8 +121,8 @@ export default function MobileInformacionTab({
       <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] divide-y divide-white/[0.06]">
         <InfoRow label="Dispositivo" value={[o.device_brand, o.device_model].filter(Boolean).join(" ") || o.device_type} orderId={o.id} field="device_model" onUpdate={onUpdate} editMode={editMode} />
         <InfoRow label="Parte defectuosa" value={o.initial_problem || o.defective_part} orderId={o.id} field="initial_problem" onUpdate={onUpdate} editMode={editMode} />
-        <InfoRow label="IMEI/SERIAL" value={o.device_imei || o.device_serial} orderId={o.id} field="device_imei" onUpdate={onUpdate} placeholder="NOT PROVIDED" />
-        <InfoRow label="Codigo de bloqueo" value={sec.device_pin || sec.device_password} orderId={o.id} onUpdate={onUpdate} placeholder="NOT PROVIDED" isSecure onSecurityEdit={onSecurityEdit} />
+        <InfoRow label="IMEI/SERIAL" value={o.device_imei || o.device_serial} orderId={o.id} field="device_imei" onUpdate={onUpdate} placeholder="NOT PROVIDED" editMode={editMode} />
+        <InfoRow label="Codigo de bloqueo" value={sec.device_pin || sec.device_password} orderId={o.id} onUpdate={onUpdate} placeholder="NOT PROVIDED" isSecure onSecurityEdit={onSecurityEdit} editMode={editMode} />
         <InfoRow label="Costo de reparacion (est.)" value={`$${financial.total.toFixed(2)}`} orderId={o.id} field="cost_estimate" onUpdate={onUpdate} editMode={editMode} />
         <InfoRow label="Cliente" value={o.customer_name} orderId={o.id} field="customer_name" onUpdate={onUpdate} editMode={editMode} />
         <InfoRow label="Telefono del cliente" value={phone} orderId={o.id} field="customer_phone" onUpdate={onUpdate} isPhone />
