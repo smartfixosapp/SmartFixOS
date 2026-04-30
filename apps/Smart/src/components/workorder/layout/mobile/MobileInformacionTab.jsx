@@ -125,7 +125,7 @@ export default function MobileInformacionTab({
         <InfoRow label="Codigo de bloqueo" value={sec.device_pin || sec.device_password} orderId={o.id} onUpdate={onUpdate} placeholder="NOT PROVIDED" isSecure onSecurityEdit={onSecurityEdit} editMode={editMode} />
         <InfoRow label="Costo de reparacion (est.)" value={`$${financial.total.toFixed(2)}`} orderId={o.id} field="cost_estimate" onUpdate={onUpdate} editMode={editMode} />
         <InfoRow label="Cliente" value={o.customer_name} orderId={o.id} field="customer_name" onUpdate={onUpdate} editMode={editMode} />
-        <InfoRow label="Telefono del cliente" value={phone} orderId={o.id} field="customer_phone" onUpdate={onUpdate} isPhone />
+        <InfoRow label="Telefono del cliente" value={phone} orderId={o.id} field="customer_phone" onUpdate={onUpdate} isPhone editMode={editMode} />
         {o.customer_email && (
           <InfoRow label="Email" value={o.customer_email} orderId={o.id} field="customer_email" onUpdate={onUpdate} editMode={editMode} />
         )}
