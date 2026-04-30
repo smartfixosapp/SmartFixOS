@@ -35,35 +35,10 @@ export default function CustomerOrdersDialog({ customer, orders = [], open, onCl
     onClose();
   };
 
+  // Resumen IA del cliente removido — IA solo vive en Órdenes de Compra.
   const fetchClientSummary = async () => {
-    setAiClientLoading(true);
+    setAiClientLoading(false);
     setAiClientSummary("");
-    try {
-      const totalSpent = orders.reduce((sum, o) => sum + (o.total || o.quoted_price || 0), 0);
-      const avgTicket = orders.length > 0 ? totalSpent / orders.length : 0;
-      const lastOrder = orders.sort((a,b) => new Date(b.created_date||b.created_at) - new Date(a.created_date||a.created_at))[0];
-      const daysSinceLast = lastOrder ? Math.floor((Date.now() - new Date(lastOrder.created_date||lastOrder.created_at)) / 86400000) : null;
-      const devices = [...new Set(orders.map(o => o.device_model || o.brand || "").filter(Boolean))].slice(0,3);
-
-      const prompt = `Eres el asistente de SmartFixOS para un taller de reparación.
-Analiza este perfil de cliente en ESPAÑOL. Máximo 80 palabras.
-
-CLIENTE: ${customer?.full_name || customer?.name || "Cliente"}
-- Total de visitas/órdenes: ${orders.length}
-- Gasto total histórico: $${totalSpent.toFixed(0)}
-- Ticket promedio: $${avgTicket.toFixed(0)}
-- Días desde última visita: ${daysSinceLast !== null ? daysSinceLast : "desconocido"}
-- Dispositivos: ${devices.join(", ") || "varios"}
-
-Dime: tipo de cliente (frecuente/ocasional/nuevo), su valor para el negocio, y una acción recomendada (ej: ofrecer descuento, llamar para seguimiento, etc).`;
-
-      const text = await callJENAI(prompt, { maxTokens: 200 });
-      setAiClientSummary(text);
-    } catch(err) {
-      setAiClientSummary("⚠️ " + err.message);
-    } finally {
-      setAiClientLoading(false);
-    }
   };
 
   if (!customer) return null;
