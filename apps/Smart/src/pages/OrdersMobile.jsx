@@ -60,6 +60,10 @@ export default function OrdersMobile() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [selectedOrderId, setSelectedOrderId] = useState(null);
+  // Bottom sheet con la cola de trabajo (paridad con el sidebar del iPad).
+  // Por defecto cerrado en iPhone para no quitar pantalla; se abre con el
+  // botón "Cola" del header.
+  const [showQueueSheet, setShowQueueSheet] = useState(false);
 
   useEffect(() => {
     loadOrders();
