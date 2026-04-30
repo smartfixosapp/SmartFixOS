@@ -212,7 +212,9 @@ export default function MobileInformacionTab({
 }
 
 // ── Info Row with inline edit ──
-function InfoRow({ label, value, orderId, field, onUpdate, placeholder, isPhone, isSecure, onSecurityEdit }) {
+// Si editMode === false, el row es solo lectura: ningún tap, ningún lápiz.
+// Si editMode === true, aparece el lápiz a la derecha y tap abre el editor inline.
+function InfoRow({ label, value, orderId, field, onUpdate, placeholder, isPhone, isSecure, onSecurityEdit, editMode = false }) {
   const [editing, setEditing] = useState(false);
   const [editValue, setEditValue] = useState(value || "");
   const [saving, setSaving] = useState(false);
