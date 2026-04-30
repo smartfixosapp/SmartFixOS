@@ -274,10 +274,11 @@ export default function CheckoutModalDesktop({
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 apple-text-title3 font-bold apple-label-secondary">$</span>
                   <Input
-                    type="number"
-                    step="0.01"
+                    type="text"
+                    inputMode="decimal"
+                    pattern="[0-9]*[.,]?[0-9]*"
                     value={depositAmount}
-                    onChange={(e) => setDepositAmount(e.target.value)}
+                    onChange={(e) => setDepositAmount(e.target.value.replace(/[^0-9.]/g, ""))}
                     placeholder="0.00"
                     className="apple-input pl-10 h-12 tabular-nums"
                     autoFocus
