@@ -1641,52 +1641,8 @@ export default function Inventory() {
           );
         })()}
 
-        {/* ── JENAI Inventory Insights ── */}
-        <div className="mb-4">
-          <JENAIInsightBanner
-            context="inventory"
-            data={{
-              totalProducts: items.length,
-              outOfStock: items.filter(p => (p.stock || 0) <= 0).length,
-              lowStock: items.filter(p => (p.stock || 0) > 0 && (p.stock || 0) <= (p.min_stock || 3)).length,
-              healthy: items.filter(p => (p.stock || 0) > (p.min_stock || 3)).length,
-              totalValue: items.reduce((s, p) => s + (p.cost || 0) * (p.stock || 0), 0).toFixed(0),
-              criticalItems: items.filter(p => (p.stock || 0) <= 0).slice(0, 5).map(p => p.name).join(", "),
-            }}
-            accentColor="amber"
-            autoLoad={false}
-          />
-        </div>
-
-        {/* ── IA Inventario ── */}
-        <div className="border border-violet-500/20 rounded-2xl overflow-hidden bg-white/[0.02] mb-4">
-          <div className="flex items-center justify-between px-4 py-3">
-            <div className="flex items-center gap-2">
-              <span className="text-violet-400">✨</span>
-              <span className="text-xs font-semibold text-white/50">Análisis IA del inventario</span>
-            </div>
-            <button
-              onClick={fetchInventoryAnalysis}
-              disabled={aiInventoryLoading}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-violet-500/10 border border-violet-500/20 text-violet-300 text-xs font-semibold hover:bg-violet-500/20 transition-all active:scale-95 disabled:opacity-50"
-            >
-              {aiInventoryLoading ? "Analizando…" : "✨ Analizar stock"}
-            </button>
-          </div>
-          {(aiInventoryAnalysis || aiInventoryLoading) && (
-            <div className="px-4 pb-4">
-              {aiInventoryLoading ? (
-                <div className="flex gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"0ms"}} />
-                  <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"150ms"}} />
-                  <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"300ms"}} />
-                </div>
-              ) : (
-                <p className="text-sm text-white/70 leading-relaxed">{aiInventoryAnalysis}</p>
-              )}
-            </div>
-          )}
-        </div>
+        {/* JENAI Inventory Insights y "Análisis IA del inventario" eliminados.
+            La IA solo vive en Finanzas → Órdenes de Compra. */}
 
         {/* ── Main Category Tabs ────────────────────────────────── */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 mb-4 scrollbar-none">
