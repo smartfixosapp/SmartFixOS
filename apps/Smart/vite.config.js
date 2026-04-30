@@ -82,26 +82,31 @@ export default defineConfig({
         manualChunks(id) {
           if (!id.includes('node_modules/')) return;
 
-          // ── Heavy libs that should ONLY load with their consumer pages ──
-          // Returning a name puts them in their own chunk; Rollup will only
-          // emit it when a consumer chunk dynamically imports them, so they
-          // don't bloat the initial bundle of pages that don't need them.
+          // ── Heavy libs que SOLO cargan en sus pages consumidoras ──
+          // Estos son seguros: no comparten símbolos con React core,
+          // se cargan dinámicamente y nunca corren en el critical path.
           if (id.includes('/node_modules/jspdf/')         ||
               id.includes('/node_modules/jspdf-autotable/')) return 'vendor-pdf';
           if (id.includes('/node_modules/recharts/'))     return 'vendor-charts';
           if (id.includes('/node_modules/@hello-pangea/dnd/')) return 'vendor-dnd';
-          if (id.includes('/node_modules/react-quill/')   ||
-              id.includes('/node_modules/quill/'))         return 'vendor-quill';
 
-          // ── Stable, mid-size libs (used in many pages) ──
+          // ── Mid-size libs estables, sin deps circulares con React ──
           if (id.includes('/node_modules/framer-motion/')) return 'vendor-motion';
           if (id.includes('/node_modules/date-fns/'))      return 'vendor-dates';
           if (id.includes('/node_modules/@supabase/'))     return 'vendor-supabase';
-          if (id.includes('/node_modules/@radix-ui/'))     return 'vendor-radix';
-          if (id.includes('/node_modules/lucide-react/'))  return 'vendor-icons';
 
-          // Everything else (React, react-dom, scheduler, react-router, etc.)
-          // NOTE: Do NOT split React from its internal deps (scheduler, etc.) — causes circular chunks
+          // ⚠️ NO splittear @radix-ui ni lucide-react — generan errores
+          // de Temporal Dead Zone ("Cannot access 'X' before initialization")
+          // por dependencias circulares con React internals. Pueden quedar
+          // en el chunk vendor sin problema; el costo es que initial-bundle
+          // sea ~150KB más grande, pero a cambio el app NO crashea al cargar.
+          //
+          // Histórico: ese era el error
+          //   ReferenceError: Cannot access 'mt' before initialization.
+          //   URL: vendor-radix-Cl8V-Y2f.js
+          // que aparecía en iOS al separar @radix-ui/* en su propio chunk.
+
+          // Default: React, react-dom, scheduler, react-router, radix, lucide
           return 'vendor';
         },
       },
