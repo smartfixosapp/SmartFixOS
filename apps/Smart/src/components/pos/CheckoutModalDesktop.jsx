@@ -334,16 +334,20 @@ export default function CheckoutModalDesktop({
             {paymentMethod === "mixed" && (
               <div className="space-y-2">
                 <Input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
+                  pattern="[0-9]*[.,]?[0-9]*"
                   value={splitCashAmount}
-                  onChange={(e) => setSplitCashAmount(e.target.value)}
+                  onChange={(e) => setSplitCashAmount(e.target.value.replace(/[^0-9.]/g, ""))}
                   placeholder="Monto en efectivo"
                   className="apple-input h-11 tabular-nums"
                 />
                 <Input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
+                  pattern="[0-9]*[.,]?[0-9]*"
                   value={splitAthAmount}
-                  onChange={(e) => setSplitAthAmount(e.target.value)}
+                  onChange={(e) => setSplitAthAmount(e.target.value.replace(/[^0-9.]/g, ""))}
                   placeholder="Monto en ATH Móvil"
                   className="apple-input h-11 tabular-nums"
                 />
