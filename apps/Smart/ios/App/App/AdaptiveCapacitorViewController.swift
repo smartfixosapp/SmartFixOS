@@ -51,11 +51,13 @@ public class AdaptiveCapacitorViewController: CAPBridgeViewController {
 
     // ─────────────────────────────────────────────────────────────────────
     // Home indicator (iPhone X+)
+    //
+    // NOTE: CAPBridgeViewController redeclares prefersHomeIndicatorAutoHidden
+    // as `public` (not `open`), so we cannot override it from this module.
+    // If you genuinely need to hide the indicator (fullscreen kiosk POS),
+    // call `setNeedsUpdateOfHomeIndicatorAutoHidden()` on the bridge VC and
+    // patch CAPBridgeViewController itself, or use a separate child VC.
     // ─────────────────────────────────────────────────────────────────────
-
-    public override var prefersHomeIndicatorAutoHidden: Bool {
-        return hideHomeIndicator
-    }
 
     // ─────────────────────────────────────────────────────────────────────
     // Safe-area → CSS variables
