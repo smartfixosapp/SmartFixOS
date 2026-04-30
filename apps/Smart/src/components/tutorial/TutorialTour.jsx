@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
-import { callJENAI } from "@/lib/jenaiEngine";
+// IA removida del tutorial — solo vive en Finanzas → Órdenes de Compra.
 import { cn } from "@/lib/utils";
 import {
   X, ChevronRight, ChevronLeft, Sparkles,
