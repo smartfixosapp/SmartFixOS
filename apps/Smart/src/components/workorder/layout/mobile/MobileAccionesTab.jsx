@@ -213,22 +213,75 @@ export default function MobileAccionesTab({
         disabled={uploading}
       />
 
-      {/* Next Status CTA */}
-      {nextStatus && (
-        <button
-          onClick={() => { triggerHaptic("medium"); onChangeStatus?.(nextStatus.id); }}
-          disabled={changingStatus}
-          className={cn(
-            "w-full flex items-center gap-3 px-4 py-4 rounded-2xl font-bold text-sm transition-all active:scale-[0.97]",
-            changingStatus ? "opacity-50 cursor-not-allowed" : "hover:brightness-110",
-            nextStatus.colorClasses || "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
-            "border"
-          )}
-        >
-          <Zap className="w-5 h-5 shrink-0" />
-          <span className="flex-1 text-left">Pasar a {nextStatus.label}</span>
-          <ChevronRight className="w-4 h-4 opacity-50" />
-        </button>
+      {/* ───────────────────────────────────────────────────────────────
+          Selector manual de estado — antes era el "Pasar a X" automático.
+          Ahora muestra el estado actual con su color y, al tocar, abre el
+          listado completo para que el usuario decida a cuál pasar.
+          Filosofía: "manual primero" — el usuario decide; el sistema solo
+          ofrece el siguiente sugerido como hint sutil.
+          ─────────────────────────────────────────────────────────────── */}
+      {(() => {
+        const cfg = getStatusConfig(status) || {};
+        return (
+          <button
+            onClick={() => { triggerHaptic("medium"); setShowAllStatuses(v => !v); }}
+            disabled={changingStatus}
+            className={cn(
+              "w-full flex items-center gap-3 px-4 py-4 rounded-2xl font-bold text-sm transition-all active:scale-[0.97] border",
+              changingStatus ? "opacity-50 cursor-not-allowed" : "hover:brightness-110",
+              cfg.colorClasses || "bg-white/[0.06] text-white border-white/10"
+            )}
+            aria-expanded={showAllStatuses}
+          >
+            <div
+              className="w-2.5 h-2.5 rounded-full shrink-0"
+              style={{ backgroundColor: cfg.color || "#6B7280", boxShadow: `0 0 12px ${cfg.color || "#6B7280"}66` }}
+              aria-hidden="true"
+            />
+            <div className="flex-1 text-left min-w-0">
+              <div className="text-[10px] uppercase tracking-wider opacity-60 font-semibold">Estado actual</div>
+              <div className="truncate">{cfg.label || "—"}</div>
+              {nextStatus && (
+                <div className="text-[10px] opacity-60 font-medium mt-0.5">
+                  Sugerido: {nextStatus.label}
+                </div>
+              )}
+            </div>
+            <ChevronDown className={cn("w-4 h-4 opacity-60 transition-transform shrink-0", showAllStatuses && "rotate-180")} />
+          </button>
+        );
+      })()}
+
+      {/* Lista expandida de todos los estados — aparece al tocar el botón superior */}
+      {showAllStatuses && (
+        <div className="space-y-1 p-2 rounded-xl border border-white/10 bg-[#0D0D0F]">
+          {allStatuses.map(s => {
+            const isCurrent = normalizeStatusId(status) === s.id;
+            const isSuggested = nextStatus && nextStatus.id === s.id;
+            return (
+              <button
+                key={s.id}
+                onClick={() => {
+                  if (!isCurrent) {
+                    triggerHaptic("medium");
+                    onChangeStatus?.(s.id);
+                    setShowAllStatuses(false);
+                  }
+                }}
+                disabled={changingStatus || isCurrent}
+                className={cn(
+                  "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all text-left",
+                  isCurrent ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/[0.06] hover:text-white"
+                )}
+              >
+                <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: s.color || "#6B7280" }} />
+                <span className="truncate flex-1">{s.label}</span>
+                {isCurrent && <span className="text-[10px] text-white/50">actual</span>}
+                {!isCurrent && isSuggested && <span className="text-[10px] text-cyan-300/80">sugerido</span>}
+              </button>
+            );
+          })}
+        </div>
       )}
 
       {/* Stage Actions (contextual al estado actual) */}
