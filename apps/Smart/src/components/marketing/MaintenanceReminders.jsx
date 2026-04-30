@@ -188,8 +188,8 @@ export default function MaintenanceReminders() {
                 <CardContent className="p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                   {/* Icon & Date */}
                   <div className={`flex flex-col items-center justify-center w-16 h-16 rounded-apple-sm shrink-0 ${getStatusColor(reminder.status, reminder.due_date)}`}>
-                    <span className="apple-text-caption2 font-semibold">{moment(reminder.due_date).format("MMM")}</span>
-                    <span className="apple-text-title2 font-semibold tabular-nums">{moment(reminder.due_date).format("D")}</span>
+                    <span className="apple-text-caption2 font-semibold">{format(toDate(reminder.due_date), "MMM", { locale: es })}</span>
+                    <span className="apple-text-title2 font-semibold tabular-nums">{format(toDate(reminder.due_date), "d")}</span>
                   </div>
 
                   {/* Info */}
