@@ -14,8 +14,7 @@ import WorkOrderUnifiedHub from "@/components/workorder/WorkOrderUnifiedHub";
 import OrderLinksDialog from "@/components/workorder/OrderLinksDialog";
 import { loadOrderLinks } from "@/components/workorder/utils/orderLinksStore";
 import SharedItemsSection from "@/components/workorder/SharedItemsSection";
-import DiagnosticAI from "@/components/workorder/DiagnosticAI";
-import JeaniStageReportPanel from "@/components/workorder/JeaniStageReportPanel";
+// IA del work order removida — solo vive en Finanzas → Órdenes de Compra.
 
 // ── Checklists por tipo de dispositivo ────────────────────────────────────────
 const DEVICE_CHECKLISTS = {
