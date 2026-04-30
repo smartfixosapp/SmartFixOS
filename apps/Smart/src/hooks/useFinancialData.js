@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { dataClient } from "@/components/api/dataClient";
 import { base44 } from "@/api/base44Client";
-import { callJENAI } from "@/lib/jenaiEngine";
+// IA removida del hook financiero — solo vive en Órdenes de Compra.
 import { format, startOfDay, endOfDay, isWithinInterval } from "date-fns";
 import { toast } from "sonner";
 import {
