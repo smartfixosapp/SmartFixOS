@@ -67,6 +67,35 @@ export default function PurchaseOrderDialog({
   const [items, setItems] = useState([]);
   const [loadingPO, setLoadingPO] = useState(false);
   const [shippingCost, setShippingCost] = useState(0);
+  // Scanner IA — solo cuando se está creando una PO nueva.
+  const [showAIScanner, setShowAIScanner] = useState(false);
+  const [aiAttachmentUrl, setAiAttachmentUrl] = useState(null);
+
+  // Aplica los datos extraídos por IA a los campos del formulario.
+  // No guarda — el usuario revisa/edita y luego presiona Guardar.
+  const handleAIExtracted = (extracted) => {
+    if (!extracted) return;
+    if (extracted.supplier_name) setSupplierName(extracted.supplier_name);
+    if (extracted.order_date)    setOrderDate(extracted.order_date);
+    if (extracted.shipping_cost) setShippingCost(Number(extracted.shipping_cost) || 0);
+    if (extracted.invoice_number) {
+      // Si la PO aún no tiene número, usar el de la factura como referencia.
+      setNotes((n) =>
+        (n ? n + "\n" : "") + `Factura del proveedor: ${extracted.invoice_number}`
+      );
+    }
+    if (Array.isArray(extracted.line_items) && extracted.line_items.length > 0) {
+      setItems(extracted.line_items.map((it) => ({
+        product_id: null,
+        product_name: it.product_name || "",
+        quantity: Number(it.quantity || 1),
+        unit_cost: Number(it.unit_cost || 0),
+        line_total: Number(it.line_total || (Number(it.unit_cost || 0) * Number(it.quantity || 1))),
+        is_ai_imported: true,
+      })));
+    }
+    if (extracted.file_url) setAiAttachmentUrl(extracted.file_url);
+  };
 
   const generatePONumber = () => {
     const now = new Date();
