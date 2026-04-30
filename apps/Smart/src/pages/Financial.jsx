@@ -31,7 +31,8 @@ import TechnicianProductivityTab from "../components/financial/TechnicianProduct
 import ExecutiveDashboard from "../components/dashboard/ExecutiveDashboard";
 import { toast } from "sonner";
 import TransactionsModal from "../components/financial/TransactionsModal";
-import JenaiExpenseCapture from "../components/financial/JenaiExpenseCapture";
+// JenaiExpenseCapture (scan-recibo IA general) removido — el flujo de IA
+// solo aplica a Órdenes de Compra ahora.
 import PurchaseOrderDialog from "../components/inventory/PurchaseOrderDialog";
 import PurchaseOrderDetailDialog from "../components/inventory/PurchaseOrderDetailDialog";
 import ImportPODialog from "../components/inventory/ImportPODialog";
