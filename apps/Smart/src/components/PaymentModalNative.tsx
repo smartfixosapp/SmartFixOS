@@ -8,15 +8,24 @@
  *   - decimal `inputMode` so iOS shows the right keyboard
  *
  * Designed to live alongside the existing CheckoutModalDesktop /
- * CheckoutModalMobile — it's NOT wired in by default. Import where
- * you need a streamlined flow:
+ * CheckoutModalMobile. Pass cart items + the price breakdown and the
+ * modal handles method selection, keypad entry, change calculation, and
+ * (for sales ≥ $500) a native confirm dialog before invoking your
+ * onConfirmPayment callback.
  *
- *   import PaymentModalNative from "@/components/PaymentModalNative";
+ * Usage:
+ *   import { PaymentModalNative } from "@/components/PaymentModalNative";
+ *
  *   <PaymentModalNative
- *     open={open}
- *     amountDue={total}
- *     onConfirm={(payment) => recordSale(payment)}
- *     onClose={() => setOpen(false)}
+ *     isOpen={showPayment}
+ *     onClose={() => setShowPayment(false)}
+ *     items={cartItems}
+ *     subtotal={subtotal}
+ *     tax={tax}
+ *     total={total}
+ *     onConfirmPayment={async (data) => {
+ *       await recordSale(data);
+ *     }}
  *   />
  */
 
@@ -27,19 +36,44 @@ import "./PaymentModalNative.css";
 
 export type PaymentMethod = "cash" | "card" | "ath" | "split";
 
-export interface PaymentResult {
+/** Single line item in the cart. Matches the existing SmartFixOS POS shape. */
+export interface CartItem {
+  id?: string | number;
+  name: string;
+  price: number;
+  quantity: number;
+  /** Optional secondary line, e.g. SKU or model. */
+  subtitle?: string;
+}
+
+/** Payload returned to the host page when the user confirms payment. */
+export interface PaymentData {
   method: PaymentMethod;
-  amount: number;
+  /** Amount the customer handed over (= total for non-cash). */
+  amountReceived: number;
+  /** Change to give back (cash only; 0 for card/ATH). */
+  change: number;
+  /** Optional confirmation code / last 4 digits / ATH reference. */
   reference?: string;
+  /** Items and totals echoed back so the caller doesn't need to re-pass them. */
+  items: CartItem[];
+  subtotal: number;
+  tax: number;
+  total: number;
 }
 
 export interface PaymentModalNativeProps {
-  open: boolean;
-  amountDue: number;
-  currency?: string;
-  defaultMethod?: PaymentMethod;
-  onConfirm: (payment: PaymentResult) => Promise<void> | void;
+  isOpen: boolean;
   onClose: () => void;
+  items: CartItem[];
+  subtotal: number;
+  tax: number;
+  total: number;
+  onConfirmPayment: (data: PaymentData) => Promise<void> | void;
+  /** ISO currency code. Defaults to "USD". */
+  currency?: string;
+  /** Pre-select a payment method. Defaults to "cash". */
+  defaultMethod?: PaymentMethod;
 }
 
 const METHOD_LABELS: Record<PaymentMethod, { label: string; sub: string; emoji: string }> = {
@@ -69,39 +103,50 @@ function parseMoney(input: string): number {
 }
 
 export const PaymentModalNative: React.FC<PaymentModalNativeProps> = ({
-  open,
-  amountDue,
+  isOpen,
+  onClose,
+  items,
+  subtotal,
+  tax,
+  total,
+  onConfirmPayment,
   currency = "USD",
   defaultMethod = "cash",
-  onConfirm,
-  onClose,
 }) => {
   const [method, setMethod] = useState<PaymentMethod>(defaultMethod);
-  const [amountText, setAmountText] = useState<string>(amountDue.toFixed(2));
+  const [amountText, setAmountText] = useState<string>(total.toFixed(2));
   const [reference, setReference] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Reset state every time the modal re-opens.
+  // Reset state every time the modal re-opens or the total changes.
   useEffect(() => {
-    if (open) {
+    if (isOpen) {
       setMethod(defaultMethod);
-      setAmountText(amountDue.toFixed(2));
+      // Card / ATH pre-fill exactly to total (no manual entry needed).
+      // Cash starts at total but the user can type a higher "amount received".
+      setAmountText(total.toFixed(2));
       setReference("");
       setSubmitting(false);
-      // Focus the amount field on next paint so iOS shows the keyboard.
       const t = setTimeout(() => inputRef.current?.focus(), 80);
       return () => clearTimeout(t);
     }
     return undefined;
-  }, [open, defaultMethod, amountDue]);
+  }, [isOpen, defaultMethod, total]);
 
-  const amount = useMemo(() => parseMoney(amountText), [amountText]);
-  const change = Math.max(0, amount - amountDue);
-  const short = Math.max(0, amountDue - amount);
-  const canConfirm = amount > 0 && short === 0 && !submitting;
+  // When the user switches to card/ATH, snap to total exactly.
+  useEffect(() => {
+    if (method === "card" || method === "ath") {
+      setAmountText(total.toFixed(2));
+    }
+  }, [method, total]);
 
-  const handleKey = async (digit: string) => {
+  const amountReceived = useMemo(() => parseMoney(amountText), [amountText]);
+  const change = method === "cash" ? Math.max(0, amountReceived - total) : 0;
+  const short = Math.max(0, total - amountReceived);
+  const canConfirm = amountReceived > 0 && short === 0 && !submitting && items.length > 0;
+
+  const handleKey = (digit: string) => {
     NumericInputHelper.tapHaptic({ style: "light" }).catch(() => {});
     if (digit === "back") {
       setAmountText((s) => (s.length > 1 ? s.slice(0, -1) : "0"));
@@ -120,11 +165,11 @@ export const PaymentModalNative: React.FC<PaymentModalNativeProps> = ({
 
   const handleConfirm = async () => {
     if (!canConfirm) return;
-    // Use a native confirm for sales over $500 to avoid accidental taps.
-    if (amount >= 500) {
+    // Native confirm for sales over $500 to avoid accidental taps.
+    if (total >= 500) {
       const result = await NativeUIPlugin.confirm({
         title: "Confirmar pago",
-        message: `¿Cobrar ${formatMoney(amount, currency)} con ${METHOD_LABELS[method].label}?`,
+        message: `¿Cobrar ${formatMoney(total, currency)} con ${METHOD_LABELS[method].label}?`,
         confirmLabel: "Cobrar",
         cancelLabel: "Cancelar",
       });
@@ -132,13 +177,22 @@ export const PaymentModalNative: React.FC<PaymentModalNativeProps> = ({
     }
     setSubmitting(true);
     try {
-      await onConfirm({ method, amount, reference: reference.trim() || undefined });
+      await onConfirmPayment({
+        method,
+        amountReceived,
+        change,
+        reference: reference.trim() || undefined,
+        items,
+        subtotal,
+        tax,
+        total,
+      });
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (!open) return null;
+  if (!isOpen) return null;
 
   return (
     <div className="pmn-backdrop" role="dialog" aria-modal="true" aria-label="Finalizar cobro">
@@ -148,17 +202,55 @@ export const PaymentModalNative: React.FC<PaymentModalNativeProps> = ({
           <button className="pmn-close" onClick={onClose} aria-label="Cerrar">✕</button>
         </header>
 
+        {/* ── Items list ──────────────────────────────────────────── */}
+        {items.length > 0 && (
+          <section className="pmn-items" aria-label="Artículos">
+            <ul className="pmn-items-list">
+              {items.map((it, i) => (
+                <li key={it.id ?? i} className="pmn-item">
+                  <span className="pmn-item-qty">{it.quantity}×</span>
+                  <span className="pmn-item-name">
+                    {it.name}
+                    {it.subtitle && <span className="pmn-item-sub"> · {it.subtitle}</span>}
+                  </span>
+                  <span className="pmn-mono pmn-item-price">
+                    {formatMoney(it.price * it.quantity, currency)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* ── Price breakdown ─────────────────────────────────────── */}
         <section className="pmn-summary">
-          <div className="pmn-row"><span>Total</span><span className="pmn-mono">{formatMoney(amountDue, currency)}</span></div>
-          <div className="pmn-row pmn-row--pay"><span>A pagar</span><span className="pmn-mono">{formatMoney(amount, currency)}</span></div>
-          {short > 0 && (
-            <div className="pmn-row pmn-row--short"><span>Falta</span><span className="pmn-mono">{formatMoney(short, currency)}</span></div>
+          <div className="pmn-row">
+            <span>Subtotal</span><span className="pmn-mono">{formatMoney(subtotal, currency)}</span>
+          </div>
+          {tax > 0 && (
+            <div className="pmn-row">
+              <span>Impuesto</span><span className="pmn-mono">{formatMoney(tax, currency)}</span>
+            </div>
           )}
-          {change > 0 && (
-            <div className="pmn-row pmn-row--change"><span>Cambio</span><span className="pmn-mono">{formatMoney(change, currency)}</span></div>
+          <div className="pmn-row pmn-row--total">
+            <span>Total</span><span className="pmn-mono">{formatMoney(total, currency)}</span>
+          </div>
+          {method === "cash" && amountReceived > 0 && (
+            <>
+              <div className="pmn-row pmn-row--pay">
+                <span>Recibido</span><span className="pmn-mono">{formatMoney(amountReceived, currency)}</span>
+              </div>
+              {short > 0 && (
+                <div className="pmn-row pmn-row--short"><span>Falta</span><span className="pmn-mono">{formatMoney(short, currency)}</span></div>
+              )}
+              {change > 0 && (
+                <div className="pmn-row pmn-row--change"><span>Cambio</span><span className="pmn-mono">{formatMoney(change, currency)}</span></div>
+              )}
+            </>
           )}
         </section>
 
+        {/* ── Method selector ─────────────────────────────────────── */}
         <section className="pmn-methods">
           {(Object.keys(METHOD_LABELS) as PaymentMethod[]).map((m) => (
             <button
@@ -178,22 +270,28 @@ export const PaymentModalNative: React.FC<PaymentModalNativeProps> = ({
           ))}
         </section>
 
-        <section className="pmn-input">
-          <label className="pmn-input-label">Monto</label>
-          <input
-            ref={inputRef}
-            type="text"
-            value={amountText}
-            onChange={(e) => setAmountText(e.target.value.replace(/[^0-9.]/g, ""))}
-            className="pmn-input-field pmn-mono"
-            {...inputModeFor("price")}
-            aria-label="Monto a pagar"
-          />
-        </section>
+        {/* ── Amount input (cash only) ──────────────────────────── */}
+        {method === "cash" && (
+          <section className="pmn-input">
+            <label className="pmn-input-label">Monto recibido</label>
+            <input
+              ref={inputRef}
+              type="text"
+              value={amountText}
+              onChange={(e) => setAmountText(e.target.value.replace(/[^0-9.]/g, ""))}
+              className="pmn-input-field pmn-mono"
+              {...inputModeFor("price")}
+              aria-label="Monto recibido"
+            />
+          </section>
+        )}
 
+        {/* ── Reference (card / ATH) ─────────────────────────────── */}
         {(method === "card" || method === "ath") && (
           <section className="pmn-input">
-            <label className="pmn-input-label">Referencia / últimos 4 dígitos</label>
+            <label className="pmn-input-label">
+              {method === "card" ? "Últimos 4 dígitos / referencia" : "Confirmación ATH"}
+            </label>
             <input
               type="text"
               value={reference}
@@ -205,19 +303,22 @@ export const PaymentModalNative: React.FC<PaymentModalNativeProps> = ({
           </section>
         )}
 
-        <section className="pmn-keypad" role="group" aria-label="Teclado numérico">
-          {["1","2","3","4","5","6","7","8","9",".","0","back"].map((k) => (
-            <button
-              key={k}
-              type="button"
-              className={`pmn-key ${k === "back" ? "pmn-key--back" : ""}`}
-              onClick={() => handleKey(k)}
-              aria-label={k === "back" ? "Borrar" : k}
-            >
-              {k === "back" ? "⌫" : k}
-            </button>
-          ))}
-        </section>
+        {/* ── Numeric keypad (cash only) ─────────────────────────── */}
+        {method === "cash" && (
+          <section className="pmn-keypad" role="group" aria-label="Teclado numérico">
+            {["1","2","3","4","5","6","7","8","9",".","0","back"].map((k) => (
+              <button
+                key={k}
+                type="button"
+                className={`pmn-key ${k === "back" ? "pmn-key--back" : ""}`}
+                onClick={() => handleKey(k)}
+                aria-label={k === "back" ? "Borrar" : k}
+              >
+                {k === "back" ? "⌫" : k}
+              </button>
+            ))}
+          </section>
+        )}
 
         <button
           type="button"
@@ -225,7 +326,11 @@ export const PaymentModalNative: React.FC<PaymentModalNativeProps> = ({
           disabled={!canConfirm}
           onClick={handleConfirm}
         >
-          {submitting ? "Procesando…" : `Cobrar ${formatMoney(amount, currency)}`}
+          {submitting
+            ? "Procesando…"
+            : method === "cash"
+              ? `Cobrar ${formatMoney(amountReceived, currency)}`
+              : `Cobrar ${formatMoney(total, currency)}`}
         </button>
       </div>
     </div>
