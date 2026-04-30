@@ -419,7 +419,13 @@ export default function OrdersPage() {
   const loadOrders = async () => {
     if (ordersLoadInFlightRef.current) return;
     ordersLoadInFlightRef.current = true;
-    setLoading(true);
+    // Sólo mostrar spinner full-screen si NO hay nada que mostrar.
+    // Si ya hay órdenes (cache o estado anterior), la fetch corre en background
+    // sin tapar el grid actual — el usuario sigue interactuando.
+    setOrders((prev) => {
+      if (!prev || prev.length === 0) setLoading(true);
+      return prev;
+    });
     let remoteOrders = [];
     let remoteFailed = false;
     try {
