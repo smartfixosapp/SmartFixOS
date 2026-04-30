@@ -923,18 +923,7 @@ export default function POSDesktop() {
 
   return (
     <div className="h-full flex flex-col apple-surface apple-type p-6 gap-3">
-      {/* JENAI POS Insights */}
-      <JENAIInsightBanner
-        context="pos"
-        data={{
-          salesToday: 0,
-          totalToday: 0,
-          topProduct: products[0]?.name || "N/A",
-          readyToPay: 0,
-        }}
-        accentColor="blue"
-        autoLoad={false}
-      />
+      {/* JENAI POS Insights eliminado — IA solo vive en Órdenes de Compra. */}
 
       <div className="flex-1 flex gap-6 min-h-0">
       {/* LEFT: Products */}
