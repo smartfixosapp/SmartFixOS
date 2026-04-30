@@ -231,23 +231,8 @@ export default function TutorialTour({ isOpen, onClose, onComplete }) {
     if (!isOpen || !currentStep.aiTopic) return;
     if (loadedTips.current.has(step)) return;
 
-    const loadTip = async () => {
-      setLoadingTip(true);
-      try {
-        const prompt = `Eres el asistente de SmartFixOS, un sistema para talleres de reparación.
-Da UN tip práctico y corto (máximo 2 oraciones) sobre: ${currentStep.aiTopic}.
-Empieza directamente con el tip, sin saludos. En español. Máximo 30 palabras.`;
-        const tip = await callJENAI(prompt, { maxTokens: 80, temperature: 0.6 });
-        setAiTips(prev => ({ ...prev, [step]: tip }));
-        loadedTips.current.add(step);
-      } catch {
-        // Si falla la IA, simplemente no muestra el tip extra
-      } finally {
-        setLoadingTip(false);
-      }
-    };
-
-    loadTip();
+    // Tips IA del tutorial removidos — IA solo vive en Órdenes de Compra.
+    setLoadingTip(false);
   }, [step, isOpen]);
 
   // ── Reset al abrir ────────────────────────────────────
