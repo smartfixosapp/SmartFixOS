@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect, memo } from "react";
-import { ChevronLeft, Trash2, Loader2, Zap, Info, Clock } from "lucide-react";
+import { ChevronLeft, Loader2, Zap, Info, Clock, Pencil, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { triggerHaptic } from "@/lib/capacitor";
 
