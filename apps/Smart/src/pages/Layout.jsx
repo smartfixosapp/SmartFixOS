@@ -296,9 +296,20 @@ export default function Layout({ children }) {
       )}
 
       <Toaster
-        position="top-right"
-        offset="calc(env(safe-area-inset-top, 0px) + 10px)"
-        mobileOffset="calc(env(safe-area-inset-top, 0px) + 10px)"
+        // ────────────────────────────────────────────────────────────────────
+        // Posición: en mobile, bottom-center evita tapar el header (donde
+        // el usuario interactúa con back/close/menu) y respeta el bottom-tab
+        // nav vía mobileOffset. En desktop seguimos arriba a la derecha
+        // (esquina libre, no estorba nada).
+        // Duración 2.2s: tiempo justo para leer "Guardado" sin frenar el flow.
+        // visibleToasts=3: previene apilamientos verticales gigantes durante
+        // ráfagas (p.ej. al sincronizar varios eventos seguidos).
+        // ────────────────────────────────────────────────────────────────────
+        position="bottom-center"
+        duration={2200}
+        visibleToasts={3}
+        offset={16}
+        mobileOffset={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 88px)" }}
         toastOptions={{
           className: theme === "light"
             ? 'bg-white border-gray-200 text-gray-900 shadow-lg'
