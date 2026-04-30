@@ -225,26 +225,12 @@ export default function POSDesktop() {
     setShowPaymentModal(true);
   }, [urlPaymentMode]);
 
-  const fetchPriceSuggestion = async (serviceName) => {
-    if (!serviceName || serviceName.trim().length < 3) return;
-    setAiPriceLoading(true);
+  // Sugerencia de precio por IA: removida del POS. La IA solo vive en
+  // Órdenes de Compra. Esta función queda como no-op para no romper
+  // consumers que aún la llamen.
+  const fetchPriceSuggestion = async (_serviceName) => {
+    setAiPriceLoading(false);
     setAiPriceSuggestion("");
-    try {
-      const prompt = `Eres un experto en precios de talleres de reparación de dispositivos electrónicos en Puerto Rico / Estados Unidos.
-El técnico quiere cobrar por: "${serviceName}"
-
-Sugiere un precio justo en USD basado en el mercado actual. Responde SOLO con:
-- Precio sugerido: $XX - $XX
-- Justificación: una línea breve
-
-Máximo 30 palabras en total.`;
-      const text = await callJENAI(prompt, { maxTokens: 80 });
-      setAiPriceSuggestion(text);
-    } catch(err) {
-      setAiPriceSuggestion("");
-    } finally {
-      setAiPriceLoading(false);
-    }
   };
 
   // ── Startup: inventario + cajón + config + carga de orden ─────────────────
