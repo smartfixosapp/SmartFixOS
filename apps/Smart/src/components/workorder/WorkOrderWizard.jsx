@@ -6,7 +6,14 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { base44 } from "@/api/base44Client";
 import { sendTemplatedEmail } from "@/api/functions";
 import { apiUrl } from "@/lib/apiUrl";
-import { callJENAI, callJENAIWithVision, callJENAIJSON } from "@/lib/jenaiEngine";
+// IA removida del WorkOrder Wizard — solo vive en Finanzas → Órdenes de Compra.
+// Stubs locales: cualquier llamada lanza error que el catch() existente captura
+// silenciosamente, dejando los flujos no-IA intactos (texto profesional, foto análisis,
+// auto-checklist) sin disparar requests al backend de IA.
+const __aiUnavailable = () => Promise.reject(new Error("AI no disponible fuera de Órdenes de Compra"));
+const callJENAI = __aiUnavailable;
+const callJENAIWithVision = __aiUnavailable;
+const callJENAIJSON = __aiUnavailable;
 import NotificationService from "../notifications/NotificationService";
 import AddItemModal from "./AddItemModal";
 import {
