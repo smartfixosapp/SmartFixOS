@@ -945,12 +945,26 @@ export default function PurchaseOrderDialog({
       <DialogContent className="apple-surface-elevated border-0 max-w-4xl text-white p-0 overflow-hidden">
         <div className="p-6 pb-0">
           <DialogHeader className="mb-4">
-            <DialogTitle className="apple-text-headline font-semibold flex items-center gap-2 apple-label-primary">
-              <div className="w-8 h-8 rounded-apple-sm bg-apple-green/15 flex items-center justify-center">
-                <FileText className="w-4 h-4 text-apple-green" />
-              </div>
-              {isEditing ? "Editar Orden de Compra" : "Nueva Orden de Compra"}
-            </DialogTitle>
+            <div className="flex items-start justify-between gap-3">
+              <DialogTitle className="apple-text-headline font-semibold flex items-center gap-2 apple-label-primary">
+                <div className="w-8 h-8 rounded-apple-sm bg-apple-green/15 flex items-center justify-center">
+                  <FileText className="w-4 h-4 text-apple-green" />
+                </div>
+                {isEditing ? "Editar Orden de Compra" : "Nueva Orden de Compra"}
+              </DialogTitle>
+              {/* Botón IA — solo al crear (no al editar). Único punto de IA del app. */}
+              {!isEditing && !loadingPO && (
+                <button
+                  type="button"
+                  onClick={() => setShowAIScanner(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold hover:from-amber-500/30 hover:to-orange-500/30 transition-all active:scale-95"
+                  title="Escanear factura del proveedor para autollenar el formulario"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Escanear factura con IA</span>
+                </button>
+              )}
+            </div>
           </DialogHeader>
 
           {loadingPO ? (
