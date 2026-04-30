@@ -429,12 +429,8 @@ export default function Layout({ children }) {
       {/* Widget global de cotizacion — desactivado, integrado en ARIA tab 🧮 */}
 
       {/* ✨ ARIA / JENAI — desactivado temporalmente (no se está usando) */}
-      {/* Para reactivar, descomenta el bloque de abajo */}
-      {/*
-      {!shouldShowTrialExpired && !showPaymentScreen && (
-        <ARIAChat />
-      )}
-      */}
+      {/* IA global eliminada por completo. La IA solo vive en
+          Finanzas → Órdenes de Compra. No reactivar aquí. */}
 
       {/* 🔍 Búsqueda global Cmd+K */}
       <GlobalSearchPalette open={searchOpen} onClose={() => setSearchOpen(false)} />
