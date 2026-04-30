@@ -170,11 +170,20 @@ function App() {
   useEffect(() => {
     // 1. Ocultar el splash nativo de iOS lo antes posible para que nuestro
     //    splash de React (animado) tome el relevo visualmente sin parpadeo.
+    //    Notificamos también a LoadingOptimizer (custom plugin nativo) para
+    //    que registre el momento de first-paint y hagan match las métricas
+    //    de "tiempo hasta primera pantalla útil".
     const hideNativeSplash = async () => {
       try {
         await SplashScreen.hide();
       } catch (err) {
         console.warn("Could not hide native splash:", err);
+      }
+      try {
+        const { LoadingOptimizer } = await import("@/plugins/LoadingOptimizer");
+        await LoadingOptimizer.reportReady();
+      } catch {
+        // Plugin no disponible (web, dev, o build viejo) — silencioso.
       }
     };
     hideNativeSplash();
