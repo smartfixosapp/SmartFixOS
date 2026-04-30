@@ -112,11 +112,10 @@ export default function MaintenanceReminders() {
 
     if (filter === 'all') return true;
     
-    const dueDate = moment(r.due_date);
-    const today = moment();
-    
-    if (filter === 'overdue') return dueDate.isBefore(today, 'day') && r.status === 'pending';
-    if (filter === 'due_soon') return dueDate.diff(today, 'days') <= 30 && dueDate.isAfter(today, 'day') && r.status === 'pending';
+    const diff = differenceInCalendarDays(toDate(r.due_date), new Date());
+
+    if (filter === 'overdue') return diff < 0 && r.status === 'pending';
+    if (filter === 'due_soon') return diff > 0 && diff <= 30 && r.status === 'pending';
     if (filter === 'pending') return r.status === 'pending';
     
     return true;
