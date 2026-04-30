@@ -208,7 +208,7 @@ export default function MaintenanceReminders() {
                       {reminder.service_name}
                     </div>
                     <p className="apple-text-caption1 apple-label-tertiary mt-1 tabular-nums">
-                      Último servicio: {moment(reminder.last_service_date).format("DD/MM/YYYY")}
+                      Último servicio: {format(toDate(reminder.last_service_date), "dd/MM/yyyy")}
                     </p>
                   </div>
 
