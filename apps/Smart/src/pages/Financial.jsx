@@ -944,63 +944,12 @@ export default function Financial() {
     }
   };
 
+  // fetchAiSummary: la generación IA del resumen financiero fue removida.
+  // La IA solo vive en Órdenes de Compra. Esta función queda como no-op
+  // para no romper consumers que aún la llamen.
   const fetchAiSummary = async () => {
-    setAiLoading(true);
+    setAiLoading(false);
     setAiSummary("");
-    try {
-      const periodLabel =
-        dateFilter === "today" ? "hoy" :
-        dateFilter === "week"  ? "esta semana" :
-        dateFilter === "month" ? "este mes" : "todo el periodo";
-
-      const categoryTotals = filteredExpenses.reduce((acc, e) => {
-        const cat = e.category || "other_expense";
-        acc[cat] = (acc[cat] || 0) + getExpenseMagnitude(e.amount);
-        return acc;
-      }, {});
-
-      const topCategories = Object.entries(categoryTotals)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5)
-        .map(([cat, amount]) => ({ label: CATEGORY_LABELS[cat] || cat, amount }));
-
-      const avgTicket = filteredSales.length > 0 ? totalRevenue / filteredSales.length : 0;
-      const margin = totalRevenue > 0 ? ((netProfit / totalRevenue) * 100).toFixed(1) : 0;
-
-      const text = await callJENAI(
-`PERIODO: ${periodLabel}
-- Ingresos: $${totalRevenue.toFixed(2)}
-- Gastos: $${totalExpenses.toFixed(2)}
-- Ganancia neta: $${netProfit.toFixed(2)}
-- Margen: ${margin}%
-- Ventas/cobros: ${filteredSales.length}
-- Ticket promedio: $${avgTicket.toFixed(2)}
-- Ingreso hoy: $${todayRevenue.toFixed(2)}
-- Gastos hoy: $${todayExpenses.toFixed(2)}
-${topCategories.length > 0 ? `- Top 5 gastos: ${topCategories.map(c => `${c.label} $${c.amount.toFixed(0)}`).join(", ")}` : ""}
-${paymentMethodBreakdown.length > 0 ? `- Metodos de pago: ${paymentMethodBreakdown.map(p => `${p.label} $${p.total.toFixed(0)}`).join(", ")}` : ""}
-
-Analiza como experto financiero de taller de reparacion.`,
-        {
-          maxTokens: 400,
-          temperature: 0.35,
-          systemPrompt: `Eres JENAI, analista financiero de SmartFixOS. Responde en espanol.
-Formato obligatorio:
-1. RESUMEN (2 oraciones del estado financiero)
-2. SALUD FINANCIERA: score del 1-10 con justificacion breve
-3. PUNTO FUERTE: algo positivo que destacar
-4. ALERTA: riesgo o problema a atender (si hay)
-5. ACCION RECOMENDADA: una accion concreta para mejorar
-Maximo 150 palabras. Texto plano, sin markdown.`
-        }
-      );
-      setAiSummary(text);
-    } catch (err) {
-      console.error("AI summary error:", err);
-      setAiSummary("No se pudo conectar con JENAI.");
-    } finally {
-      setAiLoading(false);
-    }
   };
 
   const exportAccountingCSV = () => {
