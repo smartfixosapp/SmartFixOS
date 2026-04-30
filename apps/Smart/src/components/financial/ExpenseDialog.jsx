@@ -203,11 +203,7 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaul
               />
             </div>
 
-            <AIExpenseCategorizor
-              description={formData.description}
-              amount={formData.amount}
-              onCategorySuggestion={handleCategorySuggestion}
-            />
+            {/* AIExpenseCategorizor removido — IA solo vive en Órdenes de Compra. */}
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
