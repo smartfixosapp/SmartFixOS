@@ -81,13 +81,26 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (!id.includes('node_modules/')) return;
-          // Framer Motion — heavy animation lib (~110KB), independent of React internals
+
+          // ── Heavy libs that should ONLY load with their consumer pages ──
+          // Returning a name puts them in their own chunk; Rollup will only
+          // emit it when a consumer chunk dynamically imports them, so they
+          // don't bloat the initial bundle of pages that don't need them.
+          if (id.includes('/node_modules/jspdf/')         ||
+              id.includes('/node_modules/jspdf-autotable/')) return 'vendor-pdf';
+          if (id.includes('/node_modules/recharts/'))     return 'vendor-charts';
+          if (id.includes('/node_modules/@hello-pangea/dnd/')) return 'vendor-dnd';
+          if (id.includes('/node_modules/react-quill/')   ||
+              id.includes('/node_modules/quill/'))         return 'vendor-quill';
+
+          // ── Stable, mid-size libs (used in many pages) ──
           if (id.includes('/node_modules/framer-motion/')) return 'vendor-motion';
-          // Date utilities — zero React deps, safe to isolate
-          if (id.includes('/node_modules/date-fns/')) return 'vendor-dates';
-          // Supabase client — large, standalone
-          if (id.includes('/node_modules/@supabase/')) return 'vendor-supabase';
-          // Everything else (React, react-dom, scheduler, lucide, etc.) → one stable vendor chunk
+          if (id.includes('/node_modules/date-fns/'))      return 'vendor-dates';
+          if (id.includes('/node_modules/@supabase/'))     return 'vendor-supabase';
+          if (id.includes('/node_modules/@radix-ui/'))     return 'vendor-radix';
+          if (id.includes('/node_modules/lucide-react/'))  return 'vendor-icons';
+
+          // Everything else (React, react-dom, scheduler, react-router, etc.)
           // NOTE: Do NOT split React from its internal deps (scheduler, etc.) — causes circular chunks
           return 'vendor';
         },
