@@ -18,7 +18,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
-import moment from "moment";
+import { differenceInCalendarDays, format, parseISO } from "date-fns";
+import { es } from "date-fns/locale";
+
+// Compat shim: parse a value that may already be a Date or an ISO string.
+const toDate = (v) => (v instanceof Date ? v : parseISO(String(v)));
 
 export default function MaintenanceReminders() {
   const [reminders, setReminders] = useState([]);
