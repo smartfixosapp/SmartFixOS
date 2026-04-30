@@ -8,12 +8,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // ─────────────────────────────────────────────────────────────────
-        // CRITICAL: Clear ONLY HTTP caches so a new JS bundle loads after
-        // updates, but PRESERVE localStorage / cookies / IndexedDB so the
-        // Supabase session survives app kills from multitasking.
-        // (Do not change without testing the auth flow end-to-end.)
-        // ─────────────────────────────────────────────────────────────────
+        // Clear only HTTP caches so new JS bundles load after updates,
+        // but PRESERVE localStorage / cookies / IndexedDB so the Supabase
+        // session survives app kills from multitasking.
         let dataStore = WKWebsiteDataStore.default()
         let dataTypes: Set<String> = [
             WKWebsiteDataTypeDiskCache,
@@ -24,14 +21,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         dataStore.removeData(ofTypes: dataTypes, modifiedSince: date) {
             print("WebView HTTP cache cleared (session preserved)")
         }
-
-        // ─────────────────────────────────────────────────────────────────
-        // Custom plugins (LoadingOptimizer, NumericInputHelper, NativeUIPlugin)
-        // are auto-discovered by Capacitor via @objc(PluginName) decorators.
-        // The line below is for build-time symbol verification only.
-        // ─────────────────────────────────────────────────────────────────
-        LoadingOptimizer.shared.prepareLaunch()
-
         return true
     }
 
@@ -43,7 +32,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationDidEnterBackground(_ application: UIApplication) {
         // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
         // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
-        LoadingOptimizer.shared.applicationDidEnterBackground()
     }
 
     func applicationWillEnterForeground(_ application: UIApplication) {
@@ -52,9 +40,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationDidBecomeActive(_ application: UIApplication) {
         // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
-        if let window = self.window {
-            window.setNeedsLayout()
-        }
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
