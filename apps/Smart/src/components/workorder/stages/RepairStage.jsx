@@ -12,8 +12,7 @@ import { base44 } from "@/api/base44Client";
 import WorkOrderUnifiedHub from "@/components/workorder/WorkOrderUnifiedHub";
 import AddItemModal from "@/components/workorder/AddItemModal";
 import SharedItemsSection from "@/components/workorder/SharedItemsSection";
-import DiagnosticAI from "@/components/workorder/DiagnosticAI";
-import JeaniStageReportPanel from "@/components/workorder/JeaniStageReportPanel";
+// IA del work order removida — solo vive en Finanzas → Órdenes de Compra.
 
 function detectRepairDeviceCategory(order) {
   const raw = [order?.device_type || "", order?.device_brand || "", order?.device_model || ""].join(" ").toLowerCase();
