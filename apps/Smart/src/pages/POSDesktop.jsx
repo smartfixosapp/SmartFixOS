@@ -28,8 +28,7 @@ import {
 } from "@/components/cash/CashRegisterService";
 import UniversalPrintDialog from "../components/printing/UniversalPrintDialog";
 import POSSaleActionsModal, { POSSaleHistoryModal } from "../components/pos/POSSaleActionsModal";
-import { callJENAI } from "@/lib/jenaiEngine";
-import JENAIInsightBanner from "@/components/jenai/JENAIInsightBanner";
+// IA removida del POS — solo vive en Finanzas → Órdenes de Compra.
 import { sendTemplatedEmail } from "@/api/functions";
 
 const RECENT_CREATED_PRODUCTS_KEY = "smartfix_recent_created_products";
