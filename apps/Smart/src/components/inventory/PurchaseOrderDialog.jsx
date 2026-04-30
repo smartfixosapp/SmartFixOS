@@ -23,11 +23,15 @@ import {
   Link2,
   Zap,
   AlertCircle,
-  Wrench } from
+  Wrench,
+  Sparkles } from
 "lucide-react";
 
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { UpgradePrompt } from "@/components/plan/UpgradePrompt";
+// IA dedicada SOLO a Órdenes de Compra (escaneo de facturas).
+// Es el único punto del app donde la IA está activa.
+import POInvoiceScannerDialog from "./POInvoiceScannerDialog";
 
 const money = (n) => `$${Number(n || 0).toFixed(2)}`;
 
