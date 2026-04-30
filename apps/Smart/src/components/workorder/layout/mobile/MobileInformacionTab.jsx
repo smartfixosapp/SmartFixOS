@@ -131,7 +131,7 @@ export default function MobileInformacionTab({
         )}
         <InfoRow label="Tecnico asignado" value={o.assigned_to_name || o.assigned_to} orderId={o.id} field="assigned_to_name" onUpdate={onUpdate} editMode={editMode} />
         <InfoRow label="Tipo de reparacion" value={o.repair_type || o.service_type} orderId={o.id} field="repair_type" onUpdate={onUpdate} editMode={editMode} />
-        <InfoRow label="Tarifa horaria grupo de mano de obra" value={o.labor_rate} orderId={o.id} field="labor_rate" onUpdate={onUpdate} placeholder="Not Provided" />
+        <InfoRow label="Tarifa horaria grupo de mano de obra" value={o.labor_rate} orderId={o.id} field="labor_rate" onUpdate={onUpdate} placeholder="Not Provided" editMode={editMode} />
         <InfoRow label="Enviado por" value={o.created_by_name || o.submitted_by} />
       </div>
 
