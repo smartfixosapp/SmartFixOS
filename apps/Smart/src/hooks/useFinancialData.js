@@ -632,23 +632,11 @@ export default function useFinancialData() {
     return { linkedItems: lineItems.filter((it) => it.linked_work_order_id || it.work_order_id).length, linkedWoIds: linkedWoIds.length };
   }, []);
 
+  // Resumen IA financiero removido — IA solo vive en Órdenes de Compra.
   const fetchAiSummary = useCallback(async () => {
-    setAiLoading(true);
+    setAiLoading(false);
     setAiSummary("");
-    try {
-      const periodLabel = dateFilter === "today" ? "hoy" : dateFilter === "week" ? "esta semana" : dateFilter === "month" ? "este mes" : "todo el periodo";
-      const categoryTotals = filteredExpenses.reduce((acc, e) => { const cat = e.category || "other_expense"; acc[cat] = (acc[cat] || 0) + getExpenseMagnitude(e.amount); return acc; }, {});
-      const topCategories = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([cat, amount]) => ({ label: CATEGORY_LABELS[cat] || cat, amount }));
-      const avgTicket = filteredSales.length > 0 ? totalRevenue / filteredSales.length : 0;
-      const margin = totalRevenue > 0 ? ((netProfit / totalRevenue) * 100).toFixed(1) : 0;
-      const text = await callJENAI(
-        `PERIODO: ${periodLabel}\n- Ingresos: $${totalRevenue.toFixed(2)}\n- Gastos: $${totalExpenses.toFixed(2)}\n- Ganancia neta: $${netProfit.toFixed(2)}\n- Margen: ${margin}%\n- Ventas/cobros: ${filteredSales.length}\n- Ticket promedio: $${avgTicket.toFixed(2)}\n- Ingreso hoy: $${todayRevenue.toFixed(2)}\n- Gastos hoy: $${todayExpenses.toFixed(2)}\n${topCategories.length > 0 ? `- Top 5 gastos: ${topCategories.map(c => `${c.label} $${c.amount.toFixed(0)}`).join(", ")}` : ""}\n${paymentMethodBreakdown.length > 0 ? `- Metodos de pago: ${paymentMethodBreakdown.map(p => `${p.label} $${p.total.toFixed(0)}`).join(", ")}` : ""}\n\nAnaliza como experto financiero de taller de reparacion.`,
-        { maxTokens: 400, temperature: 0.35, systemPrompt: `Eres JENAI, analista financiero de SmartFixOS. Responde en espanol.\nFormato obligatorio:\n1. RESUMEN (2 oraciones del estado financiero)\n2. SALUD FINANCIERA: score del 1-10 con justificacion breve\n3. PUNTO FUERTE: algo positivo que destacar\n4. ALERTA: riesgo o problema a atender (si hay)\n5. ACCION RECOMENDADA: una accion concreta para mejorar\nMaximo 150 palabras. Texto plano, sin markdown.` }
-      );
-      setAiSummary(text);
-    } catch { setAiSummary("No se pudo conectar con JENAI."); }
-    finally { setAiLoading(false); }
-  }, [dateFilter, filteredExpenses, filteredSales, totalRevenue, totalExpenses, netProfit, todayRevenue, todayExpenses, paymentMethodBreakdown]);
+  }, []);
 
   const exportAccountingCSV = useCallback(() => {
     try {
