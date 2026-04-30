@@ -32,6 +32,10 @@ const IVU_RATE = 0.115;
 export default function MobileInformacionTab({
   order,
   status,
+  // editMode = true cuando el usuario tocó "Editar" en el header.
+  // Cuando es false, los rows muestran los datos pero NO son interactivos
+  // (sin lápices, sin tap-to-edit) — vista limpia de solo lectura.
+  editMode = false,
   onUpdate,
   onPaymentClick,
   onSecurityEdit,
