@@ -148,11 +148,12 @@ function NetworkStatusBanner() {
 }
 
 // ── Duración del splash animado ────────────────────────────────────────
-// 1800ms = suficiente para que se aprecien las animaciones del fondo
-// (orbes flotando, glow del logo) antes de fundirse al app. Solo aparece
-// en cold-start — usamos sessionStorage para evitar que se muestre de nuevo
-// en navegación dentro de la misma sesión.
-const SPLASH_DURATION_MS = 1800;
+// 1400ms = duración apenas suficiente para que la animación de entrada
+// (logo enfocándose + destello + línea + tagline) se complete y haga
+// fade-out limpio. Más corto se siente cortado; más largo se siente lento.
+// Solo aparece en cold-start — sessionStorage evita re-mostrarlo durante
+// navegación interna o hot-reload.
+const SPLASH_DURATION_MS = 1400;
 const SPLASH_SESSION_KEY = "smartfix_splash_shown";
 
 function App() {
