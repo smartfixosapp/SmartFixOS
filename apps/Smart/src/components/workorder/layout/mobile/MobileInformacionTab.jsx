@@ -259,13 +259,23 @@ function InfoRow({ label, value, orderId, field, onUpdate, placeholder, isPhone,
     );
   }
 
+  // Solo es interactivo cuando el modo edición está activo. Esto deja la
+  // vista de "Detalles" limpia por defecto y todo el editor aparece al
+  // tocar "Editar" en el header.
+  const interactive = editMode && (Boolean(field && orderId) || isSecure);
+
   return (
     <div
-      className="flex items-center justify-between px-4 py-3.5 cursor-pointer active:bg-white/[0.03] transition-colors"
-      onClick={() => {
+      className={cn(
+        "flex items-center justify-between px-4 py-3.5 transition-colors",
+        interactive ? "cursor-pointer active:bg-white/[0.03]" : "cursor-default"
+      )}
+      onClick={interactive ? () => {
         if (isSecure) { onSecurityEdit?.(); return; }
         if (field && orderId) { setEditValue(value || ""); setEditing(true); }
-      }}
+      } : undefined}
+      role={interactive ? "button" : undefined}
+      tabIndex={interactive ? 0 : undefined}
     >
       <div className="min-w-0 flex-1">
         <p className="text-[10px] text-white/50 mb-0.5">{label}</p>
@@ -273,8 +283,8 @@ function InfoRow({ label, value, orderId, field, onUpdate, placeholder, isPhone,
           {displayValue}
         </p>
       </div>
-      {(field || isSecure) && (
-        <Pencil className="w-4 h-4 text-red-400/60 flex-shrink-0 ml-3" />
+      {interactive && (
+        <Pencil className="w-4 h-4 text-apple-blue/80 flex-shrink-0 ml-3" />
       )}
     </div>
   );
