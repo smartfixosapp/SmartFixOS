@@ -268,8 +268,22 @@ export default function OrdersPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { checkLimit, upgradeTo } = usePlanLimits();
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Hidratar inmediatamente desde el cache local así el usuario ve la lista
+  // sin esperar la red. La fetch a Supabase reemplaza/merge cuando llegue.
+  // Esto cambia el "tap → blanco → contenido" por "tap → contenido inmediato".
+  const [orders, setOrders] = useState(() => {
+    try {
+      const cached = getLocalOrders();
+      return Array.isArray(cached) ? cached : [];
+    } catch {
+      return [];
+    }
+  });
+  // loading sólo bloquea el render cuando NO hay datos cacheados que mostrar.
+  // Si hay cache, la red trabaja en background sin spinner full-screen.
+  const [loading, setLoading] = useState(() => {
+    try { return (getLocalOrders() || []).length === 0; } catch { return true; }
+  });
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("active"); // Default to "active" (Todos/Activos)
   const [selectedOrder, setSelectedOrder] = useState(null);
