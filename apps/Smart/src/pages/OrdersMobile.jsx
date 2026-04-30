@@ -424,6 +424,28 @@ export default function OrdersMobile() {
         </div>
       )}
 
+      {/* ───────────────────────────────────────────────────────────────
+          Bottom sheet con la cola de trabajo (paridad con iPad).
+          Reutiliza OrdersQueueSidebar; al seleccionar una orden, cierra el
+          sheet y abre el panel de detalle.
+          Altura ~80dvh para que se sienta como una hoja iOS estándar.
+          ─────────────────────────────────────────────────────────────── */}
+      <Drawer open={showQueueSheet} onOpenChange={setShowQueueSheet}>
+        <DrawerContent className="apple-surface border-0 max-h-[88dvh]">
+          <DrawerTitle className="sr-only">Cola de trabajo</DrawerTitle>
+          <div className="flex flex-col h-[80dvh]">
+            <OrdersQueueSidebar
+              orders={orders}
+              selectedOrderId={selectedOrderId}
+              onSelectOrder={(order) => {
+                setSelectedOrderId(order?.id || null);
+                setShowQueueSheet(false);
+              }}
+            />
+          </div>
+        </DrawerContent>
+      </Drawer>
+
     </div>
   );
 }
