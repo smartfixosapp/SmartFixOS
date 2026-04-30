@@ -1,0 +1,130 @@
+/* native-ios-styles.css
+ *
+ * Global iOS-only stylesheet for SmartFixOS. Imported once from main.jsx
+ * (or App.css) so every page gets:
+ *
+ *   - safe-area aware containers (`.ios-safe`, `.ios-safe-top`, etc.)
+ *   - Liquid Glass emulation on the web (`.sfx-liquid-glass-emulated`)
+ *   - dynamic-type friendly font scaling
+ *   - tap-highlight removal (no grey flash on tap)
+ *   - smooth momentum scrolling on scrollable containers
+ *
+ * The styles are inert on non-iOS unless they target `.ios-only`
+ * explicitly, so this file is safe to import unconditionally.
+ */
+
+/* ─── 1. Safe-area helpers ────────────────────────────────────────── */
+
+:root {
+  --ios-safe-top: env(safe-area-inset-top, 0px);
+  --ios-safe-right: env(safe-area-inset-right, 0px);
+  --ios-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --ios-safe-left: env(safe-area-inset-left, 0px);
+}
+
+.ios-safe {
+  padding-top: var(--ios-safe-top);
+  padding-right: var(--ios-safe-right);
+  padding-bottom: var(--ios-safe-bottom);
+  padding-left: var(--ios-safe-left);
+}
+.ios-safe-top    { padding-top: var(--ios-safe-top); }
+.ios-safe-right  { padding-right: var(--ios-safe-right); }
+.ios-safe-bottom { padding-bottom: var(--ios-safe-bottom); }
+.ios-safe-left   { padding-left: var(--ios-safe-left); }
+
+.ios-margin-top    { margin-top: var(--ios-safe-top); }
+.ios-margin-bottom { margin-bottom: var(--ios-safe-bottom); }
+
+/* ─── 2. Tap behavior (no grey flash, no double-tap zoom) ─────────── */
+
+html, body, button, a, [role="button"], input, textarea, select {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* Allow text selection in obvious text inputs and rich content. */
+input, textarea, [contenteditable="true"], .ios-selectable {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
+/* ─── 3. Smooth momentum scrolling (iOS) ──────────────────────────── */
+
+.ios-scroll {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* ─── 4. Status-bar overlay tint (used with viewport-fit=cover) ────── */
+
+.ios-status-tint {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--ios-safe-top);
+  background: rgba(0, 0, 0, 0.001); /* virtually transparent, but layered */
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.ios-status-tint--solid-black { background: black; }
+.ios-status-tint--solid-white { background: white; }
+
+/* ─── 5. Liquid Glass — web fallback ──────────────────────────────── */
+
+html.sfx-liquid-glass-emulated body {
+  background-image:
+    radial-gradient(1200px 800px at 70% -10%, rgba(10, 132, 255, 0.12), transparent 60%),
+    radial-gradient(900px 600px at -10% 100%, rgba(191, 90, 242, 0.10), transparent 70%);
+  background-attachment: fixed;
+}
+
+/* ─── 6. Dynamic Type scaling hooks ───────────────────────────────── */
+
+@supports (-webkit-touch-callout: none) {
+  .ios-dynamic-text {
+    font-size: clamp(13px, 1rem, 17px);
+    line-height: 1.4;
+  }
+  .ios-dynamic-title {
+    font-size: clamp(18px, 1.4rem, 28px);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* ─── 7. Hide the Safari native zoom on focused inputs ────────────── */
+
+@media (max-width: 600px) {
+  input, textarea, select {
+    font-size: max(16px, 1rem); /* iOS zooms in if < 16px on focus */
+  }
+}
+
+/* ─── 8. Pull-to-refresh / overscroll bounce — disabled by default ── */
+
+html, body {
+  overscroll-behavior-y: none;
+}
+.ios-allow-pull-to-refresh {
+  overscroll-behavior-y: auto;
+}
+
+/* ─── 9. Color scheme published by AdaptiveCapacitorViewController ── */
+
+html[data-ios-color-scheme="dark"]  .ios-respect-scheme { color-scheme: dark; }
+html[data-ios-color-scheme="light"] .ios-respect-scheme { color-scheme: light; }
+
+/* ─── 10. Hide platform-only nodes ─────────────────────────────────── */
+
+@supports (-webkit-touch-callout: none) {
+  .ios-hide  { display: none !important; }
+  .web-only  { display: none !important; }
+}
+@supports not (-webkit-touch-callout: none) {
+  .ios-only { display: none !important; }
+}
