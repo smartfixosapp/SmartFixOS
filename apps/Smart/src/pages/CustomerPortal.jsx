@@ -56,31 +56,11 @@ export default function CustomerPortal() {
     loadOrder();
   }, [orderId, token]);
 
+  // Asistente IA del portal cliente removido — IA solo vive en
+  // Órdenes de Compra. Función queda como no-op.
   const fetchPortalAiResponse = async () => {
-    if (!customerMessage.trim()) return;
-    setAiPortalLoading(true);
+    setAiPortalLoading(false);
     setAiPortalResponse("");
-    try {
-      const orderStatus = order?.status || "en proceso";
-      const deviceInfo = order?.device_model || order?.device_brand || "tu dispositivo";
-
-      const prompt = `Eres el asistente de atención al cliente de SmartFixOS, un taller de reparación.
-El cliente pregunta: "${customerMessage}"
-
-Estado actual de su reparación: ${orderStatus}
-Dispositivo: ${deviceInfo}
-
-Responde en ESPAÑOL de forma amable, profesional y breve (máximo 40 palabras).
-Si preguntan cuándo estará listo, di que el técnico los contactará pronto.
-Si preguntan por el estado, explica el estado actual de forma amigable.`;
-
-      const text = await callJENAI(prompt, { maxTokens: 150 });
-      setAiPortalResponse(text);
-    } catch(err) {
-      setAiPortalResponse("Lo sentimos, no pudimos procesar tu consulta en este momento.");
-    } finally {
-      setAiPortalLoading(false);
-    }
   };
 
   const loadOrder = async () => {
