@@ -417,45 +417,8 @@ export default function MobileAccionesTab({
         </div>
       )}
 
-      {/* Status dropdown */}
-      <div className="mt-4">
-        <button
-          onClick={() => setShowAllStatuses(v => !v)}
-          className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-white/10 bg-white/[0.03] text-xs font-semibold text-white/50 transition-all"
-        >
-          <span>Cambiar estado...</span>
-          <ChevronDown className={cn("w-4 h-4 transition-transform", showAllStatuses && "rotate-180")} />
-        </button>
-
-        {showAllStatuses && (
-          <div className="mt-2 space-y-1 p-2 rounded-xl border border-white/10 bg-[#0D0D0F]">
-            {allStatuses.map(s => {
-              const isCurrent = normalizeStatusId(status) === s.id;
-              return (
-                <button
-                  key={s.id}
-                  onClick={() => {
-                    if (!isCurrent) {
-                      triggerHaptic("medium");
-                      onChangeStatus?.(s.id);
-                      setShowAllStatuses(false);
-                    }
-                  }}
-                  disabled={changingStatus || isCurrent}
-                  className={cn(
-                    "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all text-left",
-                    isCurrent ? "bg-white/10 text-white" : "text-white/60 hover:bg-white/[0.06] hover:text-white"
-                  )}
-                >
-                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: s.color || "#6B7280" }} />
-                  <span className="truncate flex-1">{s.label}</span>
-                  {isCurrent && <span className="text-[10px] text-white/50">actual</span>}
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
+      {/* El selector de estado está consolidado al tope de la lista
+          (era duplicado aquí abajo — eliminado para evitar confusión). */}
     </div>
   );
 }
