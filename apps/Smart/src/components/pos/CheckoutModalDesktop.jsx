@@ -296,9 +296,11 @@ export default function CheckoutModalDesktop({
             {paymentMethod === "cash" && paymentMode !== "deposit" && (
               <div className="space-y-3">
                   <Input
-                    type="number"
+                    type="text"
+                    inputMode="decimal"
+                    pattern="[0-9]*[.,]?[0-9]*"
                     value={cashReceived}
-                    onChange={(e) => setCashReceived(e.target.value)}
+                    onChange={(e) => setCashReceived(e.target.value.replace(/[^0-9.]/g, ""))}
                     placeholder="Monto recibido"
                     className="apple-input h-16 apple-text-title1 text-center tabular-nums"
                     autoFocus
