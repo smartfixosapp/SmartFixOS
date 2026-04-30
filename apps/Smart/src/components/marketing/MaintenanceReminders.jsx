@@ -64,12 +64,11 @@ export default function MaintenanceReminders() {
     if (status === 'booked') return "Agendado";
     if (status === 'sent') return "Notificado";
     
-    const dueDate = moment(date);
-    const today = moment();
-    
-    if (dueDate.isBefore(today, 'day')) return "Vencido";
-    if (dueDate.diff(today, 'days') <= 7) return "Próximo";
-    
+    const diff = differenceInCalendarDays(toDate(date), new Date());
+
+    if (diff < 0) return "Vencido";
+    if (diff <= 7) return "Próximo";
+
     return "Pendiente";
   };
 
