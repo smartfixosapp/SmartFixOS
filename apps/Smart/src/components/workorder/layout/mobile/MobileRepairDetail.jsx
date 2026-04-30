@@ -77,25 +77,42 @@ function MobileRepairDetail({
           borderBottom: "0.5px solid rgb(var(--separator) / 0.29)",
         }}
       >
-        <div className="flex items-center justify-between px-2 py-2">
-          <button
-            onClick={onClose}
-            className="apple-press h-10 pl-1 pr-3 rounded-full flex items-center gap-1 text-apple-blue"
-            aria-label="Volver"
-          >
-            <ChevronLeft className="w-[22px] h-[22px]" strokeWidth={2.4} />
-            <span className="apple-text-body">Volver</span>
-          </button>
-          <div className="flex-1 text-center min-w-0">
+        <div className="grid grid-cols-3 items-center px-2 py-2">
+          {/* Izquierda: back chevron — sin texto para que el header sea simétrico
+              y "Detalles" quede perfectamente centrado entre los dos lados. */}
+          <div className="justify-self-start">
+            <button
+              onClick={onClose}
+              className="apple-press w-10 h-10 rounded-full flex items-center justify-center text-apple-blue"
+              aria-label="Volver"
+            >
+              <ChevronLeft className="w-[24px] h-[24px]" strokeWidth={2.4} />
+            </button>
+          </div>
+
+          {/* Centro: título — ahora visualmente centrado al 100%. */}
+          <div className="justify-self-center min-w-0">
             <h1 className="apple-text-headline apple-label-primary truncate">Detalles</h1>
           </div>
-          <button
-            onClick={onDelete}
-            className="apple-press w-10 h-10 rounded-full flex items-center justify-center text-apple-red"
-            aria-label="Eliminar"
-          >
-            <Trash2 className="w-[19px] h-[19px]" />
-          </button>
+
+          {/* Derecha: toggle de modo edición — reemplaza al ícono de eliminar.
+              "Editar" → muestra los lápices y hace los rows tappables.
+              "Listo"  → vuelve a vista limpia.
+              La acción de eliminar la orden vive en el tab "Acciones". */}
+          <div className="justify-self-end">
+            <button
+              onClick={() => { triggerHaptic("light"); setEditMode((v) => !v); }}
+              className={cn(
+                "apple-press h-10 px-3 rounded-full flex items-center gap-1 text-[15px] font-semibold",
+                editMode ? "text-apple-green" : "text-apple-blue"
+              )}
+              aria-label={editMode ? "Terminar edición" : "Editar"}
+              aria-pressed={editMode}
+            >
+              {editMode ? <Check className="w-[18px] h-[18px]" strokeWidth={2.4} /> : <Pencil className="w-[16px] h-[16px]" strokeWidth={2.2} />}
+              <span>{editMode ? "Listo" : "Editar"}</span>
+            </button>
+          </div>
         </div>
       </div>
 
