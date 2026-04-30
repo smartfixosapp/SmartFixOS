@@ -213,6 +213,7 @@ function MobileRepairDetail({
             <MemoInformacionTab
               order={o}
               status={status}
+              editMode={editMode}
               onUpdate={onUpdate}
               onPaymentClick={onPaymentClick}
               onSecurityEdit={onSecurityEdit}
