@@ -924,7 +924,7 @@ export default function AddItemModal({
                     <p className="text-[11px] font-semibold text-violet-300">
                       Piezas para {[effectiveDeviceBrand, effectiveDeviceModel].filter(Boolean).join(" ") || effectiveDeviceType}
                     </p>
-                    <p className="text-[9px] text-white/50 mt-0.5">JENAI ordena por relevancia · powered by SmartFixOS</p>
+                    <p className="text-[9px] text-white/50 mt-0.5">Ordenado por relevancia</p>
                   </div>
                 </div>
               )}
