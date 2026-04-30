@@ -1038,6 +1038,13 @@ export default function PurchaseOrderDialog({
           </div>
         </DialogFooter>
       </DialogContent>
+
+      {/* Scanner IA — único uso de IA en SmartFixOS. */}
+      <POInvoiceScannerDialog
+        open={showAIScanner}
+        onClose={() => setShowAIScanner(false)}
+        onExtracted={handleAIExtracted}
+      />
     </Dialog>
   );
 }
