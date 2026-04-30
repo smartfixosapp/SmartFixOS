@@ -32,7 +32,7 @@ import GlobalSearchPalette from "@/components/layout/GlobalSearchPalette";
 import { useHeartbeat } from "@/hooks/useHeartbeat";
 import { usePunchReminders } from "@/hooks/usePunchReminders";
 import PunchReminderBanner from "@/components/timetracking/PunchReminderBanner";
-import ARIAChat from "@/components/aria/ARIAChat";
+// IA global (ARIAChat) eliminada — la IA solo vive en Finanzas → Órdenes de Compra.
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 export default function Layout({ children }) {
