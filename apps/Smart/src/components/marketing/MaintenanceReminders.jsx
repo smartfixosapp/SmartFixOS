@@ -52,11 +52,10 @@ export default function MaintenanceReminders() {
     if (status === 'completed' || status === 'booked') return "text-apple-green bg-apple-green/15";
     if (status === 'sent') return "text-apple-blue bg-apple-blue/15";
 
-    const dueDate = moment(date);
-    const today = moment();
+    const diff = differenceInCalendarDays(toDate(date), new Date());
 
-    if (dueDate.isBefore(today, 'day')) return "text-apple-red bg-apple-red/15"; // Overdue
-    if (dueDate.diff(today, 'days') <= 7) return "text-apple-yellow bg-apple-yellow/15"; // Due soon
+    if (diff < 0) return "text-apple-red bg-apple-red/15"; // Overdue
+    if (diff <= 7) return "text-apple-yellow bg-apple-yellow/15"; // Due soon
 
     return "apple-label-secondary bg-gray-sys6 dark:bg-gray-sys5"; // Future
   };
