@@ -5,7 +5,7 @@ import { Capacitor } from '@capacitor/core';
 // interno del WebView — y nunca llegan a las serverless functions de Vercel.
 // Este helper antepone VITE_APP_URL cuando detecta entorno nativo.
 
-const RAW_APP_URL = (import.meta.env?.VITE_APP_URL || 'https://smart-fix-os.vercel.app').trim();
+const RAW_APP_URL = (import.meta.env?.VITE_APP_URL || 'https://smart-fix-os-smart.vercel.app').trim();
 const APP_URL = RAW_APP_URL.replace(/\/$/, '');
 
 export function apiUrl(path) {
