@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import CreateCustomerDialog from "../components/customers/CreateCustomerDialog";
 import CustomerOrdersDialog from "../components/customers/CustomerOrdersDialog";
 import BulkOfferModal from "../components/customers/BulkOfferModal";
-import JENAIInsightBanner from "@/components/jenai/JENAIInsightBanner";
+// IA removida — JENAI ahora solo vive en Finanzas → Órdenes de Compra.
 
 const LOCAL_CUSTOMERS_KEY = "smartfix_local_customers";
 
