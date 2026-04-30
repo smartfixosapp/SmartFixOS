@@ -2508,7 +2508,8 @@ Maximo 150 palabras. Texto plano, sin markdown.`
       {showOpenDrawer && <OpenDrawerDialog open={showOpenDrawer} onClose={() => setShowOpenDrawer(false)} onSuccess={handleActionSuccess} />}
       {showCloseDrawer && <CloseDrawerDialog open={showCloseDrawer} onClose={() => setShowCloseDrawer(false)} onSuccess={handleActionSuccess} drawer={currentDrawer} />}
       {showExpenseDialog && <ExpenseDialog open={showExpenseDialog} onClose={() => setShowExpenseDialog(false)} onSuccess={handleActionSuccess} drawer={currentDrawer} defaultCategory={expenseDefaultCategory} />}
-      {showJenaiCapture && <JenaiExpenseCapture open={showJenaiCapture} onClose={() => setShowJenaiCapture(false)} onSuccess={() => { setShowJenaiCapture(false); loadData(); }} />}
+      {/* JenaiExpenseCapture (scan IA) removido. Si quisieras una IA específica
+          para Órdenes de Compra, vive ahora dentro de PurchaseOrderDialog. */}
       {showTimeTrackingModal && (
         <TimeTrackingModal open={showTimeTrackingModal} onClose={() => { setShowTimeTrackingModal(false); loadData(); }} session={null} />
       )}
