@@ -429,17 +429,7 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
         onUpdate={onUpdate}
       />
 
-      {showJeaniReport && (
-        <JeaniStageReportPanel
-          order={o}
-          checklist={jeaniChecklist}
-          checklistNotes={noteText}
-          stageId="in_progress"
-          stageLabel="Reparación"
-          onClose={() => setShowJeaniReport(false)}
-          onApplyAsNote={() => { setShowJeaniReport(false); onUpdate?.(); }}
-        />
-      )}
+      {/* JeaniStageReportPanel removido — IA solo vive en Órdenes de Compra. */}
     </div>
   );
 }
