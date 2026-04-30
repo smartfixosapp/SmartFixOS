@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { callJENAI } from "@/lib/jenaiEngine";
+// IA removida — solo vive en Finanzas → Órdenes de Compra.
 import {
   Dialog,
   DialogContent,
