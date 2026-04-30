@@ -40,6 +40,10 @@ function MobileRepairDetail({
 }) {
   const [activeTab, setActiveTab] = useState(0);
   const [showCatalog, setShowCatalog] = useState(false);
+  // editMode controla si los lápices y la interactividad de los rows aparecen
+  // en MobileInformacionTab. Por defecto desactivado para una vista limpia
+  // de "solo lectura"; al tocar el botón "Editar" del header se activa.
+  const [editMode, setEditMode] = useState(false);
   const scrollRef = useRef(null);
   const o = order || {};
 
