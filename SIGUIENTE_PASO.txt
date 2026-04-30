@@ -1,0 +1,29 @@
+╔═══════════════════════════════════════════════╗
+║  🎯 PRÓXIMOS PASOS                           ║
+╚═══════════════════════════════════════════════╝
+
+Ahora copia estos archivos del CHAT a tu proyecto:
+
+📱 iOS (a ios/App/App/):
+  1. LoadingOptimizer.swift
+  2. NumericInputHelper.swift
+  3. NativeUIPlugin.swift
+  
+💻 Web (a src/plugins/):
+  1. LoadingOptimizer.ts
+  2. web-loading.ts
+  3. NumericInputHelper.ts
+  4. web-numeric.ts
+  5. NativeUIPlugin.ts
+  6. web.ts
+
+⚛️ React (a src/components/):
+  1. PaymentModalNative.tsx
+  2. PaymentModalNative.css
+
+Luego:
+1. Abre Xcode: open ios/App/App.xcworkspace
+2. Añade los archivos .swift al proyecto
+3. Compila: Cmd + B
+
+¡Listo! 🎉
