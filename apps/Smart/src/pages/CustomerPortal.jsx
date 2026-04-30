@@ -19,7 +19,7 @@ import {
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { openWhatsApp, makeCall } from "@/components/utils/helpers";
-import { callJENAI } from "@/lib/jenaiEngine";
+// IA removida del portal del cliente — solo vive en Órdenes de Compra.
 
 const statusColors = {
   intake: "bg-apple-blue/12 text-apple-blue",
