@@ -649,6 +649,20 @@ Antes de añadir un componente o llamar al `SupabaseClient`, abre el archivo cor
 - **NavigationStack va dentro de cada feature**, no envolviendo el TabView. Cada tab tiene su propio stack.
 - Cuando un componente del DesignSystem te dice "param X no existe", no inventes — busca en `DesignSystem/Components/` el archivo y mira los labels actuales.
 
+### Gotchas Phase 3 (Wizard) — agregar a cualquier fase futura
+
+- **`@escaping` en closures de helpers genéricos pasadas a `ForEach`** — Si tenés un helper `pickerList<T>(label: (T) -> String, ...)` y dentro usás `ForEach { label(item) }`, Swift requiere `label: @escaping (T) -> String`. `ForEach`'s content closure es `@escaping`; sin el annotation: "Converting non-escaping parameter 'label' to generic parameter 'Content' may allow it to escape".
+
+- **Ternario con `.secondary` vs `Color.red` falla por tipos distintos** — `.secondary` es `HierarchicalShapeStyle`; `Color.red` es `Color`. Un ternario `cond ? .secondary : .red` no compila. Fix: usa `Color(.secondaryLabel)` para el primer branch y `Color.red` para el segundo — ambos son `Color`.
+
+- **`device_security` JSONB requiere `[String: Any]`, NO struct Codable directamente** — `JSONSerialization.data(withJSONObject:)` no serializa structs Swift. `DeviceSecurity` expone `toDictionary() -> [String: Any]` que sólo incluye valores no-nil. Pasar la struct directamente al payload causa crash en runtime al llamar `JSONSerialization`.
+
+- **`SupabaseClient.select` devuelve `[T]`, no un resultado con `.first`** — Para buscar duplicado de cliente por teléfono: `let result: [Customer] = try await SupabaseClient.shared.select(from: "customer", filters: [...], limit: 1)` y luego `result.first`. No hay `.single()` ni `.execute().value`.
+
+- **`PKCanvasView.drawing.bounds.isEmpty`** detecta canvas vacío — No uses `drawing.strokes.isEmpty`. Un `PKDrawing` vacío tiene `bounds` de `CGRect.null` cuyo `isEmpty` es `true`. Es la forma correcta de detectar si el usuario firmó.
+
+- **Subida de fotos debe ir en el paso 8, no en cada paso** — Si el usuario cancela el wizard, las fotos en `[UIImage]` se descartan automáticamente con el ViewModel. Si subieras en Step 4, quedan huérfanas en Storage. El `TaskGroup` paralelo en `createOrder()` es el único lugar correcto.
+
 ---
 
 ## 13. Notas finales
