@@ -621,6 +621,36 @@ apps/Smart/.env                                  # URLs y keys (NO commitear nue
 
 ---
 
+## 12.5 Convenciones del codebase SmartNative (lecciones de fases anteriores)
+
+Estas son convenciones de naming que el codebase ya estableció y que **toda fase nueva debe respetar** para no tener que renombrar luego.
+
+### API parameters — el label que usa el código existente
+
+| Tipo | Param que parece obvio | Param que SÍ usa el codebase |
+|------|------------------------|------------------------------|
+| `EmptyStateView` (DesignSystem) | `message:` | **`subtitle:`** ✅ |
+| `SupabaseClient.select` | `table:` | **`from:`** ✅ |
+
+Antes de añadir un componente o llamar al `SupabaseClient`, abre el archivo correspondiente y mira los labels actuales — NO asumas el nombre semántico.
+
+### Patrones que ya funcionan (úsalos tal cual)
+
+- `@Observable` ViewModel + `@State private var vm = MyViewModel()` en la View
+- `@Bindable var vm` cuando necesitás bindings dentro de un sheet o subview
+- `Money.swift` ya tiene `Decimal` helpers — reusalos en cualquier cálculo financiero
+- `CashRegisterAPI` es el patrón de cliente Vercel — copia su shape para nuevos endpoints
+- Toast con `.allowsHitTesting(false)` y auto-dismiss 2.2s — ya está implementado en `POSView`
+- TabView raíz vive en `RootView.swift` — los nuevos tabs se agregan ahí, no en otro lado
+
+### Nuevas reglas detectadas durante implementación
+
+- **Decimal → Double solo en el payload JSON final** (`.asDouble`). Todo cálculo intermedio queda Decimal.
+- **NavigationStack va dentro de cada feature**, no envolviendo el TabView. Cada tab tiene su propio stack.
+- Cuando un componente del DesignSystem te dice "param X no existe", no inventes — busca en `DesignSystem/Components/` el archivo y mira los labels actuales.
+
+---
+
 ## 13. Notas finales
 
 - **No te apures.** Es mejor entregar Fase 1 perfecta que 5 fases mediocres.
