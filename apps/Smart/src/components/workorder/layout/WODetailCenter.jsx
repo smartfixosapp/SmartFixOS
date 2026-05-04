@@ -275,17 +275,31 @@ export default function WODetailCenter({
           )}
         </div>
 
-        <div className="rounded-xl border border-white/[0.08] bg-[#121215] p-4 space-y-2">
-          <h4 className="text-[10px] font-semibold text-white/50">Dispositivo</h4>
-          <div className="flex items-center gap-2">
+        <div className="group/device relative rounded-xl border border-white/[0.08] bg-[#121215] p-4 space-y-2">
+          <div className="flex items-center justify-between">
+            <h4 className="text-[10px] font-semibold text-white/50">Dispositivo</h4>
+            <button
+              onClick={() => setShowDeviceEdit(true)}
+              className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-white/50 opacity-0 group-hover/device:opacity-100 hover:bg-white/10 hover:text-cyan-300 transition-all"
+              title="Editar dispositivo"
+            >
+              <Pencil className="w-3 h-3" />
+              Editar
+            </button>
+          </div>
+          <button
+            onClick={() => setShowDeviceEdit(true)}
+            className="w-full flex items-center gap-2 text-left rounded-lg hover:bg-white/[0.03] transition-colors -mx-1 px-1 py-0.5"
+            title="Editar dispositivo"
+          >
             <DeviceIcon type={o.device_type} />
             <p className="text-sm font-bold text-white">
               {[o.device_brand, o.device_model].filter(Boolean).join(" ") || o.device_type || "—"}
             </p>
-          </div>
+          </button>
           <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-white/50">
             {o.device_color && <InfoField label="Color" value={o.device_color} />}
-            {o.device_imei && <InfoField label="IMEI" value={o.device_imei} />}
+            {(o.device_serial || o.device_imei) && <InfoField label="Serial/IMEI" value={o.device_serial || o.device_imei} />}
           </div>
         </div>
       </div>
