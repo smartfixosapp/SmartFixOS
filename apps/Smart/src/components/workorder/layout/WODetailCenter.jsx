@@ -36,6 +36,7 @@ export default function WODetailCenter({
   const o = order || {};
   const phone = o.customer_phone || o.phone;
   const [showCatalog, setShowCatalog] = useState(false);
+  const [showDeviceEdit, setShowDeviceEdit] = useState(false);
   const [showDiagnostic, setShowDiagnostic] = useState(false);
   const [comment, setComment] = useState("");
   const [posting, setPosting] = useState(false);
