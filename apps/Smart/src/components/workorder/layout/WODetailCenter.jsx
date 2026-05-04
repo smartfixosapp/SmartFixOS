@@ -538,6 +538,14 @@ export default function WODetailCenter({
         onRemoteSaved={onRemoteSaved}
       />
 
+      {/* ── Device Edit Dialog ── */}
+      <DeviceEditDialog
+        open={showDeviceEdit}
+        onClose={() => setShowDeviceEdit(false)}
+        order={o}
+        onUpdate={onUpdate}
+      />
+
       {/* ── Photo Lightbox ── */}
       {previewPhoto && (
         <div className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center p-4" onClick={() => setPreviewPhoto(null)}>
