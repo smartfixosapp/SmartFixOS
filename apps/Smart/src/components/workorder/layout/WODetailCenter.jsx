@@ -3,6 +3,7 @@ import { Phone, MessageCircle, Mail, Smartphone, Laptop, Tablet, Watch, Gamepad2
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import AddItemModal from "@/components/workorder/AddItemModal";
+import DeviceEditDialog from "@/components/workorder/DeviceEditDialog";
 import JeaniDiagnosticPanel from "@/components/workorder/JeaniDiagnosticPanel";
 import WorkOrderTimeline from "@/components/orders/workorder/WorkOrderTimeline";
 import { logWorkOrderPhotoEvent } from "@/components/workorder/utils/auditEvents";
