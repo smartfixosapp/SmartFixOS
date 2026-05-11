@@ -2900,46 +2900,45 @@ export default function PinAccess() {
 
               {/* Story */}
               <div className="space-y-6">
-                <div className="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/30 rounded-full px-4 py-2">
-                  <Star className="w-4 h-4 text-cyan-400" />
-                  <span className="text-cyan-300 text-sm font-bold">Historia del Creador</span>
+                <div className="inline-flex items-center gap-2 bg-white/[0.04] border border-white/10 rounded-full px-4 py-2">
+                  <Star className="w-4 h-4 text-white/70" />
+                  <span className="text-white/80 text-sm font-semibold">Historia del Creador</span>
                 </div>
 
-                <h2 className="text-3xl sm:text-4xl font-semibold text-white leading-tight">
+                <h2 className="text-3xl sm:text-4xl font-semibold text-white leading-tight tracking-tight">
                   Creado por un técnico,<br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">
-                    para técnicos
-                  </span>
+                  <span className="text-white/50">para técnicos</span>
                 </h2>
 
-                <div className="space-y-4 text-gray-300 leading-relaxed">
+                <div className="space-y-4 text-white/60 leading-relaxed">
                   <p>
-                    Como técnico de reparación con años de experiencia, probé decenas de sistemas de gestión para talleres. 
+                    Como técnico de reparación con años de experiencia, probé decenas de sistemas de gestión para talleres.
                     <span className="text-white font-semibold"> Ninguno cumplía con mis expectativas.</span>
                   </p>
-                  
+
                   <p>
-                    Los sistemas existentes eran lentos, complicados, o simplemente no estaban diseñados 
+                    Los sistemas existentes eran lentos, complicados, o simplemente no estaban diseñados
                     para el ritmo real de un taller de reparación. Perdía más tiempo navegando menús que reparando dispositivos.
                   </p>
 
-                  <p className="text-cyan-300 font-semibold">
+                  <p className="text-white font-semibold">
                     Por eso creé SmartFixOS.
                   </p>
 
                   <p>
-                    Un sistema diseñado desde cero para <span className="text-emerald-400 font-bold">lograr facilitar a los talleres 
-                    de reparación un flujo de trabajo mas natural y de facil manejo</span>, con flujos de trabajo optimizados, interfaz intuitiva, 
+                    Un sistema diseñado desde cero para <span className="text-white font-semibold">lograr facilitar a los talleres
+                    de reparación un flujo de trabajo más natural y de fácil manejo</span>, con flujos de trabajo optimizados, interfaz intuitiva,
                     y todas las herramientas que realmente necesitas.
                   </p>
 
-                  <div className="bg-gradient-to-r from-cyan-500/10 to-emerald-500/10 border-l-4 border-cyan-500 rounded-lg p-4 mt-6">
-                    <p className="text-white font-bold flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-cyan-400" />
+                  <div className="relative overflow-hidden bg-white/[0.03] border border-white/10 rounded-2xl p-4 mt-6">
+                    <div className="pointer-events-none absolute -top-10 -left-10 h-28 w-28 rounded-full bg-white/[0.08] blur-3xl" aria-hidden />
+                    <p className="relative text-white font-semibold flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-white/80" />
                       Compromiso Continuo
                     </p>
-                    <p className="text-sm text-gray-300 mt-2">
-                      Actualizaciones constantes, nuevas funcionalidades, y mejoras basadas en las 
+                    <p className="relative text-sm text-white/55 mt-2">
+                      Actualizaciones constantes, nuevas funcionalidades, y mejoras basadas en las
                       necesidades reales de talleres como el tuyo.
                     </p>
                   </div>
