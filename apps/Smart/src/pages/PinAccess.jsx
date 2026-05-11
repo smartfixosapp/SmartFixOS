@@ -2848,7 +2848,7 @@ export default function PinAccess() {
             <Button
               onClick={() => navigate("/Pricing")}
               variant="outline"
-              className="border-cyan-500/40 bg-transparent text-cyan-300 hover:bg-cyan-500/10 rounded-full px-5 font-medium text-sm h-9">
+              className="border-white/15 bg-white/[0.03] text-white/80 hover:bg-white/[0.06] hover:text-white rounded-full px-5 font-medium text-sm h-9 transition-colors">
 
               <UserPlus className="w-4 h-4 mr-2" />
               Crear cuenta
@@ -2859,7 +2859,7 @@ export default function PinAccess() {
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-5xl sm:text-7xl font-bold bg-gradient-to-br from-white via-gray-200 to-gray-500 bg-clip-text text-transparent">
+              className="text-5xl sm:text-7xl font-semibold tracking-tight text-white">
 
               Potencia tu Taller.
             </motion.h1>
@@ -2867,7 +2867,7 @@ export default function PinAccess() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-xl sm:text-2xl text-gray-400 font-medium max-w-2xl mx-auto">
+              className="text-xl sm:text-2xl text-white/45 font-medium max-w-2xl mx-auto">
 
               La plataforma definitiva para gestión de reparaciones y ventas.
             </motion.p>
