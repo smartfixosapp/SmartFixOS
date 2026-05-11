@@ -2947,96 +2947,98 @@ export default function PinAccess() {
             </div>
           </motion.div>
 
-          {/* Bento Grid */}
+          {/* Bento Grid — monochrome dark glass */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-16">
-            
+
             {/* 1. Gestión de Órdenes */}
-            <BentoItem className="col-span-1 sm:col-span-2 lg:col-span-2 bg-gradient-to-br from-blue-600/20 to-cyan-600/20 !border-blue-500/20">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-2xl bg-blue-500 flex items-center justify-center shadow-xl shadow-blue-500/20">
+            <BentoItem className="col-span-1 sm:col-span-2 lg:col-span-2 bg-[#0a0a0c]/80 !border-white/[0.08]">
+              <div className="pointer-events-none absolute -top-16 -left-16 h-44 w-44 rounded-full bg-white/[0.10] blur-3xl" aria-hidden />
+              <div className="relative flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-2xl bg-white/[0.06] border border-white/10 flex items-center justify-center">
                   <Wrench className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold">Gestión de Órdenes</h3>
-                  <p className="text-sm text-blue-200/70">Simplificado al máximo</p>
+                  <h3 className="text-2xl font-semibold text-white tracking-tight">Gestión de Órdenes</h3>
+                  <p className="text-sm text-white/45">Simplificado al máximo</p>
                 </div>
               </div>
-              <p className="text-sm text-gray-300">Crea órdenes de trabajo en segundos. Flujo intuitivo desde el intake hasta la entrega. Todo lo que necesitas, nada de lo que no.</p>
+              <p className="relative text-sm text-white/55">Crea órdenes de trabajo en segundos. Flujo intuitivo desde el intake hasta la entrega. Todo lo que necesitas, nada de lo que no.</p>
             </BentoItem>
 
-            {/* 2. POS Llevadero */}
-            <BentoItem delay={0.1} className="col-span-1 bg-gradient-to-br from-purple-600/10 to-pink-600/10 !border-purple-500/20">
-              <Receipt className="w-8 h-8 text-purple-400 mb-3" />
-              <h3 className="text-lg font-bold mb-1">Punto de Venta</h3>
-              <p className="text-sm text-gray-400">Ultra rápido y llevadero. Factura en menos de 10 segundos.</p>
+            {/* 2. POS */}
+            <BentoItem delay={0.1} className="col-span-1 bg-[#0a0a0c]/80 !border-white/[0.08]">
+              <Receipt className="w-8 h-8 text-white/80 mb-3" />
+              <h3 className="text-lg font-semibold mb-1 text-white">Punto de Venta</h3>
+              <p className="text-sm text-white/45">Ultra rápido y llevadero. Factura en menos de 10 segundos.</p>
             </BentoItem>
 
             {/* 3. Ponche de Empleados */}
-            <BentoItem delay={0.2} className="col-span-1 bg-gradient-to-br from-emerald-600/10 to-teal-600/10 !border-emerald-500/20">
-              <Clock className="w-8 h-8 text-emerald-400 mb-3" />
-              <h3 className="text-lg font-bold mb-1">Ponche de Tiempo</h3>
-              <p className="text-sm text-gray-400">Control de asistencia y horas trabajadas automático.</p>
+            <BentoItem delay={0.2} className="col-span-1 bg-[#0a0a0c]/80 !border-white/[0.08]">
+              <Clock className="w-8 h-8 text-white/80 mb-3" />
+              <h3 className="text-lg font-semibold mb-1 text-white">Ponche de Tiempo</h3>
+              <p className="text-sm text-white/45">Control de asistencia y horas trabajadas automático.</p>
             </BentoItem>
 
             {/* 4. Finanzas */}
-            <BentoItem delay={0.3} className="col-span-1 sm:col-span-2 lg:col-span-1 bg-gradient-to-br from-green-600/10 to-emerald-600/10 !border-green-500/20">
-              <BarChart3 className="w-8 h-8 text-green-400 mb-3" />
-              <h3 className="text-lg font-bold mb-1">Panel Financiero</h3>
-              <p className="text-sm text-gray-400">Reportes detallados, ganancias, gastos e impuestos.</p>
+            <BentoItem delay={0.3} className="col-span-1 sm:col-span-2 lg:col-span-1 bg-[#0a0a0c]/80 !border-white/[0.08]">
+              <BarChart3 className="w-8 h-8 text-white/80 mb-3" />
+              <h3 className="text-lg font-semibold mb-1 text-white">Panel Financiero</h3>
+              <p className="text-sm text-white/45">Reportes detallados, ganancias, gastos e impuestos.</p>
             </BentoItem>
 
-            {/* 5. Inventario Detallado */}
-            <BentoItem delay={0.4} className="col-span-1 sm:col-span-2 lg:col-span-2 bg-gradient-to-br from-orange-600/10 to-amber-600/10 !border-orange-500/20">
-              <div className="flex items-center gap-3 mb-4">
-                <Box className="w-10 h-10 text-orange-400" />
+            {/* 5. Inventario */}
+            <BentoItem delay={0.4} className="col-span-1 sm:col-span-2 lg:col-span-2 bg-[#0a0a0c]/80 !border-white/[0.08]">
+              <div className="pointer-events-none absolute -top-16 -right-16 h-44 w-44 rounded-full bg-white/[0.10] blur-3xl" aria-hidden />
+              <div className="relative flex items-center gap-3 mb-4">
+                <Box className="w-10 h-10 text-white/80" />
                 <div>
-                  <h3 className="text-2xl font-bold">Inventario Completo</h3>
-                  <p className="text-sm text-orange-200/70">Control total de stock</p>
+                  <h3 className="text-2xl font-semibold text-white tracking-tight">Inventario Completo</h3>
+                  <p className="text-sm text-white/45">Control total de stock</p>
                 </div>
               </div>
-              <p className="text-sm text-gray-300">Manejo de piezas, productos y servicios. Alertas de bajo inventario, órdenes de compra y reportes detallados.</p>
+              <p className="relative text-sm text-white/55">Manejo de piezas, productos y servicios. Alertas de bajo inventario, órdenes de compra y reportes detallados.</p>
             </BentoItem>
 
             {/* 6. Panel Admin */}
-            <BentoItem delay={0.5} className="col-span-1 bg-gradient-to-br from-red-600/10 to-pink-600/10 !border-red-500/20">
-              <Shield className="w-8 h-8 text-red-400 mb-3" />
-              <h3 className="text-lg font-bold mb-1">Panel Admin</h3>
-              <p className="text-sm text-gray-400">Control total del negocio con permisos y roles.</p>
+            <BentoItem delay={0.5} className="col-span-1 bg-[#0a0a0c]/80 !border-white/[0.08]">
+              <Shield className="w-8 h-8 text-white/80 mb-3" />
+              <h3 className="text-lg font-semibold mb-1 text-white">Panel Admin</h3>
+              <p className="text-sm text-white/45">Control total del negocio con permisos y roles.</p>
             </BentoItem>
 
             {/* 7. Reviews */}
-            <BentoItem delay={0.6} className="col-span-1 bg-gradient-to-br from-yellow-600/10 to-orange-600/10 !border-yellow-500/20">
-              <Star className="w-8 h-8 text-yellow-400 mb-3" />
-              <h3 className="text-lg font-bold mb-1">Links de Reviews</h3>
-              <p className="text-sm text-gray-400">Genera reseñas fácilmente con enlaces directos.</p>
+            <BentoItem delay={0.6} className="col-span-1 bg-[#0a0a0c]/80 !border-white/[0.08]">
+              <Star className="w-8 h-8 text-white/80 mb-3" />
+              <h3 className="text-lg font-semibold mb-1 text-white">Links de Reviews</h3>
+              <p className="text-sm text-white/45">Genera reseñas fácilmente con enlaces directos.</p>
             </BentoItem>
 
-            {/* 8. Fotos de Trabajos */}
-            <BentoItem delay={0.7} className="col-span-1 sm:col-span-2 lg:col-span-1 bg-gradient-to-br from-indigo-600/10 to-purple-600/10 !border-indigo-500/20">
-              <Camera className="w-8 h-8 text-indigo-400 mb-3" />
-              <h3 className="text-lg font-bold mb-1">Galería de Fotos</h3>
-              <p className="text-sm text-gray-400">Almacena fotos de trabajos realizados por orden.</p>
+            {/* 8. Fotos */}
+            <BentoItem delay={0.7} className="col-span-1 sm:col-span-2 lg:col-span-1 bg-[#0a0a0c]/80 !border-white/[0.08]">
+              <Camera className="w-8 h-8 text-white/80 mb-3" />
+              <h3 className="text-lg font-semibold mb-1 text-white">Galería de Fotos</h3>
+              <p className="text-sm text-white/45">Almacena fotos de trabajos realizados por orden.</p>
             </BentoItem>
 
             {/* 9. CRM Clientes */}
-            <BentoItem delay={0.8} className="col-span-1 bg-gradient-to-br from-cyan-600/10 to-blue-600/10 !border-cyan-500/20">
-              <Users className="w-8 h-8 text-cyan-400 mb-3" />
-              <h3 className="text-lg font-bold mb-1">CRM Clientes</h3>
-              <p className="text-sm text-gray-400">Historial completo y comunicación directa.</p>
+            <BentoItem delay={0.8} className="col-span-1 bg-[#0a0a0c]/80 !border-white/[0.08]">
+              <Users className="w-8 h-8 text-white/80 mb-3" />
+              <h3 className="text-lg font-semibold mb-1 text-white">CRM Clientes</h3>
+              <p className="text-sm text-white/45">Historial completo y comunicación directa.</p>
             </BentoItem>
 
-            {/* 10. Calculadora de Precios */}
-            <BentoItem delay={0.9} className="col-span-1 bg-gradient-to-br from-lime-600/10 to-green-600/10 !border-lime-500/20">
-              <Zap className="w-8 h-8 text-lime-400 mb-3" />
-              <h3 className="text-lg font-bold mb-1">Calculadora de Precios</h3>
-              <p className="text-sm text-gray-400">Cotizaciones al instante con impuestos.</p>
+            {/* 10. Calculadora */}
+            <BentoItem delay={0.9} className="col-span-1 bg-[#0a0a0c]/80 !border-white/[0.08]">
+              <Zap className="w-8 h-8 text-white/80 mb-3" />
+              <h3 className="text-lg font-semibold mb-1 text-white">Calculadora de Precios</h3>
+              <p className="text-sm text-white/45">Cotizaciones al instante con impuestos.</p>
             </BentoItem>
 
             {/* 11. Datos en Vivo */}
-            <BentoItem delay={1.0} className="col-span-1 bg-black/40 text-center flex flex-col items-center justify-center">
-              <Database className="w-10 h-10 text-sky-400 mb-2" />
-              <h3 className="font-bold text-base">Sincronización</h3>
-              <p className="text-xs text-gray-500">Datos en tiempo real</p>
+            <BentoItem delay={1.0} className="col-span-1 bg-[#0a0a0c]/80 !border-white/[0.08] text-center flex flex-col items-center justify-center">
+              <Database className="w-10 h-10 text-white/80 mb-2" />
+              <h3 className="font-semibold text-base text-white">Sincronización</h3>
+              <p className="text-xs text-white/40">Datos en tiempo real</p>
             </BentoItem>
 
           </div>
