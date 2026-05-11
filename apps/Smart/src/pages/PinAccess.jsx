@@ -3043,172 +3043,156 @@ export default function PinAccess() {
 
           </div>
 
-          {/* Pricing Section — 2 planes con punch */}
-          <div className="mt-20 mb-12">
-            {/* Hook emocional */}
-            <div className="text-center mb-3">
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs font-semibold">
+          {/* Pricing Section — monochrome dark glass, matches /Pricing */}
+          <div className="relative mt-20 mb-12">
+            {/* Giant faded backdrop */}
+            <h2
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 -top-10 sm:-top-20 select-none text-center text-[22vw] sm:text-[16rem] font-bold tracking-tighter leading-none text-white/[0.04]"
+              style={{ filter: "blur(2px)" }}
+            >
+              Pricing
+            </h2>
+
+            <div className="relative text-center mb-3">
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.03] border border-white/10 text-white/70 text-xs font-semibold">
                 <Sparkles className="w-3.5 h-3.5" />
                 Sin contratos · 14 días gratis
               </span>
             </div>
-            <h2 className="text-4xl sm:text-5xl font-semibold text-white text-center mb-3 tracking-tight">
-              Deja la libreta.
-              <br />
-              <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent">
-                Profesionaliza tu taller hoy.
-              </span>
+            <h2 className="relative text-4xl sm:text-5xl font-semibold text-white text-center mb-3 tracking-tight">
+              Planes simples.
             </h2>
-            <p className="text-center text-gray-400 text-base mb-12 max-w-xl mx-auto">
+            <p className="relative text-center text-white/45 text-base mb-12 max-w-xl mx-auto">
               Dos planes. Cero complicaciones. Empieza en 2 minutos.
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto items-stretch">
+            <div className="relative grid grid-cols-1 md:grid-cols-2 gap-5 max-w-4xl mx-auto items-stretch">
 
               {/* ── Starter ── */}
-              <div className="relative flex flex-col bg-gradient-to-b from-white/[0.06] to-white/[0.02] border border-white/15 rounded-3xl p-7 hover:border-white/30 hover:scale-[1.01] transition-all duration-300 group">
-                {/* Header */}
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center">
-                    <Wrench className="w-4 h-4 text-white/70" />
-                  </div>
-                  <p className="text-sm font-semibold text-white">Starter</p>
+              <div className="relative flex flex-col overflow-hidden rounded-[28px] border border-white/[0.07] bg-[#0a0a0c] p-8 shadow-[0_20px_60px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.04)]">
+                {/* Corner glow */}
+                <div className="pointer-events-none absolute -top-12 -left-12 h-44 w-44 rounded-full bg-white/[0.18] blur-3xl" aria-hidden />
+
+                <div className="relative">
+                  <p className="text-xs font-medium tracking-wide text-white/50">Starter Plan</p>
+                  <h3 className="mt-1 text-base font-semibold text-white">Para técnicos independientes</h3>
                 </div>
 
-                {/* Price */}
-                <div className="mb-2">
+                <div className="relative mt-6">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-6xl font-semibold text-white tracking-tight">$14</span>
-                    <span className="text-2xl font-semibold text-white/50">.99</span>
-                    <span className="text-gray-500 text-base ml-1">/mes</span>
+                    <span className="text-5xl sm:text-6xl font-semibold tracking-tight text-white">$14.99</span>
+                    <span className="text-2xl font-medium text-white/40">/m</span>
                   </div>
-                  <p className="text-xs text-cyan-400/80 font-bold mt-1">≈ 50¢ por día · Menos que un café</p>
+                  <p className="mt-2 text-xs font-medium text-white/40">Cancela cuando quieras</p>
                 </div>
 
-                <div className="h-px bg-white/10 my-5" />
+                <div className="relative my-7 h-px w-full bg-white/[0.08]" />
 
-                {/* Subtítulo emocional */}
-                <p className="text-sm text-white/80 font-bold mb-1">Perfecto para arrancar</p>
-                <p className="text-xs text-gray-400 mb-5">Tu primer mes profesional sin riesgo</p>
-
-                {/* Features */}
-                <ul className="space-y-2.5 flex-1">
+                <ul className="relative flex-1 space-y-3.5">
                   {[
-                    { t: "50 órdenes nuevas por mes", strong: true },
-                    { t: "50 productos en inventario", strong: true },
-                    { t: "Clientes ilimitados", strong: false },
-                    { t: "POS, caja, reportes — todo incluido", strong: false },
-                    { t: "Empleados ilimitados", strong: false },
-                    { t: "Workflow personalizable", strong: false },
-                  ].map(f => (
-                    <li key={f.t} className="flex items-start gap-2.5 text-sm">
-                      <CheckCircle className="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5" />
-                      <span className={f.strong ? "text-white font-semibold" : "text-gray-300"}>{f.t}</span>
+                    "50 órdenes nuevas por mes",
+                    "50 productos en inventario",
+                    "Clientes ilimitados",
+                    "POS, caja y reportes incluidos",
+                    "Empleados ilimitados",
+                    "Workflow personalizable",
+                  ].map((t) => (
+                    <li key={t} className="flex items-center gap-3 text-sm text-white/75">
+                      <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/[0.04]">
+                        <Check className="h-3 w-3 text-white" strokeWidth={3} />
+                      </span>
+                      <span>{t}</span>
                     </li>
                   ))}
                 </ul>
 
                 <button
                   onClick={() => setShowSignup(true)}
-                  className="mt-7 w-full py-3.5 rounded-2xl border-2 border-white/20 text-white text-sm font-semibold hover:bg-white/10 hover:border-white/40 transition-all group-hover:border-cyan-500/40"
+                  className="relative mt-8 inline-flex h-14 w-full items-center justify-center gap-2 rounded-full border border-white/15 bg-black/40 text-white text-sm font-semibold hover:bg-white/[0.04] hover:border-white/30 transition-all active:scale-[0.98]"
                 >
-                  Empezar gratis →
+                  Empezar gratis
+                  <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
 
-              {/* ── Pro — DOMINANT ── */}
-              <div className="relative flex flex-col bg-gradient-to-br from-cyan-950/80 via-blue-950/80 to-emerald-950/40 border-2 border-cyan-400/60 rounded-3xl p-7 shadow-[0_0_60px_rgba(6,182,212,0.25)] hover:shadow-[0_0_100px_rgba(6,182,212,0.45)] hover:scale-[1.02] transition-all duration-300 group overflow-hidden">
-                {/* Glow background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/[0.08] via-transparent to-emerald-500/[0.08] pointer-events-none" />
-                <div className="absolute -top-20 -right-20 w-40 h-40 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none animate-pulse" />
+              {/* ── Pro — highlighted with white CTA ── */}
+              <div className="relative flex flex-col overflow-hidden rounded-[28px] border border-white/20 bg-[#0a0a0c] p-8 shadow-[0_24px_80px_rgba(255,255,255,0.06),inset_0_1px_0_rgba(255,255,255,0.08)]">
+                {/* Corner glow */}
+                <div className="pointer-events-none absolute -top-12 -right-12 h-44 w-44 rounded-full bg-white/[0.18] blur-3xl" aria-hidden />
+                <div className="pointer-events-none absolute -bottom-16 -right-12 h-44 w-44 rounded-full bg-white/[0.10] blur-3xl" aria-hidden />
 
-                {/* Badge */}
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                  <div className="bg-gradient-to-r from-cyan-400 via-blue-400 to-emerald-400 text-black text-[11px] font-semibold px-4 py-1.5 rounded-full shadow-[0_4px_20px_rgba(6,182,212,0.6)] flex items-center gap-1.5">
-                    <Sparkles className="w-3 h-3" />
-                    El elegido por talleres
-                  </div>
+                <div className="relative">
+                  <p className="text-xs font-medium tracking-wide text-white/50">Pro Plan</p>
+                  <h3 className="mt-1 text-base font-semibold text-white">Sin límites</h3>
                 </div>
 
-                {/* Header */}
-                <div className="flex items-center gap-2 mb-4 relative">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center shadow-lg shadow-cyan-500/30">
-                    <Zap className="w-4 h-4 text-white" />
-                  </div>
-                  <p className="text-sm font-semibold text-cyan-300">Pro</p>
-                </div>
-
-                {/* Price */}
-                <div className="mb-2 relative">
+                <div className="relative mt-6">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-6xl font-semibold text-white tracking-tight">$39</span>
-                    <span className="text-2xl font-semibold text-white/60">.99</span>
-                    <span className="text-gray-300 text-base ml-1">/mes</span>
+                    <span className="text-5xl sm:text-6xl font-semibold tracking-tight text-white">$39.99</span>
+                    <span className="text-2xl font-medium text-white/40">/m</span>
                   </div>
-                  <p className="text-xs text-emerald-300/90 font-bold mt-1">≈ Una pantalla de iPhone al mes</p>
+                  <p className="mt-2 text-xs font-medium text-white/40">Cancela cuando quieras</p>
                 </div>
 
-                <div className="h-px bg-cyan-400/20 my-5" />
+                <div className="relative my-7 h-px w-full bg-white/[0.08]" />
 
-                {/* Subtítulo emocional */}
-                <p className="text-sm text-white font-bold mb-1">Métele mano sin freno</p>
-                <p className="text-xs text-cyan-200/70 mb-5">Para el técnico que ya está creciendo</p>
-
-                {/* Features */}
-                <ul className="space-y-2.5 flex-1 relative">
+                <ul className="relative flex-1 space-y-3.5">
                   {[
-                    { t: "Órdenes ILIMITADAS por mes", strong: true },
-                    { t: "Inventario ILIMITADO", strong: true },
-                    { t: "Clientes ilimitados", strong: false },
-                    { t: "Todo lo de Starter", strong: false },
-                    { t: "Soporte prioritario · 24h", strong: false },
-                    { t: "Cero límites, cero sorpresas", strong: true },
-                  ].map(f => (
-                    <li key={f.t} className="flex items-start gap-2.5 text-sm">
-                      <div className="w-4 h-4 rounded-full bg-gradient-to-br from-cyan-400 to-emerald-400 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-lg shadow-cyan-500/30">
-                        <Check className="w-2.5 h-2.5 text-black stroke-[3]" />
-                      </div>
-                      <span className={f.strong ? "text-white font-bold" : "text-cyan-100/90"}>{f.t}</span>
+                    "Órdenes ilimitadas por mes",
+                    "Inventario ilimitado",
+                    "Todo lo del plan Starter",
+                    "Soporte prioritario en menos de 24h",
+                    "Acceso anticipado a nuevas funciones",
+                    "Sin límites, sin sorpresas",
+                  ].map((t) => (
+                    <li key={t} className="flex items-center gap-3 text-sm text-white/75">
+                      <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/[0.04]">
+                        <Check className="h-3 w-3 text-white" strokeWidth={3} />
+                      </span>
+                      <span>{t}</span>
                     </li>
                   ))}
                 </ul>
 
                 <button
                   onClick={() => setShowSignup(true)}
-                  className="mt-7 w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-400 via-blue-500 to-emerald-500 text-white text-sm font-semibold hover:scale-[1.02] active:scale-95 transition-all shadow-[0_8px_30px_rgba(6,182,212,0.4)] hover:shadow-[0_12px_40px_rgba(6,182,212,0.6)] relative"
+                  className="relative mt-8 inline-flex h-14 w-full items-center justify-center gap-2 rounded-full bg-white text-black text-sm font-semibold hover:bg-white/90 transition-all active:scale-[0.98] shadow-[0_8px_30px_rgba(255,255,255,0.18)]"
                 >
-                  Métele mano ahora →
+                  Empezar gratis
+                  <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
 
             </div>
 
-            {/* Trust strip */}
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs text-gray-400">
+            {/* Trust strip — monochrome */}
+            <div className="relative mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs text-white/55">
               <div className="flex items-center gap-2">
-                <Shield className="w-4 h-4 text-emerald-400" />
+                <Shield className="w-4 h-4 text-white/70" />
                 <span className="font-semibold">14 días gratis · Sin tarjeta</span>
               </div>
               <div className="hidden sm:block w-px h-4 bg-white/10" />
               <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-cyan-400" />
+                <Zap className="w-4 h-4 text-white/70" />
                 <span className="font-semibold">Listo en 2 minutos</span>
               </div>
               <div className="hidden sm:block w-px h-4 bg-white/10" />
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-blue-400" />
+                <CheckCircle className="w-4 h-4 text-white/70" />
                 <span className="font-semibold">Cancela cuando quieras</span>
               </div>
             </div>
           </div>
 
-          {/* Banner adicional */}
-          <div className="bg-gradient-to-r from-orange-500/10 via-red-500/10 to-pink-500/10 border-2 border-orange-500/30 rounded-2xl p-6 text-center mb-12">
-            <div className="flex items-center justify-center gap-3 mb-3">
-              <Smartphone className="w-6 h-6 text-orange-400" />
-              <h3 className="text-xl font-bold text-white">Hecho en Puerto Rico 🇵🇷</h3>
+          {/* Banner adicional — monochrome */}
+          <div className="relative overflow-hidden bg-[#0a0a0c] border border-white/[0.08] rounded-2xl p-6 text-center mb-12">
+            <div className="pointer-events-none absolute -top-12 left-1/2 -translate-x-1/2 h-40 w-72 rounded-full bg-white/[0.08] blur-3xl" aria-hidden />
+            <div className="relative flex items-center justify-center gap-3 mb-2">
+              <Smartphone className="w-5 h-5 text-white/70" />
+              <h3 className="text-xl font-semibold text-white tracking-tight">Hecho en Puerto Rico 🇵🇷</h3>
             </div>
-            <p className="text-gray-300">
+            <p className="relative text-white/55 text-sm">
               Por técnicos, para técnicos. Diseñado y probado en talleres reales.
             </p>
           </div>
