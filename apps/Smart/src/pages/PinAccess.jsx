@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { dataClient } from "@/components/api/dataClient";
 import { Button } from "@/components/ui/button";
-import { Lock, ArrowLeft, Delete, Check, ExternalLink, Shield, Zap, UserPlus, Smartphone, Box, Receipt, Users, BarChart3, Globe, Sparkles, MessageCircle, Clock, Database, Cloud, Mail, Building2, CheckCircle, Star, Phone, Wrench, Camera, Eye, EyeOff, KeyRound, Fingerprint } from "lucide-react";
+import { Lock, ArrowLeft, ArrowRight, Delete, Check, ExternalLink, Shield, Zap, UserPlus, Smartphone, Box, Receipt, Users, BarChart3, Globe, Sparkles, MessageCircle, Clock, Database, Cloud, Mail, Building2, CheckCircle, Star, Phone, Wrench, Camera, Eye, EyeOff, KeyRound, Fingerprint } from "lucide-react";
 import { supabase } from "../../../../lib/supabase-client.js";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
