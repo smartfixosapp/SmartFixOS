@@ -1,282 +1,293 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Check, X, Zap, Shield, Crown, ArrowRight,
-  ClipboardList, Package, Users, BarChart3,
-  Smartphone, Mail, Headphones, ChevronLeft
-} from "lucide-react";
-import { PLANS, PLAN_LIMITS } from "@/lib/plans";
+import { Check, ChevronLeft, ArrowRight } from "lucide-react";
+import { PLANS } from "@/lib/plans";
 
-const FEATURES = [
-  {
-    label: "Ordenes de trabajo",
-    starter: "50 / mes",
-    pro: "Ilimitadas",
-    icon: ClipboardList,
-  },
-  {
-    label: "Productos en inventario",
-    starter: "50 SKUs",
-    pro: "Ilimitados",
-    icon: Package,
-  },
-  {
-    label: "Clientes",
-    starter: "Ilimitados",
-    pro: "Ilimitados",
-    icon: Users,
-  },
-  {
-    label: "POS / Punto de venta",
-    starter: true,
-    pro: true,
-    icon: Smartphone,
-  },
-  {
-    label: "Reportes financieros",
-    starter: true,
-    pro: true,
-    icon: BarChart3,
-  },
-  {
-    label: "Emails automáticos",
-    starter: true,
-    pro: true,
-    icon: Mail,
-  },
-  {
-    label: "Soporte prioritario",
-    starter: false,
-    pro: true,
-    icon: Headphones,
-  },
-  {
-    label: "Multi-usuario",
-    starter: false,
-    pro: true,
-    icon: Shield,
-  },
+// Features list per plan — keeps it simple, matches reference card layout
+const STARTER_FEATURES = [
+  "50 órdenes nuevas por mes",
+  "50 productos en inventario",
+  "Clientes ilimitados",
+  "POS, caja y reportes incluidos",
+  "Empleados ilimitados",
+  "Workflow personalizable",
 ];
 
-const pageVariants = {
-  initial: { opacity: 0, y: 12 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] },
-};
+const PRO_FEATURES = [
+  "Órdenes ilimitadas por mes",
+  "Inventario ilimitado",
+  "Todo lo del plan Starter",
+  "Soporte prioritario en menos de 24h",
+  "Acceso anticipado a nuevas funciones",
+  "Sin límites, sin sorpresas",
+];
+
+// Small dark pill nav at the top
+function NavPill({ onBack, onLogin }) {
+  return (
+    <nav className="sticky top-4 z-50 flex justify-center px-4">
+      <div className="flex items-center gap-1 rounded-full border border-white/10 bg-black/60 px-2 py-1.5 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium text-white/60 hover:bg-white/5 hover:text-white transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Volver
+        </button>
+        <span className="rounded-full px-4 py-2 text-sm font-semibold text-white bg-white/5">
+          Planes
+        </span>
+        <button
+          onClick={onLogin}
+          className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-black hover:bg-white/90 transition-colors active:scale-95"
+        >
+          Iniciar Sesión
+        </button>
+      </div>
+    </nav>
+  );
+}
+
+// Reusable plan card matching the reference: corner glow, dark glass, white circle checks
+function PlanCard({
+  badge,
+  name,
+  price,
+  priceSuffix,
+  annualNote,
+  features,
+  ctaLabel,
+  ctaVariant = "outline", // "outline" | "solid"
+  glowPosition = "top-left", // "top-left" | "top-right" | "top-center"
+  onClick,
+  highlighted = false,
+  delay = 0,
+}) {
+  const glowClass =
+    glowPosition === "top-right"
+      ? "-top-12 -right-12"
+      : glowPosition === "top-center"
+      ? "-top-16 left-1/2 -translate-x-1/2"
+      : "-top-12 -left-12";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+      className={`relative flex flex-col overflow-hidden rounded-[28px] border bg-[#0a0a0c] p-8 transition-all duration-300 ${
+        highlighted
+          ? "border-white/20 shadow-[0_24px_80px_rgba(255,255,255,0.06),inset_0_1px_0_rgba(255,255,255,0.08)]"
+          : "border-white/[0.07] shadow-[0_20px_60px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.04)]"
+      }`}
+    >
+      {/* Corner glow — soft white sphere blurred into the card */}
+      <div
+        className={`pointer-events-none absolute h-44 w-44 rounded-full bg-white/[0.18] blur-3xl ${glowClass}`}
+        aria-hidden
+      />
+      {highlighted && (
+        <div
+          className="pointer-events-none absolute -bottom-16 -right-12 h-44 w-44 rounded-full bg-white/[0.10] blur-3xl"
+          aria-hidden
+        />
+      )}
+
+      {/* Badge / plan label */}
+      <div className="relative">
+        <p className="text-xs font-medium tracking-wide text-white/50">{badge}</p>
+        <h3 className="mt-1 text-base font-semibold text-white">{name}</h3>
+      </div>
+
+      {/* Price */}
+      <div className="relative mt-6">
+        <div className="flex items-baseline gap-1">
+          <span className="text-5xl sm:text-6xl font-semibold tracking-tight text-white">
+            {price}
+          </span>
+          <span className="text-2xl font-medium text-white/40">{priceSuffix}</span>
+        </div>
+        {annualNote && (
+          <p className="mt-2 text-xs font-medium text-white/40">{annualNote}</p>
+        )}
+      </div>
+
+      {/* Divider */}
+      <div className="relative my-7 h-px w-full bg-white/[0.08]" />
+
+      {/* Features */}
+      <ul className="relative flex-1 space-y-3.5">
+        {features.map((f) => (
+          <li key={f} className="flex items-center gap-3 text-sm text-white/75">
+            <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/[0.04]">
+              <Check className="h-3 w-3 text-white" strokeWidth={3} />
+            </span>
+            <span>{f}</span>
+          </li>
+        ))}
+      </ul>
+
+      {/* CTA */}
+      <button
+        onClick={onClick}
+        className={`relative mt-8 inline-flex h-14 w-full items-center justify-center gap-2 rounded-full text-sm font-semibold transition-all active:scale-[0.98] ${
+          ctaVariant === "solid"
+            ? "bg-white text-black hover:bg-white/90 shadow-[0_8px_30px_rgba(255,255,255,0.18)]"
+            : "border border-white/15 bg-black/40 text-white hover:bg-white/[0.04] hover:border-white/30"
+        }`}
+      >
+        {ctaLabel}
+        <ArrowRight className="h-4 w-4" />
+      </button>
+    </motion.div>
+  );
+}
+
+// Yearly billing toggle — pill switch like reference
+function BillingToggle({ annual, onChange }) {
+  return (
+    <button
+      onClick={() => onChange(!annual)}
+      className="group inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 transition-colors hover:bg-white/[0.05]"
+      role="switch"
+      aria-checked={annual}
+    >
+      <span
+        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+          annual ? "bg-white" : "bg-white/15"
+        }`}
+      >
+        <span
+          className={`absolute h-4 w-4 rounded-full bg-black transition-transform ${
+            annual ? "translate-x-4" : "translate-x-0.5"
+          }`}
+        />
+      </span>
+      <span className="text-sm font-medium text-white/80">
+        Facturación anual
+        <span className="ml-2 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold text-white/60">
+          −17%
+        </span>
+      </span>
+    </button>
+  );
+}
 
 export default function Pricing() {
   const navigate = useNavigate();
-  const [billing, setBilling] = useState("monthly"); // monthly | annual
+  const [annual, setAnnual] = useState(false);
 
-  const getPrice = (plan) => {
-    if (billing === "annual") return (plan.priceAnnual / 12).toFixed(2);
-    return plan.price.toFixed(2);
+  const priceFor = (plan) => {
+    if (annual) {
+      const monthly = plan.priceAnnual / 12;
+      // Show like the reference: $X.99/m
+      return `$${monthly.toFixed(2)}`;
+    }
+    return `$${plan.price.toFixed(2)}`;
   };
 
-  const handleSelectPlan = (planId) => {
-    // Navigate to PinAccess with plan pre-selected for registration
-    navigate(`/PinAccess?action=register&plan=${planId}`);
-  };
+  const annualNote = (plan) =>
+    annual
+      ? `$${plan.priceAnnual.toFixed(2)} facturado anualmente`
+      : "Cancela cuando quieras";
 
   return (
-    <div className="min-h-dvh bg-[#000000] text-white overflow-y-auto selection:bg-cyan-500/30">
-      {/* Nav */}
-      <nav className="liquid-glass-strong sticky top-0 z-50 border-b border-white/5">
-        <div className="app-container h-16 flex items-center justify-between">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-white/60 hover:text-white transition-colors"
-          >
-            <ChevronLeft className="w-5 h-5" />
-            <span className="text-sm font-medium">Volver</span>
-          </button>
-          <Button
-            onClick={() => navigate("/PinAccess")}
-            variant="ghost"
-            className="text-white/60 hover:text-white text-sm"
-          >
-            Ya tengo cuenta
-          </Button>
-        </div>
-      </nav>
+    <div className="relative min-h-dvh overflow-x-hidden bg-black text-white selection:bg-white/20">
+      {/* Subtle background gradient — pure black with a hint of depth */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-60"
+        style={{
+          background:
+            "radial-gradient(1200px 600px at 50% -200px, rgba(255,255,255,0.06), transparent 60%)",
+        }}
+        aria-hidden
+      />
 
-      <div className="app-container py-12 sm:py-20">
-        {/* Header */}
-        <motion.div {...pageVariants} className="text-center mb-12">
-          <Badge className="mb-4 bg-cyan-500/10 border-cyan-500/30 text-cyan-300 rounded-full px-4 py-1.5 text-xs font-bold">
-            14 dias gratis en cualquier plan
-          </Badge>
-          <h1 className="text-4xl sm:text-6xl font-bold tracking-tighter bg-gradient-to-br from-white via-gray-200 to-gray-500 bg-clip-text text-transparent mb-4">
-            Planes simples.
+      <NavPill
+        onBack={() => navigate(-1)}
+        onLogin={() => navigate("/PinAccess")}
+      />
+
+      <main className="relative mx-auto max-w-6xl px-4 pb-24 pt-16 sm:px-6 sm:pt-24">
+        {/* Hero — big faded "Pricing" backdrop + tight copy */}
+        <header className="relative mb-12 text-center">
+          {/* Giant faded backdrop text */}
+          <h1
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 -top-4 sm:-top-8 select-none text-[22vw] sm:text-[16rem] font-bold tracking-tighter leading-none text-white/[0.05]"
+            style={{ filter: "blur(2px)" }}
+          >
+            Pricing
           </h1>
-          <p className="text-lg sm:text-xl text-white/50 max-w-lg mx-auto">
-            Sin contratos. Sin sorpresas. Cancela cuando quieras.
-          </p>
 
-          {/* Billing toggle */}
-          <div className="flex items-center justify-center gap-3 mt-8">
-            <button
-              onClick={() => setBilling("monthly")}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
-                billing === "monthly"
-                  ? "bg-white/10 text-white border border-white/20"
-                  : "text-white/40 hover:text-white/60"
-              }`}
-            >
-              Mensual
-            </button>
-            <button
-              onClick={() => setBilling("annual")}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all relative ${
-                billing === "annual"
-                  ? "bg-white/10 text-white border border-white/20"
-                  : "text-white/40 hover:text-white/60"
-              }`}
-            >
-              Anual
-              <span className="absolute -top-2 -right-2 bg-emerald-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">
-                -17%
-              </span>
-            </button>
-          </div>
-        </motion.div>
-
-        {/* Plan Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-16">
-          {/* Starter */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.4 }}
-            className="liquid-glass rounded-3xl p-8 flex flex-col relative"
+            transition={{ duration: 0.5 }}
+            className="relative pt-20 sm:pt-32"
           >
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-cyan-500/15 flex items-center justify-center">
-                <Zap className="w-6 h-6 text-cyan-400" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-white">{PLANS.starter.label}</h3>
-                <p className="text-sm text-white/50">{PLANS.starter.tagline}</p>
-              </div>
-            </div>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-4 py-1.5 text-[11px] font-semibold tracking-wide text-white/70">
+              14 días gratis · sin tarjeta
+            </span>
+            <h2 className="mt-5 text-4xl sm:text-6xl font-semibold tracking-tight text-white">
+              Planes simples.
+            </h2>
+            <p className="mx-auto mt-3 max-w-md text-base sm:text-lg text-white/45">
+              Sin contratos. Sin sorpresas. Cancela cuando quieras.
+            </p>
 
-            <div className="mb-6">
-              <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-black text-white">${getPrice(PLANS.starter)}</span>
-                <span className="text-white/40 text-sm font-medium">/ mes</span>
-              </div>
-              {billing === "annual" && (
-                <p className="text-xs text-emerald-400 mt-1 font-medium">
-                  ${PLANS.starter.priceAnnual.toFixed(2)} facturado anualmente
-                </p>
-              )}
+            <div className="mt-8 flex justify-center">
+              <BillingToggle annual={annual} onChange={setAnnual} />
             </div>
-
-            <div className="space-y-3 flex-1 mb-8">
-              {FEATURES.map((f) => (
-                <div key={f.label} className="flex items-center gap-3">
-                  {f.starter === false ? (
-                    <X className="w-4 h-4 text-white/20 shrink-0" />
-                  ) : (
-                    <Check className="w-4 h-4 text-cyan-400 shrink-0" />
-                  )}
-                  <span className={`text-sm ${f.starter === false ? "text-white/30" : "text-white/70"}`}>
-                    {typeof f.starter === "string" ? f.starter : f.label}
-                    {typeof f.starter === "string" && (
-                      <span className="text-white/40"> — {f.label}</span>
-                    )}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <Button
-              onClick={() => handleSelectPlan("starter")}
-              className="w-full h-14 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 text-white font-bold text-base transition-all active:scale-[0.98]"
-            >
-              Empezar gratis
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
           </motion.div>
+        </header>
 
-          {/* Pro */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.4 }}
-            className="liquid-glass-strong rounded-3xl p-8 flex flex-col relative ring-2 ring-cyan-500/30"
-          >
-            {/* Popular badge */}
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-              <Badge className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white border-0 rounded-full px-4 py-1 text-xs font-black shadow-lg shadow-cyan-500/30">
-                Mas popular
-              </Badge>
-            </div>
+        {/* Plan grid — 2 cards (matches our plan model) */}
+        <section className="relative mx-auto grid max-w-4xl grid-cols-1 gap-5 md:grid-cols-2">
+          <PlanCard
+            badge="Starter Plan"
+            name={PLANS.starter.tagline}
+            price={priceFor(PLANS.starter)}
+            priceSuffix="/m"
+            annualNote={annualNote(PLANS.starter)}
+            features={STARTER_FEATURES}
+            ctaLabel="Empezar gratis"
+            ctaVariant="outline"
+            glowPosition="top-left"
+            onClick={() => navigate(`/PinAccess?action=register&plan=starter`)}
+            delay={0.1}
+          />
 
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center">
-                <Crown className="w-6 h-6 text-cyan-300" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-white">{PLANS.pro.label}</h3>
-                <p className="text-sm text-white/50">{PLANS.pro.tagline}</p>
-              </div>
-            </div>
+          <PlanCard
+            badge="Pro Plan"
+            name={PLANS.pro.tagline}
+            price={priceFor(PLANS.pro)}
+            priceSuffix="/m"
+            annualNote={annualNote(PLANS.pro)}
+            features={PRO_FEATURES}
+            ctaLabel="Empezar gratis"
+            ctaVariant="solid"
+            glowPosition="top-right"
+            highlighted
+            onClick={() => navigate(`/PinAccess?action=register&plan=pro`)}
+            delay={0.2}
+          />
+        </section>
 
-            <div className="mb-6">
-              <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-black text-white">${getPrice(PLANS.pro)}</span>
-                <span className="text-white/40 text-sm font-medium">/ mes</span>
-              </div>
-              {billing === "annual" && (
-                <p className="text-xs text-emerald-400 mt-1 font-medium">
-                  ${PLANS.pro.priceAnnual.toFixed(2)} facturado anualmente
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-3 flex-1 mb-8">
-              {FEATURES.map((f) => (
-                <div key={f.label} className="flex items-center gap-3">
-                  <Check className="w-4 h-4 text-cyan-400 shrink-0" />
-                  <span className="text-sm text-white/70">
-                    {typeof f.pro === "string" ? f.pro : f.label}
-                    {typeof f.pro === "string" && (
-                      <span className="text-white/40"> — {f.label}</span>
-                    )}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <Button
-              onClick={() => handleSelectPlan("pro")}
-              className="w-full h-14 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold text-base shadow-lg shadow-cyan-500/25 transition-all active:scale-[0.98]"
-            >
-              Empezar gratis
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </motion.div>
-        </div>
-
-        {/* FAQ / Bottom CTA */}
-        <motion.div
+        {/* Trust line */}
+        <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          className="text-center"
+          transition={{ delay: 0.4, duration: 0.5 }}
+          className="mx-auto mt-12 max-w-xl text-center text-sm text-white/40"
         >
-          <div className="liquid-glass-subtle rounded-2xl p-6 max-w-2xl mx-auto">
-            <p className="text-white/50 text-sm">
-              Ambos planes incluyen <span className="text-white/80 font-semibold">14 dias de prueba gratis</span>.
-              No se requiere tarjeta de credito. Puedes cambiar de plan o cancelar en cualquier momento.
-            </p>
-          </div>
-        </motion.div>
-      </div>
+          Ambos planes incluyen{" "}
+          <span className="text-white/70 font-medium">14 días de prueba gratis</span>.
+          No se requiere tarjeta de crédito. Puedes cambiar de plan o cancelar en
+          cualquier momento.
+        </motion.p>
+      </main>
     </div>
   );
 }
