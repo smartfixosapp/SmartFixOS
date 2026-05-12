@@ -2816,12 +2816,22 @@ export default function PinAccess() {
   if (step === "welcome") {
     return (
       <div
-        className="min-h-dvh bg-[#000000] text-white overflow-y-auto selection:bg-cyan-500/30 font-sans"
+        className="relative min-h-dvh bg-[#0a0a0a] text-white overflow-y-auto selection:bg-lime-400/30 font-sans"
         style={{
           paddingTop: "max(env(safe-area-inset-top), 0px)",
           paddingBottom: "max(env(safe-area-inset-bottom), 0px)"
         }}
       >
+        {/* Global subtle grid background */}
+        <div
+          aria-hidden
+          className="pointer-events-none fixed inset-0 z-0"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)",
+            backgroundSize: "80px 80px",
+          }}
+        />
         {/* Hero — neon-grid SaaS style */}
         <section className="relative overflow-hidden bg-[#0a0a0a]">
           {/* Grid background */}
@@ -3148,7 +3158,7 @@ export default function PinAccess() {
         </section>
 
         {/* Main Content */}
-        <div className="app-container py-8 sm:py-16">
+        <div className="relative z-10 app-container py-8 sm:py-16">
 
           {/* Story Section with Photos */}
           <motion.div
@@ -3177,14 +3187,16 @@ export default function PinAccess() {
 
               {/* Story */}
               <div className="space-y-6">
-                <div className="inline-flex items-center gap-2 bg-white/[0.04] border border-white/10 rounded-full px-4 py-2">
-                  <Star className="w-4 h-4 text-white/70" />
-                  <span className="text-white/80 text-sm font-semibold">Historia del Creador</span>
+                <div className="inline-flex items-center gap-2.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-lime-400 shadow-[0_0_10px_rgba(190,242,100,0.8)]" />
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55">
+                    Historia del creador
+                  </span>
                 </div>
 
                 <h2 className="text-3xl sm:text-4xl font-semibold text-white leading-tight tracking-tight">
                   Creado por un técnico,<br />
-                  <span className="text-white/50">para técnicos</span>
+                  <span className="text-lime-400">para técnicos.</span>
                 </h2>
 
                 <div className="space-y-4 text-white/60 leading-relaxed">
@@ -3208,10 +3220,10 @@ export default function PinAccess() {
                     y todas las herramientas que realmente necesitas.
                   </p>
 
-                  <div className="relative overflow-hidden bg-white/[0.03] border border-white/10 rounded-2xl p-4 mt-6">
-                    <div className="pointer-events-none absolute -top-10 -left-10 h-28 w-28 rounded-full bg-white/[0.08] blur-3xl" aria-hidden />
+                  <div className="relative overflow-hidden bg-white/[0.03] border border-lime-400/20 rounded-2xl p-4 mt-6">
+                    <div className="pointer-events-none absolute -top-10 -left-10 h-28 w-28 rounded-full bg-lime-400/15 blur-3xl" aria-hidden />
                     <p className="relative text-white font-semibold flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-white/80" />
+                      <Sparkles className="w-5 h-5 text-lime-400" />
                       Compromiso Continuo
                     </p>
                     <p className="relative text-sm text-white/55 mt-2">
@@ -3224,15 +3236,34 @@ export default function PinAccess() {
             </div>
           </motion.div>
 
-          {/* Bento Grid — monochrome dark glass */}
+          {/* Features Section Header */}
+          <div className="mb-10 lg:flex lg:items-end lg:justify-between gap-12">
+            <div className="max-w-2xl">
+              <div className="inline-flex items-center gap-2.5 mb-5">
+                <span className="h-1.5 w-1.5 rounded-full bg-lime-400 shadow-[0_0_10px_rgba(190,242,100,0.8)]" />
+                <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55">
+                  Tu socio de confianza
+                </span>
+              </div>
+              <h2 className="text-4xl sm:text-5xl font-semibold text-white tracking-tight leading-tight">
+                Todo lo que tu <span className="text-lime-400">taller</span> necesita.
+              </h2>
+            </div>
+            <p className="mt-4 lg:mt-0 max-w-sm text-sm text-white/50 leading-relaxed">
+              Una sola app reemplaza POS, CRM, inventario, finanzas, agenda y reportes.
+              Sin integraciones complicadas. Diseñado para el ritmo real de un taller.
+            </p>
+          </div>
+
+          {/* Bento Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-16">
 
             {/* 1. Gestión de Órdenes */}
             <BentoItem className="col-span-1 sm:col-span-2 lg:col-span-2 bg-[#0a0a0c]/80 !border-white/[0.08]">
-              <div className="pointer-events-none absolute -top-16 -left-16 h-44 w-44 rounded-full bg-white/[0.10] blur-3xl" aria-hidden />
+              <div className="pointer-events-none absolute -top-16 -left-16 h-44 w-44 rounded-full bg-lime-400/10 blur-3xl" aria-hidden />
               <div className="relative flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-2xl bg-white/[0.06] border border-white/10 flex items-center justify-center">
-                  <Wrench className="w-6 h-6 text-white" />
+                <div className="w-12 h-12 rounded-2xl bg-lime-400/10 border border-lime-400/25 flex items-center justify-center">
+                  <Wrench className="w-6 h-6 text-lime-400" />
                 </div>
                 <div>
                   <h3 className="text-2xl font-semibold text-white tracking-tight">Gestión de Órdenes</h3>
@@ -3244,7 +3275,7 @@ export default function PinAccess() {
 
             {/* 2. POS */}
             <BentoItem delay={0.1} className="col-span-1 bg-[#0a0a0c]/80 !border-white/[0.08]">
-              <Receipt className="w-8 h-8 text-white/80 mb-3" />
+              <Receipt className="w-8 h-8 text-lime-400 mb-3" />
               <h3 className="text-lg font-semibold mb-1 text-white">Punto de Venta</h3>
               <p className="text-sm text-white/45">Ultra rápido y llevadero. Factura en menos de 10 segundos.</p>
             </BentoItem>
@@ -3258,22 +3289,24 @@ export default function PinAccess() {
 
             {/* 4. Finanzas */}
             <BentoItem delay={0.3} className="col-span-1 sm:col-span-2 lg:col-span-1 bg-[#0a0a0c]/80 !border-white/[0.08]">
-              <BarChart3 className="w-8 h-8 text-white/80 mb-3" />
+              <BarChart3 className="w-8 h-8 text-lime-400 mb-3" />
               <h3 className="text-lg font-semibold mb-1 text-white">Panel Financiero</h3>
               <p className="text-sm text-white/45">Reportes detallados, ganancias, gastos e impuestos.</p>
             </BentoItem>
 
-            {/* 5. Inventario */}
-            <BentoItem delay={0.4} className="col-span-1 sm:col-span-2 lg:col-span-2 bg-[#0a0a0c]/80 !border-white/[0.08]">
-              <div className="pointer-events-none absolute -top-16 -right-16 h-44 w-44 rounded-full bg-white/[0.10] blur-3xl" aria-hidden />
+            {/* 5. Inventario — highlighted lime */}
+            <BentoItem delay={0.4} className="col-span-1 sm:col-span-2 lg:col-span-2 !bg-lime-400 !border-lime-400 text-black">
+              <div className="pointer-events-none absolute -top-16 -right-16 h-44 w-44 rounded-full bg-white/30 blur-3xl" aria-hidden />
               <div className="relative flex items-center gap-3 mb-4">
-                <Box className="w-10 h-10 text-white/80" />
+                <div className="w-12 h-12 rounded-2xl bg-black/15 border border-black/20 flex items-center justify-center">
+                  <Box className="w-6 h-6 text-black" />
+                </div>
                 <div>
-                  <h3 className="text-2xl font-semibold text-white tracking-tight">Inventario Completo</h3>
-                  <p className="text-sm text-white/45">Control total de stock</p>
+                  <h3 className="text-2xl font-semibold text-black tracking-tight">Inventario Completo</h3>
+                  <p className="text-sm text-black/65">Control total de stock</p>
                 </div>
               </div>
-              <p className="relative text-sm text-white/55">Manejo de piezas, productos y servicios. Alertas de bajo inventario, órdenes de compra y reportes detallados.</p>
+              <p className="relative text-sm text-black/75 font-medium">Manejo de piezas, productos y servicios. Alertas de bajo inventario, órdenes de compra y reportes detallados.</p>
             </BentoItem>
 
             {/* 6. Panel Admin */}
@@ -3285,7 +3318,7 @@ export default function PinAccess() {
 
             {/* 7. Reviews */}
             <BentoItem delay={0.6} className="col-span-1 bg-[#0a0a0c]/80 !border-white/[0.08]">
-              <Star className="w-8 h-8 text-white/80 mb-3" />
+              <Star className="w-8 h-8 text-lime-400 mb-3" />
               <h3 className="text-lg font-semibold mb-1 text-white">Links de Reviews</h3>
               <p className="text-sm text-white/45">Genera reseñas fácilmente con enlaces directos.</p>
             </BentoItem>
@@ -3306,7 +3339,7 @@ export default function PinAccess() {
 
             {/* 10. Calculadora */}
             <BentoItem delay={0.9} className="col-span-1 bg-[#0a0a0c]/80 !border-white/[0.08]">
-              <Zap className="w-8 h-8 text-white/80 mb-3" />
+              <Zap className="w-8 h-8 text-lime-400 mb-3" />
               <h3 className="text-lg font-semibold mb-1 text-white">Calculadora de Precios</h3>
               <p className="text-sm text-white/45">Cotizaciones al instante con impuestos.</p>
             </BentoItem>
@@ -3331,14 +3364,16 @@ export default function PinAccess() {
               Pricing
             </h2>
 
-            <div className="relative text-center mb-3">
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.03] border border-white/10 text-white/70 text-xs font-semibold">
-                <Sparkles className="w-3.5 h-3.5" />
-                Sin contratos · 14 días gratis
+            <div className="relative flex justify-center mb-4">
+              <span className="inline-flex items-center gap-2.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-lime-400 shadow-[0_0_10px_rgba(190,242,100,0.8)]" />
+                <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55">
+                  Sin contratos · 14 días gratis
+                </span>
               </span>
             </div>
             <h2 className="relative text-4xl sm:text-5xl font-semibold text-white text-center mb-3 tracking-tight">
-              Planes simples.
+              Planes <span className="text-lime-400">simples</span>.
             </h2>
             <p className="relative text-center text-white/45 text-base mb-12 max-w-xl mx-auto">
               Dos planes. Cero complicaciones. Empieza en 2 minutos.
@@ -3395,26 +3430,30 @@ export default function PinAccess() {
                 </button>
               </div>
 
-              {/* ── Pro — highlighted with white CTA ── */}
-              <div className="relative flex flex-col overflow-hidden rounded-[28px] border border-white/20 bg-[#0a0a0c] p-8 shadow-[0_24px_80px_rgba(255,255,255,0.06),inset_0_1px_0_rgba(255,255,255,0.08)]">
-                {/* Corner glow */}
-                <div className="pointer-events-none absolute -top-12 -right-12 h-44 w-44 rounded-full bg-white/[0.18] blur-3xl" aria-hidden />
-                <div className="pointer-events-none absolute -bottom-16 -right-12 h-44 w-44 rounded-full bg-white/[0.10] blur-3xl" aria-hidden />
+              {/* ── Pro — highlighted lime ── */}
+              <div className="relative flex flex-col overflow-hidden rounded-[28px] bg-lime-400 text-black p-8 shadow-[0_24px_80px_rgba(190,242,100,0.25)]">
+                {/* Recommended badge */}
+                <div className="absolute top-5 right-5">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-black/85 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-lime-400">
+                    <Sparkles className="w-3 h-3" />
+                    Recomendado
+                  </span>
+                </div>
 
                 <div className="relative">
-                  <p className="text-xs font-medium tracking-wide text-white/50">Pro Plan</p>
-                  <h3 className="mt-1 text-base font-semibold text-white">Sin límites</h3>
+                  <p className="text-xs font-semibold tracking-wide text-black/60 uppercase">Pro Plan</p>
+                  <h3 className="mt-1 text-base font-semibold text-black">Sin límites</h3>
                 </div>
 
                 <div className="relative mt-6">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-5xl sm:text-6xl font-semibold tracking-tight text-white">$39.99</span>
-                    <span className="text-2xl font-medium text-white/40">/m</span>
+                    <span className="text-5xl sm:text-6xl font-bold tracking-tight text-black">$39.99</span>
+                    <span className="text-2xl font-medium text-black/50">/m</span>
                   </div>
-                  <p className="mt-2 text-xs font-medium text-white/40">Cancela cuando quieras</p>
+                  <p className="mt-2 text-xs font-medium text-black/55">Cancela cuando quieras</p>
                 </div>
 
-                <div className="relative my-7 h-px w-full bg-white/[0.08]" />
+                <div className="relative my-7 h-px w-full bg-black/15" />
 
                 <ul className="relative flex-1 space-y-3.5">
                   {[
@@ -3425,9 +3464,9 @@ export default function PinAccess() {
                     "Acceso anticipado a nuevas funciones",
                     "Sin límites, sin sorpresas",
                   ].map((t) => (
-                    <li key={t} className="flex items-center gap-3 text-sm text-white/75">
-                      <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/[0.04]">
-                        <Check className="h-3 w-3 text-white" strokeWidth={3} />
+                    <li key={t} className="flex items-center gap-3 text-sm text-black/85 font-medium">
+                      <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-black">
+                        <Check className="h-3 w-3 text-lime-400" strokeWidth={3} />
                       </span>
                       <span>{t}</span>
                     </li>
@@ -3438,7 +3477,7 @@ export default function PinAccess() {
                   type="button"
                   disabled
                   title="Próximamente"
-                  className="relative mt-8 inline-flex h-14 w-full items-center justify-center gap-2 rounded-full bg-white/90 text-black/70 text-sm font-semibold cursor-not-allowed shadow-[0_8px_30px_rgba(255,255,255,0.18)]"
+                  className="relative mt-8 inline-flex h-14 w-full items-center justify-center gap-2 rounded-full bg-black text-lime-400 text-sm font-semibold cursor-not-allowed shadow-lg"
                 >
                   <Smartphone className="h-4 w-4" />
                   Pronto en App Store y Google Play
@@ -3447,31 +3486,31 @@ export default function PinAccess() {
 
             </div>
 
-            {/* Trust strip — monochrome */}
+            {/* Trust strip */}
             <div className="relative mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs text-white/55">
               <div className="flex items-center gap-2">
-                <Shield className="w-4 h-4 text-white/70" />
+                <Shield className="w-4 h-4 text-lime-400" />
                 <span className="font-semibold">14 días gratis · Sin tarjeta</span>
               </div>
               <div className="hidden sm:block w-px h-4 bg-white/10" />
               <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-white/70" />
+                <Zap className="w-4 h-4 text-lime-400" />
                 <span className="font-semibold">Listo en 2 minutos</span>
               </div>
               <div className="hidden sm:block w-px h-4 bg-white/10" />
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-white/70" />
+                <CheckCircle className="w-4 h-4 text-lime-400" />
                 <span className="font-semibold">Cancela cuando quieras</span>
               </div>
             </div>
           </div>
 
-          {/* Banner adicional — monochrome */}
-          <div className="relative overflow-hidden bg-[#0a0a0c] border border-white/[0.08] rounded-2xl p-6 text-center mb-12">
-            <div className="pointer-events-none absolute -top-12 left-1/2 -translate-x-1/2 h-40 w-72 rounded-full bg-white/[0.08] blur-3xl" aria-hidden />
+          {/* Banner — Hecho en PR */}
+          <div className="relative overflow-hidden bg-[#0a0a0c] border border-lime-400/20 rounded-2xl p-6 text-center mb-12">
+            <div className="pointer-events-none absolute -top-12 left-1/2 -translate-x-1/2 h-40 w-72 rounded-full bg-lime-400/15 blur-3xl" aria-hidden />
             <div className="relative flex items-center justify-center gap-3 mb-2">
-              <Smartphone className="w-5 h-5 text-white/70" />
-              <h3 className="text-xl font-semibold text-white tracking-tight">Hecho en Puerto Rico 🇵🇷</h3>
+              <Smartphone className="w-5 h-5 text-lime-400" />
+              <h3 className="text-xl font-semibold text-white tracking-tight">Hecho en <span className="text-lime-400">Puerto Rico</span> 🇵🇷</h3>
             </div>
             <p className="relative text-white/55 text-sm">
               Por técnicos, para técnicos. Diseñado y probado en talleres reales.
@@ -3496,13 +3535,13 @@ export default function PinAccess() {
           </div>
 
           <div className="text-center space-y-3">
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-white/45">
               ¿Necesitas ayuda? Escríbenos a{" "}
-              <a href="mailto:smartfixosapp@gmail.com" className="text-cyan-400 hover:text-cyan-300 transition-colors font-medium">
+              <a href="mailto:smartfixosapp@gmail.com" className="text-lime-400 hover:text-lime-300 transition-colors font-medium">
                 smartfixosapp@gmail.com
               </a>
             </p>
-            <div className="flex justify-center gap-6 text-xs text-gray-600">
+            <div className="flex justify-center gap-6 text-xs text-white/30">
               <span>SmartFixOS © 2026</span>
               <span>•</span>
               <span>v3.5.0 (Build 2026)</span>
