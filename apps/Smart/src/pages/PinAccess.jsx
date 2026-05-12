@@ -2783,14 +2783,22 @@ export default function PinAccess() {
     }
   };
 
-  const BentoItem = ({ children, className, delay = 0 }) =>
+  const BentoItem = ({ children, className, delay = 0, hint }) =>
   <motion.div
     initial={{ opacity: 0, y: 20, scale: 0.95 }}
-    animate={{ opacity: 1, y: 0, scale: 1 }}
+    whileInView={{ opacity: 1, y: 0, scale: 1 }}
+    viewport={{ once: true, margin: "-50px" }}
+    whileHover={{ y: -4 }}
     transition={{ duration: 0.5, delay, type: "spring", stiffness: 100 }}
-    className={`liquid-glass relative overflow-hidden rounded-[2rem] hover:bg-white/[0.09] transition-colors p-6 sm:p-8 flex flex-col ${className}`}>
+    className={`group/bento liquid-glass relative overflow-hidden rounded-[2rem] hover:bg-white/[0.09] transition-all duration-300 p-6 sm:p-8 flex flex-col cursor-default ${className}`}>
 
       {children}
+      {hint && (
+        <div className="pointer-events-none absolute bottom-3 right-4 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider opacity-0 translate-y-2 group-hover/bento:opacity-100 group-hover/bento:translate-y-0 transition-all duration-300">
+          <span>{hint}</span>
+          <ArrowRight className="w-3 h-3" />
+        </div>
+      )}
     </motion.div>;
 
 
@@ -2887,7 +2895,16 @@ export default function PinAccess() {
                 >
                   Mejor sistema de
                   <br />
-                  <span className="text-lime-400">gestión para tu taller</span>
+                  <span
+                    className="bg-clip-text text-transparent animate-sfos-shimmer"
+                    style={{
+                      backgroundImage:
+                        "linear-gradient(90deg, #84cc16 0%, #bef264 25%, #ecfccb 50%, #bef264 75%, #84cc16 100%)",
+                      backgroundSize: "200% 100%",
+                    }}
+                  >
+                    gestión para tu taller
+                  </span>
                   <br />
                   <span className="text-white/55 font-medium">del futuro.</span>
                 </motion.h1>
@@ -3004,12 +3021,12 @@ export default function PinAccess() {
                 </motion.p>
               </div>
 
-              {/* Right visual — floating dashboard cards */}
-              <div className="relative hidden lg:block h-[600px]">
+              {/* Right visual — 3D iPhone mockup with dashboard */}
+              <div className="relative hidden lg:block h-[640px]">
                 {/* Background glow */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <div
-                    className="w-[420px] h-[420px] rounded-full"
+                    className="w-[440px] h-[440px] rounded-full"
                     style={{
                       background:
                         "radial-gradient(circle, rgba(190,242,100,0.20) 0%, transparent 65%)",
@@ -3018,7 +3035,7 @@ export default function PinAccess() {
                   />
                 </div>
 
-                {/* Orbital ring */}
+                {/* Orbital rings */}
                 <svg
                   className="absolute inset-0 w-full h-full pointer-events-none"
                   viewBox="0 0 600 600"
@@ -3027,129 +3044,226 @@ export default function PinAccess() {
                 >
                   <motion.ellipse
                     cx="300"
-                    cy="300"
+                    cy="320"
                     rx="240"
-                    ry="180"
+                    ry="200"
                     stroke="url(#orbit-grad)"
                     strokeWidth="1.5"
                     strokeDasharray="4 6"
                     initial={{ rotate: 0 }}
                     animate={{ rotate: 360 }}
                     transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-                    style={{ transformOrigin: "300px 300px" }}
-                  />
-                  <motion.ellipse
-                    cx="300"
-                    cy="300"
-                    rx="180"
-                    ry="240"
-                    stroke="rgba(190,242,100,0.35)"
-                    strokeWidth="1"
-                    strokeDasharray="2 8"
-                    initial={{ rotate: 0 }}
-                    animate={{ rotate: -360 }}
-                    transition={{ duration: 80, repeat: Infinity, ease: "linear" }}
-                    style={{ transformOrigin: "300px 300px" }}
+                    style={{ transformOrigin: "300px 320px" }}
                   />
                   <defs>
                     <linearGradient id="orbit-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="rgba(190,242,100,0.6)" />
+                      <stop offset="0%" stopColor="rgba(190,242,100,0.55)" />
                       <stop offset="100%" stopColor="rgba(190,242,100,0)" />
                     </linearGradient>
                   </defs>
                 </svg>
 
-                {/* Card 1 — Work Order (top) */}
+                {/* iPhone 3D mockup */}
                 <motion.div
-                  initial={{ opacity: 0, x: 30 }}
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: [0, -10, 0] }}
+                  transition={{
+                    opacity: { duration: 0.9, delay: 0.3 },
+                    y: { duration: 7, repeat: Infinity, ease: "easeInOut" },
+                  }}
+                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10"
+                  style={{
+                    perspective: "1200px",
+                  }}
+                >
+                  <div
+                    className="relative"
+                    style={{
+                      width: "300px",
+                      height: "610px",
+                      transform: "rotateY(-12deg) rotateX(4deg)",
+                      transformStyle: "preserve-3d",
+                    }}
+                  >
+                    {/* Phone outer frame */}
+                    <div
+                      className="absolute inset-0 rounded-[52px] p-[3px]"
+                      style={{
+                        background:
+                          "linear-gradient(145deg, #2a2a2a 0%, #0a0a0a 40%, #1a1a1a 100%)",
+                        boxShadow:
+                          "0 50px 100px -20px rgba(0,0,0,0.7), 0 30px 60px -15px rgba(190,242,100,0.15), inset 0 0 0 1px rgba(255,255,255,0.08)",
+                      }}
+                    >
+                      {/* Inner bezel */}
+                      <div
+                        className="w-full h-full rounded-[49px] p-[2px]"
+                        style={{
+                          background:
+                            "linear-gradient(145deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%)",
+                        }}
+                      >
+                        {/* Screen */}
+                        <div className="relative w-full h-full rounded-[47px] overflow-hidden bg-[#050505]">
+                          {/* Dynamic Island / Notch */}
+                          <div className="absolute top-[10px] left-1/2 -translate-x-1/2 w-[100px] h-[30px] rounded-full bg-black z-30" />
+
+                          {/* Status bar */}
+                          <div className="absolute top-0 inset-x-0 h-[44px] flex items-center justify-between px-7 z-20 text-white text-[11px] font-semibold">
+                            <span>9:41</span>
+                            <span className="flex items-center gap-1">
+                              <span className="w-3.5 h-2 rounded-sm bg-white/90 inline-block" />
+                            </span>
+                          </div>
+
+                          {/* App content */}
+                          <div className="absolute inset-x-0 top-[54px] bottom-0 px-4 pb-4 overflow-hidden">
+                            {/* Header greeting */}
+                            <div className="mt-2 mb-4">
+                              <div className="text-[10px] text-white/45 uppercase tracking-wider">Hoy</div>
+                              <div className="text-lg font-semibold text-white mt-0.5">Hola, Francis</div>
+                            </div>
+
+                            {/* Hero stat — Ingresos */}
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 1, duration: 0.6 }}
+                              className="rounded-2xl bg-lime-400 text-black p-4 mb-3 shadow-lg shadow-lime-400/20"
+                            >
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="text-[9px] uppercase tracking-wider font-semibold text-black/60">Ingresos hoy</div>
+                                <BarChart3 className="w-3.5 h-3.5 text-black/60" />
+                              </div>
+                              <div className="text-2xl font-bold tracking-tight text-black leading-none">$2,450</div>
+                              <div className="text-[10px] font-medium text-black/60 mt-1">+18% vs. ayer</div>
+                              <div className="mt-2.5 flex items-end gap-1 h-8">
+                                {[40, 55, 35, 70, 50, 85, 65].map((h, i) => (
+                                  <motion.div
+                                    key={i}
+                                    initial={{ height: 0 }}
+                                    animate={{ height: `${h}%` }}
+                                    transition={{ duration: 0.6, delay: 1.4 + i * 0.05 }}
+                                    className="flex-1 bg-black/80 rounded-sm"
+                                  />
+                                ))}
+                              </div>
+                            </motion.div>
+
+                            {/* Order in progress */}
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 1.1, duration: 0.6 }}
+                              className="rounded-2xl bg-white/[0.04] border border-white/10 p-3.5 mb-3"
+                            >
+                              <div className="flex items-start justify-between mb-2">
+                                <div>
+                                  <div className="text-[9px] uppercase tracking-wider text-white/45">Orden activa</div>
+                                  <div className="text-sm font-semibold text-white mt-0.5">#1245 · iPhone 14</div>
+                                </div>
+                                <span className="px-1.5 py-0.5 rounded-full bg-lime-400/15 border border-lime-400/30 text-[8px] font-bold text-lime-300 uppercase">
+                                  En progreso
+                                </span>
+                              </div>
+                              <div className="text-[10px] text-white/55 mb-1.5">Cambio de pantalla</div>
+                              <div className="h-1 rounded-full bg-white/10 overflow-hidden">
+                                <motion.div
+                                  initial={{ width: 0 }}
+                                  animate={{ width: "68%" }}
+                                  transition={{ duration: 1.2, delay: 1.6, ease: "easeOut" }}
+                                  className="h-full bg-lime-400"
+                                />
+                              </div>
+                            </motion.div>
+
+                            {/* Stat tiles */}
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 1.2, duration: 0.6 }}
+                              className="grid grid-cols-2 gap-2.5 mb-3"
+                            >
+                              <div className="rounded-xl bg-white/[0.04] border border-white/10 p-3">
+                                <div className="flex items-center gap-2">
+                                  <Wrench className="w-3.5 h-3.5 text-lime-400" />
+                                  <span className="text-[9px] uppercase tracking-wider text-white/45">Activas</span>
+                                </div>
+                                <div className="text-xl font-bold text-white mt-1.5 leading-none">12</div>
+                              </div>
+                              <div className="rounded-xl bg-white/[0.04] border border-white/10 p-3">
+                                <div className="flex items-center gap-2">
+                                  <Users className="w-3.5 h-3.5 text-lime-400" />
+                                  <span className="text-[9px] uppercase tracking-wider text-white/45">Clientes</span>
+                                </div>
+                                <div className="text-xl font-bold text-white mt-1.5 leading-none">348</div>
+                              </div>
+                            </motion.div>
+
+                            {/* List preview */}
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 1.3, duration: 0.6 }}
+                              className="rounded-xl bg-white/[0.04] border border-white/10 p-3"
+                            >
+                              <div className="text-[9px] uppercase tracking-wider text-white/45 mb-2">Próximas órdenes</div>
+                              {[
+                                { id: "#1246", device: "Samsung S24", status: "Esperando" },
+                                { id: "#1247", device: "iPad Pro", status: "Esperando" },
+                              ].map((o) => (
+                                <div key={o.id} className="flex items-center justify-between py-1.5 border-t border-white/5 first:border-0">
+                                  <div>
+                                    <div className="text-[11px] font-semibold text-white">{o.id}</div>
+                                    <div className="text-[9px] text-white/45">{o.device}</div>
+                                  </div>
+                                  <span className="text-[9px] text-white/40">{o.status}</span>
+                                </div>
+                              ))}
+                            </motion.div>
+                          </div>
+
+                          {/* Home indicator */}
+                          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[100px] h-[3.5px] rounded-full bg-white/80" />
+
+                          {/* Subtle screen reflection */}
+                          <div
+                            aria-hidden
+                            className="absolute inset-0 pointer-events-none"
+                            style={{
+                              background:
+                                "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 35%, transparent 65%, rgba(255,255,255,0.04) 100%)",
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Side buttons */}
+                    <div className="absolute -left-[2px] top-[120px] w-[3px] h-[30px] rounded-l-sm bg-[#1a1a1a]" />
+                    <div className="absolute -left-[2px] top-[180px] w-[3px] h-[50px] rounded-l-sm bg-[#1a1a1a]" />
+                    <div className="absolute -left-[2px] top-[240px] w-[3px] h-[50px] rounded-l-sm bg-[#1a1a1a]" />
+                    <div className="absolute -right-[2px] top-[160px] w-[3px] h-[70px] rounded-r-sm bg-[#1a1a1a]" />
+                  </div>
+                </motion.div>
+
+                {/* Floating stat badge — small accent */}
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0, y: [0, -8, 0] }}
                   transition={{
-                    opacity: { duration: 0.7, delay: 0.4 },
-                    x: { duration: 0.7, delay: 0.4 },
-                    y: { duration: 5, repeat: Infinity, ease: "easeInOut" },
+                    opacity: { duration: 0.7, delay: 0.8 },
+                    x: { duration: 0.7, delay: 0.8 },
+                    y: { duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 },
                   }}
-                  className="absolute top-[8%] right-[5%] w-[270px] rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-xl p-4 shadow-2xl"
+                  className="absolute bottom-[10%] -right-[2%] z-20 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-xl px-4 py-3 shadow-2xl"
                 >
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <div className="text-[10px] uppercase tracking-wider text-white/45">
-                        Orden activa
-                      </div>
-                      <div className="mt-1 text-base font-semibold text-white">
-                        #1245 · iPhone 14
-                      </div>
-                    </div>
-                    <span className="px-2 py-0.5 rounded-full bg-lime-400/15 border border-lime-400/30 text-[10px] font-semibold text-lime-300">
-                      En progreso
+                  <div className="flex items-center gap-2.5">
+                    <span className="relative flex h-2 w-2">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-lime-400 opacity-60" />
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-lime-400" />
                     </span>
-                  </div>
-                  <div className="text-xs text-white/55 mb-2">Cambio de pantalla</div>
-                  <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
-                    <motion.div
-                      className="h-full bg-lime-400"
-                      initial={{ width: 0 }}
-                      animate={{ width: "68%" }}
-                      transition={{ duration: 1.2, delay: 0.8, ease: "easeOut" }}
-                    />
-                  </div>
-                </motion.div>
-
-                {/* Card 2 — Revenue (center, highlighted lime) */}
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1, y: [0, 10, 0] }}
-                  transition={{
-                    opacity: { duration: 0.7, delay: 0.5 },
-                    scale: { duration: 0.7, delay: 0.5 },
-                    y: { duration: 6, repeat: Infinity, ease: "easeInOut", delay: 0.5 },
-                  }}
-                  className="absolute top-[38%] left-[8%] w-[280px] rounded-2xl bg-lime-400 text-black p-5 shadow-[0_20px_50px_rgba(190,242,100,0.25)]"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="text-[10px] uppercase tracking-wider text-black/60 font-semibold">
-                      Ingresos hoy
-                    </div>
-                    <BarChart3 className="w-4 h-4 text-black/60" />
-                  </div>
-                  <div className="text-3xl font-bold tracking-tight text-black">$2,450</div>
-                  <div className="text-[11px] text-black/60 mt-1 font-medium">
-                    +18% vs. ayer
-                  </div>
-                  {/* Mini chart bars */}
-                  <div className="mt-3 flex items-end gap-1 h-10">
-                    {[40, 55, 35, 70, 50, 85, 65].map((h, i) => (
-                      <motion.div
-                        key={i}
-                        initial={{ height: 0 }}
-                        animate={{ height: `${h}%` }}
-                        transition={{ duration: 0.6, delay: 0.8 + i * 0.05 }}
-                        className="flex-1 bg-black/80 rounded-sm"
-                      />
-                    ))}
-                  </div>
-                </motion.div>
-
-                {/* Card 3 — Stat (bottom right) */}
-                <motion.div
-                  initial={{ opacity: 0, x: 30 }}
-                  animate={{ opacity: 1, x: 0, y: [0, -6, 0] }}
-                  transition={{
-                    opacity: { duration: 0.7, delay: 0.6 },
-                    x: { duration: 0.7, delay: 0.6 },
-                    y: { duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 },
-                  }}
-                  className="absolute bottom-[8%] right-[8%] w-[220px] rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-xl p-4 shadow-2xl"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-white/[0.06] border border-white/10 flex items-center justify-center">
-                      <Wrench className="w-5 h-5 text-lime-400" />
-                    </div>
-                    <div>
-                      <div className="text-2xl font-bold text-white leading-none tracking-tight">12</div>
-                      <div className="text-[11px] text-white/50 uppercase tracking-wider mt-1">
-                        Órdenes activas
-                      </div>
-                    </div>
+                    <span className="text-xs font-semibold text-white">En vivo</span>
                   </div>
                 </motion.div>
               </div>
@@ -3236,6 +3350,38 @@ export default function PinAccess() {
             </div>
           </motion.div>
 
+          {/* Marquee — features scrolling strip */}
+          <div className="relative mb-14 -mx-6 sm:-mx-8 overflow-hidden">
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-24 z-10 bg-gradient-to-r from-[#0a0a0a] to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-24 z-10 bg-gradient-to-l from-[#0a0a0a] to-transparent" />
+            <div className="flex w-max animate-sfos-marquee">
+              {[
+                ...Array(2).fill(null).flatMap((_, dup) =>
+                  [
+                    { icon: Wrench, label: "Gestión de Órdenes" },
+                    { icon: Receipt, label: "Punto de Venta" },
+                    { icon: BarChart3, label: "Panel Financiero" },
+                    { icon: Box, label: "Inventario" },
+                    { icon: Users, label: "CRM Clientes" },
+                    { icon: Clock, label: "Ponche de Tiempo" },
+                    { icon: Star, label: "Links de Reviews" },
+                    { icon: Shield, label: "Permisos & Roles" },
+                    { icon: Zap, label: "Calculadora de Precios" },
+                    { icon: Camera, label: "Galería de Fotos" },
+                  ].map((item, i) => ({ ...item, key: `${dup}-${i}` }))
+                ),
+              ].flat().map(({ icon: Icon, label, key }) => (
+                <div
+                  key={key}
+                  className="flex items-center gap-2.5 px-6 py-3 mx-1.5 rounded-full bg-white/[0.03] border border-white/10 text-white/70 whitespace-nowrap"
+                >
+                  <Icon className="w-4 h-4 text-lime-400 flex-shrink-0" />
+                  <span className="text-sm font-medium">{label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Features Section Header */}
           <div className="mb-10 lg:flex lg:items-end lg:justify-between gap-12">
             <div className="max-w-2xl">
@@ -3259,7 +3405,7 @@ export default function PinAccess() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-16">
 
             {/* 1. Gestión de Órdenes */}
-            <BentoItem className="col-span-1 sm:col-span-2 lg:col-span-2 bg-[#0a0a0c]/80 !border-white/[0.08]">
+            <BentoItem hint="Crear orden" className="col-span-1 sm:col-span-2 lg:col-span-2 bg-[#0a0a0c]/80 !border-white/[0.08] text-white/70 hover:!border-lime-400/25">
               <div className="pointer-events-none absolute -top-16 -left-16 h-44 w-44 rounded-full bg-lime-400/10 blur-3xl" aria-hidden />
               <div className="relative flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 rounded-2xl bg-lime-400/10 border border-lime-400/25 flex items-center justify-center">
@@ -3274,7 +3420,7 @@ export default function PinAccess() {
             </BentoItem>
 
             {/* 2. POS */}
-            <BentoItem delay={0.1} className="col-span-1 bg-[#0a0a0c]/80 !border-white/[0.08]">
+            <BentoItem hint="Vender" delay={0.1} className="col-span-1 bg-[#0a0a0c]/80 !border-white/[0.08] hover:!border-lime-400/25">
               <Receipt className="w-8 h-8 text-lime-400 mb-3" />
               <h3 className="text-lg font-semibold mb-1 text-white">Punto de Venta</h3>
               <p className="text-sm text-white/45">Ultra rápido y llevadero. Factura en menos de 10 segundos.</p>
@@ -3288,14 +3434,14 @@ export default function PinAccess() {
             </BentoItem>
 
             {/* 4. Finanzas */}
-            <BentoItem delay={0.3} className="col-span-1 sm:col-span-2 lg:col-span-1 bg-[#0a0a0c]/80 !border-white/[0.08]">
+            <BentoItem hint="Ver reportes" delay={0.3} className="col-span-1 sm:col-span-2 lg:col-span-1 bg-[#0a0a0c]/80 !border-white/[0.08] hover:!border-lime-400/25">
               <BarChart3 className="w-8 h-8 text-lime-400 mb-3" />
               <h3 className="text-lg font-semibold mb-1 text-white">Panel Financiero</h3>
               <p className="text-sm text-white/45">Reportes detallados, ganancias, gastos e impuestos.</p>
             </BentoItem>
 
             {/* 5. Inventario — highlighted lime */}
-            <BentoItem delay={0.4} className="col-span-1 sm:col-span-2 lg:col-span-2 !bg-lime-400 !border-lime-400 text-black">
+            <BentoItem hint="Gestionar stock" delay={0.4} className="col-span-1 sm:col-span-2 lg:col-span-2 !bg-lime-400 !border-lime-400 text-black hover:!bg-lime-500">
               <div className="pointer-events-none absolute -top-16 -right-16 h-44 w-44 rounded-full bg-white/30 blur-3xl" aria-hidden />
               <div className="relative flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 rounded-2xl bg-black/15 border border-black/20 flex items-center justify-center">
@@ -3331,7 +3477,7 @@ export default function PinAccess() {
             </BentoItem>
 
             {/* 9. CRM Clientes */}
-            <BentoItem delay={0.8} className="col-span-1 bg-[#0a0a0c]/80 !border-white/[0.08]">
+            <BentoItem hint="Ver clientes" delay={0.8} className="col-span-1 bg-[#0a0a0c]/80 !border-white/[0.08] hover:!border-lime-400/25">
               <Users className="w-8 h-8 text-white/80 mb-3" />
               <h3 className="text-lg font-semibold mb-1 text-white">CRM Clientes</h3>
               <p className="text-sm text-white/45">Historial completo y comunicación directa.</p>

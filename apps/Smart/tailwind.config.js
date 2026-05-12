@@ -254,6 +254,14 @@ module.exports = {
           '60%':  { opacity: '1', transform: 'scale(1.02)' },
           '100%': { transform: 'scale(1)' },
         },
+        'sfos-shimmer': {
+          '0%':   { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        },
+        'sfos-marquee': {
+          '0%':   { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
       },
       animation: {
         'accordion-down':  'accordion-down 0.2s ease-out',
@@ -263,6 +271,8 @@ module.exports = {
         'apple-slide-up':  'apple-slide-up 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
         'apple-sheet-up':  'apple-sheet-up 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
         'apple-bounce-in': 'apple-bounce-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        'sfos-shimmer':    'sfos-shimmer 4s linear infinite',
+        'sfos-marquee':    'sfos-marquee 35s linear infinite',
       },
     },
   },
