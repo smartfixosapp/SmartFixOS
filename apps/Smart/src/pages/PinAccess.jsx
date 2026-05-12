@@ -2833,27 +2833,15 @@ export default function PinAccess() {
 
               <span className="text-lg font-semibold tracking-tight">SmartFixOS</span>
             </div>
-            <Button
-              onClick={() => setStep("store")}
-              className="bg-white text-black hover:bg-gray-200 rounded-full px-6 font-medium text-sm h-9 shadow-lg shadow-white/10 transition-transform active:scale-95">
-              Iniciar Sesión
-            </Button>
+            <span className="hidden sm:inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-white/60">
+              <Smartphone className="w-3.5 h-3.5" />
+              Disponible pronto en iOS y Android
+            </span>
           </div>
         </nav>
 
         {/* Main Content */}
         <div className="app-container py-8 sm:py-16">
-          
-          <div className="text-center mb-12 flex flex-col items-center gap-4">
-            <Button
-              onClick={() => navigate("/Pricing")}
-              variant="outline"
-              className="border-white/15 bg-white/[0.03] text-white/80 hover:bg-white/[0.06] hover:text-white rounded-full px-5 font-medium text-sm h-9 transition-colors">
-
-              <UserPlus className="w-4 h-4 mr-2" />
-              Crear cuenta
-            </Button>
-          </div>
 
           <div className="text-center mb-16 space-y-6">
             <motion.h1
@@ -2872,12 +2860,12 @@ export default function PinAccess() {
               La plataforma definitiva para gestión de reparaciones y ventas.
             </motion.p>
 
-            {/* App Store / Google Play — Coming Soon */}
+            {/* App Store / Google Play — CTAs principales */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4"
+              className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6"
             >
               {/* iOS — App Store */}
               <button
@@ -2885,17 +2873,17 @@ export default function PinAccess() {
                 disabled
                 aria-label="Descargar para iOS — próximamente"
                 title="Próximamente"
-                className="group relative inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-3 cursor-not-allowed transition-colors hover:bg-white/[0.05]"
+                className="group relative inline-flex w-full sm:w-auto items-center gap-3 rounded-2xl border border-white/15 bg-white text-black px-7 py-4 cursor-not-allowed transition-all hover:bg-white/90 shadow-[0_8px_30px_rgba(255,255,255,0.18)]"
               >
-                <svg viewBox="0 0 814 1000" className="h-7 w-7 fill-white/80" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <svg viewBox="0 0 814 1000" className="h-8 w-8 fill-black" xmlns="http://www.w3.org/2000/svg" aria-hidden>
                   <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.8 113.4-317.7 224.5-317.7 100.4 0 163.4 60.2 220.8 60.2 54.7 0 127.9-62.5 240.3-62.5zm-284.4-154.8c22.6-26.8 39.3-65.4 39.3-104.5 0-5.5-.5-11.1-1.6-15.4C450 73.9 385.5 111 345.4 155.1c-20.3 22.6-40.9 61-40.9 101.1 0 6 1 12 1.5 14.2 2.6.5 6.8.9 10.8.9 36.4 0 97.2-35.5 127-85.2z" />
                 </svg>
                 <div className="flex flex-col items-start leading-tight">
-                  <span className="text-[10px] font-medium uppercase tracking-wider text-white/50">Descargar para</span>
-                  <span className="text-base font-semibold text-white">iOS · App Store</span>
+                  <span className="text-[11px] font-medium uppercase tracking-wider text-black/60">Descargar en el</span>
+                  <span className="text-lg font-semibold text-black">App Store</span>
                 </div>
-                <span className="ml-2 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white/70">
-                  Coming soon
+                <span className="ml-2 rounded-full bg-black/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-black/70">
+                  Pronto
                 </span>
               </button>
 
@@ -2905,20 +2893,29 @@ export default function PinAccess() {
                 disabled
                 aria-label="Descargar para Android — próximamente"
                 title="Próximamente"
-                className="group relative inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-3 cursor-not-allowed transition-colors hover:bg-white/[0.05]"
+                className="group relative inline-flex w-full sm:w-auto items-center gap-3 rounded-2xl border border-white/15 bg-white text-black px-7 py-4 cursor-not-allowed transition-all hover:bg-white/90 shadow-[0_8px_30px_rgba(255,255,255,0.18)]"
               >
-                <svg viewBox="0 0 512 512" className="h-7 w-7 fill-white/80" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <svg viewBox="0 0 512 512" className="h-8 w-8 fill-black" xmlns="http://www.w3.org/2000/svg" aria-hidden>
                   <path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256.6-256.6L47 0zm425.2 225.6l-58.9-34.1-65.7 64.5 65.7 64.5 60.1-34.1c18-14.3 18-46.5-1.2-60.8zM104.6 499l280.8-161.2-60.1-60.1L104.6 499z" />
                 </svg>
                 <div className="flex flex-col items-start leading-tight">
-                  <span className="text-[10px] font-medium uppercase tracking-wider text-white/50">Disponible en</span>
-                  <span className="text-base font-semibold text-white">Google Play</span>
+                  <span className="text-[11px] font-medium uppercase tracking-wider text-black/60">Disponible en</span>
+                  <span className="text-lg font-semibold text-black">Google Play</span>
                 </div>
-                <span className="ml-2 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white/70">
-                  Coming soon
+                <span className="ml-2 rounded-full bg-black/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-black/70">
+                  Pronto
                 </span>
               </button>
             </motion.div>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="text-sm text-white/40 pt-2"
+            >
+              La versión web volverá próximamente.
+            </motion.p>
           </div>
 
           {/* Story Section with Photos */}
@@ -3156,11 +3153,13 @@ export default function PinAccess() {
                 </ul>
 
                 <button
-                  onClick={() => setShowSignup(true)}
-                  className="relative mt-8 inline-flex h-14 w-full items-center justify-center gap-2 rounded-full border border-white/15 bg-black/40 text-white text-sm font-semibold hover:bg-white/[0.04] hover:border-white/30 transition-all active:scale-[0.98]"
+                  type="button"
+                  disabled
+                  title="Próximamente"
+                  className="relative mt-8 inline-flex h-14 w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-black/40 text-white/60 text-sm font-semibold cursor-not-allowed"
                 >
-                  Empezar gratis
-                  <ArrowRight className="h-4 w-4" />
+                  <Smartphone className="h-4 w-4" />
+                  Pronto en App Store y Google Play
                 </button>
               </div>
 
@@ -3204,11 +3203,13 @@ export default function PinAccess() {
                 </ul>
 
                 <button
-                  onClick={() => setShowSignup(true)}
-                  className="relative mt-8 inline-flex h-14 w-full items-center justify-center gap-2 rounded-full bg-white text-black text-sm font-semibold hover:bg-white/90 transition-all active:scale-[0.98] shadow-[0_8px_30px_rgba(255,255,255,0.18)]"
+                  type="button"
+                  disabled
+                  title="Próximamente"
+                  className="relative mt-8 inline-flex h-14 w-full items-center justify-center gap-2 rounded-full bg-white/90 text-black/70 text-sm font-semibold cursor-not-allowed shadow-[0_8px_30px_rgba(255,255,255,0.18)]"
                 >
-                  Empezar gratis
-                  <ArrowRight className="h-4 w-4" />
+                  <Smartphone className="h-4 w-4" />
+                  Pronto en App Store y Google Play
                 </button>
               </div>
 
