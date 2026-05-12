@@ -2822,24 +2822,6 @@ export default function PinAccess() {
           paddingBottom: "max(env(safe-area-inset-bottom), 0px)"
         }}
       >
-        {/* Navigation */}
-        <nav className="liquid-glass-strong sticky top-0 z-50 border-b border-white/5">
-          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png"
-                alt="SmartFixOS"
-                className="h-8 w-auto object-contain" />
-
-              <span className="text-lg font-semibold tracking-tight">SmartFixOS</span>
-            </div>
-            <span className="hidden sm:inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-white/60">
-              <Smartphone className="w-3.5 h-3.5" />
-              Disponible pronto en iOS y Android
-            </span>
-          </div>
-        </nav>
-
         {/* Main Content */}
         <div className="app-container py-8 sm:py-16">
 
