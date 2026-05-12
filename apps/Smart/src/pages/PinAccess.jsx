@@ -3118,10 +3118,22 @@ export default function PinAccess() {
 
                           {/* App content */}
                           <div className="absolute inset-x-0 top-[54px] bottom-0 px-4 pb-4 overflow-hidden">
+                            {/* App brand bar */}
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-1.5">
+                                <img
+                                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png"
+                                  alt=""
+                                  className="h-5 w-auto object-contain"
+                                />
+                                <span className="text-[11px] font-semibold tracking-tight text-white">SmartFixOS</span>
+                              </div>
+                              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-rose-400 to-orange-500 border border-white/10" />
+                            </div>
                             {/* Header greeting */}
-                            <div className="mt-2 mb-4">
+                            <div className="mb-3">
                               <div className="text-[10px] text-white/45 uppercase tracking-wider">Hoy</div>
-                              <div className="text-lg font-semibold text-white mt-0.5">Hola, Francis</div>
+                              <div className="text-base font-semibold text-white mt-0.5">Hola, Francis</div>
                             </div>
 
                             {/* Hero stat — Ingresos */}
@@ -3247,25 +3259,6 @@ export default function PinAccess() {
                   </div>
                 </motion.div>
 
-                {/* Floating stat badge — small accent */}
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0, y: [0, -8, 0] }}
-                  transition={{
-                    opacity: { duration: 0.7, delay: 0.8 },
-                    x: { duration: 0.7, delay: 0.8 },
-                    y: { duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 },
-                  }}
-                  className="absolute bottom-[10%] -right-[2%] z-20 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-xl px-4 py-3 shadow-2xl"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <span className="relative flex h-2 w-2">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-lime-400 opacity-60" />
-                      <span className="relative inline-flex h-2 w-2 rounded-full bg-lime-400" />
-                    </span>
-                    <span className="text-xs font-semibold text-white">En vivo</span>
-                  </div>
-                </motion.div>
               </div>
             </div>
           </div>
@@ -3302,7 +3295,11 @@ export default function PinAccess() {
               {/* Story */}
               <div className="space-y-6">
                 <div className="inline-flex items-center gap-2.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-lime-400 shadow-[0_0_10px_rgba(190,242,100,0.8)]" />
+                  <img
+                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png"
+                    alt=""
+                    className="h-5 w-auto object-contain"
+                  />
                   <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55">
                     Historia del creador
                   </span>
@@ -3655,7 +3652,11 @@ export default function PinAccess() {
           <div className="relative overflow-hidden bg-[#0a0a0c] border border-lime-400/20 rounded-2xl p-6 text-center mb-12">
             <div className="pointer-events-none absolute -top-12 left-1/2 -translate-x-1/2 h-40 w-72 rounded-full bg-lime-400/15 blur-3xl" aria-hidden />
             <div className="relative flex items-center justify-center gap-3 mb-2">
-              <Smartphone className="w-5 h-5 text-lime-400" />
+              <img
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png"
+                alt="SmartFixOS"
+                className="h-7 w-auto object-contain"
+              />
               <h3 className="text-xl font-semibold text-white tracking-tight">Hecho en <span className="text-lime-400">Puerto Rico</span> 🇵🇷</h3>
             </div>
             <p className="relative text-white/55 text-sm">
@@ -3680,8 +3681,16 @@ export default function PinAccess() {
             <p className="text-xs text-gray-600">Soporte directo · Novedades · Feedback</p>
           </div>
 
-          <div className="text-center space-y-3">
-            <p className="text-sm text-white/45">
+          <div className="flex flex-col items-center gap-5 mt-6">
+            <div className="flex items-center gap-3">
+              <img
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png"
+                alt="SmartFixOS"
+                className="h-10 w-auto object-contain opacity-90"
+              />
+              <span className="text-2xl font-semibold tracking-tight text-white">SmartFixOS</span>
+            </div>
+            <p className="text-sm text-white/45 text-center">
               ¿Necesitas ayuda? Escríbenos a{" "}
               <a href="mailto:smartfixosapp@gmail.com" className="text-lime-400 hover:text-lime-300 transition-colors font-medium">
                 smartfixosapp@gmail.com
