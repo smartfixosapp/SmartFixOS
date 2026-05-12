@@ -2855,18 +2855,15 @@ export default function PinAccess() {
                 disabled
                 aria-label="Descargar para iOS — próximamente"
                 title="Próximamente"
-                className="group relative inline-flex w-full sm:w-auto items-center gap-3 rounded-2xl border border-white/15 bg-white text-black px-7 py-4 cursor-not-allowed transition-all hover:bg-white/90 shadow-[0_8px_30px_rgba(255,255,255,0.18)]"
+                className="group relative inline-flex w-full sm:w-auto items-center gap-4 rounded-2xl bg-white text-black px-7 py-4 cursor-not-allowed transition-all hover:bg-gray-50 shadow-[0_10px_40px_rgba(255,255,255,0.15)]"
               >
-                <svg viewBox="0 0 814 1000" className="h-8 w-8 fill-black" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <svg viewBox="0 0 814 1000" className="h-9 w-9 shrink-0 fill-black" xmlns="http://www.w3.org/2000/svg" aria-hidden>
                   <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.8 113.4-317.7 224.5-317.7 100.4 0 163.4 60.2 220.8 60.2 54.7 0 127.9-62.5 240.3-62.5zm-284.4-154.8c22.6-26.8 39.3-65.4 39.3-104.5 0-5.5-.5-11.1-1.6-15.4C450 73.9 385.5 111 345.4 155.1c-20.3 22.6-40.9 61-40.9 101.1 0 6 1 12 1.5 14.2 2.6.5 6.8.9 10.8.9 36.4 0 97.2-35.5 127-85.2z" />
                 </svg>
                 <div className="flex flex-col items-start leading-tight">
-                  <span className="text-[11px] font-medium uppercase tracking-wider text-black/60">Descargar en el</span>
-                  <span className="text-lg font-semibold text-black">App Store</span>
+                  <span className="text-[12px] font-medium text-gray-500">Descargar en el</span>
+                  <span className="text-xl font-semibold text-black tracking-tight">App Store</span>
                 </div>
-                <span className="ml-2 rounded-full bg-black/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-black/70">
-                  Pronto
-                </span>
               </button>
 
               {/* Android — Google Play */}
@@ -2875,18 +2872,18 @@ export default function PinAccess() {
                 disabled
                 aria-label="Descargar para Android — próximamente"
                 title="Próximamente"
-                className="group relative inline-flex w-full sm:w-auto items-center gap-3 rounded-2xl border border-white/15 bg-white text-black px-7 py-4 cursor-not-allowed transition-all hover:bg-white/90 shadow-[0_8px_30px_rgba(255,255,255,0.18)]"
+                className="group relative inline-flex w-full sm:w-auto items-center gap-4 rounded-2xl bg-white text-black px-7 py-4 cursor-not-allowed transition-all hover:bg-gray-50 shadow-[0_10px_40px_rgba(255,255,255,0.15)]"
               >
-                <svg viewBox="0 0 512 512" className="h-8 w-8 fill-black" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                  <path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256.6-256.6L47 0zm425.2 225.6l-58.9-34.1-65.7 64.5 65.7 64.5 60.1-34.1c18-14.3 18-46.5-1.2-60.8zM104.6 499l280.8-161.2-60.1-60.1L104.6 499z" />
+                <svg viewBox="0 0 512 512" className="h-9 w-9 shrink-0" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                  <path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1z" fill="#00C3FF" />
+                  <path d="M47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256.6-256.6L47 0z" fill="#34A853" />
+                  <path d="M472.2 225.6l-58.9-34.1-65.7 64.5 65.7 64.5 60.1-34.1c18-14.3 18-46.5-1.2-60.8z" fill="#FFC107" />
+                  <path d="M104.6 499l280.8-161.2-60.1-60.1L104.6 499z" fill="#EA4335" />
                 </svg>
                 <div className="flex flex-col items-start leading-tight">
-                  <span className="text-[11px] font-medium uppercase tracking-wider text-black/60">Disponible en</span>
-                  <span className="text-lg font-semibold text-black">Google Play</span>
+                  <span className="text-[12px] font-medium text-gray-500">Disponible en</span>
+                  <span className="text-xl font-semibold text-black tracking-tight">Google Play</span>
                 </div>
-                <span className="ml-2 rounded-full bg-black/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-black/70">
-                  Pronto
-                </span>
               </button>
             </motion.div>
 
