@@ -2822,199 +2822,328 @@ export default function PinAccess() {
           paddingBottom: "max(env(safe-area-inset-bottom), 0px)"
         }}
       >
-        {/* Hero with animated 3D blobs */}
-        <section className="relative min-h-[92vh] overflow-hidden flex items-center justify-center">
-          {/* Animated 3D blobs */}
-          <div aria-hidden className="pointer-events-none absolute inset-0">
-            {/* Blob 1 — top right (orange/red 3D-ish) */}
-            <motion.div
-              className="absolute top-[2%] right-[5%] w-[42vw] h-[42vw] max-w-[520px] max-h-[520px]"
-              animate={{ x: [0, 25, 0], y: [0, -20, 0], rotate: [0, 12, 0], scale: [1, 1.05, 1] }}
-              transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
-              style={{ filter: "blur(30px)" }}
-            >
-              <div
-                className="absolute inset-0"
-                style={{
-                  borderRadius: "62% 38% 56% 44% / 47% 60% 40% 53%",
-                  background:
-                    "radial-gradient(circle at 30% 28%, #ffd6a0 0%, #ff8a4c 22%, #f43f5e 55%, #7c1f33 85%)",
-                  boxShadow: "inset -30px -40px 80px rgba(0,0,0,0.45), inset 30px 30px 60px rgba(255,200,150,0.25)",
-                }}
-              />
-            </motion.div>
+        {/* Hero — neon-grid SaaS style */}
+        <section className="relative overflow-hidden bg-[#0a0a0a]">
+          {/* Grid background */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{
+              backgroundImage:
+                "linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px)",
+              backgroundSize: "72px 72px",
+              maskImage:
+                "radial-gradient(ellipse at 50% 40%, black 0%, black 45%, transparent 85%)",
+              WebkitMaskImage:
+                "radial-gradient(ellipse at 50% 40%, black 0%, black 45%, transparent 85%)",
+            }}
+          />
 
-            {/* Blob 2 — center left (deep blue / violet) */}
-            <motion.div
-              className="absolute top-[38%] -left-[5%] w-[38vw] h-[38vw] max-w-[480px] max-h-[480px]"
-              animate={{ x: [0, -20, 0], y: [0, 30, 0], rotate: [0, -10, 0], scale: [1, 1.08, 1] }}
-              transition={{ duration: 17, repeat: Infinity, ease: "easeInOut" }}
-              style={{ filter: "blur(35px)" }}
-            >
-              <div
-                className="absolute inset-0"
-                style={{
-                  borderRadius: "55% 45% 60% 40% / 50% 55% 45% 50%",
-                  background:
-                    "radial-gradient(circle at 40% 35%, #93c5fd 0%, #3b82f6 25%, #6d28d9 60%, #1e1b4b 90%)",
-                  boxShadow: "inset -25px -35px 70px rgba(0,0,0,0.45), inset 25px 25px 50px rgba(173,200,255,0.25)",
-                }}
-              />
-            </motion.div>
-
-            {/* Blob 3 — bottom right (amber/orange smaller) */}
-            <motion.div
-              className="absolute bottom-[5%] right-[18%] w-[34vw] h-[34vw] max-w-[420px] max-h-[420px]"
-              animate={{ x: [0, 30, 0], y: [0, -15, 0], rotate: [0, 8, 0], scale: [1, 1.1, 1] }}
-              transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-              style={{ filter: "blur(30px)" }}
-            >
-              <div
-                className="absolute inset-0"
-                style={{
-                  borderRadius: "48% 52% 55% 45% / 55% 45% 55% 45%",
-                  background:
-                    "radial-gradient(circle at 35% 30%, #fde68a 0%, #f59e0b 25%, #c2410c 60%, #431407 90%)",
-                  boxShadow: "inset -25px -30px 70px rgba(0,0,0,0.5), inset 20px 20px 50px rgba(255,220,150,0.2)",
-                }}
-              />
-            </motion.div>
-
-            {/* Subtle ambient color wash */}
-            <div className="absolute inset-0 opacity-60"
-              style={{
-                background:
-                  "radial-gradient(ellipse at 70% 30%, rgba(244,63,94,0.10) 0%, transparent 50%), radial-gradient(ellipse at 20% 70%, rgba(59,130,246,0.10) 0%, transparent 50%)",
-              }}
-            />
-
-            {/* Subtle grain overlay */}
-            <div className="absolute inset-0 opacity-[0.06] mix-blend-overlay"
-              style={{
-                backgroundImage:
-                  "radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px)",
-                backgroundSize: "3px 3px",
-              }}
-            />
-          </div>
-
-          {/* Floating metric badges */}
+          {/* Ambient lime glow */}
           <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
-            className="hidden lg:flex absolute top-[14%] right-[6%] flex-col items-end z-20"
-          >
-            <span className="text-3xl font-semibold text-white tracking-tight">+50</span>
-            <span className="text-xs text-white/45 uppercase tracking-wider">talleres usan</span>
-          </motion.div>
+            aria-hidden
+            className="pointer-events-none absolute -top-[10%] right-[10%] w-[55vw] h-[55vw] max-w-[680px] max-h-[680px] rounded-full"
+            animate={{ scale: [1, 1.06, 1], opacity: [0.6, 0.85, 0.6] }}
+            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+            style={{
+              background:
+                "radial-gradient(circle, rgba(190,242,100,0.18) 0%, rgba(132,204,22,0.07) 35%, transparent 70%)",
+              filter: "blur(60px)",
+            }}
+          />
 
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.6, duration: 0.8 }}
-            className="hidden lg:flex absolute top-[44%] left-[5%] flex-col z-20"
-          >
-            <span className="text-3xl font-semibold text-white tracking-tight">+10k</span>
-            <span className="text-xs text-white/45 uppercase tracking-wider">órdenes gestionadas</span>
-          </motion.div>
+          <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-12 pt-20 pb-20">
+            <div className="grid lg:grid-cols-[1.1fr_1fr] gap-12 lg:gap-8 items-center">
+              {/* Left content */}
+              <div>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6 }}
+                  className="inline-flex items-center gap-2"
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-lime-400 shadow-[0_0_10px_rgba(190,242,100,0.8)]" />
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55">
+                    Sistema para talleres
+                  </span>
+                  <span className="text-lime-400 text-lg font-bold leading-none">!</span>
+                </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.7, duration: 0.8 }}
-            className="hidden lg:flex absolute top-[68%] right-[8%] flex-col items-end z-20"
-          >
-            <span className="text-3xl font-semibold text-white tracking-tight">100%</span>
-            <span className="text-xs text-white/45 uppercase tracking-wider">Hecho en PR 🇵🇷</span>
-          </motion.div>
+                <motion.h1
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.9, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+                  className="mt-6 text-5xl sm:text-6xl lg:text-[5rem] font-semibold tracking-tight leading-[1.02] text-white/85"
+                >
+                  Mejor sistema de
+                  <br />
+                  <span className="text-lime-400">gestión para tu taller</span>
+                  <br />
+                  <span className="text-white/55 font-medium">del futuro.</span>
+                </motion.h1>
 
-          {/* Hero content */}
-          <div className="relative z-10 w-full max-w-5xl mx-auto px-6 py-16 text-center">
-            <motion.h1
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-              className="text-6xl sm:text-8xl lg:text-[9rem] font-semibold tracking-tighter text-white leading-[0.92]"
-            >
-              Potencia
-              <br />
-              <span className="italic font-light">tu taller.</span>
-            </motion.h1>
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.7, delay: 0.25 }}
+                  className="mt-7 text-base text-white/55 max-w-md leading-relaxed"
+                >
+                  Órdenes, POS, inventario, finanzas y clientes —
+                  todo en una sola app, hecha por técnicos para técnicos.
+                </motion.p>
 
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.8 }}
-              className="mt-8 text-lg sm:text-xl text-white/55 font-medium max-w-xl mx-auto leading-relaxed"
-            >
-              La plataforma definitiva para gestión de reparaciones y ventas. Hecha por técnicos, para técnicos.
-            </motion.p>
+                {/* Avatar group + count */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.7, delay: 0.35 }}
+                  className="mt-8 flex items-center gap-5"
+                >
+                  <div className="flex -space-x-2.5">
+                    {[
+                      "from-rose-400 to-orange-500",
+                      "from-cyan-400 to-blue-600",
+                      "from-violet-400 to-fuchsia-600",
+                      "from-emerald-400 to-teal-600",
+                      "from-amber-300 to-orange-600",
+                    ].map((g, i) => (
+                      <div
+                        key={i}
+                        className={`w-10 h-10 rounded-full border-2 border-[#0a0a0a] bg-gradient-to-br ${g}`}
+                      />
+                    ))}
+                  </div>
+                  <div className="leading-tight">
+                    <div className="text-xl font-semibold tracking-tight">
+                      168<span className="text-lime-400">+</span>
+                    </div>
+                    <div className="text-[11px] uppercase tracking-wider text-white/50">
+                      Talleres confían
+                    </div>
+                  </div>
+                </motion.div>
 
-            {/* App Store / Google Play — CTAs principales */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35, duration: 0.8 }}
-              className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4"
-            >
-              {/* iOS — App Store */}
-              <button
-                type="button"
-                disabled
-                aria-label="Próximamente en App Store"
-                title="Próximamente"
-                className="group relative inline-flex w-full sm:w-auto items-center gap-4 rounded-2xl bg-white text-black px-7 py-4 cursor-not-allowed transition-all hover:bg-gray-50 shadow-[0_10px_40px_rgba(255,255,255,0.15)]"
-              >
-                <svg viewBox="0 0 814 1000" className="h-9 w-9 shrink-0 fill-black" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                  <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.8 113.4-317.7 224.5-317.7 100.4 0 163.4 60.2 220.8 60.2 54.7 0 127.9-62.5 240.3-62.5zm-284.4-154.8c22.6-26.8 39.3-65.4 39.3-104.5 0-5.5-.5-11.1-1.6-15.4C450 73.9 385.5 111 345.4 155.1c-20.3 22.6-40.9 61-40.9 101.1 0 6 1 12 1.5 14.2 2.6.5 6.8.9 10.8.9 36.4 0 97.2-35.5 127-85.2z" />
-                </svg>
-                <div className="flex flex-col items-start leading-tight">
-                  <span className="text-[12px] font-medium text-gray-500">Próximamente en</span>
-                  <span className="text-xl font-semibold text-black tracking-tight">App Store</span>
+                {/* Info row with green arrow */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.7, delay: 0.45 }}
+                  className="mt-8 flex items-start gap-4 max-w-md"
+                >
+                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-lime-400 flex items-center justify-center shadow-[0_8px_24px_rgba(190,242,100,0.35)]">
+                    <ArrowRight className="w-5 h-5 text-black -rotate-45" strokeWidth={2.5} />
+                  </div>
+                  <p className="text-sm text-white/55 leading-relaxed pt-1">
+                    SmartFixOS unifica todo lo que tu taller necesita en un solo sistema
+                    diseñado por técnicos.
+                  </p>
+                </motion.div>
+
+                {/* App Store / Google Play CTAs */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.7, delay: 0.55 }}
+                  className="mt-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-3"
+                >
+                  {/* iOS — App Store */}
+                  <button
+                    type="button"
+                    disabled
+                    aria-label="Próximamente en App Store"
+                    title="Próximamente"
+                    className="group relative inline-flex items-center gap-3.5 rounded-2xl bg-white text-black px-6 py-3.5 cursor-not-allowed transition-all hover:bg-gray-50 shadow-[0_10px_40px_rgba(255,255,255,0.12)]"
+                  >
+                    <svg viewBox="0 0 814 1000" className="h-8 w-8 shrink-0 fill-black" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                      <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.8 113.4-317.7 224.5-317.7 100.4 0 163.4 60.2 220.8 60.2 54.7 0 127.9-62.5 240.3-62.5zm-284.4-154.8c22.6-26.8 39.3-65.4 39.3-104.5 0-5.5-.5-11.1-1.6-15.4C450 73.9 385.5 111 345.4 155.1c-20.3 22.6-40.9 61-40.9 101.1 0 6 1 12 1.5 14.2 2.6.5 6.8.9 10.8.9 36.4 0 97.2-35.5 127-85.2z" />
+                    </svg>
+                    <div className="flex flex-col items-start leading-tight">
+                      <span className="text-[11px] font-medium text-gray-500">Próximamente en</span>
+                      <span className="text-base font-semibold text-black tracking-tight">App Store</span>
+                    </div>
+                  </button>
+
+                  {/* Android — Google Play */}
+                  <button
+                    type="button"
+                    disabled
+                    aria-label="Próximamente en Google Play"
+                    title="Próximamente"
+                    className="group relative inline-flex items-center gap-3.5 rounded-2xl bg-white text-black px-6 py-3.5 cursor-not-allowed transition-all hover:bg-gray-50 shadow-[0_10px_40px_rgba(255,255,255,0.12)]"
+                  >
+                    <svg viewBox="0 0 512 512" className="h-8 w-8 shrink-0" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                      <path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1z" fill="#00C3FF" />
+                      <path d="M47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256.6-256.6L47 0z" fill="#34A853" />
+                      <path d="M472.2 225.6l-58.9-34.1-65.7 64.5 65.7 64.5 60.1-34.1c18-14.3 18-46.5-1.2-60.8z" fill="#FFC107" />
+                      <path d="M104.6 499l280.8-161.2-60.1-60.1L104.6 499z" fill="#EA4335" />
+                    </svg>
+                    <div className="flex flex-col items-start leading-tight">
+                      <span className="text-[11px] font-medium text-gray-500">Próximamente en</span>
+                      <span className="text-base font-semibold text-black tracking-tight">Google Play</span>
+                    </div>
+                  </button>
+                </motion.div>
+
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.7, duration: 0.6 }}
+                  className="mt-5 text-xs text-white/35"
+                >
+                  La versión web volverá próximamente.
+                </motion.p>
+              </div>
+
+              {/* Right visual — floating dashboard cards */}
+              <div className="relative hidden lg:block h-[600px]">
+                {/* Background glow */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div
+                    className="w-[420px] h-[420px] rounded-full"
+                    style={{
+                      background:
+                        "radial-gradient(circle, rgba(190,242,100,0.20) 0%, transparent 65%)",
+                      filter: "blur(40px)",
+                    }}
+                  />
                 </div>
-              </button>
 
-              {/* Android — Google Play */}
-              <button
-                type="button"
-                disabled
-                aria-label="Próximamente en Google Play"
-                title="Próximamente"
-                className="group relative inline-flex w-full sm:w-auto items-center gap-4 rounded-2xl bg-white text-black px-7 py-4 cursor-not-allowed transition-all hover:bg-gray-50 shadow-[0_10px_40px_rgba(255,255,255,0.15)]"
-              >
-                <svg viewBox="0 0 512 512" className="h-9 w-9 shrink-0" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                  <path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1z" fill="#00C3FF" />
-                  <path d="M47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256.6-256.6L47 0z" fill="#34A853" />
-                  <path d="M472.2 225.6l-58.9-34.1-65.7 64.5 65.7 64.5 60.1-34.1c18-14.3 18-46.5-1.2-60.8z" fill="#FFC107" />
-                  <path d="M104.6 499l280.8-161.2-60.1-60.1L104.6 499z" fill="#EA4335" />
+                {/* Orbital ring */}
+                <svg
+                  className="absolute inset-0 w-full h-full pointer-events-none"
+                  viewBox="0 0 600 600"
+                  fill="none"
+                  aria-hidden
+                >
+                  <motion.ellipse
+                    cx="300"
+                    cy="300"
+                    rx="240"
+                    ry="180"
+                    stroke="url(#orbit-grad)"
+                    strokeWidth="1.5"
+                    strokeDasharray="4 6"
+                    initial={{ rotate: 0 }}
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+                    style={{ transformOrigin: "300px 300px" }}
+                  />
+                  <motion.ellipse
+                    cx="300"
+                    cy="300"
+                    rx="180"
+                    ry="240"
+                    stroke="rgba(190,242,100,0.35)"
+                    strokeWidth="1"
+                    strokeDasharray="2 8"
+                    initial={{ rotate: 0 }}
+                    animate={{ rotate: -360 }}
+                    transition={{ duration: 80, repeat: Infinity, ease: "linear" }}
+                    style={{ transformOrigin: "300px 300px" }}
+                  />
+                  <defs>
+                    <linearGradient id="orbit-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="rgba(190,242,100,0.6)" />
+                      <stop offset="100%" stopColor="rgba(190,242,100,0)" />
+                    </linearGradient>
+                  </defs>
                 </svg>
-                <div className="flex flex-col items-start leading-tight">
-                  <span className="text-[12px] font-medium text-gray-500">Próximamente en</span>
-                  <span className="text-xl font-semibold text-black tracking-tight">Google Play</span>
-                </div>
-              </button>
-            </motion.div>
 
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.55, duration: 0.6 }}
-              className="mt-6 text-sm text-white/40"
-            >
-              La versión web volverá próximamente.
-            </motion.p>
+                {/* Card 1 — Work Order (top) */}
+                <motion.div
+                  initial={{ opacity: 0, x: 30 }}
+                  animate={{ opacity: 1, x: 0, y: [0, -8, 0] }}
+                  transition={{
+                    opacity: { duration: 0.7, delay: 0.4 },
+                    x: { duration: 0.7, delay: 0.4 },
+                    y: { duration: 5, repeat: Infinity, ease: "easeInOut" },
+                  }}
+                  className="absolute top-[8%] right-[5%] w-[270px] rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-xl p-4 shadow-2xl"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <div className="text-[10px] uppercase tracking-wider text-white/45">
+                        Orden activa
+                      </div>
+                      <div className="mt-1 text-base font-semibold text-white">
+                        #1245 · iPhone 14
+                      </div>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-full bg-lime-400/15 border border-lime-400/30 text-[10px] font-semibold text-lime-300">
+                      En progreso
+                    </span>
+                  </div>
+                  <div className="text-xs text-white/55 mb-2">Cambio de pantalla</div>
+                  <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                    <motion.div
+                      className="h-full bg-lime-400"
+                      initial={{ width: 0 }}
+                      animate={{ width: "68%" }}
+                      transition={{ duration: 1.2, delay: 0.8, ease: "easeOut" }}
+                    />
+                  </div>
+                </motion.div>
 
-            {/* Scroll cue */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1, y: [0, 8, 0] }}
-              transition={{ delay: 1, duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              className="hidden sm:flex absolute left-1/2 -translate-x-1/2 bottom-8 flex-col items-center gap-2 text-white/30"
-            >
-              <span className="text-[11px] uppercase tracking-[0.2em]">Conoce más</span>
-              <ArrowRight className="w-4 h-4 rotate-90" />
-            </motion.div>
+                {/* Card 2 — Revenue (center, highlighted lime) */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1, y: [0, 10, 0] }}
+                  transition={{
+                    opacity: { duration: 0.7, delay: 0.5 },
+                    scale: { duration: 0.7, delay: 0.5 },
+                    y: { duration: 6, repeat: Infinity, ease: "easeInOut", delay: 0.5 },
+                  }}
+                  className="absolute top-[38%] left-[8%] w-[280px] rounded-2xl bg-lime-400 text-black p-5 shadow-[0_20px_50px_rgba(190,242,100,0.25)]"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="text-[10px] uppercase tracking-wider text-black/60 font-semibold">
+                      Ingresos hoy
+                    </div>
+                    <BarChart3 className="w-4 h-4 text-black/60" />
+                  </div>
+                  <div className="text-3xl font-bold tracking-tight text-black">$2,450</div>
+                  <div className="text-[11px] text-black/60 mt-1 font-medium">
+                    +18% vs. ayer
+                  </div>
+                  {/* Mini chart bars */}
+                  <div className="mt-3 flex items-end gap-1 h-10">
+                    {[40, 55, 35, 70, 50, 85, 65].map((h, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ height: 0 }}
+                        animate={{ height: `${h}%` }}
+                        transition={{ duration: 0.6, delay: 0.8 + i * 0.05 }}
+                        className="flex-1 bg-black/80 rounded-sm"
+                      />
+                    ))}
+                  </div>
+                </motion.div>
+
+                {/* Card 3 — Stat (bottom right) */}
+                <motion.div
+                  initial={{ opacity: 0, x: 30 }}
+                  animate={{ opacity: 1, x: 0, y: [0, -6, 0] }}
+                  transition={{
+                    opacity: { duration: 0.7, delay: 0.6 },
+                    x: { duration: 0.7, delay: 0.6 },
+                    y: { duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 },
+                  }}
+                  className="absolute bottom-[8%] right-[8%] w-[220px] rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-xl p-4 shadow-2xl"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-white/[0.06] border border-white/10 flex items-center justify-center">
+                      <Wrench className="w-5 h-5 text-lime-400" />
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-white leading-none tracking-tight">12</div>
+                      <div className="text-[11px] text-white/50 uppercase tracking-wider mt-1">
+                        Órdenes activas
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+            </div>
           </div>
         </section>
 
