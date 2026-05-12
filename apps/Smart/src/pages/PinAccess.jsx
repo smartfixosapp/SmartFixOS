@@ -2822,38 +2822,147 @@ export default function PinAccess() {
           paddingBottom: "max(env(safe-area-inset-bottom), 0px)"
         }}
       >
-        {/* Main Content */}
-        <div className="app-container py-8 sm:py-16">
+        {/* Hero with animated 3D blobs */}
+        <section className="relative min-h-[92vh] overflow-hidden flex items-center justify-center">
+          {/* Animated 3D blobs */}
+          <div aria-hidden className="pointer-events-none absolute inset-0">
+            {/* Blob 1 — top right (orange/red 3D-ish) */}
+            <motion.div
+              className="absolute top-[2%] right-[5%] w-[42vw] h-[42vw] max-w-[520px] max-h-[520px]"
+              animate={{ x: [0, 25, 0], y: [0, -20, 0], rotate: [0, 12, 0], scale: [1, 1.05, 1] }}
+              transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+              style={{ filter: "blur(30px)" }}
+            >
+              <div
+                className="absolute inset-0"
+                style={{
+                  borderRadius: "62% 38% 56% 44% / 47% 60% 40% 53%",
+                  background:
+                    "radial-gradient(circle at 30% 28%, #ffd6a0 0%, #ff8a4c 22%, #f43f5e 55%, #7c1f33 85%)",
+                  boxShadow: "inset -30px -40px 80px rgba(0,0,0,0.45), inset 30px 30px 60px rgba(255,200,150,0.25)",
+                }}
+              />
+            </motion.div>
 
-          <div className="text-center mb-16 space-y-6">
+            {/* Blob 2 — center left (deep blue / violet) */}
+            <motion.div
+              className="absolute top-[38%] -left-[5%] w-[38vw] h-[38vw] max-w-[480px] max-h-[480px]"
+              animate={{ x: [0, -20, 0], y: [0, 30, 0], rotate: [0, -10, 0], scale: [1, 1.08, 1] }}
+              transition={{ duration: 17, repeat: Infinity, ease: "easeInOut" }}
+              style={{ filter: "blur(35px)" }}
+            >
+              <div
+                className="absolute inset-0"
+                style={{
+                  borderRadius: "55% 45% 60% 40% / 50% 55% 45% 50%",
+                  background:
+                    "radial-gradient(circle at 40% 35%, #93c5fd 0%, #3b82f6 25%, #6d28d9 60%, #1e1b4b 90%)",
+                  boxShadow: "inset -25px -35px 70px rgba(0,0,0,0.45), inset 25px 25px 50px rgba(173,200,255,0.25)",
+                }}
+              />
+            </motion.div>
+
+            {/* Blob 3 — bottom right (amber/orange smaller) */}
+            <motion.div
+              className="absolute bottom-[5%] right-[18%] w-[34vw] h-[34vw] max-w-[420px] max-h-[420px]"
+              animate={{ x: [0, 30, 0], y: [0, -15, 0], rotate: [0, 8, 0], scale: [1, 1.1, 1] }}
+              transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+              style={{ filter: "blur(30px)" }}
+            >
+              <div
+                className="absolute inset-0"
+                style={{
+                  borderRadius: "48% 52% 55% 45% / 55% 45% 55% 45%",
+                  background:
+                    "radial-gradient(circle at 35% 30%, #fde68a 0%, #f59e0b 25%, #c2410c 60%, #431407 90%)",
+                  boxShadow: "inset -25px -30px 70px rgba(0,0,0,0.5), inset 20px 20px 50px rgba(255,220,150,0.2)",
+                }}
+              />
+            </motion.div>
+
+            {/* Subtle ambient color wash */}
+            <div className="absolute inset-0 opacity-60"
+              style={{
+                background:
+                  "radial-gradient(ellipse at 70% 30%, rgba(244,63,94,0.10) 0%, transparent 50%), radial-gradient(ellipse at 20% 70%, rgba(59,130,246,0.10) 0%, transparent 50%)",
+              }}
+            />
+
+            {/* Subtle grain overlay */}
+            <div className="absolute inset-0 opacity-[0.06] mix-blend-overlay"
+              style={{
+                backgroundImage:
+                  "radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px)",
+                backgroundSize: "3px 3px",
+              }}
+            />
+          </div>
+
+          {/* Floating metric badges */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+            className="hidden lg:flex absolute top-[14%] right-[6%] flex-col items-end z-20"
+          >
+            <span className="text-3xl font-semibold text-white tracking-tight">+50</span>
+            <span className="text-xs text-white/45 uppercase tracking-wider">talleres usan</span>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.6, duration: 0.8 }}
+            className="hidden lg:flex absolute top-[44%] left-[5%] flex-col z-20"
+          >
+            <span className="text-3xl font-semibold text-white tracking-tight">+10k</span>
+            <span className="text-xs text-white/45 uppercase tracking-wider">órdenes gestionadas</span>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.7, duration: 0.8 }}
+            className="hidden lg:flex absolute top-[68%] right-[8%] flex-col items-end z-20"
+          >
+            <span className="text-3xl font-semibold text-white tracking-tight">100%</span>
+            <span className="text-xs text-white/45 uppercase tracking-wider">Hecho en PR 🇵🇷</span>
+          </motion.div>
+
+          {/* Hero content */}
+          <div className="relative z-10 w-full max-w-5xl mx-auto px-6 py-16 text-center">
             <motion.h1
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-5xl sm:text-7xl font-semibold tracking-tight text-white">
-
-              Potencia tu Taller.
+              transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+              className="text-6xl sm:text-8xl lg:text-[9rem] font-semibold tracking-tighter text-white leading-[0.92]"
+            >
+              Potencia
+              <br />
+              <span className="italic font-light">tu taller.</span>
             </motion.h1>
+
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="text-xl sm:text-2xl text-white/45 font-medium max-w-2xl mx-auto">
-
-              La plataforma definitiva para gestión de reparaciones y ventas.
+              transition={{ delay: 0.2, duration: 0.8 }}
+              className="mt-8 text-lg sm:text-xl text-white/55 font-medium max-w-xl mx-auto leading-relaxed"
+            >
+              La plataforma definitiva para gestión de reparaciones y ventas. Hecha por técnicos, para técnicos.
             </motion.p>
 
             {/* App Store / Google Play — CTAs principales */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6"
+              transition={{ delay: 0.35, duration: 0.8 }}
+              className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4"
             >
               {/* iOS — App Store */}
               <button
                 type="button"
                 disabled
-                aria-label="Descargar para iOS — próximamente"
+                aria-label="Próximamente en App Store"
                 title="Próximamente"
                 className="group relative inline-flex w-full sm:w-auto items-center gap-4 rounded-2xl bg-white text-black px-7 py-4 cursor-not-allowed transition-all hover:bg-gray-50 shadow-[0_10px_40px_rgba(255,255,255,0.15)]"
               >
@@ -2870,7 +2979,7 @@ export default function PinAccess() {
               <button
                 type="button"
                 disabled
-                aria-label="Descargar para Android — próximamente"
+                aria-label="Próximamente en Google Play"
                 title="Próximamente"
                 className="group relative inline-flex w-full sm:w-auto items-center gap-4 rounded-2xl bg-white text-black px-7 py-4 cursor-not-allowed transition-all hover:bg-gray-50 shadow-[0_10px_40px_rgba(255,255,255,0.15)]"
               >
@@ -2890,12 +2999,27 @@ export default function PinAccess() {
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="text-sm text-white/40 pt-2"
+              transition={{ delay: 0.55, duration: 0.6 }}
+              className="mt-6 text-sm text-white/40"
             >
               La versión web volverá próximamente.
             </motion.p>
+
+            {/* Scroll cue */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1, y: [0, 8, 0] }}
+              transition={{ delay: 1, duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              className="hidden sm:flex absolute left-1/2 -translate-x-1/2 bottom-8 flex-col items-center gap-2 text-white/30"
+            >
+              <span className="text-[11px] uppercase tracking-[0.2em]">Conoce más</span>
+              <ArrowRight className="w-4 h-4 rotate-90" />
+            </motion.div>
           </div>
+        </section>
+
+        {/* Main Content */}
+        <div className="app-container py-8 sm:py-16">
 
           {/* Story Section with Photos */}
           <motion.div
