@@ -2861,7 +2861,7 @@ export default function PinAccess() {
                   <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.8 113.4-317.7 224.5-317.7 100.4 0 163.4 60.2 220.8 60.2 54.7 0 127.9-62.5 240.3-62.5zm-284.4-154.8c22.6-26.8 39.3-65.4 39.3-104.5 0-5.5-.5-11.1-1.6-15.4C450 73.9 385.5 111 345.4 155.1c-20.3 22.6-40.9 61-40.9 101.1 0 6 1 12 1.5 14.2 2.6.5 6.8.9 10.8.9 36.4 0 97.2-35.5 127-85.2z" />
                 </svg>
                 <div className="flex flex-col items-start leading-tight">
-                  <span className="text-[12px] font-medium text-gray-500">Descargar en el</span>
+                  <span className="text-[12px] font-medium text-gray-500">Próximamente en</span>
                   <span className="text-xl font-semibold text-black tracking-tight">App Store</span>
                 </div>
               </button>
@@ -2881,7 +2881,7 @@ export default function PinAccess() {
                   <path d="M104.6 499l280.8-161.2-60.1-60.1L104.6 499z" fill="#EA4335" />
                 </svg>
                 <div className="flex flex-col items-start leading-tight">
-                  <span className="text-[12px] font-medium text-gray-500">Disponible en</span>
+                  <span className="text-[12px] font-medium text-gray-500">Próximamente en</span>
                   <span className="text-xl font-semibold text-black tracking-tight">Google Play</span>
                 </div>
               </button>
