@@ -174,6 +174,50 @@ function BentoCard({ children, className = "", delay = 0 }) {
   );
 }
 
+// ── Photo slot with graceful CSS fallback ────────────────────────────────
+function PhotoSlot({ src, alt, fallbackGradient, fallbackIcon, fadeRight, borderLeft }) {
+  const [loaded, setLoaded] = React.useState(false);
+  const [errored, setErrored] = React.useState(false);
+
+  return (
+    <div
+      className={`relative overflow-hidden ${borderLeft ? "border-l border-white/[0.05]" : ""}`}
+      style={{ background: errored || !loaded ? fallbackGradient : undefined }}
+    >
+      {/* Placeholder shown until image loads or if it errors */}
+      {(!loaded || errored) && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+          {/* Dot grid pattern */}
+          <div className="absolute inset-0 opacity-[0.06]" style={{
+            backgroundImage: "radial-gradient(circle, rgba(255,255,255,.6) 1px, transparent 1px)",
+            backgroundSize: "20px 20px",
+          }} />
+          {/* Tool icon */}
+          <span className="relative text-3xl opacity-20 select-none">{fallbackIcon}</span>
+          {/* Subtle glow spot */}
+          <div className="absolute top-1/3 left-1/2 -translate-x-1/2 h-24 w-24 rounded-full blur-2xl opacity-10"
+            style={{ background: B }} />
+        </div>
+      )}
+      {/* Actual image */}
+      {!errored && (
+        <img
+          src={src}
+          alt={alt}
+          className={`h-full w-full object-cover object-center transition-opacity duration-500 ${loaded ? "opacity-100" : "opacity-0"}`}
+          onLoad={() => setLoaded(true)}
+          onError={() => setErrored(true)}
+        />
+      )}
+      {/* Right-side fade so it blends into the text column */}
+      {fadeRight && (
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: "linear-gradient(to right, transparent 65%, #0d0d10)" }} />
+      )}
+    </div>
+  );
+}
+
 // ── App Store badge (placeholder) ────────────────────────────────────────
 function AppStoreBadge({ onClick }) {
   return (
@@ -431,35 +475,23 @@ export default function Landing() {
           <div className="overflow-hidden rounded-[32px] border border-white/[0.07] bg-[#0d0d10]">
             <div className="grid grid-cols-1 lg:grid-cols-2">
 
-              {/* Photos */}
-              <div className="grid grid-cols-2 gap-0 h-64 lg:h-auto">
-                <div className="relative overflow-hidden">
-                  <img
-                    src="/images/founder-1.jpg"
-                    alt="Técnico reparando dispositivo"
-                    className="h-full w-full object-cover object-center"
-                    onError={e => {
-                      e.target.style.display = "none";
-                      e.target.parentNode.style.background = "linear-gradient(135deg,#111316,#0a0b0d)";
-                    }}
-                  />
-                  {/* fallback overlay pattern */}
-                  <div className="absolute inset-0 pointer-events-none"
-                    style={{ background: "linear-gradient(to right, transparent 80%, #0d0d10)" }} />
-                </div>
-                <div className="relative overflow-hidden border-l border-white/[0.05]">
-                  <img
-                    src="/images/founder-2.jpg"
-                    alt="Taller de reparación"
-                    className="h-full w-full object-cover object-center"
-                    onError={e => {
-                      e.target.style.display = "none";
-                      e.target.parentNode.style.background = "linear-gradient(135deg,#0f1013,#080809)";
-                    }}
-                  />
-                  <div className="absolute inset-0 pointer-events-none"
-                    style={{ background: "linear-gradient(to right, transparent 80%, #0d0d10)" }} />
-                </div>
+              {/* Photos — reemplazar src con URLs de Supabase cuando estén disponibles */}
+              <div className="grid grid-cols-2 gap-0 h-64 lg:h-auto min-h-[280px]">
+                <PhotoSlot
+                  src="/images/founder-1.jpg"
+                  alt="Técnico reparando dispositivo"
+                  fallbackGradient="linear-gradient(145deg,#0f1115 0%,#13161c 50%,#0a0c10 100%)"
+                  fallbackIcon="🔧"
+                  fadeRight
+                />
+                <PhotoSlot
+                  src="/images/founder-2.jpg"
+                  alt="Taller de reparación"
+                  fallbackGradient="linear-gradient(145deg,#0c0e12 0%,#111418 50%,#080a0e 100%)"
+                  fallbackIcon="⚡"
+                  borderLeft
+                  fadeRight
+                />
               </div>
 
               {/* Text */}
