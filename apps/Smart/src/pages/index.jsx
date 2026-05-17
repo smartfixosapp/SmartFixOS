@@ -21,7 +21,6 @@ function lazyWithRetry(fn) {
 
 // Public & marketing pages
 const Landing          = lazyWithRetry(() => import("./Landing"));
-const Pricing          = lazyWithRetry(() => import("./Pricing"));
 const Billing          = lazyWithRetry(() => import("./Billing"));
 const VerifyEmail      = lazyWithRetry(() => import("./VerifyEmail"));
 const Activate         = lazyWithRetry(() => import("./Activate"));
@@ -63,7 +62,7 @@ function PagesContent() {
     <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/"                element={<Landing />} />
-        <Route path="/Pricing"         element={<Pricing />} />
+        <Route path="/Pricing"         element={<Landing />} />
         <Route path="/billing"         element={<Billing />} />
         <Route path="/VerifyEmail"     element={<VerifyEmail />} />
         <Route path="/Activate"        element={<Activate />} />
