@@ -262,6 +262,10 @@ module.exports = {
           '0%':   { transform: 'translateX(0)' },
           '100%': { transform: 'translateX(-50%)' },
         },
+        'sfos-scroll-up': {
+          '0%':   { transform: 'translateY(0)' },
+          '100%': { transform: 'translateY(-50%)' },
+        },
       },
       animation: {
         'accordion-down':  'accordion-down 0.2s ease-out',
@@ -273,6 +277,8 @@ module.exports = {
         'apple-bounce-in': 'apple-bounce-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)',
         'sfos-shimmer':    'sfos-shimmer 4s linear infinite',
         'sfos-marquee':    'sfos-marquee 35s linear infinite',
+        'sfos-scroll-up':  'sfos-scroll-up 22s linear infinite',
+        'sfos-scroll-up-slow': 'sfos-scroll-up 30s linear infinite',
       },
     },
   },

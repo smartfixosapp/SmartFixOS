@@ -104,6 +104,36 @@ function Marquee() {
   );
 }
 
+// ── App screenshots hero strip ───────────────────────────────────
+function ScreenshotHeroStrip() {
+  const col1 = [ss01, ss03, ss05, ss07, ss02, ss04, ss06];
+  const col2 = [ss04, ss06, ss02, ss05, ss01, ss07, ss03];
+  return (
+    <div className="relative h-[480px] lg:h-[540px] overflow-hidden rounded-3xl w-full max-w-[340px]">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-20 z-10"
+        style={{ background: `linear-gradient(to bottom, ${BG}, transparent)` }} />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 z-10"
+        style={{ background: `linear-gradient(to top, ${BG}, transparent)` }} />
+      <div className="flex gap-2.5 h-full">
+        <div className="flex-1 flex flex-col gap-2.5 animate-sfos-scroll-up">
+          {[...col1, ...col1].map((src, i) => (
+            <img key={i} src={src} alt=""
+              className="w-full rounded-2xl flex-shrink-0"
+              style={{ border: "1px solid rgba(255,255,255,0.07)" }} />
+          ))}
+        </div>
+        <div className="flex-1 flex flex-col gap-2.5 mt-20 animate-sfos-scroll-up-slow">
+          {[...col2, ...col2].map((src, i) => (
+            <img key={i} src={src} alt=""
+              className="w-full rounded-2xl flex-shrink-0"
+              style={{ border: "1px solid rgba(255,255,255,0.07)" }} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── CSS iPhone mockup ────────────────────────────────────────────
 function PhoneMockup() {
   return (
@@ -412,11 +442,14 @@ export default function Landing() {
           <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
             className="mb-7 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-xs font-semibold text-white/50">
-            <svg viewBox="0 0 24 24" fill="none" className="h-3.5 w-3.5 shrink-0 text-white/60">
-              <path d="M10 2h4v8.8l3.8 6.6A1.5 1.5 0 0116.5 20h-9A1.5 1.5 0 016.2 17.4L10 10.8V2z"
-                stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M7.5 15.5h9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" opacity="0.55"/>
-            </svg>
+            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full"
+              style={{ background: "linear-gradient(135deg, #0a84ff 0%, #30b8d4 100%)" }}>
+              <svg viewBox="0 0 24 24" fill="none" className="h-2.5 w-2.5">
+                <path d="M10 2h4v8.8l3.8 6.6A1.5 1.5 0 0116.5 20h-9A1.5 1.5 0 016.2 17.4L10 10.8V2z"
+                  stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M7.5 15.5h9" stroke="white" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
+              </svg>
+            </span>
             {TESTFLIGHT_ENABLED ? "Beta disponible en TestFlight" : "Beta en TestFlight · Próximamente"}
           </motion.div>
 
@@ -450,10 +483,10 @@ export default function Landing() {
           </motion.p>
         </div>
 
-        <motion.div initial={{ opacity: 0, scale: 0.92, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+        <motion.div initial={{ opacity: 0, scale: 0.96, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
           className="flex justify-center lg:justify-end">
-          <PhoneMockup />
+          <ScreenshotHeroStrip />
         </motion.div>
       </section>
 
@@ -547,24 +580,8 @@ export default function Landing() {
       <section id="nosotros" className="mx-auto max-w-6xl px-6 py-16 scroll-mt-20">
         <FadeUp>
           <div className="overflow-hidden rounded-[32px] border border-white/[0.07] bg-[#0d0d10]">
-            <div className="grid grid-cols-1 lg:grid-cols-2">
-              <div className="relative overflow-hidden h-64 lg:h-full min-h-[300px]"
-                style={{ background: "linear-gradient(145deg,#0a0b0d,#0d0e11)" }}>
-                {/* fade edges */}
-                <div className="pointer-events-none absolute inset-y-0 left-0 w-8 z-10"
-                  style={{ background: "linear-gradient(to right, #0d0d10, transparent)" }} />
-                <div className="pointer-events-none absolute inset-y-0 right-0 w-16 z-10"
-                  style={{ background: "linear-gradient(to left, #0d0d10, transparent)" }} />
-                <div className="flex items-end gap-3 h-full pt-6 px-3 animate-[sfos-marquee_30s_linear_infinite]">
-                  {[...SCREENSHOTS, ...SCREENSHOTS].map((src, i) => (
-                    <img key={i} src={src} alt=""
-                      className="h-[92%] w-auto object-cover object-top rounded-2xl flex-shrink-0 shadow-xl"
-                      style={{ border: "1px solid rgba(255,255,255,0.07)" }}
-                    />
-                  ))}
-                </div>
-              </div>
-              <div className="flex flex-col justify-center px-8 py-10 lg:px-10 lg:py-12">
+            <div className="grid grid-cols-1">
+              <div className="flex flex-col justify-center px-8 py-10 lg:px-12 lg:py-14 max-w-2xl mx-auto w-full">
                 <p className="mb-4 text-[10px] font-bold tracking-[0.15em] uppercase text-white/30">Historia del creador</p>
                 <h2 className="text-2xl font-bold tracking-tight leading-snug sm:text-3xl">
                   Creado por un técnico,{" "}
