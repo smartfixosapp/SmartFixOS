@@ -4,7 +4,7 @@
   "installCommand": "pnpm install --no-frozen-lockfile",
   "framework": null,
   "rewrites": [
-    { "source": "/((?!assets/|icons/|registerSW\\.js|manifest\\.json|favicon\\.ico).*)", "destination": "/index.html" }
+    { "source": "/((?!assets/|icons/|images/|registerSW\\.js|manifest\\.json|favicon\\.ico).*)", "destination": "/index.html" }
   ],
   "headers": [
     {
