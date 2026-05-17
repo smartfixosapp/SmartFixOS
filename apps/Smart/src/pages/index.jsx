@@ -61,6 +61,7 @@ const OrdersMobile          = lazyWithRetry(() => import("./OrdersMobile"));
 const Menu                  = lazyWithRetry(() => import("./Menu"));
 const Pricing               = lazyWithRetry(() => import("./Pricing"));
 const Billing               = lazyWithRetry(() => import("./Billing"));
+const Landing               = lazyWithRetry(() => import("./Landing"));
 const VerifyEmail           = lazyWithRetry(() => import("./VerifyEmail"));
 
 // Minimal spinner shown while a lazy chunk loads.
@@ -152,7 +153,6 @@ function AnimatedRoutes() {
     return (
         <div style={{ minHeight: '100%' }}>
             <Routes location={location}>
-                <Route path="/" element={<Dashboard />} />
                 <Route path="/Activate" element={<Activate />} />
                 <Route path="/AdminDashboard" element={<AdminDashboard />} />
                 <Route path="/AuditLog" element={<AuditLog />} />
@@ -202,7 +202,7 @@ function ProtectedRoutes() {
 function LayoutWrapper({ children, currentPageName }) {
     const location = useLocation();
 
-    if (location.pathname === '/returnlogin' || location.pathname === '/SuperAdmin' || location.pathname === '/GACC' || location.pathname === '/Receipt' || location.pathname === '/CustomerApproval' || location.pathname === '/Pricing' || location.pathname === '/billing' || location.pathname === '/VerifyEmail') {
+    if (location.pathname === '/' || location.pathname === '/returnlogin' || location.pathname === '/SuperAdmin' || location.pathname === '/GACC' || location.pathname === '/Receipt' || location.pathname === '/CustomerApproval' || location.pathname === '/Pricing' || location.pathname === '/billing' || location.pathname === '/VerifyEmail') {
         return <>{children}</>;
     }
 
@@ -224,6 +224,7 @@ function PagesContent() {
                     <Route path="/returnlogin" element={<ReturnLogin />} />
                     <Route path="/Receipt" element={<Receipt />} />
                     <Route path="/CustomerApproval" element={<CustomerApproval />} />
+                    <Route path="/" element={<Landing />} />
                     <Route path="/Pricing" element={<Pricing />} />
                     <Route path="/billing" element={<Billing />} />
                     <Route path="/VerifyEmail" element={<VerifyEmail />} />
