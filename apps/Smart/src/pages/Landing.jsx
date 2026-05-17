@@ -317,7 +317,7 @@ function DownloadButtons() {
       <PlatformBadge
         icon={appleIcon}
         topLabel={TESTFLIGHT_ENABLED ? "Beta en" : "Próximamente en"}
-        bottomLabel="TestFlight"
+        bottomLabel={TESTFLIGHT_ENABLED ? "TestFlight" : "App Store"}
         href={TESTFLIGHT_URL}
         enabled={TESTFLIGHT_ENABLED}
       />
