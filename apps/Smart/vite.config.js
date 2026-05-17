@@ -16,7 +16,7 @@ export default defineConfig({
       manifest: false,
       selfDestroying: false,
       workbox: {
-        cacheId: 'sfos-v14', // v14: founder photos added
+        cacheId: 'sfos-v15', // v15: app screenshots strip
         clientsClaim: true,
         skipWaiting: true,
         globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],

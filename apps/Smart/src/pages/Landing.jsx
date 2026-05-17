@@ -8,8 +8,15 @@ import {
 } from "lucide-react";
 import { supabase } from "../../../../lib/supabase-client.js";
 import { PLANS } from "@/lib/plans";
-import founder1Src from "../assets/images/founder-1.jpg";
-import founder2Src from "../assets/images/founder-2.jpg";
+import ss01 from "../assets/images/screenshots/ss01.png";
+import ss02 from "../assets/images/screenshots/ss02.png";
+import ss03 from "../assets/images/screenshots/ss03.png";
+import ss04 from "../assets/images/screenshots/ss04.png";
+import ss05 from "../assets/images/screenshots/ss05.png";
+import ss06 from "../assets/images/screenshots/ss06.png";
+import ss07 from "../assets/images/screenshots/ss07.png";
+
+const SCREENSHOTS = [ss01, ss02, ss03, ss04, ss05, ss06, ss07];
 
 // ─────────────────────────────────────────────────────────────────
 //  🚩 FEATURE FLAGS — cambiar aquí para habilitar/deshabilitar
@@ -541,13 +548,21 @@ export default function Landing() {
         <FadeUp>
           <div className="overflow-hidden rounded-[32px] border border-white/[0.07] bg-[#0d0d10]">
             <div className="grid grid-cols-1 lg:grid-cols-2">
-              <div className="grid grid-cols-2 gap-0 h-64 lg:h-auto min-h-[280px]">
-                <PhotoSlot src={founder1Src} alt="Técnico reparando MacBook"
-                  fallbackGradient="linear-gradient(145deg,#0f1115,#13161c,#0a0c10)"
-                  fallbackIcon="🔧" fadeRight />
-                <PhotoSlot src={founder2Src} alt="Soldando placa en taller"
-                  fallbackGradient="linear-gradient(145deg,#0c0e12,#111418,#080a0e)"
-                  fallbackIcon="⚡" borderLeft fadeRight />
+              <div className="relative overflow-hidden h-64 lg:h-full min-h-[300px]"
+                style={{ background: "linear-gradient(145deg,#0a0b0d,#0d0e11)" }}>
+                {/* fade edges */}
+                <div className="pointer-events-none absolute inset-y-0 left-0 w-8 z-10"
+                  style={{ background: "linear-gradient(to right, #0d0d10, transparent)" }} />
+                <div className="pointer-events-none absolute inset-y-0 right-0 w-16 z-10"
+                  style={{ background: "linear-gradient(to left, #0d0d10, transparent)" }} />
+                <div className="flex items-end gap-3 h-full pt-6 px-3 animate-[sfos-marquee_30s_linear_infinite]">
+                  {[...SCREENSHOTS, ...SCREENSHOTS].map((src, i) => (
+                    <img key={i} src={src} alt=""
+                      className="h-[92%] w-auto object-cover object-top rounded-2xl flex-shrink-0 shadow-xl"
+                      style={{ border: "1px solid rgba(255,255,255,0.07)" }}
+                    />
+                  ))}
+                </div>
               </div>
               <div className="flex flex-col justify-center px-8 py-10 lg:px-10 lg:py-12">
                 <p className="mb-4 text-[10px] font-bold tracking-[0.15em] uppercase text-white/30">Historia del creador</p>
