@@ -645,7 +645,7 @@ export default function Landing() {
             "Le damos seguimiento a cada reparación, sabemos cuánto ganamos al día
             y el equipo siempre está coordinado — todo desde una sola app."
           </blockquote>
-          <p className="mt-4 text-xs text-white/25">— Taller beta · Puerto Rico</p>
+          <p className="mt-4 text-xs text-white/25">— 911SmartFix · Puerto Rico</p>
         </FadeUp>
       </section>
 
