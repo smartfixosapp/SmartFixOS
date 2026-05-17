@@ -425,6 +425,105 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ── FOUNDER STORY ── */}
+      <section className="mx-auto max-w-6xl px-6 py-16">
+        <FadeUp>
+          <div className="overflow-hidden rounded-[32px] border border-white/[0.07] bg-[#0d0d10]">
+            <div className="grid grid-cols-1 lg:grid-cols-2">
+
+              {/* Photos */}
+              <div className="grid grid-cols-2 gap-0 h-64 lg:h-auto">
+                <div className="relative overflow-hidden">
+                  <img
+                    src="/images/founder-1.jpg"
+                    alt="Técnico reparando dispositivo"
+                    className="h-full w-full object-cover object-center"
+                    onError={e => {
+                      e.target.style.display = "none";
+                      e.target.parentNode.style.background = "linear-gradient(135deg,#111316,#0a0b0d)";
+                    }}
+                  />
+                  {/* fallback overlay pattern */}
+                  <div className="absolute inset-0 pointer-events-none"
+                    style={{ background: "linear-gradient(to right, transparent 80%, #0d0d10)" }} />
+                </div>
+                <div className="relative overflow-hidden border-l border-white/[0.05]">
+                  <img
+                    src="/images/founder-2.jpg"
+                    alt="Taller de reparación"
+                    className="h-full w-full object-cover object-center"
+                    onError={e => {
+                      e.target.style.display = "none";
+                      e.target.parentNode.style.background = "linear-gradient(135deg,#0f1013,#080809)";
+                    }}
+                  />
+                  <div className="absolute inset-0 pointer-events-none"
+                    style={{ background: "linear-gradient(to right, transparent 80%, #0d0d10)" }} />
+                </div>
+              </div>
+
+              {/* Text */}
+              <div className="flex flex-col justify-center px-8 py-10 lg:px-10 lg:py-12">
+                <p className="mb-4 text-[10px] font-bold tracking-[0.15em] uppercase text-white/30">
+                  Historia del creador
+                </p>
+
+                <h2 className="text-2xl font-bold tracking-tight leading-snug sm:text-3xl">
+                  Creado por un técnico,{" "}
+                  <span
+                    className="bg-clip-text text-transparent"
+                    style={{ backgroundImage: `linear-gradient(135deg, ${B}, #38bdf8)` }}
+                  >
+                    para técnicos.
+                  </span>
+                </h2>
+
+                <div className="mt-5 space-y-3 text-sm text-white/45 leading-relaxed">
+                  <p>
+                    Como técnico de reparación con años de experiencia, probé docenas de
+                    sistemas de gestión para talleres.{" "}
+                    <span className="text-white/70 font-medium">
+                      Ninguno cumplía con mis expectativas.
+                    </span>
+                  </p>
+                  <p>
+                    Los sistemas existentes eran lentos, complicados, o simplemente no estaban
+                    diseñados para el ritmo real de un taller de reparación. Perdía más tiempo
+                    navegando menús que reparando dispositivos.
+                  </p>
+                  <p className="font-semibold text-white/60">
+                    Por eso creé SmartFixOS.
+                  </p>
+                  <p>
+                    Un sistema diseñado desde cero para lograr facilitar a los talleres de
+                    reparación un flujo de trabajo más natural y de fácil manejo, con flujos
+                    optimizados, interfaz intuitiva, y todas las herramientas que realmente necesitas.
+                  </p>
+                </div>
+
+                {/* Commitment badge */}
+                <div className="mt-7 flex items-start gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-4 py-3.5">
+                  <div
+                    className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[8px]"
+                    style={{ background: `${B}20` }}
+                  >
+                    <Zap className="h-3.5 w-3.5" style={{ color: B }} strokeWidth={2.2} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-white/70 mb-0.5">Compromiso Continuo</p>
+                    <p className="text-xs text-white/35 leading-relaxed">
+                      Actualizaciones constantes, nuevas funcionalidades y mejoras
+                      basadas en las necesidades reales de talleres como el tuyo.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </FadeUp>
+      </section>
+
       {/* ── PLANS STRIP ── */}
       <section className="mx-auto max-w-4xl px-6 py-12">
         <FadeUp className="rounded-[28px] border border-white/[0.07] bg-[#0d0d10] p-8 sm:p-10">
