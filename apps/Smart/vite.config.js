@@ -16,7 +16,7 @@ export default defineConfig({
       manifest: false,
       selfDestroying: false,
       workbox: {
-        cacheId: 'sfos-v13', // v13: revert to main-scroll + [overflow:clip] on root for sticky
+        cacheId: 'sfos-v14', // v14: founder photos added
         clientsClaim: true,
         skipWaiting: true,
         globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
