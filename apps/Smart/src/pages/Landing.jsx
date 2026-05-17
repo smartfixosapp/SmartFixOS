@@ -300,14 +300,9 @@ function PlatformBadge({ icon, topLabel, bottomLabel, href, enabled }) {
 
 // ── Download buttons ─────────────────────────────────────────────
 function DownloadButtons() {
-  // TestFlight beaker icon
-  const testFlightIcon = (
-    <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6 shrink-0">
-      <path d="M10 2h4v8.8l3.8 6.6A1.5 1.5 0 0116.5 20h-9A1.5 1.5 0 016.2 17.4L10 10.8V2z"
-        stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M7.5 15.5h9" stroke="white" strokeWidth="1.4" strokeLinecap="round" opacity="0.55"/>
-      <circle cx="10.5" cy="17.5" r="0.9" fill="white" opacity="0.45"/>
-      <circle cx="13.2" cy="16.8" r="0.7" fill="white" opacity="0.35"/>
+  const appleIcon = (
+    <svg viewBox="0 0 24 24" className="h-6 w-6 fill-white shrink-0">
+      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
     </svg>
   );
   const androidIcon = (
@@ -320,7 +315,7 @@ function DownloadButtons() {
   return (
     <div className="flex flex-wrap gap-2">
       <PlatformBadge
-        icon={testFlightIcon}
+        icon={appleIcon}
         topLabel={TESTFLIGHT_ENABLED ? "Beta en" : "Próximamente en"}
         bottomLabel="TestFlight"
         href={TESTFLIGHT_URL}
@@ -410,8 +405,12 @@ export default function Landing() {
           <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
             className="mb-7 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-xs font-semibold text-white/50">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            {TESTFLIGHT_ENABLED ? "Beta disponible en TestFlight" : "Beta en TestFlight · App Store próximamente"}
+            <svg viewBox="0 0 24 24" fill="none" className="h-3.5 w-3.5 shrink-0 text-white/60">
+              <path d="M10 2h4v8.8l3.8 6.6A1.5 1.5 0 0116.5 20h-9A1.5 1.5 0 016.2 17.4L10 10.8V2z"
+                stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M7.5 15.5h9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" opacity="0.55"/>
+            </svg>
+            {TESTFLIGHT_ENABLED ? "Beta disponible en TestFlight" : "Beta en TestFlight · Próximamente"}
           </motion.div>
 
           <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
