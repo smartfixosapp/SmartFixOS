@@ -23,6 +23,7 @@ import { verifyAndCreateAdminHandler } from './verifyAndCreateAdmin.js';
 import { createFirstAdminHandler } from './createFirstAdmin.js';
 import { createStripeCheckoutHandler } from './createStripeCheckout.js';
 import { createStripeSubscriptionHandler } from './createStripeSubscription.js';
+import { createStripePortalSessionHandler } from './createStripePortalSession.js';
 import { stripeWebhookHandler } from './stripeWebhook.js';
 import { registerTenantHandler } from './registerTenant.js';
 import { manageTenantHandler } from './manageTenant.js';
@@ -103,6 +104,7 @@ const routes = {
   '/createFirstAdmin': createFirstAdminHandler,
   '/createStripeCheckout': createStripeCheckoutHandler,
   '/createStripeSubscription': createStripeSubscriptionHandler,
+  '/createStripePortalSession': createStripePortalSessionHandler,
   '/stripeWebhook': stripeWebhookHandler,
   '/registerTenant': registerTenantHandler,
   '/sendAdminOtp': sendAdminOtpHandler,

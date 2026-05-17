@@ -1,29 +1,28 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Check, ChevronLeft, ArrowRight } from "lucide-react";
+import { Check, ChevronLeft, ArrowRight, Zap } from "lucide-react";
 import { PLANS } from "@/lib/plans";
 
-// Features list per plan — keeps it simple, matches reference card layout
-const STARTER_FEATURES = [
-  "50 órdenes nuevas por mes",
-  "50 productos en inventario",
+const SOLO_FEATURES = [
+  "Órdenes de trabajo ilimitadas",
+  "POS y caja registradora",
+  "Inventario y catálogo de servicios",
+  "Finanzas y reportes de ingresos",
   "Clientes ilimitados",
-  "POS, caja y reportes incluidos",
-  "Empleados ilimitados",
-  "Workflow personalizable",
+  "15 días de prueba gratis",
 ];
 
-const PRO_FEATURES = [
-  "Órdenes ilimitadas por mes",
-  "Inventario ilimitado",
-  "Todo lo del plan Starter",
-  "Soporte prioritario en menos de 24h",
-  "Acceso anticipado a nuevas funciones",
-  "Sin límites, sin sorpresas",
+const TEAM_FEATURES = [
+  "Todo lo del Plan Solo",
+  "Empleados y nómina",
+  "Horarios y ponchados",
+  "Órdenes de compra a suplidores",
+  "Chat interno del equipo",
+  "Reporte mensual en PDF",
+  "Comisiones por técnico",
 ];
 
-// Small dark pill nav at the top
 function NavPill({ onBack, onLogin }) {
   return (
     <nav className="sticky top-4 z-50 flex justify-center px-4">
@@ -49,7 +48,6 @@ function NavPill({ onBack, onLogin }) {
   );
 }
 
-// Reusable plan card matching the reference: corner glow, dark glass, white circle checks
 function PlanCard({
   badge,
   name,
@@ -58,8 +56,8 @@ function PlanCard({
   annualNote,
   features,
   ctaLabel,
-  ctaVariant = "outline", // "outline" | "solid"
-  glowPosition = "top-left", // "top-left" | "top-right" | "top-center"
+  ctaVariant = "outline",
+  glowPosition = "top-left",
   onClick,
   highlighted = false,
   delay = 0,
@@ -82,7 +80,6 @@ function PlanCard({
           : "border-white/[0.07] shadow-[0_20px_60px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.04)]"
       }`}
     >
-      {/* Corner glow — soft white sphere blurred into the card */}
       <div
         className={`pointer-events-none absolute h-44 w-44 rounded-full bg-white/[0.18] blur-3xl ${glowClass}`}
         aria-hidden
@@ -94,13 +91,11 @@ function PlanCard({
         />
       )}
 
-      {/* Badge / plan label */}
       <div className="relative">
         <p className="text-xs font-medium tracking-wide text-white/50">{badge}</p>
         <h3 className="mt-1 text-base font-semibold text-white">{name}</h3>
       </div>
 
-      {/* Price */}
       <div className="relative mt-6">
         <div className="flex items-baseline gap-1">
           <span className="text-5xl sm:text-6xl font-semibold tracking-tight text-white">
@@ -113,10 +108,8 @@ function PlanCard({
         )}
       </div>
 
-      {/* Divider */}
       <div className="relative my-7 h-px w-full bg-white/[0.08]" />
 
-      {/* Features */}
       <ul className="relative flex-1 space-y-3.5">
         {features.map((f) => (
           <li key={f} className="flex items-center gap-3 text-sm text-white/75">
@@ -128,7 +121,6 @@ function PlanCard({
         ))}
       </ul>
 
-      {/* CTA */}
       <button
         onClick={onClick}
         className={`relative mt-8 inline-flex h-14 w-full items-center justify-center gap-2 rounded-full text-sm font-semibold transition-all active:scale-[0.98] ${
@@ -144,7 +136,6 @@ function PlanCard({
   );
 }
 
-// Yearly billing toggle — pill switch like reference
 function BillingToggle({ annual, onChange }) {
   return (
     <button
@@ -167,7 +158,7 @@ function BillingToggle({ annual, onChange }) {
       <span className="text-sm font-medium text-white/80">
         Facturación anual
         <span className="ml-2 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold text-white/60">
-          −17%
+          −33%
         </span>
       </span>
     </button>
@@ -181,7 +172,6 @@ export default function Pricing() {
   const priceFor = (plan) => {
     if (annual) {
       const monthly = plan.priceAnnual / 12;
-      // Show like the reference: $X.99/m
       return `$${monthly.toFixed(2)}`;
     }
     return `$${plan.price.toFixed(2)}`;
@@ -194,7 +184,6 @@ export default function Pricing() {
 
   return (
     <div className="relative min-h-dvh overflow-x-hidden bg-black text-white selection:bg-white/20">
-      {/* Subtle background gradient — pure black with a hint of depth */}
       <div
         className="pointer-events-none absolute inset-0 opacity-60"
         style={{
@@ -210,9 +199,7 @@ export default function Pricing() {
       />
 
       <main className="relative mx-auto max-w-6xl px-4 pb-24 pt-16 sm:px-6 sm:pt-24">
-        {/* Hero — big faded "Pricing" backdrop + tight copy */}
         <header className="relative mb-12 text-center">
-          {/* Giant faded backdrop text */}
           <h1
             aria-hidden
             className="pointer-events-none absolute inset-x-0 -top-4 sm:-top-8 select-none text-[22vw] sm:text-[16rem] font-bold tracking-tighter leading-none text-white/[0.05]"
@@ -228,7 +215,8 @@ export default function Pricing() {
             className="relative pt-20 sm:pt-32"
           >
             <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-4 py-1.5 text-[11px] font-semibold tracking-wide text-white/70">
-              14 días gratis · sin tarjeta
+              <Zap className="w-3 h-3" />
+              15 días gratis · sin tarjeta de crédito
             </span>
             <h2 className="mt-5 text-4xl sm:text-6xl font-semibold tracking-tight text-white">
               Planes simples.
@@ -243,39 +231,37 @@ export default function Pricing() {
           </motion.div>
         </header>
 
-        {/* Plan grid — 2 cards (matches our plan model) */}
         <section className="relative mx-auto grid max-w-4xl grid-cols-1 gap-5 md:grid-cols-2">
           <PlanCard
-            badge="Starter Plan"
-            name={PLANS.starter.tagline}
-            price={priceFor(PLANS.starter)}
+            badge="Plan Solo"
+            name={PLANS.solo.tagline}
+            price={priceFor(PLANS.solo)}
             priceSuffix="/m"
-            annualNote={annualNote(PLANS.starter)}
-            features={STARTER_FEATURES}
+            annualNote={annualNote(PLANS.solo)}
+            features={SOLO_FEATURES}
             ctaLabel="Empezar gratis"
             ctaVariant="outline"
             glowPosition="top-left"
-            onClick={() => navigate(`/PinAccess?action=register&plan=starter`)}
+            onClick={() => navigate(`/PinAccess?action=register&plan=solo`)}
             delay={0.1}
           />
 
           <PlanCard
-            badge="Pro Plan"
-            name={PLANS.pro.tagline}
-            price={priceFor(PLANS.pro)}
+            badge="Plan Equipo"
+            name={PLANS.team.tagline}
+            price={priceFor(PLANS.team)}
             priceSuffix="/m"
-            annualNote={annualNote(PLANS.pro)}
-            features={PRO_FEATURES}
+            annualNote={annualNote(PLANS.team)}
+            features={TEAM_FEATURES}
             ctaLabel="Empezar gratis"
             ctaVariant="solid"
             glowPosition="top-right"
             highlighted
-            onClick={() => navigate(`/PinAccess?action=register&plan=pro`)}
+            onClick={() => navigate(`/PinAccess?action=register&plan=team`)}
             delay={0.2}
           />
         </section>
 
-        {/* Trust line */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -283,9 +269,16 @@ export default function Pricing() {
           className="mx-auto mt-12 max-w-xl text-center text-sm text-white/40"
         >
           Ambos planes incluyen{" "}
-          <span className="text-white/70 font-medium">14 días de prueba gratis</span>.
+          <span className="text-white/70 font-medium">15 días de prueba gratis</span>.
           No se requiere tarjeta de crédito. Puedes cambiar de plan o cancelar en
-          cualquier momento.
+          cualquier momento desde{" "}
+          <button
+            onClick={() => navigate("/billing")}
+            className="text-white/60 underline underline-offset-2 hover:text-white transition-colors"
+          >
+            tu portal de suscripción
+          </button>
+          .
         </motion.p>
       </main>
     </div>

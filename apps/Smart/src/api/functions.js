@@ -16,6 +16,7 @@ const functionPaths = {
   "createFirstAdmin": "/createFirstAdmin",
   "createStripeCheckout": "/createStripeCheckout",
   "createStripeSubscription": "/createStripeSubscription",
+  "createStripePortalSession": "/createStripePortalSession",
   "registerTenant": "/registerTenant",
   "manageTenant": "/manageTenant",
   "checkPlanLimits": "/checkPlanLimits",
@@ -62,6 +63,7 @@ export const verifyAndCreateAdmin = functionsClient.functions.verifyAndCreateAdm
 export const createFirstAdmin = functionsClient.functions.createFirstAdmin;
 export const createStripeCheckout = functionsClient.functions.createStripeCheckout;
 export const createStripeSubscription = functionsClient.functions.createStripeSubscription;
+export const createStripePortalSession = functionsClient.functions.createStripePortalSession;
 export const registerTenant = functionsClient.functions.registerTenant;
 export const manageTenant = functionsClient.functions.manageTenant;
 export const checkPlanLimits = functionsClient.functions.checkPlanLimits;

@@ -60,6 +60,7 @@ const Appointments          = lazyWithRetry(() => import("./Appointments"));
 const OrdersMobile          = lazyWithRetry(() => import("./OrdersMobile"));
 const Menu                  = lazyWithRetry(() => import("./Menu"));
 const Pricing               = lazyWithRetry(() => import("./Pricing"));
+const Billing               = lazyWithRetry(() => import("./Billing"));
 const VerifyEmail           = lazyWithRetry(() => import("./VerifyEmail"));
 
 // Minimal spinner shown while a lazy chunk loads.
@@ -201,7 +202,7 @@ function ProtectedRoutes() {
 function LayoutWrapper({ children, currentPageName }) {
     const location = useLocation();
 
-    if (location.pathname === '/returnlogin' || location.pathname === '/SuperAdmin' || location.pathname === '/GACC' || location.pathname === '/Receipt' || location.pathname === '/CustomerApproval' || location.pathname === '/Pricing' || location.pathname === '/VerifyEmail') {
+    if (location.pathname === '/returnlogin' || location.pathname === '/SuperAdmin' || location.pathname === '/GACC' || location.pathname === '/Receipt' || location.pathname === '/CustomerApproval' || location.pathname === '/Pricing' || location.pathname === '/billing' || location.pathname === '/VerifyEmail') {
         return <>{children}</>;
     }
 
@@ -224,6 +225,7 @@ function PagesContent() {
                     <Route path="/Receipt" element={<Receipt />} />
                     <Route path="/CustomerApproval" element={<CustomerApproval />} />
                     <Route path="/Pricing" element={<Pricing />} />
+                    <Route path="/billing" element={<Billing />} />
                     <Route path="/VerifyEmail" element={<VerifyEmail />} />
                     <Route path="/*" element={<ProtectedRoutes />} />
                 </Routes>

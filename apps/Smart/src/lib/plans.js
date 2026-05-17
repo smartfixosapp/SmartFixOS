@@ -1,45 +1,41 @@
 /**
- * SmartFixOS — Plan Definitions (Simplified)
+ * SmartFixOS — Plan Definitions
  *
- * Solo 2 planes. Solo 2 limites de cantidad. Todo lo demas desbloqueado.
+ *   solo — $14.99/mes — talleres individuales, sin módulos de equipo
+ *   team — $44.99/mes — todo desbloqueado: empleados, nómina, comisiones, chat…
  *
- *   starter — $14.99/mes — 50 ordenes/mes (renovable) / 50 productos en inventario
- *   pro     — $39.99/mes — ilimitado en todo
- *
- * Nota: las ordenes son por ciclo mensual (renueva cada mes), no acumulado.
- * Los clientes son ilimitados en ambos planes (cada orden crea un cliente,
- * van de la mano).
+ * Facturación anual: -33%  →  solo $9.99/m ($119.88/año),  team $29.99/m ($359.88/año)
  */
 
 // ── Plan definitions ─────────────────────────────────────────────
 
 export const PLANS = {
-  starter: {
-    id: 'starter',
-    label: 'Starter',
+  solo: {
+    id: 'solo',
+    label: 'Plan Solo',
     price: 14.99,
-    priceAnnual: 149.90,
+    priceAnnual: 119.88,   // $9.99/mo × 12
     tagline: 'Para técnicos independientes',
-    trialDays: 14,
+    trialDays: 15,
   },
-  pro: {
-    id: 'pro',
-    label: 'Pro',
-    price: 39.99,
-    priceAnnual: 399.90,
-    tagline: 'Sin límites',
-    trialDays: 14,
+  team: {
+    id: 'team',
+    label: 'Plan Equipo',
+    price: 44.99,
+    priceAnnual: 359.88,   // $29.99/mo × 12
+    tagline: 'Gestión completa de equipo',
+    trialDays: 15,
   },
 };
 
 // ── Limits per plan (-1 = unlimited) ─────────────────────────────
 
 export const PLAN_LIMITS = {
-  starter: {
-    max_orders_monthly:  50,  // se reinicia cada mes calendario
-    max_skus:            50,  // total acumulado en inventario
+  solo: {
+    max_orders_monthly:  -1,
+    max_skus:            -1,
   },
-  pro: {
+  team: {
     max_orders_monthly:  -1,
     max_skus:            -1,
   },
@@ -47,17 +43,21 @@ export const PLAN_LIMITS = {
 
 // ── Helpers ──────────────────────────────────────────────────────
 
-/** Normalize legacy plan names to new plan IDs */
+/** Normalize legacy plan names to canonical plan IDs */
 export function normalizePlanId(raw) {
   const map = {
-    smartfixos: 'starter',
-    basic:      'starter',
-    starter:    'starter',
-    pro:        'pro',
-    business:   'pro', // legacy — Business no longer exists
-    enterprise: 'pro', // legacy
+    // Current
+    solo:       'solo',
+    team:       'team',
+    // Legacy
+    starter:    'solo',
+    basic:      'solo',
+    smartfixos: 'solo',
+    pro:        'team',
+    business:   'team',
+    enterprise: 'team',
   };
-  return map[String(raw || '').trim().toLowerCase()] || 'starter';
+  return map[String(raw || '').trim().toLowerCase()] || 'solo';
 }
 
 /** Get plan config (metadata + limits) */
@@ -76,7 +76,6 @@ export function getPlan(planId) {
  * Returns allowed:true unconditionally when VITE_BILLING_ENABLED !== 'true'.
  */
 export function checkPlanLimit(planId, limitKey, currentCount) {
-  // Billing not yet active — bypass all limits
   if (import.meta.env.VITE_BILLING_ENABLED !== 'true') {
     return { allowed: true, current: currentCount, max: Infinity, upgradeNeeded: false };
   }
@@ -100,12 +99,10 @@ export function checkPlanLimit(planId, limitKey, currentCount) {
 /** Get the upgrade plan (null if already on highest) */
 export function getUpgradePlan(currentPlanId) {
   const id = normalizePlanId(currentPlanId);
-  return id === 'starter' ? PLANS.pro : null;
+  return id === 'solo' ? PLANS.team : null;
 }
 
-// ── Compatibility shims (for old call sites) ────────────────────
-// These let existing PlanGate / UpgradePrompt usages compile without errors.
-// All features return true (unlocked) — only quantity limits are enforced.
+// ── Compatibility shims ─────────────────────────────────────────
 
 /** @deprecated Plans no longer use feature flags. Always returns true. */
 export function canUsePlanFeature(_planId, _featureKey) {
