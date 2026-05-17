@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   ArrowRight, ClipboardList, Package, Users,
   BarChart3, CreditCard, MessageSquare, Zap,
-  Check, Star, Download,
+  Check, Star, Globe,
 } from "lucide-react";
 import { supabase } from "../../../../lib/supabase-client.js";
 import { PLANS } from "@/lib/plans";
@@ -180,26 +180,21 @@ function BentoCard({ children, className = "", delay = 0 }) {
 
 // ── Photo slot ───────────────────────────────────────────────────
 function PhotoSlot({ src, alt, fallbackGradient, fallbackIcon, fadeRight, borderLeft }) {
-  const [loaded, setLoaded] = useState(false);
   const [errored, setErrored] = useState(false);
   return (
     <div className={`relative overflow-hidden ${borderLeft ? "border-l border-white/[0.05]" : ""}`}
-      style={{ background: errored || !loaded ? fallbackGradient : undefined }}>
-      {(!loaded || errored) && (
+      style={{ background: fallbackGradient }}>
+      {errored ? (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
           <div className="absolute inset-0 opacity-[0.06]" style={{
             backgroundImage: "radial-gradient(circle, rgba(255,255,255,.6) 1px, transparent 1px)",
             backgroundSize: "20px 20px",
           }} />
           <span className="relative text-3xl opacity-20 select-none">{fallbackIcon}</span>
-          <div className="absolute top-1/3 left-1/2 -translate-x-1/2 h-24 w-24 rounded-full blur-2xl opacity-10"
-            style={{ background: B }} />
         </div>
-      )}
-      {!errored && (
+      ) : (
         <img src={src} alt={alt}
-          className={`h-full w-full object-cover object-center transition-opacity duration-500 ${loaded ? "opacity-100" : "opacity-0"}`}
-          onLoad={() => setLoaded(true)}
+          className="h-full w-full object-cover object-center"
           onError={() => setErrored(true)}
         />
       )}
@@ -280,45 +275,63 @@ function BillingToggle({ annual, onChange }) {
   );
 }
 
-// ── Download buttons (conditional on feature flags) ──────────────
-function DownloadButtons() {
-  if (!TESTFLIGHT_ENABLED && !ANDROID_ENABLED) {
-    return (
-      <div className="flex flex-col items-center gap-3">
-        <div className="inline-flex items-center gap-3 rounded-2xl border border-white/15 bg-white/[0.05] px-5 py-3 opacity-60">
-          <svg viewBox="0 0 24 24" className="h-6 w-6 fill-white shrink-0"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-          <div className="text-left">
-            <p className="text-[9px] font-medium text-white/40 uppercase tracking-wide leading-none mb-0.5">Próximamente en</p>
-            <p className="text-sm font-semibold text-white leading-none">App Store</p>
-          </div>
-        </div>
-        <p className="text-xs text-white/25">Lanzamiento próximamente · iOS y Android</p>
+// ── Platform badge ────────────────────────────────────────────────
+function PlatformBadge({ icon, topLabel, bottomLabel, href, enabled }) {
+  const inner = (
+    <div className={`inline-flex items-center gap-3 rounded-2xl border px-4 py-2.5 transition-all ${
+      enabled
+        ? "border-white/20 bg-white/[0.06] hover:bg-white/[0.10] active:scale-[0.97] cursor-pointer"
+        : "border-white/10 bg-white/[0.03] opacity-55 cursor-default"
+    }`}>
+      {icon}
+      <div className="text-left">
+        <p className="text-[9px] font-medium text-white/40 uppercase tracking-wide leading-none mb-0.5">{topLabel}</p>
+        <p className="text-sm font-semibold text-white leading-none">{bottomLabel}</p>
       </div>
-    );
+    </div>
+  );
+  if (enabled && href) {
+    return <a href={href} target="_blank" rel="noopener noreferrer">{inner}</a>;
   }
+  return inner;
+}
+
+// ── Download buttons ─────────────────────────────────────────────
+function DownloadButtons() {
+  const appleIcon = (
+    <svg viewBox="0 0 24 24" className="h-6 w-6 fill-white shrink-0">
+      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+    </svg>
+  );
+  const androidIcon = (
+    <svg viewBox="0 0 24 24" className="h-5 w-5 fill-white/80 shrink-0">
+      <path d="M3.18 23.76c.37.2.8.2 1.16 0l11.34-6.55-2.6-2.6-9.9 9.15zM.5 1.62C.18 1.99 0 2.54 0 3.25v17.5c0 .71.18 1.26.5 1.63l.08.07 9.8-9.8v-.23L.58 1.55.5 1.62zm19.17 8.9-2.47-1.43-2.93 2.93 2.93 2.93 2.5-1.44c.71-.41.71-1.08-.03-1.99zm-16 12.04L14.8 15.9l-2.6-2.6-9.34 8.6.01.06z"/>
+    </svg>
+  );
+  const webIcon = <Globe className="h-5 w-5 text-white/80 shrink-0" />;
 
   return (
-    <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-      {TESTFLIGHT_ENABLED && (
-        <a href={TESTFLIGHT_URL} target="_blank" rel="noopener noreferrer"
-          className="inline-flex items-center gap-3 rounded-2xl border border-white/20 bg-white/[0.06] px-5 py-3 transition-all hover:bg-white/[0.10] active:scale-[0.97]">
-          <Download className="h-5 w-5 text-white/80 shrink-0" />
-          <div className="text-left">
-            <p className="text-[9px] font-medium text-white/40 uppercase tracking-wide leading-none mb-0.5">Disponible en</p>
-            <p className="text-sm font-semibold text-white leading-none">TestFlight (iOS Beta)</p>
-          </div>
-        </a>
-      )}
-      {ANDROID_ENABLED && GOOGLE_PLAY_URL && (
-        <a href={GOOGLE_PLAY_URL} target="_blank" rel="noopener noreferrer"
-          className="inline-flex items-center gap-3 rounded-2xl border border-white/20 bg-white/[0.06] px-5 py-3 transition-all hover:bg-white/[0.10] active:scale-[0.97]">
-          <svg viewBox="0 0 24 24" className="h-5 w-5 fill-white/80 shrink-0"><path d="M3.18 23.76c.37.2.8.2 1.16 0l11.34-6.55-2.6-2.6-9.9 9.15zM.5 1.62C.18 1.99 0 2.54 0 3.25v17.5c0 .71.18 1.26.5 1.63l.08.07 9.8-9.8v-.23L.58 1.55.5 1.62zm19.17 8.9-2.47-1.43-2.93 2.93 2.93 2.93 2.5-1.44c.71-.41.71-1.08-.03-1.99zm-16 12.04L14.8 15.9l-2.6-2.6-9.34 8.6.01.06z"/></svg>
-          <div className="text-left">
-            <p className="text-[9px] font-medium text-white/40 uppercase tracking-wide leading-none mb-0.5">Disponible en</p>
-            <p className="text-sm font-semibold text-white leading-none">Google Play</p>
-          </div>
-        </a>
-      )}
+    <div className="flex flex-wrap gap-2">
+      <PlatformBadge
+        icon={appleIcon}
+        topLabel={TESTFLIGHT_ENABLED ? "Beta en" : "Próximamente en"}
+        bottomLabel={TESTFLIGHT_ENABLED ? "TestFlight" : "App Store"}
+        href={TESTFLIGHT_URL}
+        enabled={TESTFLIGHT_ENABLED}
+      />
+      <PlatformBadge
+        icon={androidIcon}
+        topLabel="Próximamente en"
+        bottomLabel="Google Play"
+        href={GOOGLE_PLAY_URL}
+        enabled={ANDROID_ENABLED}
+      />
+      <PlatformBadge
+        icon={webIcon}
+        topLabel="Próximamente en"
+        bottomLabel="Web"
+        enabled={false}
+      />
     </div>
   );
 }
@@ -361,12 +374,10 @@ export default function Landing() {
       }} />
 
       {/* ── NAV ── */}
-      <nav className="fixed inset-x-0 top-0 z-50 flex items-center justify-between px-6 py-4 backdrop-blur-sm"
+      <nav className="fixed inset-x-0 top-0 z-50 flex items-center justify-between px-6 py-3 backdrop-blur-sm"
         style={{ background: `${BG}cc` }}>
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-[9px]" style={{ background: B }}>
-            <Zap className="h-4 w-4 text-white" strokeWidth={2.5} />
-          </div>
+        <div className="flex items-center gap-2">
+          <img src="/images/logo.png" alt="SmartFixOS" className="h-9 w-9 rounded-lg object-contain" />
           <span className="text-sm font-bold tracking-tight">SmartFixOS</span>
         </div>
         <div className="flex items-center gap-1">
@@ -651,9 +662,7 @@ export default function Landing() {
       <footer className="border-t border-white/[0.05] px-6 py-10">
         <div className="mx-auto max-w-6xl flex flex-col items-center gap-6 sm:flex-row sm:justify-between">
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-[8px]" style={{ background: B }}>
-              <Zap className="h-3.5 w-3.5 text-white" strokeWidth={2.5} />
-            </div>
+            <img src="/images/logo.png" alt="SmartFixOS" className="h-7 w-7 rounded-md object-contain" />
             <span className="text-sm font-bold text-white/70">SmartFixOS</span>
           </div>
           <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs text-white/25">
