@@ -4,7 +4,7 @@
   "installCommand": "pnpm install --no-frozen-lockfile",
   "framework": null,
   "rewrites": [
-    { "source": "/((?!assets/|icons/|images/|registerSW\\.js|manifest\\.json|favicon\\.ico).*)", "destination": "/index.html" }
+    { "source": "/((?!assets/|icons/|images/|\\.well-known/|registerSW\\.js|manifest\\.json|favicon\\.ico).*)", "destination": "/index.html" }
   ],
   "headers": [
     {
@@ -17,6 +17,13 @@
       "source": "/(index\\.html|registerSW\\.js|manifest\\.json)",
       "headers": [
         { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/\\.well-known/apple-app-site-association",
+      "headers": [
+        { "key": "Content-Type", "value": "application/json" },
+        { "key": "Cache-Control", "value": "public, max-age=3600" }
       ]
     },
     {

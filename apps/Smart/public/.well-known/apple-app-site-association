@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "827XM7GVH4.com.archillastudios.SmartFixOS",
+        "paths": ["/auth-callback", "/auth-callback/*"]
+      }
+    ]
+  }
+}
