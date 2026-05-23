@@ -332,9 +332,9 @@ function Historia() {
 //  Vista previa — 3 screenshots reales
 // ─────────────────────────────────────────────────────────────────────────────
 const PREVIEW_SHOTS = [
-  { src: ss01, label: "Recibir orden",     hint: "30 segundos. Folio + cliente + dispositivo." },
-  { src: ss02, label: "Cerrar caja",       hint: "Cuadra al peso. Por turno y por técnico." },
-  { src: ss03, label: "Ver inventario",    hint: "Sabe qué pantalla te queda antes de prometérsela." },
+  { src: ss01, label: "Página inicial", hint: "Login en segundos. Abres la app y ya estás dentro del taller." },
+  { src: ss02, label: "Dashboard",      hint: "Ingresos del día, alertas e indicadores — todo de un vistazo." },
+  { src: ss03, label: "Órdenes",        hint: "Cada ticket en una pantalla. Estado, técnico, fecha de promesa." },
 ];
 
 function VistaPrevia() {
