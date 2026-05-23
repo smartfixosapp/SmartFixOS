@@ -368,22 +368,24 @@ function VistaPrevia() {
 // ─────────────────────────────────────────────────────────────────────────────
 //  Planes
 // ─────────────────────────────────────────────────────────────────────────────
+// ✱ Plans aligned with BILLING_CONTRACT.md §1 — slugs: solo / team
+//   Trial: 14 days, no card required. Upgrade flow lives on the web
+//   (Stripe Checkout) — never inside the iOS app per Apple guidelines.
 const SOLO_FEATURES = [
+  "1 usuario (técnico independiente)",
   "Órdenes de trabajo ilimitadas",
   "POS y caja registradora",
   "Inventario y catálogo de servicios",
-  "Finanzas y reportes de ingresos",
-  "Clientes ilimitados",
-  "15 días de prueba gratis",
+  "Recibos en PDF",
+  "14 días de prueba gratis",
 ];
 const TEAM_FEATURES = [
   "Todo lo del Plan Solo",
-  "Empleados y nómina",
-  "Horarios y ponchados",
-  "Órdenes de compra a suplidores",
+  "Hasta 5 empleados",
   "Chat interno del equipo",
-  "Reporte mensual en PDF",
-  "Comisiones por técnico",
+  "Multi-device en tiempo real",
+  "Finanzas y reportes",
+  "Caja con turnos y comisiones",
 ];
 
 function PlanCard({ name, price, tagline, features, highlighted = false, delay = 0 }) {
@@ -426,7 +428,7 @@ function PlanCard({ name, price, tagline, features, highlighted = false, delay =
         </span>
       </div>
       <p className={highlighted ? "mt-2 text-xs text-black/50" : "mt-2 text-xs text-white/35"}>
-        Cancela cuando quieras. 15 días gratis.
+        Cancela cuando quieras. 14 días gratis.
       </p>
 
       <div className={highlighted ? "my-8 h-px w-full bg-black/10" : "my-8 h-px w-full bg-white/8"} />
@@ -483,8 +485,8 @@ function Planes() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-3xl mx-auto">
-          <PlanCard name="Solo"   price="14.99" tagline="Para el técnico independiente." features={SOLO_FEATURES} delay={0} />
-          <PlanCard name="Equipo" price="39.99" tagline="Cuando ya no eres solo tú."     features={TEAM_FEATURES} highlighted delay={0.08} />
+          <PlanCard name="Solo"   price="19" tagline="Para el técnico independiente." features={SOLO_FEATURES} delay={0} />
+          <PlanCard name="Equipo" price="49" tagline="Cuando ya no eres solo tú."     features={TEAM_FEATURES} highlighted delay={0.08} />
         </div>
       </div>
     </section>
@@ -501,7 +503,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "¿Cuánto cuesta cuando termine el trial?",
-    a: "$14.99/mes el Plan Solo. $39.99/mes el Plan Equipo. Sin contratos. Cancelas cuando quieras desde la app. Los primeros 15 días son gratis, sin pedir tarjeta.",
+    a: "$19/mes el Plan Solo. $49/mes el Plan Equipo. Sin contratos. Cancelas cuando quieras desde smartfixosapp.com. Los primeros 14 días son gratis, sin pedir tarjeta.",
   },
   {
     q: "¿Necesito instalar algo en mi computadora?",
