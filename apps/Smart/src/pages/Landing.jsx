@@ -698,7 +698,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "¿Cuánto cuesta cuando termine el trial?",
-    a: "$19/mes el Plan Solo. $49/mes el Plan Equipo. Sin contratos. Cancelas cuando quieras desde smartfixosapp.com. Los primeros 14 días son gratis, sin pedir tarjeta.",
+    a: "$19/mes el Plan Solo. $49/mes el Plan Equipo. Sin contratos. Cancelas cuando quieras desde www.smartfixos.com. Los primeros 14 días son gratis, sin pedir tarjeta.",
   },
   {
     q: "¿Necesito instalar algo en mi computadora?",
