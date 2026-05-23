@@ -266,6 +266,14 @@ module.exports = {
           '0%':   { transform: 'translateY(0)' },
           '100%': { transform: 'translateY(-50%)' },
         },
+        'cosmic-spin': {
+          from: { transform: 'rotate(0deg)' },
+          to:   { transform: 'rotate(360deg)' },
+        },
+        'cosmic-spin-slow': {
+          from: { transform: 'rotate(0deg)' },
+          to:   { transform: 'rotate(360deg)' },
+        },
       },
       animation: {
         'accordion-down':  'accordion-down 0.2s ease-out',
@@ -279,6 +287,8 @@ module.exports = {
         'sfos-marquee':    'sfos-marquee 35s linear infinite',
         'sfos-scroll-up':  'sfos-scroll-up 22s linear infinite',
         'sfos-scroll-up-slow': 'sfos-scroll-up 30s linear infinite',
+        'cosmic-spin':      'cosmic-spin 3s linear infinite',
+        'cosmic-spin-slow': 'cosmic-spin-slow 8s linear infinite',
       },
     },
   },
