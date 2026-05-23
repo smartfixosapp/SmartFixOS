@@ -289,9 +289,11 @@ function Historia() {
             con el equipo que le entregaste ayer.
           </p>
           <p>
-            Probé todos los sistemas que prometían organizarme el taller.
-            <span className="text-white"> Ninguno entendía cómo trabaja un taller real.</span>
-            {" "}Demasiados clicks. Datos perdidos. Ventas que no cuadraban con la caja.
+            <span className="text-white">Pasé más de 5 años buscando</span> —
+            literalmente — la app que organizara mi taller. Probé todas las que
+            prometían algo. <span className="text-white">Ninguna completaba lo que un taller necesita en el día a día.</span>
+            {" "}Demasiados clicks, datos perdidos, ventas que no cuadraban con la caja,
+            funciones a medias.
           </p>
 
           <blockquote
@@ -307,8 +309,10 @@ function Historia() {
 
           <p>
             Tickets en 30 segundos. Caja que cuadra al peso. Inventario que sabe
-            qué pantalla te queda antes de prometérsela al cliente. Notificaciones
-            por WhatsApp cuando el equipo está listo. Una sola pantalla, en español.
+            qué pantalla te queda antes de prometérsela al cliente.{" "}
+            <span className="text-white">Notificaciones automáticas por email</span>
+            {" "}— y cuando quieras, también por <span className="text-white">WhatsApp, SMS o llamada</span>{" "}
+            cuando el equipo esté listo. Una sola pantalla, en español.
           </p>
           <p>
             No es otro CRM disfrazado. Es el día a día de un taller, en una app.
