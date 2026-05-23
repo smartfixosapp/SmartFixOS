@@ -1,8 +1,12 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Check, ArrowDown } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Check, ArrowDown, ArrowRight, Plus, Minus, Loader2, CheckCircle2 } from "lucide-react";
 import { supabase } from "../../../../lib/supabase-client.js";
+
+import ss01 from "../assets/images/screenshots/ss01.png";
+import ss02 from "../assets/images/screenshots/ss02.png";
+import ss03 from "../assets/images/screenshots/ss03.png";
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  FEATURE FLAGS
@@ -26,12 +30,10 @@ function useAuthRedirect() {
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Animated wordmark — "smartfix[engranaje]s"
-//  El engranaje azul/verde reemplaza la "o" de OS y gira en loop.
 // ─────────────────────────────────────────────────────────────────────────────
 const GEAR_PATH = "M 90.57 39.13 L 91.48 43.43 L 99.38 42.18 L 99.38 57.82 L 91.48 56.57 L 90.57 60.87 L 89.21 65.05 L 96.68 67.92 L 88.86 81.47 L 82.64 76.43 L 79.70 79.70 L 76.43 82.64 L 81.47 88.86 L 67.92 96.68 L 65.05 89.21 L 60.87 90.57 L 56.57 91.48 L 57.82 99.38 L 42.18 99.38 L 43.43 91.48 L 39.13 90.57 L 34.95 89.21 L 32.08 96.68 L 18.53 88.86 L 23.57 82.64 L 20.30 79.70 L 17.36 76.43 L 11.14 81.47 L 3.32 67.92 L 10.79 65.05 L 9.43 60.87 L 8.52 56.57 L 0.62 57.82 L 0.62 42.18 L 8.52 43.43 L 9.43 39.13 L 10.79 34.95 L 3.32 32.08 L 11.14 18.53 L 17.36 23.57 L 20.30 20.30 L 23.57 17.36 L 18.53 11.14 L 32.08 3.32 L 34.95 10.79 L 39.13 9.43 L 43.43 8.52 L 42.18 0.62 L 57.82 0.62 L 56.57 8.52 L 60.87 9.43 L 65.05 10.79 L 67.92 3.32 L 81.47 11.14 L 76.43 17.36 L 79.70 20.30 L 82.64 23.57 L 88.86 18.53 L 96.68 32.08 L 89.21 34.95 L 90.57 39.13 Z";
 
 function AnimatedWordmark({ size = "hero", centerColor = "#0a0a0a" }) {
-  // size: "hero" (huge centerpiece) | "footer" (compact in footer)
   const isHero = size === "hero";
   const clipId = `gear-clip-${size}`;
   return (
@@ -59,20 +61,14 @@ function AnimatedWordmark({ size = "hero", centerColor = "#0a0a0a" }) {
         </motion.span>
       ))}
 
-      {/* Engranaje en lugar de la "o" */}
       <motion.span
         initial={{ opacity: 0, y: "0.4em", scale: 0.92 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ delay: 0.45, duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
         className="relative inline-grid place-items-center"
-        style={{
-          width: "0.92em",
-          height: "0.92em",
-          margin: "0 -0.02em",
-        }}
+        style={{ width: "0.92em", height: "0.92em", margin: "0 -0.02em" }}
         aria-hidden
       >
-        {/* Halo radial pulsante */}
         <span
           className="pointer-events-none absolute inset-[8%] rounded-full -z-10"
           style={{
@@ -86,17 +82,13 @@ function AnimatedWordmark({ size = "hero", centerColor = "#0a0a0a" }) {
           viewBox="0 0 100 100"
           xmlns="http://www.w3.org/2000/svg"
           style={{
-            width: "100%",
-            height: "100%",
-            overflow: "visible",
+            width: "100%", height: "100%", overflow: "visible",
             transformOrigin: "50% 50%",
             animation: "sfx-gear-spin 14s linear infinite",
           }}
         >
           <defs>
-            <clipPath id={clipId}>
-              <path d={GEAR_PATH} />
-            </clipPath>
+            <clipPath id={clipId}><path d={GEAR_PATH} /></clipPath>
           </defs>
           <g clipPath={`url(#${clipId})`}>
             <rect x="0"  y="0" width="50" height="100" fill="#1FA0DC" />
@@ -115,7 +107,6 @@ function AnimatedWordmark({ size = "hero", centerColor = "#0a0a0a" }) {
         s
       </motion.span>
 
-      {/* Local keyframes inyectados una sola vez por mount */}
       <style>{`
         @keyframes sfx-gear-spin { to { transform: rotate(360deg); } }
         @keyframes sfx-halo {
@@ -128,7 +119,7 @@ function AnimatedWordmark({ size = "hero", centerColor = "#0a0a0a" }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Hero — wordmark animado + tagline + botones de descarga
+//  Hero — wordmark + tagline + social proof + botones de descarga
 // ─────────────────────────────────────────────────────────────────────────────
 function Hero() {
   return (
@@ -139,12 +130,26 @@ function Hero() {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1.0, duration: 0.7 }}
-        className="mt-10 text-center text-base sm:text-lg text-white/50 max-w-md leading-relaxed font-medium"
+        className="mt-10 text-center text-base sm:text-lg text-white/55 max-w-md leading-relaxed font-medium"
       >
         El sistema operativo para talleres de reparación.
         <br />
         Hecho por un técnico, para técnicos.
       </motion.p>
+
+      {/* Social proof line — diseñado y probado en talleres reales */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.1, duration: 0.7 }}
+        className="mt-6 inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.22em] text-white/35"
+      >
+        <span
+          className="h-1.5 w-1.5 rounded-full"
+          style={{ background: "#8FC93F", boxShadow: "0 0 8px #8FC93F" }}
+        />
+        Probado en talleres reales · Puerto Rico
+      </motion.div>
 
       {/* Botones de descarga */}
       <motion.div
@@ -153,7 +158,6 @@ function Hero() {
         transition={{ delay: 1.2, duration: 0.7 }}
         className="mt-10 flex flex-col sm:flex-row items-center gap-3"
       >
-        {/* iOS · TestFlight o App Store */}
         {TESTFLIGHT_ENABLED ? (
           <a
             href={TESTFLIGHT_URL}
@@ -168,12 +172,8 @@ function Hero() {
             </div>
           </a>
         ) : (
-          <button
-            type="button"
-            disabled
-            title="Próximamente"
-            className="inline-flex items-center gap-3.5 rounded-2xl bg-white/95 text-black px-6 py-3.5 cursor-not-allowed"
-          >
+          <button type="button" disabled title="Próximamente"
+            className="inline-flex items-center gap-3.5 rounded-2xl bg-white/95 text-black px-6 py-3.5 cursor-not-allowed">
             <AppleIcon className="h-7 w-7 fill-black" />
             <div className="flex flex-col items-start leading-tight">
               <span className="text-[11px] font-medium text-gray-500">Próximamente en</span>
@@ -182,7 +182,6 @@ function Hero() {
           </button>
         )}
 
-        {/* Android · Google Play */}
         {ANDROID_ENABLED ? (
           <a
             href={GOOGLE_PLAY_URL}
@@ -197,12 +196,8 @@ function Hero() {
             </div>
           </a>
         ) : (
-          <button
-            type="button"
-            disabled
-            title="Próximamente"
-            className="inline-flex items-center gap-3.5 rounded-2xl bg-white/95 text-black px-6 py-3.5 cursor-not-allowed"
-          >
+          <button type="button" disabled title="Próximamente"
+            className="inline-flex items-center gap-3.5 rounded-2xl bg-white/95 text-black px-6 py-3.5 cursor-not-allowed">
             <GooglePlayIcon className="h-7 w-7" />
             <div className="flex flex-col items-start leading-tight">
               <span className="text-[11px] font-medium text-gray-500">Próximamente en</span>
@@ -233,27 +228,23 @@ function Hero() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Historia — la historia del creador
+//  Historia
 // ─────────────────────────────────────────────────────────────────────────────
 function Historia() {
   return (
     <section id="historia" className="px-6 py-32 sm:py-40">
       <div className="max-w-2xl mx-auto">
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-120px" }}
-          transition={{ duration: 0.6 }}
+          initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-120px" }} transition={{ duration: 0.6 }}
           className="text-[11px] uppercase tracking-[0.24em] font-medium text-white/40 mb-10"
         >
           La historia
         </motion.div>
 
         <motion.h2
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-120px" }}
-          transition={{ duration: 0.7 }}
+          initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-120px" }} transition={{ duration: 0.7 }}
           className="text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.05] text-white"
           style={{ fontFamily: '"Bricolage Grotesque", system-ui, sans-serif' }}
         >
@@ -261,10 +252,8 @@ function Historia() {
         </motion.h2>
 
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-120px" }}
-          transition={{ delay: 0.1, duration: 0.7 }}
+          initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-120px" }} transition={{ delay: 0.1, duration: 0.7 }}
           className="mt-12 space-y-7 text-[17px] leading-[1.7] text-white/70"
         >
           <p>
@@ -280,10 +269,7 @@ function Historia() {
 
           <blockquote
             className="border-l-2 pl-6 py-1 my-12 text-2xl sm:text-3xl font-medium leading-[1.3] text-white"
-            style={{
-              borderColor: "#8FC93F",
-              fontFamily: '"Bricolage Grotesque", system-ui, sans-serif',
-            }}
+            style={{ borderColor: "#8FC93F", fontFamily: '"Bricolage Grotesque", system-ui, sans-serif' }}
           >
             Por eso construí SmartFixOS.
             <br />
@@ -306,6 +292,74 @@ function Historia() {
             Francis <span className="text-white/30">·</span> San Juan, PR
           </div>
         </motion.div>
+      </div>
+    </section>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Vista previa — 3 screenshots reales
+// ─────────────────────────────────────────────────────────────────────────────
+const PREVIEW_SHOTS = [
+  { src: ss01, label: "Recibir orden",     hint: "30 segundos. Folio + cliente + dispositivo." },
+  { src: ss02, label: "Cerrar caja",       hint: "Cuadra al peso. Por turno y por técnico." },
+  { src: ss03, label: "Ver inventario",    hint: "Sabe qué pantalla te queda antes de prometérsela." },
+];
+
+function VistaPrevia() {
+  return (
+    <section id="vista-previa" className="px-6 py-32 sm:py-40 border-t border-white/[0.06]">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.6 }}
+            className="text-[11px] uppercase tracking-[0.24em] font-medium text-white/40 mb-6"
+          >
+            Vista previa
+          </motion.div>
+          <motion.h2
+            initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }} transition={{ delay: 0.05, duration: 0.7 }}
+            className="text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.05] text-white"
+            style={{ fontFamily: '"Bricolage Grotesque", system-ui, sans-serif' }}
+          >
+            Esto no es vaporware.
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }} transition={{ delay: 0.15, duration: 0.7 }}
+            className="mt-5 text-white/50 text-base max-w-lg mx-auto leading-relaxed"
+          >
+            La app está construida. Capturas reales del día a día, no mockups.
+          </motion.p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6 max-w-4xl mx-auto">
+          {PREVIEW_SHOTS.map(({ src, label, hint }, i) => (
+            <motion.figure
+              key={label}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ delay: i * 0.08, duration: 0.6 }}
+              className="flex flex-col items-center"
+            >
+              <div className="relative w-full max-w-[260px] aspect-[9/19.5] rounded-[36px] overflow-hidden bg-black border border-white/10 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
+                <img
+                  src={src}
+                  alt={label}
+                  className="w-full h-full object-cover object-top"
+                  loading="lazy"
+                />
+              </div>
+              <figcaption className="mt-5 text-center">
+                <div className="text-sm font-semibold text-white">{label}</div>
+                <div className="mt-1 text-[13px] text-white/45 max-w-[230px] mx-auto leading-relaxed">{hint}</div>
+              </figcaption>
+            </motion.figure>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -341,38 +395,21 @@ function PlanCard({ name, price, tagline, features, highlighted = false, delay =
       transition={{ delay, duration: 0.6 }}
       className={[
         "relative flex flex-col rounded-2xl p-8 sm:p-10 border",
-        highlighted
-          ? "bg-white text-black border-white"
-          : "bg-transparent text-white border-white/10",
+        highlighted ? "bg-white text-black border-white" : "bg-transparent text-white border-white/10",
       ].join(" ")}
     >
       {highlighted && (
         <span className="absolute -top-3 left-8 inline-flex items-center gap-1.5 rounded-full bg-black px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white">
-          <span
-            className="h-1.5 w-1.5 rounded-full"
-            style={{ background: "#8FC93F", boxShadow: "0 0 8px #8FC93F" }}
-          />
+          <span className="h-1.5 w-1.5 rounded-full" style={{ background: "#8FC93F", boxShadow: "0 0 8px #8FC93F" }} />
           Recomendado
         </span>
       )}
 
       <header>
-        <div
-          className={
-            highlighted
-              ? "text-[11px] uppercase tracking-[0.22em] font-semibold text-black/55"
-              : "text-[11px] uppercase tracking-[0.22em] font-semibold text-white/45"
-          }
-        >
+        <div className={highlighted ? "text-[11px] uppercase tracking-[0.22em] font-semibold text-black/55" : "text-[11px] uppercase tracking-[0.22em] font-semibold text-white/45"}>
           Plan {name}
         </div>
-        <p
-          className={
-            highlighted
-              ? "mt-1.5 text-base font-medium text-black/75"
-              : "mt-1.5 text-base font-medium text-white/65"
-          }
-        >
+        <p className={highlighted ? "mt-1.5 text-base font-medium text-black/75" : "mt-1.5 text-base font-medium text-white/65"}>
           {tagline}
         </p>
       </header>
@@ -397,14 +434,8 @@ function PlanCard({ name, price, tagline, features, highlighted = false, delay =
       <ul className="space-y-3.5 flex-1">
         {features.map((f) => (
           <li key={f} className="flex items-start gap-3 text-[14.5px] leading-[1.4]">
-            <span
-              className={
-                highlighted
-                  ? "flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-black mt-px"
-                  : "flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-white/8 mt-px"
-              }
-            >
-              <Check className="h-3 w-3" strokeWidth={3} style={{ color: highlighted ? "#8FC93F" : "#8FC93F" }} />
+            <span className={highlighted ? "flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-black mt-px" : "flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-white/8 mt-px"}>
+              <Check className="h-3 w-3" strokeWidth={3} style={{ color: "#8FC93F" }} />
             </span>
             <span className={highlighted ? "text-black/85" : "text-white/75"}>{f}</span>
           </li>
@@ -412,13 +443,8 @@ function PlanCard({ name, price, tagline, features, highlighted = false, delay =
       </ul>
 
       <button
-        type="button"
-        disabled
-        className={
-          highlighted
-            ? "mt-10 h-12 w-full rounded-full bg-black text-white text-sm font-semibold cursor-not-allowed"
-            : "mt-10 h-12 w-full rounded-full bg-white/[0.04] text-white/55 text-sm font-semibold border border-white/10 cursor-not-allowed"
-        }
+        type="button" disabled
+        className={highlighted ? "mt-10 h-12 w-full rounded-full bg-black text-white text-sm font-semibold cursor-not-allowed" : "mt-10 h-12 w-full rounded-full bg-white/[0.04] text-white/55 text-sm font-semibold border border-white/10 cursor-not-allowed"}
         title="Disponible cuando lancemos las apps"
       >
         Pronto en App Store y Google Play
@@ -433,29 +459,23 @@ function Planes() {
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-16">
           <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.6 }}
+            initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.6 }}
             className="text-[11px] uppercase tracking-[0.24em] font-medium text-white/40 mb-6"
           >
             Planes
           </motion.div>
           <motion.h2
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ delay: 0.05, duration: 0.7 }}
+            initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }} transition={{ delay: 0.05, duration: 0.7 }}
             className="text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.05] text-white"
             style={{ fontFamily: '"Bricolage Grotesque", system-ui, sans-serif' }}
           >
             Dos planes. Sin sorpresas.
           </motion.h2>
           <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ delay: 0.15, duration: 0.7 }}
+            initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }} transition={{ delay: 0.15, duration: 0.7 }}
             className="mt-5 text-white/50 text-base max-w-md mx-auto leading-relaxed"
           >
             Empieza solo o con tu equipo. Cancela cuando quieras.
@@ -463,21 +483,8 @@ function Planes() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-3xl mx-auto">
-          <PlanCard
-            name="Solo"
-            price="14.99"
-            tagline="Para el técnico independiente."
-            features={SOLO_FEATURES}
-            delay={0}
-          />
-          <PlanCard
-            name="Equipo"
-            price="39.99"
-            tagline="Cuando ya no eres solo tú."
-            features={TEAM_FEATURES}
-            highlighted
-            delay={0.08}
-          />
+          <PlanCard name="Solo"   price="14.99" tagline="Para el técnico independiente." features={SOLO_FEATURES} delay={0} />
+          <PlanCard name="Equipo" price="39.99" tagline="Cuando ya no eres solo tú."     features={TEAM_FEATURES} highlighted delay={0.08} />
         </div>
       </div>
     </section>
@@ -485,91 +492,263 @@ function Planes() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Footer con botones de descarga
+//  FAQ — acordeón con 4 preguntas
+// ─────────────────────────────────────────────────────────────────────────────
+const FAQ_ITEMS = [
+  {
+    q: "¿Cuándo sale realmente?",
+    a: "Las apps de iOS y Android están en la recta final. Si te suscribes a la lista de espera, eres de los primeros en recibir el link cuando abramos las descargas — sin filtros ni waitlist diferida.",
+  },
+  {
+    q: "¿Cuánto cuesta cuando termine el trial?",
+    a: "$14.99/mes el Plan Solo. $39.99/mes el Plan Equipo. Sin contratos. Cancelas cuando quieras desde la app. Los primeros 15 días son gratis, sin pedir tarjeta.",
+  },
+  {
+    q: "¿Necesito instalar algo en mi computadora?",
+    a: "No. SmartFixOS corre 100% en el celular o tablet. Sin servidores que mantener, sin actualizaciones manuales. Si tienes iPhone, iPad o Android moderno, ya tienes todo lo que necesitas.",
+  },
+  {
+    q: "¿Mis datos son míos si me cancelo?",
+    a: "Siempre. Tus órdenes, clientes e inventario se exportan a Excel o PDF desde la app con un click. Si cancelas, te damos 90 días para descargar todo antes de borrar tu base.",
+  },
+];
+
+function FAQItem({ item, isOpen, onToggle }) {
+  return (
+    <div className="border-b border-white/[0.08]">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center justify-between gap-6 py-6 text-left group"
+      >
+        <span
+          className={[
+            "text-base sm:text-lg font-medium tracking-tight transition-colors",
+            isOpen ? "text-white" : "text-white/80 group-hover:text-white",
+          ].join(" ")}
+        >
+          {item.q}
+        </span>
+        <span
+          className={[
+            "flex-shrink-0 h-7 w-7 rounded-full border flex items-center justify-center transition-all",
+            isOpen
+              ? "bg-white text-black border-white"
+              : "border-white/20 text-white/60 group-hover:border-white/40 group-hover:text-white/90",
+          ].join(" ")}
+        >
+          {isOpen ? <Minus className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+        </span>
+      </button>
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden"
+          >
+            <p className="pb-6 pr-12 text-[15px] leading-[1.65] text-white/60">{item.a}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function FAQ() {
+  const [openIdx, setOpenIdx] = useState(0);
+  return (
+    <section id="faq" className="px-6 py-32 sm:py-40 border-t border-white/[0.06]">
+      <div className="max-w-2xl mx-auto">
+        <div className="mb-12">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.6 }}
+            className="text-[11px] uppercase tracking-[0.24em] font-medium text-white/40 mb-6"
+          >
+            Preguntas
+          </motion.div>
+          <motion.h2
+            initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }} transition={{ delay: 0.05, duration: 0.7 }}
+            className="text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.05] text-white"
+            style={{ fontFamily: '"Bricolage Grotesque", system-ui, sans-serif' }}
+          >
+            Lo que siempre nos preguntan.
+          </motion.h2>
+        </div>
+
+        <div>
+          {FAQ_ITEMS.map((item, i) => (
+            <FAQItem
+              key={item.q}
+              item={item}
+              isOpen={openIdx === i}
+              onToggle={() => setOpenIdx(openIdx === i ? -1 : i)}
+            />
+          ))}
+        </div>
+
+        <p className="mt-12 text-sm text-white/45">
+          ¿Otra duda?{" "}
+          <a href="mailto:smartfixosapp@gmail.com" className="text-white hover:underline underline-offset-4 decoration-white/30">
+            Escríbeme directo
+          </a>
+          .
+        </p>
+      </div>
+    </section>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Waitlist — captura emails antes del lanzamiento
+// ─────────────────────────────────────────────────────────────────────────────
+function Waitlist() {
+  const [email, setEmail]   = useState("");
+  const [status, setStatus] = useState("idle"); // idle | loading | success | error
+  const [error, setError]   = useState("");
+
+  const submit = async (e) => {
+    e.preventDefault();
+    const cleaned = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleaned)) {
+      setStatus("error");
+      setError("Esa dirección no se ve bien. Intenta de nuevo.");
+      return;
+    }
+    setStatus("loading");
+    setError("");
+    try {
+      const { error: insertErr } = await supabase
+        .from("landing_waitlist")
+        .insert({
+          email: cleaned,
+          source: "landing",
+          user_agent: typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 240) : null,
+        });
+      if (insertErr) {
+        // 23505 = unique violation — ya estabas en la lista. Lo tratamos como éxito.
+        if (insertErr.code === "23505") {
+          setStatus("success");
+          return;
+        }
+        throw insertErr;
+      }
+      setStatus("success");
+    } catch (err) {
+      console.error("[waitlist] insert error:", err);
+      setStatus("error");
+      setError("Algo salió mal. Escríbenos a smartfixosapp@gmail.com.");
+    }
+  };
+
+  return (
+    <section id="waitlist" className="px-6 py-32 sm:py-40 border-t border-white/[0.06]">
+      <div className="max-w-xl mx-auto text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.6 }}
+          className="text-[11px] uppercase tracking-[0.24em] font-medium text-white/40 mb-6"
+        >
+          Lista de espera
+        </motion.div>
+        <motion.h2
+          initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }} transition={{ delay: 0.05, duration: 0.7 }}
+          className="text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.05] text-white"
+          style={{ fontFamily: '"Bricolage Grotesque", system-ui, sans-serif' }}
+        >
+          Te aviso el día que abramos.
+        </motion.h2>
+        <motion.p
+          initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }} transition={{ delay: 0.15, duration: 0.7 }}
+          className="mt-5 text-white/55 text-base leading-relaxed max-w-md mx-auto"
+        >
+          Sin spam, sin newsletter semanal. Un solo email cuando podamos abrir las descargas.
+        </motion.p>
+
+        <AnimatePresence mode="wait">
+          {status === "success" ? (
+            <motion.div
+              key="ok"
+              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              className="mt-10 inline-flex items-center gap-3 rounded-2xl border border-white/15 bg-white/[0.04] px-6 py-4"
+            >
+              <CheckCircle2 className="h-5 w-5" style={{ color: "#8FC93F" }} />
+              <span className="text-[15px] text-white/85">
+                ¡Listo! Te aviso en cuanto las apps estén disponibles.
+              </span>
+            </motion.div>
+          ) : (
+            <motion.form
+              key="form"
+              onSubmit={submit}
+              initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-80px" }} transition={{ delay: 0.25, duration: 0.7 }}
+              className="mt-10 flex flex-col sm:flex-row items-stretch gap-3 max-w-md mx-auto"
+            >
+              <input
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                required
+                placeholder="tu@email.com"
+                aria-label="Tu email"
+                value={email}
+                onChange={(e) => { setEmail(e.target.value); if (status === "error") setStatus("idle"); }}
+                disabled={status === "loading"}
+                className="flex-1 h-12 rounded-full bg-white/[0.04] border border-white/15 px-5 text-[15px] text-white placeholder-white/35 outline-none focus:border-white/40 focus:bg-white/[0.06] transition-colors"
+              />
+              <button
+                type="submit"
+                disabled={status === "loading"}
+                className="h-12 px-6 rounded-full bg-white text-black font-semibold text-[14px] inline-flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {status === "loading" ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Apuntando…
+                  </>
+                ) : (
+                  <>
+                    Avísame
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </motion.form>
+          )}
+        </AnimatePresence>
+
+        {status === "error" && (
+          <p className="mt-3 text-[13px]" style={{ color: "#ff6b6b" }}>{error}</p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Footer
 // ─────────────────────────────────────────────────────────────────────────────
 function Footer() {
   return (
-    <footer className="px-6 py-24 border-t border-white/[0.06]">
-      <div className="max-w-3xl mx-auto flex flex-col items-center text-center gap-10">
+    <footer className="px-6 py-20 border-t border-white/[0.06]">
+      <div className="max-w-3xl mx-auto flex flex-col items-center text-center gap-8">
         <AnimatedWordmark size="footer" />
 
-        <p className="text-white/45 max-w-md text-[15px] leading-relaxed">
-          Las apps están casi listas. Suscríbete a la newsletter para enterarte
-          en el segundo que abramos las descargas.
-        </p>
-
-        {/* App Store / Google Play */}
-        <div className="flex flex-col sm:flex-row items-center gap-3">
-          {/* iOS */}
-          {TESTFLIGHT_ENABLED ? (
-            <a
-              href={TESTFLIGHT_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-3.5 rounded-2xl bg-white text-black px-6 py-3.5 transition-all hover:bg-gray-50 shadow-[0_10px_40px_rgba(255,255,255,0.10)]"
-            >
-              <AppleIcon className="h-7 w-7 fill-black" />
-              <div className="flex flex-col items-start leading-tight">
-                <span className="text-[11px] font-medium text-gray-500">Disponible en</span>
-                <span className="text-base font-semibold text-black tracking-tight">App Store</span>
-              </div>
-            </a>
-          ) : (
-            <button
-              type="button"
-              disabled
-              title="Próximamente"
-              className="inline-flex items-center gap-3.5 rounded-2xl bg-white/95 text-black px-6 py-3.5 cursor-not-allowed"
-            >
-              <AppleIcon className="h-7 w-7 fill-black" />
-              <div className="flex flex-col items-start leading-tight">
-                <span className="text-[11px] font-medium text-gray-500">Próximamente en</span>
-                <span className="text-base font-semibold text-black tracking-tight">App Store</span>
-              </div>
-            </button>
-          )}
-
-          {/* Android */}
-          {ANDROID_ENABLED ? (
-            <a
-              href={GOOGLE_PLAY_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-3.5 rounded-2xl bg-white text-black px-6 py-3.5 transition-all hover:bg-gray-50 shadow-[0_10px_40px_rgba(255,255,255,0.10)]"
-            >
-              <GooglePlayIcon className="h-7 w-7" />
-              <div className="flex flex-col items-start leading-tight">
-                <span className="text-[11px] font-medium text-gray-500">Disponible en</span>
-                <span className="text-base font-semibold text-black tracking-tight">Google Play</span>
-              </div>
-            </a>
-          ) : (
-            <button
-              type="button"
-              disabled
-              title="Próximamente"
-              className="inline-flex items-center gap-3.5 rounded-2xl bg-white/95 text-black px-6 py-3.5 cursor-not-allowed"
-            >
-              <GooglePlayIcon className="h-7 w-7" />
-              <div className="flex flex-col items-start leading-tight">
-                <span className="text-[11px] font-medium text-gray-500">Próximamente en</span>
-                <span className="text-base font-semibold text-black tracking-tight">Google Play</span>
-              </div>
-            </button>
-          )}
-        </div>
-
-        <div className="text-[13px] text-white/45 pt-6">
+        <div className="text-[13px] text-white/45">
           ¿Preguntas? Escríbeme:{" "}
-          <a
-            href="mailto:smartfixosapp@gmail.com"
-            className="text-white hover:underline underline-offset-4 decoration-white/30"
-          >
+          <a href="mailto:smartfixosapp@gmail.com" className="text-white hover:underline underline-offset-4 decoration-white/30">
             smartfixosapp@gmail.com
           </a>
         </div>
 
-        <div className="text-[11px] uppercase tracking-[0.22em] text-white/25 pt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+        <div className="text-[11px] uppercase tracking-[0.22em] text-white/25 pt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
           <span>SmartFixOS © 2026</span>
           <span className="text-white/15">·</span>
           <span>v3.5.0</span>
@@ -609,7 +788,10 @@ export default function Landing() {
     <div className="min-h-dvh bg-[#0a0a0a] text-white antialiased font-sans">
       <Hero />
       <Historia />
+      <VistaPrevia />
       <Planes />
+      <FAQ />
+      <Waitlist />
       <Footer />
     </div>
   );
