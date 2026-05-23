@@ -21,6 +21,8 @@ function lazyWithRetry(fn) {
 
 // Public & marketing pages
 const Landing          = lazyWithRetry(() => import("./Landing"));
+const Signup           = lazyWithRetry(() => import("./Signup"));
+const LoginPage        = lazyWithRetry(() => import("./Login"));
 const Billing          = lazyWithRetry(() => import("./Billing"));
 const VerifyEmail      = lazyWithRetry(() => import("./VerifyEmail"));
 const Activate         = lazyWithRetry(() => import("./Activate"));
@@ -63,6 +65,9 @@ function PagesContent() {
       <Routes>
         <Route path="/"                element={<Landing />} />
         <Route path="/Pricing"         element={<Landing />} />
+        {/* Auth (Sprint 134 — magic link + Google OAuth) */}
+        <Route path="/signup"          element={<Signup />} />
+        <Route path="/login"           element={<LoginPage />} />
         <Route path="/billing"         element={<Billing />} />
         <Route path="/VerifyEmail"     element={<VerifyEmail />} />
         <Route path="/Activate"        element={<Activate />} />
