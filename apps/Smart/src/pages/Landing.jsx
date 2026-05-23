@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useInView } from "framer-motion";
 import { Check, ArrowDown, ArrowRight, Plus, Minus, Loader2, CheckCircle2 } from "lucide-react";
 import { supabase } from "../../../../lib/supabase-client.js";
 
@@ -419,23 +419,76 @@ const TEAM_FEATURES = [
   "Caja con turnos y comisiones",
 ];
 
+// ── Count-up hook — anima un número de 0 → target cuando entra en viewport
+function useCountUp(target, { duration = 900, inView = false } = {}) {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    if (!inView) return;
+    const num = parseFloat(target);
+    const start = performance.now();
+    let raf;
+    const tick = (now) => {
+      const t = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3); // easeOutCubic
+      setValue(Math.round(num * eased));
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => raf && cancelAnimationFrame(raf);
+  }, [target, duration, inView]);
+  return value;
+}
+
 function PlanCard({ name, price, tagline, features, highlighted = false, delay = 0 }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-80px" });
+  const displayPrice = useCountUp(price, { inView, duration: 950 });
+
   return (
     <motion.article
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      ref={ref}
+      initial={{ opacity: 0, y: 36, scale: 0.97 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
       viewport={{ once: true, margin: "-80px" }}
-      transition={{ delay, duration: 0.6 }}
+      whileHover={{ y: -6 }}
+      transition={{ delay, duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
       className={[
-        "relative flex flex-col rounded-2xl p-8 sm:p-10 border",
-        highlighted ? "bg-white text-black border-white" : "bg-transparent text-white border-white/10",
+        "group/plan relative flex flex-col rounded-2xl p-8 sm:p-10 border transition-shadow duration-500",
+        highlighted
+          ? "bg-white text-black border-white shadow-[0_20px_60px_-20px_rgba(0,0,0,0.45)] hover:shadow-[0_40px_90px_-20px_rgba(143,201,63,0.55)]"
+          : "bg-transparent text-white border-white/10 hover:border-lime-400/35 hover:shadow-[0_30px_70px_-25px_rgba(143,201,63,0.30)]",
       ].join(" ")}
     >
+      {/* Glow ambient detrás de la card destacada — sale al hover */}
       {highlighted && (
-        <span className="absolute -top-3 left-8 inline-flex items-center gap-1.5 rounded-full bg-black px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white">
-          <span className="h-1.5 w-1.5 rounded-full" style={{ background: "#8FC93F", boxShadow: "0 0 8px #8FC93F" }} />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -inset-10 -z-10 opacity-0 group-hover/plan:opacity-100 transition-opacity duration-700"
+          style={{
+            background:
+              "radial-gradient(ellipse at center, rgba(143,201,63,0.35) 0%, rgba(31,160,220,0.18) 35%, transparent 70%)",
+            filter: "blur(28px)",
+          }}
+        />
+      )}
+
+      {/* Badge "Recomendado" con dot pulsante */}
+      {highlighted && (
+        <motion.span
+          initial={{ opacity: 0, y: -10, scale: 0.85 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ delay: delay + 0.35, duration: 0.6, ease: [0.34, 1.46, 0.5, 1] }}
+          className="absolute -top-3 left-8 inline-flex items-center gap-1.5 rounded-full bg-black px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white"
+        >
+          <motion.span
+            className="h-1.5 w-1.5 rounded-full"
+            style={{ background: "#8FC93F", boxShadow: "0 0 8px #8FC93F" }}
+            animate={{ opacity: [1, 0.35, 1], scale: [1, 1.2, 1] }}
+            transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+          />
           Recomendado
-        </span>
+        </motion.span>
       )}
 
       <header>
@@ -449,10 +502,11 @@ function PlanCard({ name, price, tagline, features, highlighted = false, delay =
 
       <div className="mt-8 flex items-baseline gap-1.5">
         <span
-          className="text-5xl sm:text-[56px] font-bold tracking-tight leading-none"
+          className="text-5xl sm:text-[56px] font-bold tracking-tight leading-none tabular-nums"
           style={{ fontFamily: '"Bricolage Grotesque", system-ui, sans-serif' }}
+          aria-label={`$${price} al mes`}
         >
-          ${price}
+          ${displayPrice}
         </span>
         <span className={highlighted ? "text-base font-medium text-black/45" : "text-base font-medium text-white/40"}>
           / mes
@@ -462,21 +516,47 @@ function PlanCard({ name, price, tagline, features, highlighted = false, delay =
         Cancela cuando quieras. 14 días gratis.
       </p>
 
-      <div className={highlighted ? "my-8 h-px w-full bg-black/10" : "my-8 h-px w-full bg-white/8"} />
+      {/* Divider que se "dibuja" al entrar */}
+      <motion.div
+        initial={{ scaleX: 0 }}
+        whileInView={{ scaleX: 1 }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ delay: delay + 0.3, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+        style={{ transformOrigin: "left" }}
+        className={highlighted ? "my-8 h-px w-full bg-black/15" : "my-8 h-px w-full bg-white/10"}
+      />
 
       <ul className="space-y-3.5 flex-1">
-        {features.map((f) => (
-          <li key={f} className="flex items-start gap-3 text-[14.5px] leading-[1.4]">
-            <span className={highlighted ? "flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-black mt-px" : "flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-white/8 mt-px"}>
+        {features.map((f, i) => (
+          <motion.li
+            key={f}
+            initial={{ opacity: 0, x: -10 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ delay: delay + 0.45 + i * 0.07, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="flex items-start gap-3 text-[14.5px] leading-[1.4]"
+          >
+            <motion.span
+              initial={{ scale: 0 }}
+              whileInView={{ scale: 1 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ delay: delay + 0.5 + i * 0.07, duration: 0.45, ease: [0.34, 1.46, 0.5, 1] }}
+              className={highlighted ? "flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-black mt-px" : "flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-white/[0.06] mt-px"}
+            >
               <Check className="h-3 w-3" strokeWidth={3} style={{ color: "#8FC93F" }} />
-            </span>
+            </motion.span>
             <span className={highlighted ? "text-black/85" : "text-white/75"}>{f}</span>
-          </li>
+          </motion.li>
         ))}
       </ul>
 
-      <button
+      <motion.button
         type="button" disabled
+        initial={{ opacity: 0, y: 8 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ delay: delay + 0.45 + features.length * 0.07, duration: 0.6 }}
+        whileHover={{ scale: 1.02 }}
         className={[
           "mt-10 h-12 w-full rounded-full text-sm font-semibold cursor-not-allowed",
           "inline-flex items-center justify-center gap-2.5 px-4 whitespace-nowrap",
@@ -489,22 +569,46 @@ function PlanCard({ name, price, tagline, features, highlighted = false, delay =
         <AppleIcon className={highlighted ? "h-4 w-4 fill-white" : "h-4 w-4 fill-white/80"} />
         <GooglePlayIcon className="h-4 w-4" />
         <span>Próximamente</span>
-      </button>
+      </motion.button>
     </motion.article>
   );
 }
 
 function Planes() {
   return (
-    <section id="planes" className="px-6 py-32 sm:py-40 border-t border-white/[0.06]">
-      <div className="max-w-5xl mx-auto">
+    <section
+      id="planes"
+      className="relative px-6 py-32 sm:py-40 border-t border-white/[0.06] overflow-hidden"
+    >
+      {/* Ambient glows — sutiles, sólo dan profundidad */}
+      <motion.div
+        aria-hidden
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ duration: 1.4 }}
+        className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full -z-0"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(143,201,63,0.06) 0%, transparent 60%)",
+          filter: "blur(30px)",
+        }}
+      />
+
+      <div className="relative max-w-5xl mx-auto">
         <div className="text-center mb-16">
           <motion.div
             initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.6 }}
-            className="text-[11px] uppercase tracking-[0.24em] font-medium text-white/40 mb-6"
+            className="inline-flex items-center gap-2.5 mb-6"
           >
-            Planes
+            <span
+              className="h-1.5 w-1.5 rounded-full"
+              style={{ background: "#8FC93F", boxShadow: "0 0 10px #8FC93F" }}
+            />
+            <span className="text-[11px] uppercase tracking-[0.24em] font-medium text-white/45">
+              Planes
+            </span>
           </motion.div>
           <motion.h2
             initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
@@ -512,7 +616,7 @@ function Planes() {
             className="text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.05] text-white"
             style={{ fontFamily: '"Bricolage Grotesque", system-ui, sans-serif' }}
           >
-            Dos planes. Sin sorpresas.
+            Dos planes. <span className="text-white/55">Sin sorpresas.</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
@@ -525,8 +629,20 @@ function Planes() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-3xl mx-auto">
           <PlanCard name="Solo"   price="19" tagline="Para el técnico independiente." features={SOLO_FEATURES} delay={0} />
-          <PlanCard name="Equipo" price="49" tagline="Cuando ya no eres solo tú."     features={TEAM_FEATURES} highlighted delay={0.08} />
+          <PlanCard name="Equipo" price="49" tagline="Cuando ya no eres solo tú."     features={TEAM_FEATURES} highlighted delay={0.12} />
         </div>
+
+        {/* Línea final — reassurance */}
+        <motion.p
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ delay: 0.6, duration: 0.7 }}
+          className="mt-14 text-center text-[13px] text-white/40"
+        >
+          Sin contratos · Sin tarjeta para el trial ·{" "}
+          <span className="text-white/65">Cambias entre planes cuando quieras</span>
+        </motion.p>
       </div>
     </section>
   );
