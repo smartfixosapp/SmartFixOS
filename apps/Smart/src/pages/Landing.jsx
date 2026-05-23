@@ -199,16 +199,20 @@ function Hero() {
           </div>
         </button>
 
-        {/* TestFlight — beta iOS */}
+        {/* TestFlight — botón ACTIVO del hero (única vía real al beta ahora mismo) */}
         {TESTFLIGHT_ENABLED ? (
           <a
             href={TESTFLIGHT_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="group inline-flex items-center gap-3.5 rounded-2xl bg-white text-black px-6 py-3.5 transition-all hover:bg-gray-50 shadow-[0_10px_40px_rgba(255,255,255,0.10)] active:scale-[0.98]"
+            className="group relative inline-flex items-center gap-3.5 rounded-2xl bg-white text-black px-6 py-3.5 transition-all hover:bg-gray-50 hover:-translate-y-0.5 shadow-[0_10px_40px_rgba(56,189,248,0.18)] active:scale-[0.98]"
           >
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-blue-600 text-white">
+            <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-blue-600 text-white">
               <FlaskConical className="h-4 w-4" strokeWidth={2.2} />
+              <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-lime-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-lime-400" />
+              </span>
             </span>
             <div className="flex flex-col items-start leading-tight">
               <span className="text-[11px] font-medium text-gray-500">Únete al beta</span>
@@ -218,15 +222,23 @@ function Hero() {
         ) : (
           <button
             type="button"
-            disabled
-            title="Próximamente"
-            className="inline-flex items-center gap-3.5 rounded-2xl bg-white/95 text-black px-6 py-3.5 cursor-not-allowed"
+            onClick={() =>
+              document
+                .getElementById("waitlist")
+                ?.scrollIntoView({ behavior: "smooth", block: "start" })
+            }
+            title="Reserva tu acceso al beta — te avisamos en cuanto abra"
+            className="group relative inline-flex items-center gap-3.5 rounded-2xl bg-white text-black px-6 py-3.5 transition-all hover:bg-gray-50 hover:-translate-y-0.5 shadow-[0_10px_40px_rgba(56,189,248,0.18)] active:scale-[0.98] cursor-pointer"
           >
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-blue-600 text-white">
+            <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-blue-600 text-white">
               <FlaskConical className="h-4 w-4" strokeWidth={2.2} />
+              <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-lime-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-lime-400" />
+              </span>
             </span>
             <div className="flex flex-col items-start leading-tight">
-              <span className="text-[11px] font-medium text-gray-500">Próximamente en</span>
+              <span className="text-[11px] font-medium text-gray-500">Reserva tu beta</span>
               <span className="text-base font-semibold text-black tracking-tight">TestFlight</span>
             </div>
           </button>
