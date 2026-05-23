@@ -4,7 +4,12 @@
     "details": [
       {
         "appID": "827XM7GVH4.com.archillastudios.SmartFixOS",
-        "paths": ["/auth-callback", "/auth-callback/*"]
+        "paths": [
+          "/auth-callback",
+          "/auth-callback/*",
+          "/upgrade-success",
+          "/upgrade-success/*"
+        ]
       }
     ]
   }

@@ -25,6 +25,7 @@ const Landing          = lazyWithRetry(() => import("./Landing"));
 // Web keeps /upgrade and /billing (both opened from iOS via
 // SFSafariViewController), plus the public marketing pages.
 const Upgrade          = lazyWithRetry(() => import("./Upgrade"));
+const UpgradeSuccess   = lazyWithRetry(() => import("./UpgradeSuccess"));
 const DashboardBilling = lazyWithRetry(() => import("./DashboardBilling"));
 const Billing          = lazyWithRetry(() => import("./Billing"));
 const VerifyEmail      = lazyWithRetry(() => import("./VerifyEmail"));
@@ -74,6 +75,7 @@ function PagesContent() {
             pre-Sprint-134 Deno-backed flow kept as a fallback for any
             existing inbound links. */}
         <Route path="/upgrade"         element={<Upgrade />} />
+        <Route path="/upgrade-success" element={<UpgradeSuccess />} />
         <Route path="/dashboard/billing" element={<DashboardBilling />} />
         <Route path="/billing"         element={<Billing />} />
 

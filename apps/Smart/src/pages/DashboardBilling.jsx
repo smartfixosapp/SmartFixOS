@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Loader2, AlertTriangle, ArrowLeft, CreditCard } from "lucide-react";
 import { getCurrentSession } from "@/lib/auth";
+import { useHydrateSessionFromURL } from "@/lib/useHydrateSessionFromURL";
 import { supabase } from "../../../../lib/supabase-client.js";
 import DownloadAppGate from "@/components/DownloadAppGate";
 
@@ -27,8 +28,12 @@ export default function DashboardBilling() {
   const [status, setStatus] = useState("checking"); // checking | redirecting | error | no_customer | no_auth
   const [errorMsg, setErrorMsg] = useState("");
 
+  // Hydrate Supabase session from ?t=&r= if iOS app passed JWT (Approach A).
+  const hydrated = useHydrateSessionFromURL();
+
   useEffect(() => {
     let cancelled = false;
+    if (!hydrated) return; // wait for setSession to settle before reading auth
 
     (async () => {
       try {
@@ -100,7 +105,7 @@ export default function DashboardBilling() {
     })();
 
     return () => { cancelled = true; };
-  }, []);
+  }, [hydrated]);
 
   // ── No-auth gate ──────────────────────────────────────────────────────
   if (status === "no_auth") {

@@ -3,6 +3,7 @@ import { useSearchParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Loader2, AlertTriangle, ArrowLeft } from "lucide-react";
 import { getCurrentSession } from "@/lib/auth";
+import { useHydrateSessionFromURL } from "@/lib/useHydrateSessionFromURL";
 import { supabase } from "../../../../lib/supabase-client.js";
 import { STRIPE_PRICES, PLANS, isStripeConfigured } from "@/lib/stripe";
 import DownloadAppGate from "@/components/DownloadAppGate";
@@ -34,11 +35,18 @@ export default function Upgrade() {
   const [status, setStatus] = useState("checking"); // checking | redirecting | error | no_auth
   const [errorMsg, setErrorMsg] = useState("");
 
+  // Hydrate Supabase session from ?t=&r= if iOS app passed JWT (Approach A).
+  // Hook always strips those params from the URL before we look at them.
+  const hydrated = useHydrateSessionFromURL();
+
   const planSlug = (searchParams.get("plan") || "").toLowerCase();
   const stripeReturn = searchParams.get("upgrade"); // 'success' | 'canceled' | null
 
   useEffect(() => {
     let cancelled = false;
+
+    // Wait for the session hydration to settle before reading auth state.
+    if (!hydrated) return;
 
     // If we're rendering a Stripe return URL, skip the checkout creation flow.
     if (stripeReturn === "success" || stripeReturn === "canceled") return;
@@ -98,7 +106,12 @@ export default function Upgrade() {
             body: {
               price_id:    priceId,
               tenant_id:   tenantId,
-              success_url: `${window.location.origin}/upgrade?plan=${planSlug}&upgrade=success`,
+              // success_url goes to /upgrade-success which fires the
+              // smartfixos://refresh-plan deep link to bounce the user
+              // back into the iOS app (Universal Link claimed via AASA).
+              success_url: `${window.location.origin}/upgrade-success?from=stripe`,
+              // cancel_url comes back here and lands in the
+              // stripeReturn==='canceled' short-circuit below
               cancel_url:  `${window.location.origin}/upgrade?plan=${planSlug}&upgrade=canceled`,
             },
           },
@@ -121,7 +134,7 @@ export default function Upgrade() {
     })();
 
     return () => { cancelled = true; };
-  }, [planSlug, stripeReturn]);
+  }, [hydrated, planSlug, stripeReturn]);
 
   // ── Stripe-return short-circuit (rare on web; iOS handles it natively) ─
   if (stripeReturn === "success") {
