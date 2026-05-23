@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<title>SmartFixOS — Gear Letra (animado)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&display=swap" />
+<style>
+  :root {
+    --bg: #f5f1e8;
+    --ink: #14161a;
+    --blue: #1fa0dc;
+    --green: #8fc93f;
+    --muted: #757575;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: "Bricolage Grotesque", system-ui, sans-serif; min-height: 100vh; }
+
+  .page {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 60px 40px;
+  }
+
+  .stage {
+    width: 100%;
+    max-width: 1000px;
+    background: #fbf7ee;
+    border-radius: 20px;
+    padding: 80px 60px;
+    box-shadow: 0 30px 80px -30px rgba(0,0,0,0.15);
+    position: relative;
+    overflow: hidden;
+  }
+  .stage::before {
+    content: "02  ·  EL ENGRANAJE ES LA O";
+    position: absolute;
+    top: 24px;
+    left: 28px;
+    right: 28px;
+    display: flex;
+    justify-content: space-between;
+    font-family: ui-monospace, "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+  }
+
+  .wordmark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    font-family: "Bricolage Grotesque", system-ui, sans-serif;
+    font-weight: 800;
+    font-size: clamp(72px, 14vw, 180px);
+    line-height: 0.85;
+    letter-spacing: -0.045em;
+    color: var(--ink);
+    user-select: none;
+  }
+  .wordmark .ch,
+  .wordmark .gear-wrap {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(0.4em) scale(0.92);
+    animation: letterIn 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  .wordmark .ch:nth-child(1) { animation-delay: 0.05s; }
+  .wordmark .ch:nth-child(2) { animation-delay: 0.10s; }
+  .wordmark .ch:nth-child(3) { animation-delay: 0.15s; }
+  .wordmark .ch:nth-child(4) { animation-delay: 0.20s; }
+  .wordmark .ch:nth-child(5) { animation-delay: 0.25s; }
+  .wordmark .ch:nth-child(6) { animation-delay: 0.30s; }
+  .wordmark .ch:nth-child(7) { animation-delay: 0.35s; }
+  .wordmark .gear-wrap         { animation-delay: 0.40s; }
+  .wordmark .ch.s-final        { animation-delay: 0.55s; }
+
+  @keyframes letterIn {
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* Gear wrapper sits in place of the "o" */
+  .gear-wrap {
+    width: 0.92em;
+    height: 0.92em;
+    position: relative;
+    margin: 0 -0.02em;
+    display: inline-grid;
+    place-items: center;
+  }
+  .gear-wrap svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  /* Spinning gear */
+  .gear {
+    transform-origin: 50% 50%;
+    animation: gearspin 14s linear infinite;
+  }
+  @keyframes gearspin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Subtle pulse halo behind the gear */
+  .gear-halo {
+    position: absolute;
+    inset: 8%;
+    border-radius: 999px;
+    background: radial-gradient(circle, rgba(143,201,63,0.20) 0%, rgba(31,160,220,0.18) 50%, transparent 75%);
+    filter: blur(8px);
+    animation: halo 4s ease-in-out infinite;
+    z-index: -1;
+  }
+  @keyframes halo {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50%      { opacity: 1;   transform: scale(1.1); }
+  }
+
+  /* Caption + footer description */
+  .caption {
+    margin-top: 64px;
+    padding-top: 30px;
+    border-top: 1px solid rgba(0,0,0,0.08);
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1.55;
+    max-width: 520px;
+  }
+  .caption strong { color: var(--ink); font-weight: 600; }
+
+  .controls {
+    margin-top: 28px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .controls button {
+    appearance: none;
+    border: 1px solid rgba(0,0,0,0.15);
+    background: white;
+    border-radius: 999px;
+    padding: 9px 16px;
+    font: 600 13px/1 "Bricolage Grotesque", system-ui, sans-serif;
+    cursor: pointer;
+    color: var(--ink);
+    transition: all 0.15s ease;
+  }
+  .controls button:hover { background: var(--ink); color: white; border-color: var(--ink); }
+
+  /* Speed variants */
+  .speed-fast   .gear { animation-duration: 4s; }
+  .speed-normal .gear { animation-duration: 14s; }
+  .speed-slow   .gear { animation-duration: 30s; }
+  .reverse      .gear { animation-direction: reverse; }
+  .paused       .gear { animation-play-state: paused; }
+
+  /* Dark variant */
+  .dark-stage {
+    margin-top: 40px;
+    background: #0a0a0a;
+    color: #ffffff;
+  }
+  .dark-stage::before { color: rgba(255,255,255,0.45); }
+  .dark-stage .wordmark { color: #ffffff; }
+  .dark-stage .caption { color: rgba(255,255,255,0.55); border-top-color: rgba(255,255,255,0.1); }
+  .dark-stage .caption strong { color: #ffffff; }
+</style>
+</head>
+<body>
+  <div class="page">
+    <div class="stage" id="stage">
+      <div class="wordmark" aria-label="smartfixos">
+        <span class="ch">s</span>
+        <span class="ch">m</span>
+        <span class="ch">a</span>
+        <span class="ch">r</span>
+        <span class="ch">t</span>
+        <span class="ch">f</span>
+        <span class="ch">i</span>
+        <span class="ch">x</span>
+        <!-- The gear stands in for the "o" -->
+        <span class="gear-wrap" aria-hidden="true">
+          <span class="gear-halo"></span>
+          <svg class="gear" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <clipPath id="gear-clip">
+                <path d="M 90.57 39.13 L 91.48 43.43 L 99.38 42.18 L 99.38 57.82 L 91.48 56.57 L 90.57 60.87 L 89.21 65.05 L 96.68 67.92 L 88.86 81.47 L 82.64 76.43 L 79.70 79.70 L 76.43 82.64 L 81.47 88.86 L 67.92 96.68 L 65.05 89.21 L 60.87 90.57 L 56.57 91.48 L 57.82 99.38 L 42.18 99.38 L 43.43 91.48 L 39.13 90.57 L 34.95 89.21 L 32.08 96.68 L 18.53 88.86 L 23.57 82.64 L 20.30 79.70 L 17.36 76.43 L 11.14 81.47 L 3.32 67.92 L 10.79 65.05 L 9.43 60.87 L 8.52 56.57 L 0.62 57.82 L 0.62 42.18 L 8.52 43.43 L 9.43 39.13 L 10.79 34.95 L 3.32 32.08 L 11.14 18.53 L 17.36 23.57 L 20.30 20.30 L 23.57 17.36 L 18.53 11.14 L 32.08 3.32 L 34.95 10.79 L 39.13 9.43 L 43.43 8.52 L 42.18 0.62 L 57.82 0.62 L 56.57 8.52 L 60.87 9.43 L 65.05 10.79 L 67.92 3.32 L 81.47 11.14 L 76.43 17.36 L 79.70 20.30 L 82.64 23.57 L 88.86 18.53 L 96.68 32.08 L 89.21 34.95 L 90.57 39.13 Z" />
+              </clipPath>
+            </defs>
+
+            <!-- Split colored gear: blue left, green right -->
+            <g clip-path="url(#gear-clip)">
+              <rect x="0"  y="0" width="50" height="100" fill="#1FA0DC" />
+              <rect x="50" y="0" width="50" height="100" fill="#8FC93F" />
+            </g>
+
+            <!-- Center hole (the "o" cutout) -->
+            <circle cx="50" cy="50" r="22" fill="#fbf7ee" id="gear-center" />
+          </svg>
+        </span>
+        <span class="ch s-final">s</span>
+      </div>
+
+      <p class="caption">
+        Wordmark moderno: el <strong>engranaje vive dentro de la palabra</strong> ocupando la "o" de OS.
+        Compacto, juega con la palabra y gira en loop infinito.
+      </p>
+
+      <div class="controls" role="group" aria-label="Controles de animación">
+        <button data-act="fast">Rápido</button>
+        <button data-act="normal">Normal</button>
+        <button data-act="slow">Lento</button>
+        <button data-act="reverse">Reversa</button>
+        <button data-act="pause">Pausar</button>
+        <button data-act="replay">Re-entrar</button>
+      </div>
+    </div>
+
+    <!-- Dark variant for reference (uses same logo on black bg) -->
+    <div class="stage dark-stage">
+      <div class="wordmark" aria-label="smartfixos">
+        <span class="ch">s</span>
+        <span class="ch">m</span>
+        <span class="ch">a</span>
+        <span class="ch">r</span>
+        <span class="ch">t</span>
+        <span class="ch">f</span>
+        <span class="ch">i</span>
+        <span class="ch">x</span>
+        <span class="gear-wrap" aria-hidden="true">
+          <span class="gear-halo"></span>
+          <svg class="gear" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <g clip-path="url(#gear-clip)">
+              <rect x="0"  y="0" width="50" height="100" fill="#1FA0DC" />
+              <rect x="50" y="0" width="50" height="100" fill="#8FC93F" />
+            </g>
+            <circle cx="50" cy="50" r="22" fill="#0a0a0a" />
+          </svg>
+        </span>
+        <span class="ch s-final">s</span>
+      </div>
+      <p class="caption">Versión sobre fondo oscuro · el centro del engranaje toma el color del fondo para conservar la "o".</p>
+    </div>
+  </div>
+
+  <script>
+    // Wire up controls — affect the LIGHT stage only (top one)
+    const stage = document.getElementById("stage");
+    document.querySelectorAll(".controls button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const act = btn.dataset.act;
+        const cls = ["speed-fast","speed-normal","speed-slow","reverse","paused"];
+        switch (act) {
+          case "fast":    cls.forEach(c => stage.classList.remove(c)); stage.classList.add("speed-fast");    break;
+          case "normal":  cls.forEach(c => stage.classList.remove(c)); stage.classList.add("speed-normal");  break;
+          case "slow":    cls.forEach(c => stage.classList.remove(c)); stage.classList.add("speed-slow");    break;
+          case "reverse": stage.classList.toggle("reverse"); break;
+          case "pause":   stage.classList.toggle("paused");  break;
+          case "replay":
+            // Re-trigger the entrance animation
+            stage.querySelectorAll(".wordmark .ch, .wordmark .gear-wrap").forEach(el => {
+              el.style.animation = "none";
+              void el.offsetWidth; // reflow
+              el.style.animation = "";
+            });
+            break;
+        }
+      });
+    });
+  </script>
+</body>
+</html>
