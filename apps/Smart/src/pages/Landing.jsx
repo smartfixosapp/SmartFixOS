@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence, useInView } from "framer-motion";
-import { Check, ArrowDown, ArrowRight, Plus, Minus, Loader2, CheckCircle2 } from "lucide-react";
+import { Check, ArrowDown, ArrowRight, Plus, Minus, Loader2, CheckCircle2, FlaskConical } from "lucide-react";
 import { supabase } from "../../../../lib/supabase-client.js";
 
 import ss01 from "../assets/images/screenshots/ss01.png";
@@ -178,13 +178,28 @@ function Hero() {
         Probado en talleres reales · Puerto Rico
       </motion.div>
 
-      {/* Botones de descarga */}
+      {/* Botones de descarga: App Store · TestFlight · Google Play */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1.2, duration: 0.7 }}
-        className="mt-10 flex flex-col sm:flex-row items-center gap-3"
+        className="mt-10 flex flex-col sm:flex-row flex-wrap items-center justify-center gap-3"
       >
+        {/* App Store — siempre visible (production iOS) */}
+        <button
+          type="button"
+          disabled
+          title="Próximamente"
+          className="inline-flex items-center gap-3.5 rounded-2xl bg-white/95 text-black px-6 py-3.5 cursor-not-allowed"
+        >
+          <AppleIcon className="h-7 w-7 fill-black" />
+          <div className="flex flex-col items-start leading-tight">
+            <span className="text-[11px] font-medium text-gray-500">Próximamente en</span>
+            <span className="text-base font-semibold text-black tracking-tight">App Store</span>
+          </div>
+        </button>
+
+        {/* TestFlight — beta iOS */}
         {TESTFLIGHT_ENABLED ? (
           <a
             href={TESTFLIGHT_URL}
@@ -192,23 +207,32 @@ function Hero() {
             rel="noopener noreferrer"
             className="group inline-flex items-center gap-3.5 rounded-2xl bg-white text-black px-6 py-3.5 transition-all hover:bg-gray-50 shadow-[0_10px_40px_rgba(255,255,255,0.10)] active:scale-[0.98]"
           >
-            <AppleIcon className="h-7 w-7 fill-black" />
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-blue-600 text-white">
+              <FlaskConical className="h-4 w-4" strokeWidth={2.2} />
+            </span>
             <div className="flex flex-col items-start leading-tight">
               <span className="text-[11px] font-medium text-gray-500">Únete al beta</span>
               <span className="text-base font-semibold text-black tracking-tight">TestFlight</span>
             </div>
           </a>
         ) : (
-          <button type="button" disabled title="Próximamente"
-            className="inline-flex items-center gap-3.5 rounded-2xl bg-white/95 text-black px-6 py-3.5 cursor-not-allowed">
-            <AppleIcon className="h-7 w-7 fill-black" />
+          <button
+            type="button"
+            disabled
+            title="Próximamente"
+            className="inline-flex items-center gap-3.5 rounded-2xl bg-white/95 text-black px-6 py-3.5 cursor-not-allowed"
+          >
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-blue-600 text-white">
+              <FlaskConical className="h-4 w-4" strokeWidth={2.2} />
+            </span>
             <div className="flex flex-col items-start leading-tight">
               <span className="text-[11px] font-medium text-gray-500">Próximamente en</span>
-              <span className="text-base font-semibold text-black tracking-tight">App Store</span>
+              <span className="text-base font-semibold text-black tracking-tight">TestFlight</span>
             </div>
           </button>
         )}
 
+        {/* Google Play — Android */}
         {ANDROID_ENABLED ? (
           <a
             href={GOOGLE_PLAY_URL}
@@ -223,8 +247,12 @@ function Hero() {
             </div>
           </a>
         ) : (
-          <button type="button" disabled title="Próximamente"
-            className="inline-flex items-center gap-3.5 rounded-2xl bg-white/95 text-black px-6 py-3.5 cursor-not-allowed">
+          <button
+            type="button"
+            disabled
+            title="Próximamente"
+            className="inline-flex items-center gap-3.5 rounded-2xl bg-white/95 text-black px-6 py-3.5 cursor-not-allowed"
+          >
             <GooglePlayIcon className="h-7 w-7" />
             <div className="flex flex-col items-start leading-tight">
               <span className="text-[11px] font-medium text-gray-500">Próximamente en</span>
