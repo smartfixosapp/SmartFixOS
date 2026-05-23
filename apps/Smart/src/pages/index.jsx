@@ -1,6 +1,6 @@
 
 import React, { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useNavigate, Navigate } from 'react-router-dom';
 import AuthGate, { useAuth } from '@/components/Auth';
 import { PageSpinner } from "@/components/ui/spinner";
 
@@ -21,9 +21,9 @@ function lazyWithRetry(fn) {
 
 // Public & marketing pages
 const Landing          = lazyWithRetry(() => import("./Landing"));
-const Signup           = lazyWithRetry(() => import("./Signup"));
-const LoginPage        = lazyWithRetry(() => import("./Login"));
-const Dashboard        = lazyWithRetry(() => import("./Dashboard"));
+// Sprint 135 pivot — signup/login/dashboard moved to iOS app.
+// Web keeps /upgrade and /billing (both opened from iOS via
+// SFSafariViewController), plus the public marketing pages.
 const Upgrade          = lazyWithRetry(() => import("./Upgrade"));
 const DashboardBilling = lazyWithRetry(() => import("./DashboardBilling"));
 const Billing          = lazyWithRetry(() => import("./Billing"));
@@ -68,13 +68,23 @@ function PagesContent() {
       <Routes>
         <Route path="/"                element={<Landing />} />
         <Route path="/Pricing"         element={<Landing />} />
-        {/* Auth + dashboard (Sprint 134 — magic link + Google OAuth) */}
-        <Route path="/signup"          element={<Signup />} />
-        <Route path="/login"           element={<LoginPage />} />
-        <Route path="/dashboard"       element={<Dashboard />} />
+        {/* Sprint 135 pivot — billing only. Signup/login/dashboard live in iOS.
+            /upgrade and /dashboard/billing are opened from iOS via
+            SFSafariViewController (in-app browser). /billing is the
+            pre-Sprint-134 Deno-backed flow kept as a fallback for any
+            existing inbound links. */}
         <Route path="/upgrade"         element={<Upgrade />} />
         <Route path="/dashboard/billing" element={<DashboardBilling />} />
         <Route path="/billing"         element={<Billing />} />
+
+        {/* Sprint 135 removed these — redirect to landing so old links
+            from emails/screenshots don't 404 silently. */}
+        <Route path="/signup"          element={<Navigate to="/" replace />} />
+        <Route path="/login"           element={<Navigate to="/" replace />} />
+        <Route path="/dashboard"       element={<Navigate to="/" replace />} />
+
+        {/* Catch-all → landing */}
+        <Route path="*"                element={<Navigate to="/" replace />} />
         <Route path="/VerifyEmail"     element={<VerifyEmail />} />
         <Route path="/Activate"        element={<Activate />} />
         <Route path="/TenantActivate"  element={<TenantActivate />} />

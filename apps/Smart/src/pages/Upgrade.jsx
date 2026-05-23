@@ -1,43 +1,47 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Loader2, AlertTriangle, ArrowLeft } from "lucide-react";
-import {
-  ensureTenantExists,
-  getCurrentSession,
-} from "@/lib/auth";
+import { getCurrentSession } from "@/lib/auth";
 import { supabase } from "../../../../lib/supabase-client.js";
 import { STRIPE_PRICES, PLANS, isStripeConfigured } from "@/lib/stripe";
+import DownloadAppGate from "@/components/DownloadAppGate";
 
 /**
  * /upgrade?plan=solo|team
  *
- * Deep-link wrapper around the Stripe Checkout flow. Use this from
- * emails, marketing banners, or in-app links when you want to drop
- * the user straight into checkout for a specific plan.
+ * Sprint 135 pivot — this route is the target of the iOS app's
+ * SFSafariViewController when the user taps "Upgrade" in-app.
  *
- * Behavior:
- *   1. If no session → redirect to /signup?next=/upgrade?plan=X
- *      (after signup confirmation user lands on /dashboard, where
- *       the inline upgrade buttons live; the deep-link is a one-shot
- *       redirect, we don't try to preserve it across login)
- *   2. ensureTenantExists()
- *   3. Validate plan param → call create-checkout-session edge fn →
- *      window.location.href = data.url (Stripe hosted Checkout)
+ * Flow:
+ *   1. Validate plan param (solo | team)
+ *   2. Verify Stripe is configured (frontend pk + price IDs)
+ *   3. Read Supabase session. If absent → DownloadAppGate (Sprint 135
+ *      removed the web /signup; signup now lives in iOS)
+ *   4. Look up the tenant for this user via auth_user_tenants RPC
+ *      (no more ensureTenantExists from web — iOS creates the tenant)
+ *   5. Call create-checkout-session edge function
+ *   6. window.location.href = data.url (Stripe hosted Checkout)
  *
- * Shows a clean loading shell while the redirect happens. Errors
- * surface with a back-to-dashboard CTA.
+ * On Stripe return, the user lands back here with ?upgrade=success or
+ * ?upgrade=canceled — but the iOS app's SFSafariViewController owns the
+ * dismissal so the iOS app handles those URLs via its own URL handler.
+ * For visitors who somehow hit those return URLs directly in a browser,
+ * we still render a graceful confirmation.
  */
 export default function Upgrade() {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [status, setStatus] = useState("checking"); // checking | redirecting | error
+  const [status, setStatus] = useState("checking"); // checking | redirecting | error | no_auth
   const [errorMsg, setErrorMsg] = useState("");
 
   const planSlug = (searchParams.get("plan") || "").toLowerCase();
+  const stripeReturn = searchParams.get("upgrade"); // 'success' | 'canceled' | null
 
   useEffect(() => {
     let cancelled = false;
+
+    // If we're rendering a Stripe return URL, skip the checkout creation flow.
+    if (stripeReturn === "success" || stripeReturn === "canceled") return;
 
     (async () => {
       try {
@@ -57,35 +61,35 @@ export default function Upgrade() {
           return;
         }
 
-        // 3. Verificar sesión — sin user logueado mandamos a signup
+        // 3. Verificar sesión — sin user → DownloadAppGate
         const session = await getCurrentSession();
         if (!session) {
-          // Guardamos el plan para que después de login el usuario regrese
-          // (opcional — por ahora solo redirigimos)
-          navigate(
-            `/signup?next=${encodeURIComponent(`/upgrade?plan=${planSlug}`)}`,
-            { replace: true },
-          );
+          setStatus("no_auth");
           return;
         }
 
-        // 4. Asegurar tenant
-        const tenant = await ensureTenantExists();
+        // 4. Buscar tenant del owner via auth_user_tenants RPC.
+        //    iOS app es responsable de crear el tenant durante el signup
+        //    nativo — la web sólo lee.
+        const { data: tenantsRpc, error: rpcErr } = await supabase.rpc(
+          "auth_user_tenants",
+        );
         if (cancelled) return;
+        if (rpcErr) throw rpcErr;
 
-        if (!tenant?.id) {
-          setErrorMsg("No pudimos encontrar tu taller. Vuelve al dashboard.");
+        const tenantId =
+          Array.isArray(tenantsRpc) && tenantsRpc.length > 0
+            ? tenantsRpc[0].tenant_id
+            : null;
+        if (!tenantId) {
+          setErrorMsg(
+            "No encontramos un taller asociado a tu cuenta. Crea tu cuenta desde la app SmartFixOS.",
+          );
           setStatus("error");
           return;
         }
 
-        // 5. Si el plan ya está activo, mejor mandarlo al portal o al dashboard
-        if (tenant.plan === planSlug && tenant.subscription_status === "active") {
-          navigate("/dashboard?already_on_plan=1", { replace: true });
-          return;
-        }
-
-        // 6. Llamar al edge function de Memo
+        // 5. Llamar al edge function de Memo
         setStatus("redirecting");
         const priceId = STRIPE_PRICES[planSlug];
         const { data, error } = await supabase.functions.invoke(
@@ -93,9 +97,9 @@ export default function Upgrade() {
           {
             body: {
               price_id:    priceId,
-              tenant_id:   tenant.id,
-              success_url: `${window.location.origin}/dashboard?upgrade=success`,
-              cancel_url:  `${window.location.origin}/dashboard?upgrade=canceled`,
+              tenant_id:   tenantId,
+              success_url: `${window.location.origin}/upgrade?plan=${planSlug}&upgrade=success`,
+              cancel_url:  `${window.location.origin}/upgrade?plan=${planSlug}&upgrade=canceled`,
             },
           },
         );
@@ -104,21 +108,51 @@ export default function Upgrade() {
         if (error) throw error;
         if (!data?.url) throw new Error("Stripe no devolvió URL de checkout.");
 
-        // 7. Redirect fuera
         window.location.href = data.url;
       } catch (err) {
         if (cancelled) return;
         console.error("[upgrade] error:", err);
         setErrorMsg(
           err?.message ||
-            "Algo salió mal abriendo Stripe Checkout. Intenta de nuevo desde tu dashboard.",
+            "Algo salió mal abriendo Stripe Checkout. Intenta de nuevo desde la app.",
         );
         setStatus("error");
       }
     })();
 
     return () => { cancelled = true; };
-  }, [planSlug, navigate]);
+  }, [planSlug, stripeReturn]);
+
+  // ── Stripe-return short-circuit (rare on web; iOS handles it natively) ─
+  if (stripeReturn === "success") {
+    return (
+      <StripeReturn
+        title="¡Pago confirmado!"
+        body="Vuelve a la app SmartFixOS — tu plan se activa en segundos."
+      />
+    );
+  }
+  if (stripeReturn === "canceled") {
+    return (
+      <StripeReturn
+        title="Pago cancelado"
+        body="Tu trial sigue activo. Cuando quieras reintenta desde la app."
+      />
+    );
+  }
+
+  // ── Gate "no autenticado": abre la app ───────────────────────────────
+  if (status === "no_auth") {
+    const planName = PLANS[planSlug]?.name || "tu plan";
+    const planAmount = PLANS[planSlug]?.price;
+    return (
+      <DownloadAppGate
+        planLabel={planAmount ? `Plan ${planName} · $${planAmount}/mes` : null}
+        title="Suscríbete desde la app."
+        body="Para empezar tu plan necesitas tener la app SmartFixOS instalada. Descárgala, crea tu taller, y desde ahí abrimos Stripe Checkout para ti."
+      />
+    );
+  }
 
   // ── Render ───────────────────────────────────────────────────────────
   return (
@@ -181,10 +215,10 @@ export default function Upgrade() {
             </div>
             <div className="flex flex-wrap items-center gap-3 mt-5">
               <Link
-                to="/dashboard"
+                to="/"
                 className="inline-flex items-center gap-2 rounded-full bg-white text-black px-5 h-10 text-[13px] font-semibold hover:bg-gray-100 transition-colors"
               >
-                <ArrowLeft className="h-4 w-4" /> Volver al dashboard
+                <ArrowLeft className="h-4 w-4" /> Volver a inicio
               </Link>
               <a
                 href="mailto:archillastudios@gmail.com"
@@ -195,6 +229,45 @@ export default function Upgrade() {
             </div>
           </div>
         )}
+      </motion.div>
+    </div>
+  );
+}
+
+// ── Stripe return state — visitor lands here on a browser after paying ────
+function StripeReturn({ title, body }) {
+  const isSuccess = title.includes("confirmado");
+  return (
+    <div className="min-h-dvh bg-[#0a0a0a] text-white antialiased font-sans flex items-center justify-center px-6 py-12">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-md w-full text-center"
+      >
+        <div className={`inline-flex items-center justify-center h-14 w-14 rounded-full mb-6 ${isSuccess ? "bg-lime-400/15 border border-lime-400/30" : "bg-white/[0.04] border border-white/15"}`}>
+          {isSuccess ? (
+            <svg className="h-7 w-7" style={{ color: "#8FC93F" }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <path d="m9 11 3 3L22 4" />
+            </svg>
+          ) : (
+            <AlertTriangle className="h-7 w-7 text-white/60" />
+          )}
+        </div>
+        <h1
+          className="text-3xl font-semibold tracking-tight"
+          style={{ fontFamily: '"Bricolage Grotesque", system-ui, sans-serif' }}
+        >
+          {title}
+        </h1>
+        <p className="mt-4 text-[15px] text-white/55 leading-relaxed">{body}</p>
+        <Link
+          to="/"
+          className="mt-10 inline-flex items-center gap-2 rounded-full bg-white text-black px-6 h-11 text-[13px] font-semibold hover:bg-gray-50 transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" /> Ir a smartfixos.com
+        </Link>
       </motion.div>
     </div>
   );

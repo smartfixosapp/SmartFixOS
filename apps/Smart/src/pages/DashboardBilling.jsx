@@ -1,35 +1,30 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Loader2, AlertTriangle, ArrowLeft, CreditCard } from "lucide-react";
-import {
-  ensureTenantExists,
-  getCurrentSession,
-} from "@/lib/auth";
+import { getCurrentSession } from "@/lib/auth";
 import { supabase } from "../../../../lib/supabase-client.js";
+import DownloadAppGate from "@/components/DownloadAppGate";
 
 /**
  * /dashboard/billing
  *
- * Wrapper around Stripe Customer Portal. Calls our edge function
- * `create-portal-session` which returns the hosted portal URL; we redirect
- * the user to Stripe (cambio de plan, update tarjeta, cancelar).
+ * Sprint 135 pivot — target of the iOS app's SFSafariViewController when
+ * the user taps "Manejar suscripción" in-app. Calls create-portal-session
+ * edge function and redirects to the Stripe Customer Portal.
  *
  * Pre-conditions:
- *   - User authenticated (else → /login)
- *   - Tenant exists (ensureTenantExists creates one if not)
+ *   - User authenticated (else → DownloadAppGate)
+ *   - Tenant exists for the user's email (iOS creates it during signup)
  *   - tenant.stripe_customer_id is set — only after first paid checkout.
  *     If missing, the edge function returns 409 / code='NO_CUSTOMER' and
- *     we show a friendly "subscribe first" screen with a back-to-dashboard
- *     CTA.
+ *     we show a friendly "subscribe first" screen.
  *
  * Coexists with the legacy /billing route (Billing.jsx) which has its own
- * pre-Sprint-134 portal flow via the Deno functions server. This is the
- * canonical Sprint 134+ entry point.
+ * pre-Sprint-134 portal flow via the Deno functions server.
  */
 export default function DashboardBilling() {
-  const navigate = useNavigate();
-  const [status, setStatus] = useState("checking"); // checking | redirecting | error | no_customer
+  const [status, setStatus] = useState("checking"); // checking | redirecting | error | no_customer | no_auth
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
@@ -40,39 +35,43 @@ export default function DashboardBilling() {
         // 1. Sesión
         const session = await getCurrentSession();
         if (!session) {
-          navigate(
-            "/login?next=" + encodeURIComponent("/dashboard/billing"),
-            { replace: true },
-          );
+          setStatus("no_auth");
           return;
         }
 
-        // 2. Tenant
-        const tenant = await ensureTenantExists();
+        // 2. Tenant del owner via RPC (iOS lo crea — la web sólo lee)
+        const { data: tenantsRpc, error: rpcErr } = await supabase.rpc(
+          "auth_user_tenants",
+        );
         if (cancelled) return;
-        if (!tenant?.id) {
-          setErrorMsg("No pudimos encontrar tu taller. Vuelve al dashboard.");
+        if (rpcErr) throw rpcErr;
+
+        const tenantId =
+          Array.isArray(tenantsRpc) && tenantsRpc.length > 0
+            ? tenantsRpc[0].tenant_id
+            : null;
+        if (!tenantId) {
+          setErrorMsg(
+            "No encontramos un taller asociado a tu cuenta. Crea tu cuenta desde la app SmartFixOS.",
+          );
           setStatus("error");
           return;
         }
 
-        // 3. Edge function de Memo
+        // 3. Edge function de portal
         setStatus("redirecting");
         const { data, error } = await supabase.functions.invoke(
           "create-portal-session",
           {
             body: {
-              tenant_id:  tenant.id,
-              return_url: `${window.location.origin}/dashboard`,
+              tenant_id:  tenantId,
+              return_url: `${window.location.origin}/dashboard/billing?portal=closed`,
             },
           },
         );
         if (cancelled) return;
 
         if (error) {
-          // No customer todavía (caso común si está en trial). El edge
-          // function devuelve 409 con body { error, code: 'NO_CUSTOMER' };
-          // supabase-js lo expone como error.message con el texto adentro.
           const raw = error.message || "";
           if (raw.includes("NO_CUSTOMER") || raw.includes("No Stripe customer")) {
             setStatus("no_customer");
@@ -94,14 +93,24 @@ export default function DashboardBilling() {
         console.error("[dashboard/billing] error:", err);
         setErrorMsg(
           err?.message ||
-            "No pudimos abrir el portal. Intenta de nuevo desde tu dashboard.",
+            "No pudimos abrir el portal. Intenta de nuevo desde la app.",
         );
         setStatus("error");
       }
     })();
 
     return () => { cancelled = true; };
-  }, [navigate]);
+  }, []);
+
+  // ── No-auth gate ──────────────────────────────────────────────────────
+  if (status === "no_auth") {
+    return (
+      <DownloadAppGate
+        title="Maneja tu suscripción desde la app."
+        body="Para abrir el portal de Stripe necesitas tener la app SmartFixOS instalada y haber iniciado sesión. Descárgala y desde Ajustes → Suscripción aparece este mismo botón."
+      />
+    );
+  }
 
   return (
     <div className="min-h-dvh bg-[#0a0a0a] text-white antialiased font-sans flex items-center justify-center px-6">
@@ -136,16 +145,22 @@ export default function DashboardBilling() {
                 </div>
                 <p className="mt-1 text-[13.5px] text-white/65 leading-relaxed">
                   El portal de Stripe se abre después de tu primer pago. Activa un
-                  plan desde tu dashboard y luego vuelves aquí para manejarlo.
+                  plan desde la app SmartFixOS y luego vuelves aquí para manejarlo.
                 </p>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-3 mt-5">
               <Link
-                to="/dashboard"
+                to="/upgrade?plan=solo"
                 className="inline-flex items-center gap-2 rounded-full bg-lime-400 text-black px-5 h-10 text-[13px] font-semibold hover:bg-lime-300 transition-colors"
               >
-                Ver planes en mi dashboard
+                Suscribirme a Solo · $19
+              </Link>
+              <Link
+                to="/upgrade?plan=team"
+                className="inline-flex items-center gap-2 rounded-full bg-white text-black px-5 h-10 text-[13px] font-semibold hover:bg-gray-100 transition-colors"
+              >
+                Suscribirme a Equipo · $49
               </Link>
             </div>
           </div>
@@ -166,10 +181,10 @@ export default function DashboardBilling() {
             </div>
             <div className="flex flex-wrap items-center gap-3 mt-5">
               <Link
-                to="/dashboard"
+                to="/"
                 className="inline-flex items-center gap-2 rounded-full bg-white text-black px-5 h-10 text-[13px] font-semibold hover:bg-gray-100 transition-colors"
               >
-                <ArrowLeft className="h-4 w-4" /> Volver al dashboard
+                <ArrowLeft className="h-4 w-4" /> Volver a inicio
               </Link>
               <a
                 href="mailto:archillastudios@gmail.com"
