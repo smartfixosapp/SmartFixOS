@@ -25,6 +25,7 @@ const Signup           = lazyWithRetry(() => import("./Signup"));
 const LoginPage        = lazyWithRetry(() => import("./Login"));
 const Dashboard        = lazyWithRetry(() => import("./Dashboard"));
 const Upgrade          = lazyWithRetry(() => import("./Upgrade"));
+const DashboardBilling = lazyWithRetry(() => import("./DashboardBilling"));
 const Billing          = lazyWithRetry(() => import("./Billing"));
 const VerifyEmail      = lazyWithRetry(() => import("./VerifyEmail"));
 const Activate         = lazyWithRetry(() => import("./Activate"));
@@ -72,6 +73,7 @@ function PagesContent() {
         <Route path="/login"           element={<LoginPage />} />
         <Route path="/dashboard"       element={<Dashboard />} />
         <Route path="/upgrade"         element={<Upgrade />} />
+        <Route path="/dashboard/billing" element={<DashboardBilling />} />
         <Route path="/billing"         element={<Billing />} />
         <Route path="/VerifyEmail"     element={<VerifyEmail />} />
         <Route path="/Activate"        element={<Activate />} />
