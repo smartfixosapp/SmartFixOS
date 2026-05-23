@@ -128,23 +128,89 @@ function AnimatedWordmark({ size = "hero", centerColor = "#0a0a0a" }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Hero — pantalla completa con sólo el logo animado + tagline
+//  Hero — wordmark animado + tagline + botones de descarga
 // ─────────────────────────────────────────────────────────────────────────────
 function Hero() {
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center px-6 overflow-hidden">
+    <section className="relative min-h-screen flex flex-col items-center justify-center px-6 py-20 overflow-hidden">
       <AnimatedWordmark />
 
       <motion.p
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1.0, duration: 0.7 }}
-        className="mt-12 text-center text-base sm:text-lg text-white/50 max-w-md leading-relaxed font-medium"
+        className="mt-10 text-center text-base sm:text-lg text-white/50 max-w-md leading-relaxed font-medium"
       >
         El sistema operativo para talleres de reparación.
         <br />
         Hecho por un técnico, para técnicos.
       </motion.p>
+
+      {/* Botones de descarga */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.2, duration: 0.7 }}
+        className="mt-10 flex flex-col sm:flex-row items-center gap-3"
+      >
+        {/* iOS · TestFlight o App Store */}
+        {TESTFLIGHT_ENABLED ? (
+          <a
+            href={TESTFLIGHT_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group inline-flex items-center gap-3.5 rounded-2xl bg-white text-black px-6 py-3.5 transition-all hover:bg-gray-50 shadow-[0_10px_40px_rgba(255,255,255,0.10)] active:scale-[0.98]"
+          >
+            <AppleIcon className="h-7 w-7 fill-black" />
+            <div className="flex flex-col items-start leading-tight">
+              <span className="text-[11px] font-medium text-gray-500">Únete al beta</span>
+              <span className="text-base font-semibold text-black tracking-tight">TestFlight</span>
+            </div>
+          </a>
+        ) : (
+          <button
+            type="button"
+            disabled
+            title="Próximamente"
+            className="inline-flex items-center gap-3.5 rounded-2xl bg-white/95 text-black px-6 py-3.5 cursor-not-allowed"
+          >
+            <AppleIcon className="h-7 w-7 fill-black" />
+            <div className="flex flex-col items-start leading-tight">
+              <span className="text-[11px] font-medium text-gray-500">Próximamente en</span>
+              <span className="text-base font-semibold text-black tracking-tight">App Store</span>
+            </div>
+          </button>
+        )}
+
+        {/* Android · Google Play */}
+        {ANDROID_ENABLED ? (
+          <a
+            href={GOOGLE_PLAY_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group inline-flex items-center gap-3.5 rounded-2xl bg-white text-black px-6 py-3.5 transition-all hover:bg-gray-50 shadow-[0_10px_40px_rgba(255,255,255,0.10)] active:scale-[0.98]"
+          >
+            <GooglePlayIcon className="h-7 w-7" />
+            <div className="flex flex-col items-start leading-tight">
+              <span className="text-[11px] font-medium text-gray-500">Disponible en</span>
+              <span className="text-base font-semibold text-black tracking-tight">Google Play</span>
+            </div>
+          </a>
+        ) : (
+          <button
+            type="button"
+            disabled
+            title="Próximamente"
+            className="inline-flex items-center gap-3.5 rounded-2xl bg-white/95 text-black px-6 py-3.5 cursor-not-allowed"
+          >
+            <GooglePlayIcon className="h-7 w-7" />
+            <div className="flex flex-col items-start leading-tight">
+              <span className="text-[11px] font-medium text-gray-500">Próximamente en</span>
+              <span className="text-base font-semibold text-black tracking-tight">Google Play</span>
+            </div>
+          </button>
+        )}
+      </motion.div>
 
       {/* Scroll cue */}
       <motion.button
@@ -153,10 +219,10 @@ function Hero() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1, y: [0, 8, 0] }}
         transition={{
-          opacity: { delay: 1.4, duration: 0.6 },
-          y: { delay: 1.4, duration: 2.4, repeat: Infinity, ease: "easeInOut" },
+          opacity: { delay: 1.6, duration: 0.6 },
+          y: { delay: 1.6, duration: 2.4, repeat: Infinity, ease: "easeInOut" },
         }}
-        className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/30 hover:text-white/60 transition-colors"
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/30 hover:text-white/60 transition-colors"
         aria-label="Bajar a Historia"
       >
         <span className="text-[10px] uppercase tracking-[0.3em] font-medium">Conoce la historia</span>
