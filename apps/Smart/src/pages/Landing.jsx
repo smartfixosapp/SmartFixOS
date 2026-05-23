@@ -912,6 +912,25 @@ function Footer() {
           <span className="text-white/15">·</span>
           <span>San Juan, PR · Hecho a mano 🇵🇷</span>
         </div>
+
+        {/* Studio credit — Archilla Studios construyó SmartFixOS */}
+        <div className="mt-6 pt-8 border-t border-white/[0.04] w-full flex flex-col items-center gap-3">
+          <span className="text-[10px] uppercase tracking-[0.28em] text-white/30">
+            Diseño y desarrollo
+          </span>
+          <a
+            href="mailto:archillastudios@gmail.com"
+            className="inline-flex items-center gap-3 opacity-80 hover:opacity-100 transition-opacity"
+            aria-label="Archilla Studios"
+          >
+            <img
+              src="/archilla-studios.png"
+              alt="Archilla Studios"
+              className="h-10 w-auto object-contain"
+              loading="lazy"
+            />
+          </a>
+        </div>
       </div>
     </footer>
   );
