@@ -36,6 +36,13 @@ const GEAR_PATH = "M 90.57 39.13 L 91.48 43.43 L 99.38 42.18 L 99.38 57.82 L 91.
 function AnimatedWordmark({ size = "hero", centerColor = "#0a0a0a" }) {
   const isHero = size === "hero";
   const clipId = `gear-clip-${size}`;
+
+  // Letters enter quick (40ms stagger) so attention lands on the gear faster.
+  const letterCount = 8; // "smartfix"
+  const letterStagger = 0.04;
+  const gearDelay  = 0.05 + letterCount * letterStagger; // 0.37s
+  const finalSDelay = gearDelay + 0.25; // gear lands first, then the closing "s"
+
   return (
     <div
       className={
@@ -52,30 +59,48 @@ function AnimatedWordmark({ size = "hero", centerColor = "#0a0a0a" }) {
       {"smartfix".split("").map((ch, i) => (
         <motion.span
           key={`l-${i}`}
-          initial={{ opacity: 0, y: "0.4em", scale: 0.92 }}
+          initial={{ opacity: 0, y: "0.5em", scale: 0.85 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ delay: 0.05 + i * 0.05, duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
+          transition={{
+            delay: 0.05 + i * letterStagger,
+            duration: 0.6,
+            ease: [0.16, 1, 0.3, 1],
+          }}
           style={{ display: "inline-block" }}
         >
           {ch}
         </motion.span>
       ))}
 
+      {/* Engranaje — entrada con rotación + overshoot, después loop infinito */}
       <motion.span
-        initial={{ opacity: 0, y: "0.4em", scale: 0.92 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ delay: 0.45, duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
+        initial={{ opacity: 0, scale: 0.3, rotate: -160 }}
+        animate={{ opacity: 1, scale: 1, rotate: 0 }}
+        transition={{
+          delay: gearDelay,
+          duration: 0.95,
+          ease: [0.34, 1.46, 0.5, 1], // overshoot back-out — el gear "encaja"
+        }}
         className="relative inline-grid place-items-center"
         style={{ width: "0.92em", height: "0.92em", margin: "0 -0.02em" }}
         aria-hidden
       >
-        <span
+        {/* Halo: flash brillante en la entrada, después pulso suave */}
+        <motion.span
           className="pointer-events-none absolute inset-[8%] rounded-full -z-10"
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: [0, 1, 0.55], scale: [0.5, 1.45, 1] }}
+          transition={{
+            delay: gearDelay,
+            duration: 0.9,
+            times: [0, 0.45, 1],
+            ease: "easeOut",
+          }}
           style={{
             background:
-              "radial-gradient(circle, rgba(143,201,63,0.22) 0%, rgba(31,160,220,0.20) 50%, transparent 75%)",
+              "radial-gradient(circle, rgba(143,201,63,0.32) 0%, rgba(31,160,220,0.28) 50%, transparent 75%)",
             filter: "blur(8px)",
-            animation: "sfx-halo 4s ease-in-out infinite",
+            animation: `sfx-halo 4s ease-in-out infinite ${gearDelay + 0.9}s`,
           }}
         />
         <svg
@@ -84,7 +109,8 @@ function AnimatedWordmark({ size = "hero", centerColor = "#0a0a0a" }) {
           style={{
             width: "100%", height: "100%", overflow: "visible",
             transformOrigin: "50% 50%",
-            animation: "sfx-gear-spin 14s linear infinite",
+            // Spin starts after the entrance overshoot finishes
+            animation: `sfx-gear-spin 14s linear infinite ${gearDelay + 0.95}s`,
           }}
         >
           <defs>
@@ -98,10 +124,11 @@ function AnimatedWordmark({ size = "hero", centerColor = "#0a0a0a" }) {
         </svg>
       </motion.span>
 
+      {/* "s" final — entra después del gear, completa la palabra */}
       <motion.span
-        initial={{ opacity: 0, y: "0.4em", scale: 0.92 }}
+        initial={{ opacity: 0, y: "0.5em", scale: 0.85 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ delay: 0.6, duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ delay: finalSDelay, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         style={{ display: "inline-block" }}
       >
         s
@@ -446,10 +473,18 @@ function PlanCard({ name, price, tagline, features, highlighted = false, delay =
 
       <button
         type="button" disabled
-        className={highlighted ? "mt-10 h-12 w-full rounded-full bg-black text-white text-sm font-semibold cursor-not-allowed" : "mt-10 h-12 w-full rounded-full bg-white/[0.04] text-white/55 text-sm font-semibold border border-white/10 cursor-not-allowed"}
+        className={[
+          "mt-10 h-12 w-full rounded-full text-sm font-semibold cursor-not-allowed",
+          "inline-flex items-center justify-center gap-2.5 px-4 whitespace-nowrap",
+          highlighted
+            ? "bg-black text-white"
+            : "bg-white/[0.04] text-white/65 border border-white/10",
+        ].join(" ")}
         title="Disponible cuando lancemos las apps"
       >
-        Pronto en App Store y Google Play
+        <AppleIcon className={highlighted ? "h-4 w-4 fill-white" : "h-4 w-4 fill-white/80"} />
+        <GooglePlayIcon className="h-4 w-4" />
+        <span>Próximamente</span>
       </button>
     </motion.article>
   );
