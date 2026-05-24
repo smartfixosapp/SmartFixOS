@@ -56,10 +56,7 @@ export default function DashboardBilling() {
             ? tenantsRpc[0].tenant_id
             : null;
         if (!tenantId) {
-          setErrorMsg(
-            "No encontramos un taller asociado a tu cuenta. Crea tu cuenta desde la app SmartFixOS.",
-          );
-          setStatus("error");
+          setStatus("no_tenant");
           return;
         }
 
@@ -84,22 +81,19 @@ export default function DashboardBilling() {
         // We need to parse the body to discriminate between 409 NO_CUSTOMER (a
         // valid "founder / legacy / pre-checkout" state) and real errors.
         if (error) {
-          let body = data; // sometimes the SDK populates data even on errors
+          let body = data;
           if (!body && error.context && typeof error.context.json === "function") {
             try { body = await error.context.json(); } catch { /* fall through */ }
           }
 
-          // Try the status off the underlying Response when available
           const httpStatus = error.context?.status ?? null;
           const code = body?.code || null;
 
-          // ─── Known clean failure: tenant doesn't have a Stripe customer yet
           if (code === "NO_CUSTOMER" || httpStatus === 409) {
             setStatus("no_customer");
             return;
           }
 
-          // ─── Auth issues — JWT expired or missing (iOS should re-issue tokens)
           if (httpStatus === 401) {
             setErrorMsg("Tu sesión expiró. Vuelve a abrir esta pantalla desde la app.");
             setStatus("error");
@@ -111,7 +105,7 @@ export default function DashboardBilling() {
             return;
           }
           if (httpStatus === 404) {
-            setErrorMsg("No encontramos tu taller. Escríbenos a archillastudios@gmail.com.");
+            setErrorMsg("Algo cambió mientras abríamos el portal. Cierra esta pantalla y vuelve a intentarlo desde la app.");
             setStatus("error");
             return;
           }
@@ -121,7 +115,6 @@ export default function DashboardBilling() {
             return;
           }
 
-          // ─── Fallback — bubble up readable body message if we got one
           throw new Error(body?.error || error.message || "Portal unavailable");
         }
 
@@ -149,12 +142,20 @@ export default function DashboardBilling() {
     return () => { cancelled = true; };
   }, [hydrated]);
 
-  // ── No-auth gate ──────────────────────────────────────────────────────
   if (status === "no_auth") {
     return (
       <DownloadAppGate
         title="Maneja tu suscripción desde la app."
         body="Para abrir el portal de Stripe necesitas tener la app SmartFixOS instalada y haber iniciado sesión. Descárgala y desde Ajustes → Suscripción aparece este mismo botón."
+      />
+    );
+  }
+
+  if (status === "no_tenant") {
+    return (
+      <DownloadAppGate
+        title="Crea tu taller desde la app."
+        body="Aún no tienes un taller registrado en tu cuenta. Abre la app SmartFixOS y completa el wizard de bienvenida — desde ahí podrás suscribirte y manejar tu plan."
       />
     );
   }

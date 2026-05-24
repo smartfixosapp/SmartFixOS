@@ -97,7 +97,6 @@ export default function Upgrade() {
           return;
         }
 
-        // 5. Llamar al edge function de Memo
         setStatus("redirecting");
         const priceId = STRIPE_PRICES[planSlug];
         const { data, error } = await supabase.functions.invoke(
@@ -106,19 +105,48 @@ export default function Upgrade() {
             body: {
               price_id:    priceId,
               tenant_id:   tenantId,
-              // success_url goes to /upgrade-success which fires the
-              // smartfixos://refresh-plan deep link to bounce the user
-              // back into the iOS app (Universal Link claimed via AASA).
               success_url: `${window.location.origin}/upgrade-success?from=stripe`,
-              // cancel_url comes back here and lands in the
-              // stripeReturn==='canceled' short-circuit below
               cancel_url:  `${window.location.origin}/upgrade?plan=${planSlug}&upgrade=canceled`,
             },
           },
         );
         if (cancelled) return;
 
-        if (error) throw error;
+        if (error) {
+          let body = data;
+          if (!body && error.context && typeof error.context.json === "function") {
+            try { body = await error.context.json(); } catch { /* fall through */ }
+          }
+          const httpStatus = error.context?.status ?? null;
+          const bodyError = body?.error || "";
+
+          if (/no such price/i.test(bodyError)) {
+            const planName = PLANS[planSlug]?.name || planSlug;
+            setErrorMsg(
+              `El plan ${planName} no está disponible para checkout en este momento. ` +
+              `Escríbenos a archillastudios@gmail.com — lo arreglamos en minutos.`,
+            );
+            setStatus("error");
+            return;
+          }
+          if (httpStatus === 401) {
+            setErrorMsg("Tu sesión expiró. Vuelve a abrir esta pantalla desde la app.");
+            setStatus("error");
+            return;
+          }
+          if (httpStatus === 403) {
+            setErrorMsg("No tienes permisos para suscribir este taller.");
+            setStatus("error");
+            return;
+          }
+          if (httpStatus === 404) {
+            setErrorMsg("No encontramos el taller. Cierra esta pantalla e intenta de nuevo desde la app.");
+            setStatus("error");
+            return;
+          }
+
+          throw new Error(bodyError || error.message || "Checkout no disponible");
+        }
         if (!data?.url) throw new Error("Stripe no devolvió URL de checkout.");
 
         window.location.href = data.url;

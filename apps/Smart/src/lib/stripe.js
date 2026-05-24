@@ -56,7 +56,7 @@ export const STRIPE_PUBLISHABLE_KEY =
 // Cuando salgamos a live, los reemplazamos por los Price IDs de
 // los productos en live mode (NO son los mismos IDs).
 const STRIPE_PRICES_TEST = Object.freeze({
-  solo: "price_1TaEWc0ynKjNBHk6qToJ74i1", // $19/mes USD — Plan Solo
+  solo: "price_1TaEWc0ynKjNBHk65T30N5Ck", // $19/mes USD — Plan Solo
   team: "price_1TaEaR0ynKjNBHk6vSkR8Cbt", // $49/mes USD — Plan Equipo (Team)
 });
 
