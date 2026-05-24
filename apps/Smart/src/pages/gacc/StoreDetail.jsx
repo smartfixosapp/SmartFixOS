@@ -10,7 +10,8 @@ import {
   Users, ShoppingBag, DollarSign, CreditCard, Activity, Clock,
   Shield, Pencil, PauseCircle, PlayCircle, Trash2, KeyRound,
   ChevronRight, RefreshCw, Copy, ExternalLink, Eye, StickyNote,
-  Send, CheckCircle, XCircle, AlertTriangle, MoreHorizontal
+  Send, CheckCircle, XCircle, AlertTriangle, MoreHorizontal,
+  CalendarPlus, UserCog, Crown
 } from "lucide-react";
 import { useGACC, getStatusBadge, presenceStatus, timeAgo, getPlanConfig, PLAN_OPTIONS, normalizePlan } from "./gaccContext";
 import { toast } from "sonner";
@@ -861,17 +862,399 @@ function EditStoreModal({ tenant, open, onClose }) {
   );
 }
 
+// ── Extend Trial Modal ──────────────────────────────────────────────────────
+function ExtendTrialModal({ tenant, open, onClose }) {
+  const { adminSupabase, refresh } = useGACC();
+  const [days, setDays] = useState(7);
+  const [saving, setSaving] = useState(false);
+
+  const currentEnd = tenant.trial_end_date ? new Date(tenant.trial_end_date) : null;
+  const newEnd = currentEnd
+    ? new Date(currentEnd.getTime() + days * 86_400_000)
+    : new Date(Date.now() + days * 86_400_000);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const { error } = await adminSupabase
+        .from("tenant")
+        .update({
+          trial_end_date: newEnd.toISOString(),
+          plan: tenant.plan === "expired" ? "trial" : tenant.plan, // re-abre si estaba expirado
+          subscription_status: "trialing",
+        })
+        .eq("id", tenant.id);
+      if (error) throw error;
+
+      // Audit log local
+      try {
+        const log = JSON.parse(localStorage.getItem("gacc_admin_log") || "[]");
+        log.unshift({
+          action: `Trial extendido ${days}d: ${tenant.name}`,
+          target: tenant.email,
+          type: "info",
+          time: new Date().toISOString(),
+        });
+        localStorage.setItem("gacc_admin_log", JSON.stringify(log.slice(0, 50)));
+      } catch {}
+
+      toast.success(`Trial extendido ${days} días para ${tenant.name}`);
+      await refresh();
+      onClose();
+    } catch (e) {
+      toast.error("Error: " + e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!open) return null;
+
+  return createPortal(
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 10 }}
+          className="w-full max-w-md bg-[#141416] border border-white/[0.1] rounded-2xl shadow-2xl overflow-hidden"
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
+            <div>
+              <p className="text-[14px] font-bold text-white">Extender Trial</p>
+              <p className="text-[11px] text-gray-600">{tenant.name}</p>
+            </div>
+            <button onClick={onClose} className="p-1.5 rounded-lg text-gray-600 hover:text-white hover:bg-white/[0.05]">
+              <XCircle className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="px-5 py-4 space-y-4">
+            <div className="rounded-xl bg-white/[0.02] border border-white/[0.06] p-3 space-y-1">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-gray-500">Trial actual termina:</span>
+                <span className="text-white">{currentEnd ? currentEnd.toLocaleDateString("es", { day:"numeric", month:"long", year:"numeric" }) : "—"}</span>
+              </div>
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-gray-500">Nuevo final:</span>
+                <span className="text-lime-300 font-semibold">{newEnd.toLocaleDateString("es", { day:"numeric", month:"long", year:"numeric" })}</span>
+              </div>
+            </div>
+
+            <div>
+              <p className="text-[10px] text-gray-500 tracking-wide font-bold mb-2">Días a agregar</p>
+              <div className="grid grid-cols-4 gap-2 mb-2">
+                {[3, 7, 14, 30].map(d => (
+                  <button
+                    key={d}
+                    onClick={() => setDays(d)}
+                    className={`px-3 py-2 rounded-xl text-[12px] font-semibold transition-all border ${
+                      days === d
+                        ? "bg-lime-400/15 text-lime-300 border-lime-400/40"
+                        : "bg-white/[0.02] text-gray-500 border-white/[0.06] hover:border-white/[0.12]"
+                    }`}
+                  >
+                    +{d}d
+                  </button>
+                ))}
+              </div>
+              <input
+                type="number"
+                min="1"
+                max="365"
+                value={days}
+                onChange={e => setDays(Math.max(1, Math.min(365, parseInt(e.target.value, 10) || 1)))}
+                className="w-full px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.07] text-[13px] text-white outline-none focus:border-lime-400/40"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-white/[0.06]">
+            <button onClick={onClose} className="px-4 py-2 rounded-xl text-[12px] text-gray-500 hover:text-white transition-all">Cancelar</button>
+            <button
+              onClick={handleSave}
+              disabled={saving || days < 1}
+              className="flex items-center gap-1.5 px-5 py-2 rounded-xl text-[12px] font-semibold bg-lime-400/15 text-lime-300 border border-lime-400/30 hover:bg-lime-400/25 transition-all disabled:opacity-50"
+            >
+              {saving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <CalendarPlus className="w-3.5 h-3.5" />}
+              Extender {days}d
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>,
+    document.body
+  );
+}
+
+// ── Suspend / Reactivate Modal ──────────────────────────────────────────────
+function SuspendModal({ tenant, open, onClose }) {
+  const { adminSupabase, refresh } = useGACC();
+  const [saving, setSaving] = useState(false);
+  const isSuspended = tenant.status === "inactive";
+  const action = isSuspended ? "reactivar" : "suspender";
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const newStatus = isSuspended ? "active" : "inactive";
+      const { error } = await adminSupabase
+        .from("tenant")
+        .update({ status: newStatus })
+        .eq("id", tenant.id);
+      if (error) throw error;
+
+      try {
+        const log = JSON.parse(localStorage.getItem("gacc_admin_log") || "[]");
+        log.unshift({
+          action: `Tienda ${isSuspended ? "reactivada" : "suspendida"}: ${tenant.name}`,
+          target: tenant.email,
+          type: isSuspended ? "info" : "warning",
+          time: new Date().toISOString(),
+        });
+        localStorage.setItem("gacc_admin_log", JSON.stringify(log.slice(0, 50)));
+      } catch {}
+
+      toast.success(`Tienda ${isSuspended ? "reactivada" : "suspendida"}: ${tenant.name}`);
+      await refresh();
+      onClose();
+    } catch (e) {
+      toast.error("Error: " + e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!open) return null;
+
+  return createPortal(
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 10 }}
+          className="w-full max-w-md bg-[#141416] border border-white/[0.1] rounded-2xl shadow-2xl overflow-hidden"
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
+            <div>
+              <p className="text-[14px] font-bold text-white">{isSuspended ? "Reactivar Tienda" : "Suspender Tienda"}</p>
+              <p className="text-[11px] text-gray-600">{tenant.name}</p>
+            </div>
+            <button onClick={onClose} className="p-1.5 rounded-lg text-gray-600 hover:text-white hover:bg-white/[0.05]">
+              <XCircle className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="px-5 py-5 space-y-3">
+            <div className={`rounded-xl border p-4 ${isSuspended ? "bg-emerald-500/10 border-emerald-500/30" : "bg-amber-500/10 border-amber-500/30"}`}>
+              <p className={`text-[13px] font-semibold mb-1 ${isSuspended ? "text-emerald-300" : "text-amber-300"}`}>
+                {isSuspended ? "Vas a reactivar este taller" : "Vas a suspender este taller"}
+              </p>
+              <p className="text-[12px] text-gray-400 leading-relaxed">
+                {isSuspended
+                  ? "Los empleados podrán volver a abrir la app inmediatamente. Su data está intacta."
+                  : "La app iOS bloqueará el acceso al instante. La data no se borra. Puedes reactivarla cuando quieras."}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-white/[0.06]">
+            <button onClick={onClose} className="px-4 py-2 rounded-xl text-[12px] text-gray-500 hover:text-white transition-all">Cancelar</button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-[12px] font-semibold border transition-all disabled:opacity-50 ${
+                isSuspended
+                  ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/25"
+                  : "bg-amber-500/15 text-amber-300 border-amber-500/30 hover:bg-amber-500/25"
+              }`}
+            >
+              {saving
+                ? <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                : isSuspended ? <PlayCircle className="w-3.5 h-3.5" /> : <PauseCircle className="w-3.5 h-3.5" />}
+              {isSuspended ? "Reactivar" : "Suspender"}
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>,
+    document.body
+  );
+}
+
+// ── Internal Account Modal ──────────────────────────────────────────────────
+const INTERNAL_TYPES = [
+  { key: null,             label: "Cliente normal", desc: "Cuenta de cliente real — entra en MRR y reports",         color: "gray"   },
+  { key: "founder",        label: "Founder",        desc: "Tu cuenta propia — excluida de MRR. $0/mes perpetuo",     color: "purple" },
+  { key: "team_member",    label: "Team interno",   desc: "Memo, designers, contractors — excluida de MRR",          color: "cyan"   },
+  { key: "beta",           label: "Beta tester",    desc: "Early adopter con acceso gratis — excluida de MRR",       color: "lime"   },
+];
+
+function InternalAccountModal({ tenant, open, onClose }) {
+  const { adminSupabase, refresh } = useGACC();
+  const current = tenant.metadata?.account_type || null;
+  const [selected, setSelected] = useState(current);
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const metadata = { ...(tenant.metadata || {}) };
+      if (selected) {
+        metadata.account_type = selected;
+        if (selected !== "founder") {
+          // Solo el founder forza monthly_cost=0 + next_billing perpetuo. Para los
+          // demás internos sí ponemos $0 también pero sin el flag de perpetuo.
+        }
+      } else {
+        delete metadata.account_type;
+      }
+
+      const updates = { metadata };
+      if (selected) {
+        // Internal accounts: $0, perpetual billing date, no Stripe entanglement
+        updates.monthly_cost = 0;
+        updates.next_billing_date = "2099-12-31T00:00:00+00:00";
+        updates.subscription_status = "active";
+      }
+
+      const { error } = await adminSupabase
+        .from("tenant")
+        .update(updates)
+        .eq("id", tenant.id);
+      if (error) throw error;
+
+      try {
+        const log = JSON.parse(localStorage.getItem("gacc_admin_log") || "[]");
+        log.unshift({
+          action: `Tipo de cuenta: ${tenant.name} → ${selected || "cliente normal"}`,
+          target: tenant.email,
+          type: "info",
+          time: new Date().toISOString(),
+        });
+        localStorage.setItem("gacc_admin_log", JSON.stringify(log.slice(0, 50)));
+      } catch {}
+
+      toast.success(`Cuenta marcada como ${selected || "cliente normal"}`);
+      await refresh();
+      onClose();
+    } catch (e) {
+      toast.error("Error: " + e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!open) return null;
+
+  return createPortal(
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 10 }}
+          className="w-full max-w-md bg-[#141416] border border-white/[0.1] rounded-2xl shadow-2xl overflow-hidden"
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
+            <div>
+              <p className="text-[14px] font-bold text-white">Tipo de cuenta</p>
+              <p className="text-[11px] text-gray-600">{tenant.name}</p>
+            </div>
+            <button onClick={onClose} className="p-1.5 rounded-lg text-gray-600 hover:text-white hover:bg-white/[0.05]">
+              <XCircle className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="px-5 py-4 space-y-2">
+            {INTERNAL_TYPES.map(t => (
+              <button
+                key={String(t.key)}
+                onClick={() => setSelected(t.key)}
+                className={`w-full flex items-start gap-3 px-4 py-3 rounded-xl border text-left transition-all ${
+                  selected === t.key
+                    ? "border-purple-500/50 bg-purple-500/10"
+                    : "border-white/[0.06] bg-white/[0.02] hover:border-white/[0.12]"
+                }`}
+              >
+                <span className={`mt-0.5 w-3 h-3 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                  selected === t.key ? "border-purple-400" : "border-gray-600"
+                }`}>
+                  {selected === t.key && <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-semibold text-white">{t.label}</p>
+                  <p className="text-[11px] text-gray-500 mt-0.5 leading-relaxed">{t.desc}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <div className="px-5 py-3 border-t border-white/[0.06] bg-white/[0.01]">
+            <p className="text-[10px] text-gray-600 leading-relaxed">
+              Las cuentas internas se excluyen automáticamente de MRR y reports vía<br/>
+              <code className="text-[9px] text-purple-400">metadata-&gt;&gt;'account_type'</code> filter en RevenueView.
+            </p>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-white/[0.06]">
+            <button onClick={onClose} className="px-4 py-2 rounded-xl text-[12px] text-gray-500 hover:text-white transition-all">Cancelar</button>
+            <button
+              onClick={handleSave}
+              disabled={saving || selected === current}
+              className="flex items-center gap-1.5 px-5 py-2 rounded-xl text-[12px] font-semibold bg-purple-500/15 text-purple-300 border border-purple-500/30 hover:bg-purple-500/25 transition-all disabled:opacity-50"
+            >
+              {saving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}
+              Guardar
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>,
+    document.body
+  );
+}
+
 // ── Main Store Detail ────────────────────────────────────────────────────────
 export default function StoreDetail({ tenant, onBack }) {
   const [activeTab, setActiveTab] = useState("overview");
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showExtendTrialModal, setShowExtendTrialModal] = useState(false);
+  const [showSuspendModal, setShowSuspendModal] = useState(false);
+  const [showInternalModal, setShowInternalModal] = useState(false);
   const [accessing, setAccessing] = useState(false);
   const { appClient, adminSupabase, refresh } = useGACC();
   const badge = getStatusBadge(tenant);
   const presence = presenceStatus(tenant.last_seen);
   const planConfig = getPlanConfig(tenant.effective_plan || tenant.plan);
+
+  // Derived flags for which admin buttons make sense for this tenant
+  const isTrial = tenant.plan === "trial" || tenant.plan === "expired";
+  const isSuspended = tenant.status === "inactive";
+  const accountType = tenant.metadata?.account_type || null;
+  const hasStripeCustomer = !!tenant.stripe_customer_id;
+  const stripeMode = (tenant.stripe_customer_id || "").startsWith("cus_test_") ? "test" : "live";
+  const stripeUrl = hasStripeCustomer
+    ? `https://dashboard.stripe.com/${stripeMode === "test" ? "test/" : ""}customers/${tenant.stripe_customer_id}`
+    : null;
 
   // Access the store as its owner
   const handleAccessStore = async () => {
@@ -997,6 +1380,33 @@ export default function StoreDetail({ tenant, onBack }) {
               <CreditCard className="w-3.5 h-3.5" />
               Cambiar Plan
             </button>
+
+            {/* Extend trial — only meaningful if currently on trial or expired */}
+            {isTrial && (
+              <button
+                onClick={() => setShowExtendTrialModal(true)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-semibold bg-lime-400/15 text-lime-300 border border-lime-400/30 hover:bg-lime-400/25 transition-all"
+                title="Extender el trial X días"
+              >
+                <CalendarPlus className="w-3.5 h-3.5" />
+                Extender trial
+              </button>
+            )}
+
+            {/* Mark internal account (founder / team_member / beta) */}
+            <button
+              onClick={() => setShowInternalModal(true)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-semibold border transition-all ${
+                accountType
+                  ? "bg-purple-500/15 text-purple-300 border-purple-500/30 hover:bg-purple-500/25"
+                  : "text-gray-600 border-white/[0.07] hover:border-white/[0.15] hover:text-white"
+              }`}
+              title={accountType ? `Cuenta interna: ${accountType}` : "Marcar como cuenta interna (founder/team/beta)"}
+            >
+              {accountType === "founder" ? <Crown className="w-3.5 h-3.5" /> : <UserCog className="w-3.5 h-3.5" />}
+              {accountType ? accountType : "Tipo"}
+            </button>
+
             <button
               onClick={() => setShowEditModal(true)}
               className="p-2 rounded-xl text-gray-600 hover:text-white border border-white/[0.07] hover:border-white/[0.15] transition-all"
@@ -1004,6 +1414,33 @@ export default function StoreDetail({ tenant, onBack }) {
             >
               <Pencil className="w-4 h-4" />
             </button>
+
+            {/* Suspend / Reactivate */}
+            <button
+              onClick={() => setShowSuspendModal(true)}
+              className={`p-2 rounded-xl border transition-all ${
+                isSuspended
+                  ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20"
+                  : "text-gray-600 hover:text-amber-300 border-white/[0.07] hover:border-amber-500/30 hover:bg-amber-500/5"
+              }`}
+              title={isSuspended ? "Reactivar tienda" : "Suspender tienda (bloquea acceso)"}
+            >
+              {isSuspended ? <PlayCircle className="w-4 h-4" /> : <PauseCircle className="w-4 h-4" />}
+            </button>
+
+            {/* Open in Stripe Dashboard (only if customer exists) */}
+            {stripeUrl && (
+              <a
+                href={stripeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-xl text-gray-600 hover:text-purple-300 border border-white/[0.07] hover:border-purple-500/30 hover:bg-purple-500/5 transition-all"
+                title={`Abrir customer en Stripe (${stripeMode})`}
+              >
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            )}
+
             <button className="p-2 rounded-xl text-gray-600 hover:text-white border border-white/[0.07] hover:border-white/[0.15] transition-all" title="Enviar email">
               <Mail className="w-4 h-4" />
             </button>
@@ -1043,6 +1480,9 @@ export default function StoreDetail({ tenant, onBack }) {
       <ChangePlanModal tenant={tenant} open={showPlanModal} onClose={() => setShowPlanModal(false)} />
       <EditStoreModal tenant={tenant} open={showEditModal} onClose={() => setShowEditModal(false)} />
       <DeleteStoreModal tenant={tenant} open={showDeleteModal} onClose={() => setShowDeleteModal(false)} onDeleted={onBack} />
+      <ExtendTrialModal tenant={tenant} open={showExtendTrialModal} onClose={() => setShowExtendTrialModal(false)} />
+      <SuspendModal tenant={tenant} open={showSuspendModal} onClose={() => setShowSuspendModal(false)} />
+      <InternalAccountModal tenant={tenant} open={showInternalModal} onClose={() => setShowInternalModal(false)} />
     </div>
   );
 }
