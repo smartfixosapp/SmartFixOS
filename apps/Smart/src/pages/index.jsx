@@ -28,6 +28,8 @@ const Upgrade          = lazyWithRetry(() => import("./Upgrade"));
 const UpgradeSuccess   = lazyWithRetry(() => import("./UpgradeSuccess"));
 const DashboardBilling = lazyWithRetry(() => import("./DashboardBilling"));
 const Billing          = lazyWithRetry(() => import("./Billing"));
+const LegalTerms       = lazyWithRetry(() => import("./LegalTerms"));
+const LegalRefunds     = lazyWithRetry(() => import("./LegalRefunds"));
 const VerifyEmail      = lazyWithRetry(() => import("./VerifyEmail"));
 const Activate         = lazyWithRetry(() => import("./Activate"));
 const TenantActivate   = lazyWithRetry(() => import("./TenantActivate"));
@@ -78,6 +80,9 @@ function PagesContent() {
         <Route path="/upgrade-success" element={<UpgradeSuccess />} />
         <Route path="/dashboard/billing" element={<DashboardBilling />} />
         <Route path="/billing"         element={<Billing />} />
+        {/* Legal (Sprint 135 §8.7 — required by Stripe before exiting test mode) */}
+        <Route path="/legal/terms"     element={<LegalTerms />} />
+        <Route path="/legal/refunds"   element={<LegalRefunds />} />
 
         {/* Sprint 135 removed these — redirect to landing so old links
             from emails/screenshots don't 404 silently. */}

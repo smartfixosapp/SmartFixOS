@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { Check, ArrowDown, ArrowRight, Plus, Minus, Loader2, CheckCircle2, FlaskConical } from "lucide-react";
 import { supabase } from "../../../../lib/supabase-client.js";
@@ -955,7 +955,27 @@ function Footer() {
           </a>
         </div>
 
-        <div className="text-[11px] uppercase tracking-[0.22em] text-white/25 pt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+        {/* Legal links — required visible by Stripe before live mode */}
+        <div className="pt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[12px]">
+          <Link to="/legal/terms" className="text-white/55 hover:text-white transition-colors">
+            Términos
+          </Link>
+          <span className="text-white/15">·</span>
+          <Link to="/legal/refunds" className="text-white/55 hover:text-white transition-colors">
+            Reembolsos
+          </Link>
+          <span className="text-white/15">·</span>
+          <a
+            href="https://smartfixos-privacidad.vercel.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white/55 hover:text-white transition-colors"
+          >
+            Privacidad
+          </a>
+        </div>
+
+        <div className="text-[11px] uppercase tracking-[0.22em] text-white/25 pt-2 flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
           <span>SmartFixOS © 2026</span>
           <span className="text-white/15">·</span>
           <span>v3.5.0</span>
