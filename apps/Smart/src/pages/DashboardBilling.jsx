@@ -76,14 +76,56 @@ export default function DashboardBilling() {
         );
         if (cancelled) return;
 
+        // Supabase Functions client behavior for non-2xx (see PARA_CHARLIE_BUG_PORTAL_409.md):
+        // - `error` will be a FunctionsHttpError with a generic message like
+        //   "Edge Function returned a non-2xx status code"
+        // - The actual JSON body of the response is NOT exposed in `data` on error
+        //   paths — we have to read it from `error.context.json()`
+        // We need to parse the body to discriminate between 409 NO_CUSTOMER (a
+        // valid "founder / legacy / pre-checkout" state) and real errors.
         if (error) {
-          const raw = error.message || "";
-          if (raw.includes("NO_CUSTOMER") || raw.includes("No Stripe customer")) {
+          let body = data; // sometimes the SDK populates data even on errors
+          if (!body && error.context && typeof error.context.json === "function") {
+            try { body = await error.context.json(); } catch { /* fall through */ }
+          }
+
+          // Try the status off the underlying Response when available
+          const httpStatus = error.context?.status ?? null;
+          const code = body?.code || null;
+
+          // ─── Known clean failure: tenant doesn't have a Stripe customer yet
+          if (code === "NO_CUSTOMER" || httpStatus === 409) {
             setStatus("no_customer");
             return;
           }
-          throw error;
+
+          // ─── Auth issues — JWT expired or missing (iOS should re-issue tokens)
+          if (httpStatus === 401) {
+            setErrorMsg("Tu sesión expiró. Vuelve a abrir esta pantalla desde la app.");
+            setStatus("error");
+            return;
+          }
+          if (httpStatus === 403) {
+            setErrorMsg("No tienes permisos para abrir el portal de este taller.");
+            setStatus("error");
+            return;
+          }
+          if (httpStatus === 404) {
+            setErrorMsg("No encontramos tu taller. Escríbenos a archillastudios@gmail.com.");
+            setStatus("error");
+            return;
+          }
+          if (httpStatus === 500) {
+            setErrorMsg("Error temporal de Stripe. Intenta de nuevo en un momento.");
+            setStatus("error");
+            return;
+          }
+
+          // ─── Fallback — bubble up readable body message if we got one
+          throw new Error(body?.error || error.message || "Portal unavailable");
         }
+
+        // Success path — but defensive check (edge fn returned 200 without url)
         if (!data?.url) {
           if (data?.code === "NO_CUSTOMER") {
             setStatus("no_customer");
@@ -142,30 +184,36 @@ export default function DashboardBilling() {
 
         {status === "no_customer" && (
           <div className="rounded-2xl border border-white/15 bg-white/[0.04] px-6 py-6 text-left">
-            <div className="flex items-start gap-3 mb-4">
-              <CreditCard className="h-5 w-5 mt-0.5 flex-shrink-0 text-white/60" />
+            <div className="flex items-start gap-3 mb-5">
+              <div className="h-10 w-10 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center flex-shrink-0">
+                <CreditCard className="h-5 w-5 text-white/70" />
+              </div>
               <div>
                 <div className="text-base font-semibold text-white">
-                  Aún no tienes suscripción
+                  Cuenta sin facturación
                 </div>
                 <p className="mt-1 text-[13.5px] text-white/65 leading-relaxed">
-                  El portal de Stripe se abre después de tu primer pago. Activa un
-                  plan desde la app SmartFixOS y luego vuelves aquí para manejarlo.
+                  No tienes una suscripción activa con Stripe — no hay nada que
+                  gestionar en el portal. Esto pasa con cuentas Founder, beta o
+                  cuentas en trial que aún no completaron el primer pago.
+                </p>
+                <p className="mt-3 text-[13px] text-white/45 leading-relaxed">
+                  ¿Eres Founder o crees que esto es un error? Escríbenos.
                 </p>
               </div>
             </div>
-            <div className="flex flex-wrap items-center gap-3 mt-5">
-              <Link
-                to="/upgrade?plan=solo"
-                className="inline-flex items-center gap-2 rounded-full bg-lime-400 text-black px-5 h-10 text-[13px] font-semibold hover:bg-lime-300 transition-colors"
-              >
-                Suscribirme a Solo · $19
-              </Link>
-              <Link
-                to="/upgrade?plan=team"
+            <div className="flex flex-wrap items-center gap-3 mt-2">
+              <a
+                href="mailto:archillastudios@gmail.com?subject=Founder%20%2F%20billing%20account&body=Soy%20founder%20o%20cuenta%20interna%20y%20veo%20%22Cuenta%20sin%20facturación%22%20en%20%2Fdashboard%2Fbilling.%20%C2%BFPueden%20revisar%3F"
                 className="inline-flex items-center gap-2 rounded-full bg-white text-black px-5 h-10 text-[13px] font-semibold hover:bg-gray-100 transition-colors"
               >
-                Suscribirme a Equipo · $49
+                Contactar soporte
+              </a>
+              <Link
+                to="/upgrade?plan=team"
+                className="inline-flex items-center gap-2 rounded-full bg-lime-400 text-black px-5 h-10 text-[13px] font-semibold hover:bg-lime-300 transition-colors"
+              >
+                Ver planes disponibles
               </Link>
             </div>
           </div>
