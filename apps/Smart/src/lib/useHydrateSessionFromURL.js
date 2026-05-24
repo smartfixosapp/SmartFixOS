@@ -1,38 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "../../../../lib/supabase-client.js";
 
-/**
- * useHydrateSessionFromURL
- *
- * Sprint 135 — iOS → Web handoff (Approach A: JWT in URL).
- *
- * When the iOS app opens a web URL via SFSafariViewController, it appends
- * the Supabase access + refresh tokens as query params:
- *
- *   /upgrade?plan=team&t=<access_token>&r=<refresh_token>
- *   /dashboard/billing?t=<access_token>&r=<refresh_token>
- *
- * This hook:
- *   1. On mount, reads `t` and `r` from the URL.
- *   2. If both are present, calls supabase.auth.setSession() to hydrate
- *      the web SDK with that session.
- *   3. ALWAYS strips `t` and `r` from the visible URL via
- *      window.history.replaceState — even if setSession fails — so the
- *      tokens never appear in browser history.
- *   4. Returns `hydrated` = true once the hydration attempt has
- *      completed (success or failure). Consumers should wait for
- *      `hydrated` before calling auth-dependent code.
- *
- * If the URL has no tokens, the hook resolves immediately to hydrated=true
- * (no-op path — the page can still proceed and check for an existing
- * session via getCurrentSession() if appropriate).
- *
- * Security: see SPEC_iOS_to_Web_Handoff.md §"Security considerations".
- */
+let __sfosHydrationStarted = false;
+
 export function useHydrateSessionFromURL() {
   const [hydrated, setHydrated] = useState(false);
+  const startedRef = useRef(false);
 
   useEffect(() => {
+    if (startedRef.current || __sfosHydrationStarted) {
+      setHydrated(true);
+      return;
+    }
+    startedRef.current = true;
+    __sfosHydrationStarted = true;
+
     let cancelled = false;
 
     (async () => {
@@ -40,9 +22,6 @@ export function useHydrateSessionFromURL() {
       const accessToken = params.get("t");
       const refreshToken = params.get("r");
 
-      // Always remove the tokens from the visible URL first — even before
-      // hitting the network — so a slow setSession can't accidentally leak
-      // them via a screenshot or shoulder-surf.
       if (accessToken || refreshToken) {
         params.delete("t");
         params.delete("r");

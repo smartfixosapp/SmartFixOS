@@ -177,7 +177,7 @@ const appClientAdapter = {
       // Evita spam en consola y uso innecesario de batería en mobile.
       let _lastFailTime = 0;
       let _inFlight = null;
-      const PUBLIC_PATHS = ['/Welcome', '/PinAccess', '/Setup', '/InitialSetup', '/Activate'];
+      const PUBLIC_PATHS = ['/Welcome', '/PinAccess', '/Setup', '/InitialSetup'];
 
       return async () => {
         // Deduplica llamadas concurrentes — una sola promesa en vuelo a la vez

@@ -103,7 +103,7 @@ export async function initCapacitor() {
     }
 
     App.addListener('appStateChange', ({ isActive }) => {
-      const PUBLIC = new Set(["/Welcome","/PinAccess","/Setup","/InitialSetup","/VerifySetup","/Activate","/TenantActivate","/returnlogin"]);
+      const PUBLIC = new Set(["/Welcome","/PinAccess","/Setup","/InitialSetup","/VerifySetup"]);
       const currentPath = window.location.pathname;
 
       if (!isActive) {

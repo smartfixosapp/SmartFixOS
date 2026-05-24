@@ -10,8 +10,7 @@ function toNum(v) { const n = Number(v); return Number.isFinite(n) && n >= 0 ? n
 
 // Páginas donde NO mostrar JENAI
 const HIDDEN_PATHS = [
-  "/Welcome", "/PinAccess", "/Setup", "/InitialSetup",
-  "/VerifySetup", "/Activate", "/TenantActivate", "/returnlogin",
+  "/Welcome", "/PinAccess", "/Setup", "/InitialSetup", "/VerifySetup",
 ];
 
 // ── Herramientas del Asistente JENAI ───────────────────────────────────────

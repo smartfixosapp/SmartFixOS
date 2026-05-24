@@ -1,10 +1,7 @@
-
 import React, { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Route, Routes, useNavigate, Navigate } from 'react-router-dom';
-import AuthGate, { useAuth } from '@/components/Auth';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { PageSpinner } from "@/components/ui/spinner";
 
-// Wrap lazy imports to auto-reload on chunk load failures (stale CDN cache)
 function lazyWithRetry(fn) {
   return lazy(() =>
     fn().catch((err) => {
@@ -12,27 +9,20 @@ function lazyWithRetry(fn) {
       if (!retried) {
         sessionStorage.setItem('chunk-reload', '1');
         window.location.reload();
-        return new Promise(() => {}); // never resolves (page reloads)
+        return new Promise(() => {});
       }
       throw err;
     })
   );
 }
 
-// Public & marketing pages
 const Landing          = lazyWithRetry(() => import("./Landing"));
-// Sprint 135 pivot — signup/login/dashboard moved to iOS app.
-// Web keeps /upgrade and /billing (both opened from iOS via
-// SFSafariViewController), plus the public marketing pages.
 const Upgrade          = lazyWithRetry(() => import("./Upgrade"));
 const UpgradeSuccess   = lazyWithRetry(() => import("./UpgradeSuccess"));
 const DashboardBilling = lazyWithRetry(() => import("./DashboardBilling"));
 const Billing          = lazyWithRetry(() => import("./Billing"));
 const LegalTerms       = lazyWithRetry(() => import("./LegalTerms"));
 const LegalRefunds     = lazyWithRetry(() => import("./LegalRefunds"));
-const VerifyEmail      = lazyWithRetry(() => import("./VerifyEmail"));
-const Activate         = lazyWithRetry(() => import("./Activate"));
-const TenantActivate   = lazyWithRetry(() => import("./TenantActivate"));
 const Receipt          = lazyWithRetry(() => import("./Receipt"));
 const CustomerPortal   = lazyWithRetry(() => import("./CustomerPortal"));
 const CustomerApproval = lazyWithRetry(() => import("./CustomerApproval"));
@@ -42,65 +32,24 @@ function PageLoader() {
   return <PageSpinner />;
 }
 
-function ReturnLoginInner() {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-
-  React.useEffect(() => {
-    if (user) {
-      const redirectUrl = sessionStorage.getItem("redirectAfterLogin") || "/";
-      sessionStorage.removeItem("redirectAfterLogin");
-      navigate(redirectUrl);
-    }
-  }, [user, navigate]);
-
-  return null;
-}
-
-function ReturnLogin() {
-  return (
-    <AuthGate>
-      <ReturnLoginInner />
-    </AuthGate>
-  );
-}
-
 function PagesContent() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
-        <Route path="/"                element={<Landing />} />
-        <Route path="/Pricing"         element={<Landing />} />
-        {/* Sprint 135 pivot — billing only. Signup/login/dashboard live in iOS.
-            /upgrade and /dashboard/billing are opened from iOS via
-            SFSafariViewController (in-app browser). /billing is the
-            pre-Sprint-134 Deno-backed flow kept as a fallback for any
-            existing inbound links. */}
-        <Route path="/upgrade"         element={<Upgrade />} />
-        <Route path="/upgrade-success" element={<UpgradeSuccess />} />
+        <Route path="/"                  element={<Landing />} />
+        <Route path="/Pricing"           element={<Landing />} />
+        <Route path="/upgrade"           element={<Upgrade />} />
+        <Route path="/upgrade-success"   element={<UpgradeSuccess />} />
         <Route path="/dashboard/billing" element={<DashboardBilling />} />
-        <Route path="/billing"         element={<Billing />} />
-        {/* Legal (Sprint 135 §8.7 — required by Stripe before exiting test mode) */}
-        <Route path="/legal/terms"     element={<LegalTerms />} />
-        <Route path="/legal/refunds"   element={<LegalRefunds />} />
-
-        {/* Sprint 135 removed these — redirect to landing so old links
-            from emails/screenshots don't 404 silently. */}
-        <Route path="/signup"          element={<Navigate to="/" replace />} />
-        <Route path="/login"           element={<Navigate to="/" replace />} />
-        <Route path="/dashboard"       element={<Navigate to="/" replace />} />
-
-        {/* Catch-all → landing */}
-        <Route path="*"                element={<Navigate to="/" replace />} />
-        <Route path="/VerifyEmail"     element={<VerifyEmail />} />
-        <Route path="/Activate"        element={<Activate />} />
-        <Route path="/TenantActivate"  element={<TenantActivate />} />
-        <Route path="/Receipt"         element={<Receipt />} />
-        <Route path="/CustomerPortal"  element={<CustomerPortal />} />
-        <Route path="/CustomerApproval" element={<CustomerApproval />} />
-        <Route path="/SuperAdmin"      element={<GACC />} />
-        <Route path="/GACC"            element={<GACC />} />
-        <Route path="/returnlogin"     element={<ReturnLogin />} />
+        <Route path="/billing"           element={<Billing />} />
+        <Route path="/legal/terms"       element={<LegalTerms />} />
+        <Route path="/legal/refunds"     element={<LegalRefunds />} />
+        <Route path="/Receipt"           element={<Receipt />} />
+        <Route path="/CustomerPortal"    element={<CustomerPortal />} />
+        <Route path="/CustomerApproval"  element={<CustomerApproval />} />
+        <Route path="/SuperAdmin"        element={<GACC />} />
+        <Route path="/GACC"              element={<GACC />} />
+        <Route path="*"                  element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
   );
