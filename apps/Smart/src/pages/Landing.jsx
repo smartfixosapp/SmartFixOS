@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { Check, ArrowDown, ArrowRight, Plus, Minus, Loader2, CheckCircle2, FlaskConical } from "lucide-react";
 import { supabase } from "../../../../lib/supabase-client.js";
@@ -16,16 +16,55 @@ const TESTFLIGHT_URL     = "https://testflight.apple.com/join/XXXXXXXX";
 const ANDROID_ENABLED    = false;
 const GOOGLE_PLAY_URL    = "";
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  Auth redirect — usuarios logueados van directo al dashboard
-// ─────────────────────────────────────────────────────────────────────────────
-function useAuthRedirect() {
-  const navigate = useNavigate();
+function HashHandoffNotice() {
+  const [tokens, setTokens] = useState(null);
+  const [dismissed, setDismissed] = useState(false);
+
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) navigate("/Dashboard", { replace: true });
-    });
-  }, [navigate]);
+    if (typeof window === "undefined") return;
+    const captured = window.__SFOS_AUTH_HASH;
+    if (captured && captured.indexOf("access_token") !== -1) {
+      setTokens(captured);
+      try { delete window.__SFOS_AUTH_HASH; } catch (_) {}
+    }
+  }, []);
+
+  if (!tokens || dismissed) return null;
+
+  const deepLink = `smartfixos://auth-callback${tokens}`;
+
+  return (
+    <div className="fixed inset-0 z-[100] bg-[#0a0a0a]/95 backdrop-blur-sm flex items-center justify-center p-6">
+      <div className="max-w-md w-full bg-[#111] border border-white/[0.08] rounded-2xl p-8 text-center">
+        <div className="w-14 h-14 mx-auto mb-5 rounded-full flex items-center justify-center"
+             style={{ background: "rgba(143,201,63,0.15)" }}>
+          <CheckCircle2 className="w-7 h-7" style={{ color: "#8FC93F" }} />
+        </div>
+        <h2 className="text-2xl font-semibold tracking-tight text-white mb-2"
+            style={{ fontFamily: '"Bricolage Grotesque", system-ui, sans-serif' }}>
+          Casi listo
+        </h2>
+        <p className="text-white/65 text-[15px] leading-relaxed mb-7">
+          Tu enlace de acceso está listo. Abre la app SmartFixOS para terminar de iniciar sesión.
+        </p>
+        <a
+          href={deepLink}
+          className="block w-full bg-white text-black font-semibold py-3.5 rounded-xl hover:bg-white/90 transition-colors mb-3"
+        >
+          Abrir en SmartFixOS
+        </a>
+        <button
+          onClick={() => setDismissed(true)}
+          className="block w-full text-white/45 hover:text-white text-[13px] py-2 transition-colors"
+        >
+          Cerrar
+        </button>
+        <p className="mt-5 text-[12px] text-white/35 leading-relaxed">
+          ¿No tienes la app aún? Descárgala desde el App Store y vuelve a intentar el enlace.
+        </p>
+      </div>
+    </div>
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1029,9 +1068,9 @@ function GooglePlayIcon({ className }) {
 //  Página
 // ─────────────────────────────────────────────────────────────────────────────
 export default function Landing() {
-  useAuthRedirect();
   return (
     <div className="min-h-dvh bg-[#0a0a0a] text-white antialiased font-sans">
+      <HashHandoffNotice />
       <Hero />
       <Historia />
       <VistaPrevia />

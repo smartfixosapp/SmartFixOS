@@ -38,6 +38,15 @@
   <body>
     <div id="root"></div>
     <script>
+      (function(){
+        try {
+          if (window.location.hash && window.location.hash.indexOf('access_token') !== -1) {
+            window.__SFOS_AUTH_HASH = window.location.hash;
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <script>
       // Force clear stale SW caches on load — sfos-v5
       (function(){
         var CURRENT = 'sfos-v5';
