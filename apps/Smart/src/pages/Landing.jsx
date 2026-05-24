@@ -178,46 +178,37 @@ function Hero() {
         Probado en talleres reales · Puerto Rico
       </motion.div>
 
-      {/* Botones de descarga: App Store · TestFlight · Google Play */}
+      {/* CTA principal — TestFlight (el único entry point real hoy) */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1.2, duration: 0.7 }}
-        className="mt-10 flex flex-col sm:flex-row flex-wrap items-center justify-center gap-3"
+        className="mt-12 flex flex-col items-center"
       >
-        {/* App Store — siempre visible (production iOS) */}
-        <button
-          type="button"
-          disabled
-          title="Próximamente"
-          className="inline-flex items-center gap-3.5 rounded-2xl bg-white/95 text-black px-6 py-3.5 cursor-not-allowed"
-        >
-          <AppleIcon className="h-7 w-7 fill-black" />
-          <div className="flex flex-col items-start leading-tight">
-            <span className="text-[11px] font-medium text-gray-500">Próximamente en</span>
-            <span className="text-base font-semibold text-black tracking-tight">App Store</span>
-          </div>
-        </button>
-
-        {/* TestFlight — botón ACTIVO del hero (única vía real al beta ahora mismo) */}
         {TESTFLIGHT_ENABLED ? (
           <a
             href={TESTFLIGHT_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="group relative inline-flex items-center gap-3.5 rounded-2xl bg-white text-black px-6 py-3.5 transition-all hover:bg-gray-50 hover:-translate-y-0.5 shadow-[0_10px_40px_rgba(56,189,248,0.18)] active:scale-[0.98]"
+            className="group relative inline-flex items-center gap-4 rounded-3xl bg-white text-black px-8 sm:px-10 py-5 transition-all hover:bg-gray-50 hover:-translate-y-1 hover:scale-[1.02] shadow-[0_20px_60px_rgba(56,189,248,0.30)] active:scale-[0.98]"
           >
-            <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-blue-600 text-white">
-              <FlaskConical className="h-4 w-4" strokeWidth={2.2} />
-              <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-lime-400 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-lime-400" />
+            {/* Badge "DISPONIBLE AHORA" flotante encima */}
+            <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 rounded-full bg-lime-400 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-black shadow-md whitespace-nowrap">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-black/60 opacity-75" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-black" />
               </span>
+              Disponible ahora
+            </span>
+
+            <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-blue-600 text-white shrink-0">
+              <FlaskConical className="h-5 w-5" strokeWidth={2.2} />
             </span>
             <div className="flex flex-col items-start leading-tight">
-              <span className="text-[11px] font-medium text-gray-500">Únete al beta</span>
-              <span className="text-base font-semibold text-black tracking-tight">TestFlight</span>
+              <span className="text-[12px] font-medium text-gray-500">Únete al beta</span>
+              <span className="text-xl sm:text-2xl font-bold text-black tracking-tight">TestFlight</span>
             </div>
+            <ArrowRight className="h-5 w-5 text-black/40 ml-1 group-hover:translate-x-0.5 transition-transform" />
           </a>
         ) : (
           <button
@@ -228,50 +219,69 @@ function Hero() {
                 ?.scrollIntoView({ behavior: "smooth", block: "start" })
             }
             title="Reserva tu acceso al beta — te avisamos en cuanto abra"
-            className="group relative inline-flex items-center gap-3.5 rounded-2xl bg-white text-black px-6 py-3.5 transition-all hover:bg-gray-50 hover:-translate-y-0.5 shadow-[0_10px_40px_rgba(56,189,248,0.18)] active:scale-[0.98] cursor-pointer"
+            className="group relative inline-flex items-center gap-4 rounded-3xl bg-white text-black px-8 sm:px-10 py-5 transition-all hover:bg-gray-50 hover:-translate-y-1 hover:scale-[1.02] shadow-[0_20px_60px_rgba(56,189,248,0.30)] active:scale-[0.98] cursor-pointer"
           >
-            <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-blue-600 text-white">
-              <FlaskConical className="h-4 w-4" strokeWidth={2.2} />
-              <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-lime-400 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-lime-400" />
+            {/* Badge "Beta abre pronto" flotante encima */}
+            <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 rounded-full bg-lime-400 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-black shadow-md whitespace-nowrap">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-black/60 opacity-75" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-black" />
               </span>
+              Beta abre pronto
+            </span>
+
+            <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-blue-600 text-white shrink-0">
+              <FlaskConical className="h-5 w-5" strokeWidth={2.2} />
             </span>
             <div className="flex flex-col items-start leading-tight">
-              <span className="text-[11px] font-medium text-gray-500">Reserva tu beta</span>
-              <span className="text-base font-semibold text-black tracking-tight">TestFlight</span>
+              <span className="text-[12px] font-medium text-gray-500">Reserva tu beta</span>
+              <span className="text-xl sm:text-2xl font-bold text-black tracking-tight">TestFlight</span>
             </div>
+            <ArrowRight className="h-5 w-5 text-black/40 ml-1 group-hover:translate-x-0.5 transition-transform" />
           </button>
         )}
 
-        {/* Google Play — Android */}
-        {ANDROID_ENABLED ? (
-          <a
-            href={GOOGLE_PLAY_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group inline-flex items-center gap-3.5 rounded-2xl bg-white text-black px-6 py-3.5 transition-all hover:bg-gray-50 shadow-[0_10px_40px_rgba(255,255,255,0.10)] active:scale-[0.98]"
-          >
-            <GooglePlayIcon className="h-7 w-7" />
-            <div className="flex flex-col items-start leading-tight">
-              <span className="text-[11px] font-medium text-gray-500">Disponible en</span>
-              <span className="text-base font-semibold text-black tracking-tight">Google Play</span>
-            </div>
-          </a>
-        ) : (
-          <button
-            type="button"
-            disabled
-            title="Próximamente"
-            className="inline-flex items-center gap-3.5 rounded-2xl bg-white/95 text-black px-6 py-3.5 cursor-not-allowed"
-          >
-            <GooglePlayIcon className="h-7 w-7" />
-            <div className="flex flex-col items-start leading-tight">
-              <span className="text-[11px] font-medium text-gray-500">Próximamente en</span>
-              <span className="text-base font-semibold text-black tracking-tight">Google Play</span>
-            </div>
-          </button>
-        )}
+        {/* CTAs secundarios — App Store + Google Play más pequeños */}
+        <div className="mt-8 flex flex-col items-center gap-3.5">
+          <span className="text-[10px] uppercase tracking-[0.24em] text-white/35">
+            También próximamente
+          </span>
+          <div className="flex items-center gap-3">
+            {/* App Store secondary */}
+            <button
+              type="button"
+              disabled
+              title="Próximamente"
+              className="inline-flex items-center gap-2 rounded-2xl bg-white/[0.06] border border-white/10 text-white/75 px-4 py-2.5 cursor-not-allowed transition-colors hover:bg-white/[0.10]"
+            >
+              <AppleIcon className="h-4 w-4 fill-white/75" />
+              <span className="text-[13px] font-semibold">App Store</span>
+            </button>
+
+            {/* Google Play secondary */}
+            {ANDROID_ENABLED ? (
+              <a
+                href={GOOGLE_PLAY_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-2xl bg-white/[0.06] border border-white/10 text-white px-4 py-2.5 transition-colors hover:bg-white/[0.10]"
+              >
+                <GooglePlayIcon className="h-4 w-4" />
+                <span className="text-[13px] font-semibold">Google Play</span>
+              </a>
+            ) : (
+              <button
+                type="button"
+                disabled
+                title="Próximamente"
+                className="inline-flex items-center gap-2 rounded-2xl bg-white/[0.06] border border-white/10 text-white/75 px-4 py-2.5 cursor-not-allowed transition-colors hover:bg-white/[0.10]"
+              >
+                <GooglePlayIcon className="h-4 w-4" />
+                <span className="text-[13px] font-semibold">Google Play</span>
+              </button>
+            )}
+          </div>
+        </div>
       </motion.div>
 
       {/* Scroll cue */}
