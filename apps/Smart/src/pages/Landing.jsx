@@ -198,9 +198,9 @@ function Hero() {
         transition={{ delay: 1.0, duration: 0.7 }}
         className="mt-10 text-center text-base sm:text-lg text-white/55 max-w-md leading-relaxed font-medium"
       >
-        El sistema operativo para talleres de reparación.
+        POS y gestión para tu taller.
         <br />
-        Hecho por un técnico, para técnicos.
+        Descarga la app gratis · 14 días de prueba sin tarjeta.
       </motion.p>
 
       {/* Social proof line — diseñado y probado en talleres reales */}
