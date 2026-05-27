@@ -638,7 +638,7 @@ function Hero() {
       >
         POS y gestión para tu taller.
         <br />
-        Descarga la app gratis · 14 días de prueba sin tarjeta.
+        Gratis durante la beta · Sin tarjeta.
       </motion.p>
 
       {/* Social proof line — diseñado y probado en talleres reales */}
