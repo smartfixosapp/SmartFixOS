@@ -13,6 +13,27 @@ import ss01 from "../assets/images/screenshots/ss01.png";
 import ss02 from "../assets/images/screenshots/ss02.png";
 import ss03 from "../assets/images/screenshots/ss03.png";
 
+import tour00 from "../assets/images/screenshots/00-welcome.png";
+import tour01 from "../assets/images/screenshots/01-bienvenido.png";
+import tour02 from "../assets/images/screenshots/02-ordenes-empty.png";
+import tour03 from "../assets/images/screenshots/03-inicio.png";
+import tour04 from "../assets/images/screenshots/04-finanzas-dashboard.png";
+import tour05 from "../assets/images/screenshots/05-reporte-mensual.png";
+import tour06 from "../assets/images/screenshots/06-ordenes-list.png";
+import tour07 from "../assets/images/screenshots/07-pos-catalogo.png";
+import tour08 from "../assets/images/screenshots/08-pos-cart.png";
+import tour09 from "../assets/images/screenshots/09-ajustes.png";
+import tour10 from "../assets/images/screenshots/10-info-negocio.png";
+import tour11 from "../assets/images/screenshots/11-ivu-config.png";
+import tour12 from "../assets/images/screenshots/12-orden-detail.png";
+import tour13 from "../assets/images/screenshots/13-notificar-cliente.png";
+import tour14 from "../assets/images/screenshots/14-smart-search.png";
+import tour15 from "../assets/images/screenshots/15-compras-empty.png";
+import tour16 from "../assets/images/screenshots/16-compras-paso1-suplidor.png";
+import tour17 from "../assets/images/screenshots/17-compras-suplidor-selected.png";
+import tour18 from "../assets/images/screenshots/18-compras-paso2-productos.png";
+import tour19 from "../assets/images/screenshots/19-compras-paso2-add-producto.png";
+
 // ─────────────────────────────────────────────────────────────────────────────
 //  FEATURE FLAGS
 // ─────────────────────────────────────────────────────────────────────────────
@@ -272,6 +293,151 @@ const COMO_ENTRAR_STEPS = [
   { icon: ShieldCheck,  title: "14 días gratis",         body: "Crea tu taller dentro de la app. Sin tarjeta. Cancelable cuando quieras." },
   { icon: Bell,         title: "Updates automáticos",    body: "Cada vez que sacamos un build nuevo, TestFlight te notifica y actualizas con un tap." },
 ];
+
+const TOUR_GROUPS = [
+  {
+    eyebrow: "Operaciones del día",
+    title: "Cada orden desde que entra hasta que la entregas.",
+    screens: [
+      { src: tour03, caption: "Inicio · resumen del día" },
+      { src: tour06, caption: "Lista de órdenes activas" },
+      { src: tour02, caption: "Tu primer día · vacío" },
+      { src: tour12, caption: "Detalle de una orden" },
+      { src: tour13, caption: "Notificar al cliente" },
+    ],
+  },
+  {
+    eyebrow: "Punto de venta",
+    title: "Cobra rápido. Sin pelearte con la calculadora.",
+    screens: [
+      { src: tour07, caption: "Catálogo del POS" },
+      { src: tour08, caption: "Carrito y total" },
+      { src: tour14, caption: "Smart Search global" },
+    ],
+  },
+  {
+    eyebrow: "Finanzas",
+    title: "Cuánto entró, cuánto salió, cuánto te quedó.",
+    screens: [
+      { src: tour04, caption: "Dashboard financiero" },
+      { src: tour05, caption: "Reporte del mes" },
+      { src: tour11, caption: "IVU 11.5% automático" },
+    ],
+  },
+  {
+    eyebrow: "Compras e inventario",
+    title: "Stock que se ajusta solo cuando vendes o recibes.",
+    screens: [
+      { src: tour15, caption: "Compras · vacío" },
+      { src: tour16, caption: "Paso 1 · elige suplidor" },
+      { src: tour17, caption: "Suplidor confirmado" },
+      { src: tour18, caption: "Paso 2 · productos" },
+      { src: tour19, caption: "Agregar producto" },
+    ],
+  },
+  {
+    eyebrow: "Setup y ajustes",
+    title: "Configuras tu taller una vez y se acabó.",
+    screens: [
+      { src: tour00, caption: "Welcome" },
+      { src: tour01, caption: "Bienvenido al sistema" },
+      { src: tour10, caption: "Info del negocio" },
+      { src: tour09, caption: "Ajustes generales" },
+    ],
+  },
+];
+
+function PhoneScreenshot({ src, caption, index }) {
+  return (
+    <motion.figure
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ delay: (index % 5) * 0.05, duration: 0.5 }}
+      className="group flex flex-col items-center"
+    >
+      <div className="relative w-full max-w-[200px] aspect-[9/19.5] rounded-[2.2rem] bg-[#0f0f0f] border border-white/[0.08] p-[5px] shadow-[0_20px_50px_rgba(0,0,0,0.4)] transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-[0_30px_70px_rgba(143,201,63,0.12)] group-hover:border-white/15">
+        <div className="absolute top-[14px] left-1/2 -translate-x-1/2 h-[18px] w-[80px] rounded-full bg-black z-10" />
+        <img
+          src={src}
+          alt={caption}
+          loading="lazy"
+          className="block w-full h-full rounded-[1.85rem] object-cover object-top"
+        />
+      </div>
+      <figcaption className="mt-4 text-[12.5px] text-white/55 text-center leading-snug px-1">
+        {caption}
+      </figcaption>
+    </motion.figure>
+  );
+}
+
+function TourCompleto() {
+  return (
+    <section id="tour" className="relative w-full px-6 py-24 sm:py-32 bg-[#0a0a0a] border-t border-white/[0.04]">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center gap-2.5 mb-5">
+            <span className="h-1.5 w-1.5 rounded-full" style={{ background: "#1FA0DC", boxShadow: "0 0 10px #1FA0DC" }} />
+            <span className="text-[11px] uppercase tracking-[0.24em] font-medium text-white/45">Tour completo</span>
+          </div>
+          <h2
+            className="text-3xl sm:text-5xl font-semibold tracking-tight text-white leading-[1.05]"
+            style={{ fontFamily: '"Bricolage Grotesque", system-ui, sans-serif' }}
+          >
+            Mira todo lo que vas a usar.
+          </h2>
+          <p className="mt-5 text-[15.5px] sm:text-[17px] text-white/55 leading-relaxed max-w-xl mx-auto">
+            20 pantallas reales, no mockups. Esto es exactamente lo que ves cuando abres la app en tu iPhone.
+          </p>
+        </div>
+
+        <div className="space-y-24 sm:space-y-28">
+          {TOUR_GROUPS.map((group, gi) => (
+            <div key={gi}>
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.5 }}
+                className="mb-10 sm:mb-14 max-w-2xl"
+              >
+                <div className="text-[11px] uppercase tracking-[0.22em] font-medium text-white/35 mb-3">
+                  {group.eyebrow}
+                </div>
+                <h3
+                  className="text-2xl sm:text-3xl font-semibold tracking-tight text-white leading-[1.15]"
+                  style={{ fontFamily: '"Bricolage Grotesque", system-ui, sans-serif' }}
+                >
+                  {group.title}
+                </h3>
+              </motion.div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-10 sm:gap-x-8 sm:gap-y-12">
+                {group.screens.map((screen, i) => (
+                  <PhoneScreenshot key={i} src={screen.src} caption={screen.caption} index={i} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-20 text-center">
+          <a
+            href={TESTFLIGHT_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-full bg-white text-black font-semibold px-6 h-12 text-[14px] hover:bg-gray-100 transition-colors"
+          >
+            <FlaskConical className="h-4 w-4" strokeWidth={2.2} />
+            Pruébalo tú mismo
+            <ArrowRight className="h-4 w-4" />
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 function ComoEntrar() {
   return (
@@ -1389,6 +1555,7 @@ export default function Landing() {
       <ComoEntrar />
       <Historia />
       <VistaPrevia />
+      <TourCompleto />
       <Planes />
       <FAQ />
       <Waitlist />
