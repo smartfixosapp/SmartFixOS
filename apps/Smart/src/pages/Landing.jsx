@@ -9,10 +9,6 @@ import { supabase } from "../../../../lib/supabase-client.js";
 
 const BETA_SLOTS_ENDPOINT = "https://idntuvtabecwubzswpwi.supabase.co/functions/v1/beta-slots";
 
-import ss01 from "../assets/images/screenshots/ss01.png";
-import ss02 from "../assets/images/screenshots/ss02.png";
-import ss03 from "../assets/images/screenshots/ss03.png";
-
 import tour00 from "../assets/images/screenshots/00-welcome.png";
 import tour01 from "../assets/images/screenshots/01-bienvenido.png";
 import tour02 from "../assets/images/screenshots/02-ordenes-empty.png";
@@ -861,9 +857,9 @@ function Historia() {
 //  Vista previa — 3 screenshots reales
 // ─────────────────────────────────────────────────────────────────────────────
 const PREVIEW_SHOTS = [
-  { src: ss01, label: "Página inicial", hint: "Login en segundos. Abres la app y ya estás dentro del taller." },
-  { src: ss02, label: "Dashboard",      hint: "Ingresos del día, alertas e indicadores — todo de un vistazo." },
-  { src: ss03, label: "Órdenes",        hint: "Cada ticket en una pantalla. Estado, técnico, fecha de promesa." },
+  { src: tour03, label: "Inicio",    hint: "Abres la app y ves el resumen del día — órdenes activas, alertas, lo importante." },
+  { src: tour04, label: "Finanzas",  hint: "Ingresos, gastos, IVU del mes. Todo calculado solo, sin Excel." },
+  { src: tour06, label: "Órdenes",   hint: "Cada ticket con estado, técnico y fecha de promesa en una sola pantalla." },
 ];
 
 function VistaPrevia() {
