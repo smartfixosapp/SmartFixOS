@@ -1,8 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence, useInView } from "framer-motion";
-import { Check, ArrowDown, ArrowRight, Plus, Minus, Loader2, CheckCircle2, FlaskConical } from "lucide-react";
+import {
+  Check, ArrowDown, ArrowRight, Plus, Minus, Loader2, CheckCircle2, FlaskConical,
+  Compass, Download, Smartphone, ShieldCheck, Bell, Sparkles, Inbox, AlertCircle,
+} from "lucide-react";
 import { supabase } from "../../../../lib/supabase-client.js";
+
+const BETA_SLOTS_ENDPOINT = "https://idntuvtabecwubzswpwi.supabase.co/functions/v1/beta-slots";
 
 import ss01 from "../assets/images/screenshots/ss01.png";
 import ss02 from "../assets/images/screenshots/ss02.png";
@@ -11,8 +16,8 @@ import ss03 from "../assets/images/screenshots/ss03.png";
 // ─────────────────────────────────────────────────────────────────────────────
 //  FEATURE FLAGS
 // ─────────────────────────────────────────────────────────────────────────────
-const TESTFLIGHT_ENABLED = false;
-const TESTFLIGHT_URL     = "https://testflight.apple.com/join/XXXXXXXX";
+const TESTFLIGHT_ENABLED = true;
+const TESTFLIGHT_URL     = "https://testflight.apple.com/join/MjGuBHkP";
 const ANDROID_ENABLED    = false;
 const GOOGLE_PLAY_URL    = "";
 
@@ -64,6 +69,273 @@ function HashHandoffNotice() {
         </p>
       </div>
     </div>
+  );
+}
+
+function useBetaSlots() {
+  const [data, setData] = useState({ loading: true, error: false, slots: null });
+
+  useEffect(() => {
+    let cancelled = false;
+    let timer = null;
+
+    const fetchSlots = async () => {
+      try {
+        const res = await fetch(BETA_SLOTS_ENDPOINT, { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        if (!cancelled) setData({ loading: false, error: false, slots: json });
+      } catch (_err) {
+        if (!cancelled) setData((prev) => ({ loading: false, error: true, slots: prev.slots }));
+      }
+    };
+
+    fetchSlots();
+    timer = setInterval(fetchSlots, 30_000);
+
+    return () => {
+      cancelled = true;
+      if (timer) clearInterval(timer);
+    };
+  }, []);
+
+  return data;
+}
+
+function BetaSlotsCounter({ slots, loading, error }) {
+  if (loading && !slots) {
+    return (
+      <div className="mt-5 inline-flex items-center gap-2 text-[12px] text-white/35">
+        <Loader2 className="h-3 w-3 animate-spin" />
+        Consultando cupos…
+      </div>
+    );
+  }
+
+  if (error && !slots) {
+    return (
+      <div className="mt-5 inline-flex items-center gap-2 text-[12px] text-white/35">
+        <AlertCircle className="h-3 w-3" />
+        No pudimos verificar cupos. Intenta el botón de todas formas.
+      </div>
+    );
+  }
+
+  if (!slots) return null;
+
+  const { remaining, limit, status } = slots;
+
+  if (status === "full") {
+    return (
+      <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-white/[0.04] border border-white/15 px-4 py-2 text-[12px] font-medium text-white/70">
+        <Inbox className="h-3.5 w-3.5" />
+        Beta llena · anótate a la lista de espera abajo
+      </div>
+    );
+  }
+
+  if (status === "low") {
+    return (
+      <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-red-500/15 border border-red-500/40 px-4 py-2 text-[12px] font-bold uppercase tracking-[0.12em] text-red-300">
+        <span className="relative flex h-1.5 w-1.5">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-red-400" />
+        </span>
+        Últimos {remaining} cupos
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-5 inline-flex items-center gap-2 text-[12.5px] text-white/55">
+      <span className="h-1.5 w-1.5 rounded-full" style={{ background: "#8FC93F", boxShadow: "0 0 8px #8FC93F" }} />
+      <span><span className="text-white font-semibold tabular-nums">{remaining}</span> de {limit} cupos disponibles</span>
+    </div>
+  );
+}
+
+function WaitlistForm() {
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [businessName, setBusinessName] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMsg("");
+
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(trimmedEmail)) {
+      setErrorMsg("Necesitamos un email válido.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.from("waitlist").insert({
+        email: trimmedEmail,
+        phone: phone.trim() || null,
+        business_name: businessName.trim() || null,
+        source: "beta-full",
+      });
+      if (error) {
+        if (error.code === "23505") {
+          setDone(true);
+          return;
+        }
+        throw error;
+      }
+      setDone(true);
+    } catch (err) {
+      setErrorMsg(err?.message || "Algo salió mal. Intenta otra vez.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (done) {
+    return (
+      <div className="rounded-2xl border border-lime-400/30 bg-lime-400/[0.06] px-6 py-5 text-center">
+        <div className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-lime-400/15 border border-lime-400/30 mb-3">
+          <CheckCircle2 className="h-5 w-5" style={{ color: "#8FC93F" }} />
+        </div>
+        <div className="text-[15px] font-semibold text-white mb-1">Estás en la lista</div>
+        <p className="text-[13px] text-white/55 leading-relaxed max-w-sm mx-auto">
+          Te escribimos en cuanto abramos el próximo cupo. Mientras tanto, descarga TestFlight para tenerlo listo cuando llegue tu turno.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="grid gap-3">
+      <input
+        type="email"
+        required
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="Tu email"
+        className="w-full bg-white/[0.04] border border-white/12 focus:border-white/40 rounded-xl px-4 py-3 text-[14px] text-white placeholder:text-white/35 outline-none transition-colors"
+      />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <input
+          type="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="Teléfono (opcional)"
+          className="w-full bg-white/[0.04] border border-white/12 focus:border-white/40 rounded-xl px-4 py-3 text-[14px] text-white placeholder:text-white/35 outline-none transition-colors"
+        />
+        <input
+          type="text"
+          value={businessName}
+          onChange={(e) => setBusinessName(e.target.value)}
+          placeholder="Nombre del taller (opcional)"
+          className="w-full bg-white/[0.04] border border-white/12 focus:border-white/40 rounded-xl px-4 py-3 text-[14px] text-white placeholder:text-white/35 outline-none transition-colors"
+        />
+      </div>
+      {errorMsg && (
+        <div className="text-[12.5px] text-red-300 flex items-center gap-2">
+          <AlertCircle className="h-3.5 w-3.5" />
+          {errorMsg}
+        </div>
+      )}
+      <button
+        type="submit"
+        disabled={submitting || !email}
+        className="mt-1 inline-flex items-center justify-center gap-2 rounded-xl bg-white text-black font-semibold px-5 py-3 text-[14px] hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      >
+        {submitting ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Anotándote…
+          </>
+        ) : (
+          "Anótame a la lista"
+        )}
+      </button>
+      <p className="text-[11.5px] text-white/35 leading-relaxed">
+        Solo usamos tu contacto para avisarte cuando se libere un cupo. No spam.
+      </p>
+    </form>
+  );
+}
+
+const COMO_ENTRAR_STEPS = [
+  { icon: Compass,      title: "Tap al botón",          body: "Únete a la beta arriba abre la página de TestFlight en Safari." },
+  { icon: Smartphone,   title: "¿No tienes TestFlight?", body: "Apple te lleva al App Store. TestFlight es gratis, solo necesitas tu Apple ID." },
+  { icon: Download,     title: "Instala TestFlight",     body: "Tap Get. No te pide tarjeta, ni Apple Developer, ni nada raro." },
+  { icon: ArrowRight,   title: "Abre TestFlight",        body: "El invite ya está cacheado en tu cuenta. Ves SmartFixOS esperándote." },
+  { icon: CheckCircle2, title: "Tap Accept → Install",   body: "La app baja en ~10 segundos a tu home screen." },
+  { icon: Sparkles,     title: "Punto naranja = beta",   body: "Vas a verlo al lado del nombre. Es la marca oficial de Apple para apps beta." },
+  { icon: ShieldCheck,  title: "14 días gratis",         body: "Crea tu taller dentro de la app. Sin tarjeta. Cancelable cuando quieras." },
+  { icon: Bell,         title: "Updates automáticos",    body: "Cada vez que sacamos un build nuevo, TestFlight te notifica y actualizas con un tap." },
+];
+
+function ComoEntrar() {
+  return (
+    <section id="como-entrar" className="relative w-full px-6 py-24 sm:py-32 bg-[#0a0a0a]">
+      <div className="max-w-5xl mx-auto">
+        <div className="text-center mb-14">
+          <div className="inline-flex items-center gap-2.5 mb-5">
+            <span className="h-1.5 w-1.5 rounded-full" style={{ background: "#8FC93F", boxShadow: "0 0 10px #8FC93F" }} />
+            <span className="text-[11px] uppercase tracking-[0.24em] font-medium text-white/45">Cómo entrar</span>
+          </div>
+          <h2
+            className="text-3xl sm:text-5xl font-semibold tracking-tight text-white leading-[1.05]"
+            style={{ fontFamily: '"Bricolage Grotesque", system-ui, sans-serif' }}
+          >
+            Tap, instala, listo.
+          </h2>
+          <p className="mt-5 text-[15.5px] sm:text-[17px] text-white/55 leading-relaxed max-w-xl mx-auto">
+            Sin tarjeta, sin Apple Developer, sin formularios. Solo tu Apple ID y un par de minutos.
+          </p>
+        </div>
+
+        <ol className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-white/[0.06] rounded-2xl overflow-hidden">
+          {COMO_ENTRAR_STEPS.map((step, i) => {
+            const Icon = step.icon;
+            return (
+              <motion.li
+                key={i}
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ delay: i * 0.05, duration: 0.5 }}
+                className="bg-[#0a0a0a] p-6 sm:p-7 relative flex flex-col"
+              >
+                <div className="flex items-center gap-3 mb-3.5">
+                  <span className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-white/[0.06] border border-white/10 text-[12px] font-bold text-white/55 tabular-nums">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <Icon className="h-4 w-4 text-white/55" strokeWidth={2} />
+                </div>
+                <div className="text-[14.5px] font-semibold text-white tracking-tight mb-1.5">
+                  {step.title}
+                </div>
+                <p className="text-[13px] text-white/55 leading-relaxed">
+                  {step.body}
+                </p>
+              </motion.li>
+            );
+          })}
+        </ol>
+
+        <div className="mt-10 text-center">
+          <a
+            href={TESTFLIGHT_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-full bg-white text-black font-semibold px-6 h-12 text-[14px] hover:bg-gray-100 transition-colors"
+          >
+            <FlaskConical className="h-4 w-4" strokeWidth={2.2} />
+            Únete a la beta gratis
+            <ArrowRight className="h-4 w-4" />
+          </a>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -188,6 +460,10 @@ function AnimatedWordmark({ size = "hero", centerColor = "#0a0a0a" }) {
 //  Hero — wordmark + tagline + social proof + botones de descarga
 // ─────────────────────────────────────────────────────────────────────────────
 function Hero() {
+  const { slots, loading, error } = useBetaSlots();
+  const isFull = slots?.status === "full";
+  const isLow = slots?.status === "low";
+
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center px-6 py-20 overflow-hidden">
       <AnimatedWordmark />
@@ -217,27 +493,52 @@ function Hero() {
         Probado en talleres reales · Puerto Rico
       </motion.div>
 
-      {/* CTA principal — TestFlight (el único entry point real hoy) */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1.2, duration: 0.7 }}
         className="mt-12 flex flex-col items-center"
       >
-        {TESTFLIGHT_ENABLED ? (
+        {isFull ? (
+          <button
+            type="button"
+            onClick={() => document.getElementById("waitlist")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+            className="group relative inline-flex items-center gap-4 rounded-3xl bg-white text-black px-8 sm:px-10 py-5 transition-all hover:bg-gray-50 hover:-translate-y-1 hover:scale-[1.02] shadow-[0_20px_60px_rgba(143,201,63,0.25)] active:scale-[0.98] cursor-pointer"
+          >
+            <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 rounded-full bg-white border border-white/15 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-black shadow-md whitespace-nowrap">
+              Beta llena · únete a la lista
+            </span>
+            <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-blue-600 text-white shrink-0">
+              <Inbox className="h-5 w-5" strokeWidth={2.2} />
+            </span>
+            <div className="flex flex-col items-start leading-tight">
+              <span className="text-[12px] font-medium text-gray-500">Próximo cupo</span>
+              <span className="text-xl sm:text-2xl font-bold text-black tracking-tight">Anótame</span>
+            </div>
+            <ArrowDown className="h-5 w-5 text-black/40 ml-1 group-hover:translate-y-0.5 transition-transform" />
+          </button>
+        ) : (
           <a
             href={TESTFLIGHT_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="group relative inline-flex items-center gap-4 rounded-3xl bg-white text-black px-8 sm:px-10 py-5 transition-all hover:bg-gray-50 hover:-translate-y-1 hover:scale-[1.02] shadow-[0_20px_60px_rgba(56,189,248,0.30)] active:scale-[0.98]"
           >
-            {/* Badge "DISPONIBLE AHORA" flotante encima */}
-            <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 rounded-full bg-lime-400 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-black shadow-md whitespace-nowrap">
+            <span
+              className={
+                "absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] shadow-md whitespace-nowrap " +
+                (isLow
+                  ? "bg-red-400 text-black"
+                  : "bg-lime-400 text-black")
+              }
+            >
               <span className="relative flex h-1.5 w-1.5">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-black/60 opacity-75" />
                 <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-black" />
               </span>
-              Disponible ahora
+              {isLow
+                ? `Últimos ${slots?.remaining} cupos`
+                : "Únete a la beta gratis · 10 cupos"}
             </span>
 
             <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-blue-600 text-white shrink-0">
@@ -249,36 +550,9 @@ function Hero() {
             </div>
             <ArrowRight className="h-5 w-5 text-black/40 ml-1 group-hover:translate-x-0.5 transition-transform" />
           </a>
-        ) : (
-          <button
-            type="button"
-            onClick={() =>
-              document
-                .getElementById("waitlist")
-                ?.scrollIntoView({ behavior: "smooth", block: "start" })
-            }
-            title="Reserva tu acceso al beta — te avisamos en cuanto abra"
-            className="group relative inline-flex items-center gap-4 rounded-3xl bg-white text-black px-8 sm:px-10 py-5 transition-all hover:bg-gray-50 hover:-translate-y-1 hover:scale-[1.02] shadow-[0_20px_60px_rgba(56,189,248,0.30)] active:scale-[0.98] cursor-pointer"
-          >
-            {/* Badge "Beta abre pronto" flotante encima */}
-            <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 rounded-full bg-lime-400 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-black shadow-md whitespace-nowrap">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-black/60 opacity-75" />
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-black" />
-              </span>
-              Beta abre pronto
-            </span>
-
-            <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-blue-600 text-white shrink-0">
-              <FlaskConical className="h-5 w-5" strokeWidth={2.2} />
-            </span>
-            <div className="flex flex-col items-start leading-tight">
-              <span className="text-[12px] font-medium text-gray-500">Reserva tu beta</span>
-              <span className="text-xl sm:text-2xl font-bold text-black tracking-tight">TestFlight</span>
-            </div>
-            <ArrowRight className="h-5 w-5 text-black/40 ml-1 group-hover:translate-x-0.5 transition-transform" />
-          </button>
         )}
+
+        <BetaSlotsCounter slots={slots} loading={loading} error={error} />
 
         {/* CTAs secundarios — App Store + Google Play más pequeños */}
         <div className="mt-8 flex flex-col items-center gap-3.5">
@@ -853,8 +1127,11 @@ function FAQ() {
 //  Waitlist — captura emails antes del lanzamiento
 // ─────────────────────────────────────────────────────────────────────────────
 function Waitlist() {
+  const { slots } = useBetaSlots();
+  const isFull = slots?.status === "full";
+
   const [email, setEmail]   = useState("");
-  const [status, setStatus] = useState("idle"); // idle | loading | success | error
+  const [status, setStatus] = useState("idle");
   const [error, setError]   = useState("");
 
   const submit = async (e) => {
@@ -876,7 +1153,6 @@ function Waitlist() {
           user_agent: typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 240) : null,
         });
       if (insertErr) {
-        // 23505 = unique violation — ya estabas en la lista. Lo tratamos como éxito.
         if (insertErr.code === "23505") {
           setStatus("success");
           return;
@@ -890,6 +1166,44 @@ function Waitlist() {
       setError("Algo salió mal. Escríbenos a smartfixosapp@gmail.com.");
     }
   };
+
+  if (isFull) {
+    return (
+      <section id="waitlist" className="px-6 py-32 sm:py-40 border-t border-white/[0.06]">
+        <div className="max-w-xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.6 }}
+            className="text-[11px] uppercase tracking-[0.24em] font-medium text-white/40 mb-6"
+          >
+            Lista de espera · beta
+          </motion.div>
+          <motion.h2
+            initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }} transition={{ delay: 0.05, duration: 0.7 }}
+            className="text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.05] text-white"
+            style={{ fontFamily: '"Bricolage Grotesque", system-ui, sans-serif' }}
+          >
+            Beta llena por ahora.
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }} transition={{ delay: 0.15, duration: 0.7 }}
+            className="mt-5 text-white/55 text-base leading-relaxed max-w-md mx-auto"
+          >
+            Los 10 cupos están tomados. Déjanos tu contacto y te avisamos en cuanto se libere uno.
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }} transition={{ delay: 0.25, duration: 0.7 }}
+            className="mt-10 max-w-md mx-auto text-left"
+          >
+            <WaitlistForm />
+          </motion.div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="waitlist" className="px-6 py-32 sm:py-40 border-t border-white/[0.06]">
@@ -907,14 +1221,14 @@ function Waitlist() {
           className="text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.05] text-white"
           style={{ fontFamily: '"Bricolage Grotesque", system-ui, sans-serif' }}
         >
-          Te aviso el día que abramos.
+          Te aviso cuando salga al App Store.
         </motion.h2>
         <motion.p
           initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }} transition={{ delay: 0.15, duration: 0.7 }}
           className="mt-5 text-white/55 text-base leading-relaxed max-w-md mx-auto"
         >
-          Sin spam, sin newsletter semanal. Un solo email cuando podamos abrir las descargas.
+          La beta de TestFlight ya está abierta arriba. Si prefieres esperar la versión oficial del App Store, déjame tu email y te aviso ese día.
         </motion.p>
 
         <AnimatePresence mode="wait">
@@ -1072,6 +1386,7 @@ export default function Landing() {
     <div className="min-h-dvh bg-[#0a0a0a] text-white antialiased font-sans">
       <HashHandoffNotice />
       <Hero />
+      <ComoEntrar />
       <Historia />
       <VistaPrevia />
       <Planes />
