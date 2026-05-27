@@ -964,7 +964,7 @@ function useCountUp(target, { duration = 900, inView = false } = {}) {
   return value;
 }
 
-function PlanCard({ name, price, tagline, features, highlighted = false, delay = 0 }) {
+function PlanCard({ name, price, tagline, features, highlighted = false, delay = 0, betaFree = false }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
   const displayPrice = useCountUp(price, { inView, duration: 950 });
@@ -1025,21 +1025,49 @@ function PlanCard({ name, price, tagline, features, highlighted = false, delay =
         </p>
       </header>
 
-      <div className="mt-8 flex items-baseline gap-1.5">
-        <span
-          className="text-5xl sm:text-[56px] font-bold tracking-tight leading-none tabular-nums"
-          style={{ fontFamily: '"Bricolage Grotesque", system-ui, sans-serif' }}
-          aria-label={`$${price} al mes`}
-        >
-          ${displayPrice}
-        </span>
-        <span className={highlighted ? "text-base font-medium text-black/45" : "text-base font-medium text-white/40"}>
-          / mes
-        </span>
-      </div>
-      <p className={highlighted ? "mt-2 text-xs text-black/50" : "mt-2 text-xs text-white/35"}>
-        Cancela cuando quieras. 14 días gratis.
-      </p>
+      {betaFree ? (
+        <>
+          <div className="mt-8 flex items-baseline gap-3">
+            <span
+              className="text-5xl sm:text-[56px] font-bold tracking-tight leading-none tabular-nums"
+              style={{ fontFamily: '"Bricolage Grotesque", system-ui, sans-serif' }}
+              aria-label="Gratis durante la beta"
+            >
+              Gratis
+            </span>
+            <span
+              className={
+                (highlighted ? "text-black/35" : "text-white/30") +
+                " text-2xl font-semibold line-through tabular-nums"
+              }
+              aria-label={`Precio regular $${price} al mes`}
+            >
+              ${displayPrice}
+            </span>
+          </div>
+          <p className={highlighted ? "mt-2 text-xs text-black/55" : "mt-2 text-xs text-white/40"}>
+            Sin tarjeta. Gratis mientras estemos en TestFlight beta.
+          </p>
+        </>
+      ) : (
+        <>
+          <div className="mt-8 flex items-baseline gap-1.5">
+            <span
+              className="text-5xl sm:text-[56px] font-bold tracking-tight leading-none tabular-nums"
+              style={{ fontFamily: '"Bricolage Grotesque", system-ui, sans-serif' }}
+              aria-label={`$${price} al mes`}
+            >
+              ${displayPrice}
+            </span>
+            <span className={highlighted ? "text-base font-medium text-black/45" : "text-base font-medium text-white/40"}>
+              / mes
+            </span>
+          </div>
+          <p className={highlighted ? "mt-2 text-xs text-black/50" : "mt-2 text-xs text-white/35"}>
+            Cancela cuando quieras. 14 días gratis.
+          </p>
+        </>
+      )}
 
       {/* Divider que se "dibuja" al entrar */}
       <motion.div
@@ -1075,26 +1103,51 @@ function PlanCard({ name, price, tagline, features, highlighted = false, delay =
         ))}
       </ul>
 
-      <motion.button
-        type="button" disabled
-        initial={{ opacity: 0, y: 8 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-80px" }}
-        transition={{ delay: delay + 0.45 + features.length * 0.07, duration: 0.6 }}
-        whileHover={{ scale: 1.02 }}
-        className={[
-          "mt-10 h-12 w-full rounded-full text-sm font-semibold cursor-not-allowed",
-          "inline-flex items-center justify-center gap-2.5 px-4 whitespace-nowrap",
-          highlighted
-            ? "bg-black text-white"
-            : "bg-white/[0.04] text-white/65 border border-white/10",
-        ].join(" ")}
-        title="Disponible cuando lancemos las apps"
-      >
-        <AppleIcon className={highlighted ? "h-4 w-4 fill-white" : "h-4 w-4 fill-white/80"} />
-        <GooglePlayIcon className="h-4 w-4" />
-        <span>Próximamente</span>
-      </motion.button>
+      {betaFree ? (
+        <motion.a
+          href={TESTFLIGHT_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          initial={{ opacity: 0, y: 8 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ delay: delay + 0.45 + features.length * 0.07, duration: 0.6 }}
+          whileHover={{ scale: 1.02 }}
+          className={[
+            "mt-10 h-12 w-full rounded-full text-sm font-semibold",
+            "inline-flex items-center justify-center gap-2 px-4 whitespace-nowrap transition-colors",
+            highlighted
+              ? "bg-black text-white hover:bg-gray-900"
+              : "bg-white text-black hover:bg-gray-100",
+          ].join(" ")}
+          title="Únete a la beta — gratis mientras dure"
+        >
+          <FlaskConical className="h-4 w-4" strokeWidth={2.2} />
+          <span>Únete a la beta gratis</span>
+          <ArrowRight className="h-4 w-4" />
+        </motion.a>
+      ) : (
+        <motion.button
+          type="button" disabled
+          initial={{ opacity: 0, y: 8 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ delay: delay + 0.45 + features.length * 0.07, duration: 0.6 }}
+          whileHover={{ scale: 1.02 }}
+          className={[
+            "mt-10 h-12 w-full rounded-full text-sm font-semibold cursor-not-allowed",
+            "inline-flex items-center justify-center gap-2.5 px-4 whitespace-nowrap",
+            highlighted
+              ? "bg-black text-white"
+              : "bg-white/[0.04] text-white/65 border border-white/10",
+          ].join(" ")}
+          title="Disponible cuando lancemos las apps"
+        >
+          <AppleIcon className={highlighted ? "h-4 w-4 fill-white" : "h-4 w-4 fill-white/80"} />
+          <GooglePlayIcon className="h-4 w-4" />
+          <span>Próximamente</span>
+        </motion.button>
+      )}
     </motion.article>
   );
 }
@@ -1141,23 +1194,22 @@ function Planes() {
             className="text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.05] text-white"
             style={{ fontFamily: '"Bricolage Grotesque", system-ui, sans-serif' }}
           >
-            Dos planes. <span className="text-white/55">Sin sorpresas.</span>
+            Gratis durante la beta.
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }} transition={{ delay: 0.15, duration: 0.7 }}
-            className="mt-5 text-white/50 text-base max-w-md mx-auto leading-relaxed"
+            className="mt-5 text-white/50 text-base max-w-lg mx-auto leading-relaxed"
           >
-            Empieza solo o con tu equipo. Cancela cuando quieras.
+            Mientras estemos en TestFlight, los dos planes son <span className="text-white/85 font-medium">gratis sin tarjeta</span>. Estos precios solo entran cuando salgamos al App Store oficial.
           </motion.p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-3xl mx-auto">
-          <PlanCard name="Solo"   price="19" tagline="Para el técnico independiente." features={SOLO_FEATURES} delay={0} />
-          <PlanCard name="Equipo" price="49" tagline="Cuando ya no eres solo tú."     features={TEAM_FEATURES} highlighted delay={0.12} />
+          <PlanCard name="Solo"   price="19" tagline="Para el técnico independiente." features={SOLO_FEATURES} delay={0} betaFree />
+          <PlanCard name="Equipo" price="49" tagline="Cuando ya no eres solo tú."     features={TEAM_FEATURES} highlighted delay={0.12} betaFree />
         </div>
 
-        {/* Línea final — reassurance */}
         <motion.p
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -1165,8 +1217,8 @@ function Planes() {
           transition={{ delay: 0.6, duration: 0.7 }}
           className="mt-14 text-center text-[13px] text-white/40"
         >
-          Sin contratos · Sin tarjeta para el trial ·{" "}
-          <span className="text-white/65">Cambias entre planes cuando quieras</span>
+          Sin tarjeta · Sin contratos ·{" "}
+          <span className="text-white/65">Te avisamos antes de que los precios entren en vigor</span>
         </motion.p>
       </div>
     </section>
@@ -1179,11 +1231,11 @@ function Planes() {
 const FAQ_ITEMS = [
   {
     q: "¿Cuándo sale realmente?",
-    a: "Las apps de iOS y Android están en la recta final. Si te suscribes a la lista de espera, eres de los primeros en recibir el link cuando abramos las descargas — sin filtros ni waitlist diferida.",
+    a: "Las apps de iOS y Android están en la recta final. La beta ya está abierta vía TestFlight — únete arriba y empiezas a usar la app hoy. Cuando lancemos al App Store oficial, te aparece como update automático.",
   },
   {
-    q: "¿Cuánto cuesta cuando termine el trial?",
-    a: "$19/mes el Plan Solo. $49/mes el Plan Equipo. Sin contratos. Cancelas cuando quieras desde www.smartfixos.com. Los primeros 14 días son gratis, sin pedir tarjeta.",
+    q: "¿Cuánto cuesta?",
+    a: "Mientras estemos en TestFlight beta, SmartFixOS es completamente gratis — sin tarjeta, sin trial limitado, sin sorpresas. Cuando salgamos al App Store oficial entran los planes Solo ($19/mes) y Equipo ($49/mes), y te avisamos por email con al menos 14 días de anticipación para que decidas.",
   },
   {
     q: "¿Necesito instalar algo en mi computadora?",
