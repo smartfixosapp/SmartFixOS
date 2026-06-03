@@ -17,7 +17,7 @@ export default function JENAIInsightBanner({ context = "dashboard", data = {}, a
 
   const PROMPTS = {
     dashboard: {
-      system: `Eres JENAI, asistente de SmartFixOS. Analiza los KPIs del dia y da un resumen ejecutivo en espanol.
+      system: `Eres JENAI, asistente de Archilla OS. Analiza los KPIs del dia y da un resumen ejecutivo en espanol.
 Maximo 3 oraciones. Se directo y actionable. Incluye una recomendacion concreta.
 NO uses markdown. Texto plano.`,
       user: (d) => `KPIs de hoy:
@@ -31,7 +31,7 @@ NO uses markdown. Texto plano.`,
 Analiza el rendimiento y da una recomendacion.`,
     },
     financial: {
-      system: `Eres JENAI, analista financiero de SmartFixOS. Da un analisis breve de la salud financiera.
+      system: `Eres JENAI, analista financiero de Archilla OS. Da un analisis breve de la salud financiera.
 Maximo 3 oraciones. Incluye: tendencia, riesgo principal, y una accion sugerida.
 NO uses markdown. Texto plano.`,
       user: (d) => `Datos financieros:
@@ -44,7 +44,7 @@ NO uses markdown. Texto plano.`,
 Analiza la salud financiera.`,
     },
     inventory: {
-      system: `Eres JENAI, analista de inventario de SmartFixOS. Analiza el estado del stock y da alertas.
+      system: `Eres JENAI, analista de inventario de Archilla OS. Analiza el estado del stock y da alertas.
 Maximo 3 oraciones. Prioriza: que comprar urgente, riesgo de quedarse sin stock, oportunidad.
 NO uses markdown. Texto plano.`,
       user: (d) => `Estado del inventario:
@@ -57,7 +57,7 @@ ${d.criticalItems ? `Productos criticos: ${d.criticalItems}` : ""}
 Analiza y recomienda.`,
     },
     pos: {
-      system: `Eres JENAI, asistente de ventas de SmartFixOS. Sugiere como maximizar ventas hoy.
+      system: `Eres JENAI, asistente de ventas de Archilla OS. Sugiere como maximizar ventas hoy.
 Maximo 2 oraciones. Se practico y directo.
 NO uses markdown. Texto plano.`,
       user: (d) => `Ventas de hoy:
@@ -68,7 +68,7 @@ NO uses markdown. Texto plano.`,
 Sugiere como aumentar las ventas.`,
     },
     customers: {
-      system: `Eres JENAI, analista de clientes de SmartFixOS. Analiza la base de clientes.
+      system: `Eres JENAI, analista de clientes de Archilla OS. Analiza la base de clientes.
 Maximo 3 oraciones. Incluye: retencion, clientes en riesgo, y accion para traer clientes de vuelta.
 NO uses markdown. Texto plano.`,
       user: (d) => `Base de clientes:
@@ -125,7 +125,7 @@ Analiza retencion y sugiere acciones.`,
         <div className="flex items-center gap-2">
           <Brain className={`w-4 h-4 ${c.icon}`} />
           <span className={`apple-text-footnote ${c.text}`}>JENAI Insights</span>
-          <span className="apple-text-caption2 apple-label-tertiary">powered by SmartFixOS</span>
+          <span className="apple-text-caption2 apple-label-tertiary">powered by Archilla OS</span>
         </div>
         <div className="flex items-center gap-1.5">
           {hasLoaded && (

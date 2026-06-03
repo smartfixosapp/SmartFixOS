@@ -1,4 +1,4 @@
-const DEFAULT_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png";
+const DEFAULT_LOGO_URL = "https://smartfixosapp.com/images/logo.png";
 const EMAIL_TEMPLATES_SETTINGS_SLUG = "email-templates-config";
 
 function getAlertColorForStatus(status) {
@@ -353,7 +353,7 @@ export async function sendTemplatedEmailWithBase44(base44, { event_type, order_d
     <body style="margin: 0; padding: 20px; background: #F3F4F6;">
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 650px; margin: 0 auto; background: #ffffff;">
         <div style="background: ${getHeaderGradient(event_type)}; padding: 60px 30px; text-align: center; border-radius: 20px 20px 0 0;">
-          <img src="${logoUrl}" alt="${businessInfo.business_name || 'SmartFixOS'}" style="height: 120px; width: auto; margin: 0 auto; display: block;" />
+          <img src="${logoUrl}" alt="${businessInfo.business_name || 'Archilla OS'}" style="height: 120px; width: auto; margin: 0 auto; display: block;" />
           <h1 style="color: white; margin: 20px 0 0 0; font-size: 32px; font-weight: 800;">${interpolate(template.header_title, variables)}</h1>
           <p style="color: rgba(255,255,255,0.98); margin: 12px 0 0 0; font-size: 18px; font-weight: 600;">${interpolate(template.header_subtitle || "", variables)}</p>
         </div>
@@ -373,8 +373,8 @@ export async function sendTemplatedEmailWithBase44(base44, { event_type, order_d
           ${template.main_message ? `<p style="color: #374151; line-height: 1.8; font-size: 16px; margin: 20px 0;">${interpolate(template.main_message, variables)}</p>` : ""}
           ${contactHTML}
           <div style="margin-top: 50px; padding-top: 30px; border-top: 2px solid #E5E7EB; text-align: center;">
-            <img src="${logoUrl}" alt="${businessInfo.business_name || 'SmartFixOS'}" style="height: 60px; width: auto; margin: 0 auto 20px; opacity: 0.7;" />
-            <p style="margin: 8px 0; color: #111827; font-size: 14px; font-weight: 700;">${businessInfo.business_name || "SmartFixOS"}</p>
+            <img src="${logoUrl}" alt="${businessInfo.business_name || 'Archilla OS'}" style="height: 60px; width: auto; margin: 0 auto 20px; opacity: 0.7;" />
+            <p style="margin: 8px 0; color: #111827; font-size: 14px; font-weight: 700;">${businessInfo.business_name || "Archilla OS"}</p>
             ${businessInfo.business_address ? `<p style="margin: 8px 0; color: #6B7280; font-size: 13px;">${businessInfo.business_address}</p>` : ""}
             ${businessInfo.business_phone ? `<p style="margin: 8px 0; color: #6B7280; font-size: 13px;">📞 ${businessInfo.business_phone}</p>` : ""}
           </div>

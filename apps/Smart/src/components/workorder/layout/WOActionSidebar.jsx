@@ -230,7 +230,7 @@ export default function WOActionSidebar({
         <>
           <div className="border-t border-white/[0.06] my-2" />
           <ActionBtn icon={Phone} label="Llamar" href={`tel:${phone}`} />
-          <ActionBtn icon={MessageCircle} label="WhatsApp" color="text-green-400" href={`https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Hola ${customerName}, le contactamos de SmartFixOS sobre su orden #${o.order_number || ""}.`)}`} target="_blank" />
+          <ActionBtn icon={MessageCircle} label="WhatsApp" color="text-green-400" href={`https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Hola ${customerName}, le contactamos de Archilla OS sobre su orden #${o.order_number || ""}.`)}`} target="_blank" />
           {o.customer_email && <ActionBtn icon={Mail} label="Email" href={`mailto:${o.customer_email}`} />}
         </>
       )}

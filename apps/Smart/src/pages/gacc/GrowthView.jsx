@@ -205,7 +205,7 @@ function SlackWebhook() {
       const res = await fetch(webhookUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: "GACC Test: Webhook funciona correctamente desde SmartFixOS" }),
+        body: JSON.stringify({ text: "GACC Test: Webhook funciona correctamente desde Archilla OS" }),
       });
       if (res.ok || res.type === "opaque") toast.success("Webhook probado");
       else toast.error("Webhook fallo: " + res.status);

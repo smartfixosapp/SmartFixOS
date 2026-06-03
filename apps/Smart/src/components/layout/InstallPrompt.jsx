@@ -65,7 +65,7 @@ export default function InstallPrompt() {
             <Smartphone className="w-6 h-6 text-apple-blue" />
           </div>
           <div className="flex-1">
-            <h3 className="apple-text-headline apple-label-primary mb-1">Instalar SmartFixOS</h3>
+            <h3 className="apple-text-headline apple-label-primary mb-1">Instalar Archilla OS</h3>
             <p className="apple-text-subheadline apple-label-secondary mb-3">
               Instala la aplicación para una mejor experiencia y acceso rápido.
             </p>

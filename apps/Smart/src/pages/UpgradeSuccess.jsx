@@ -74,7 +74,7 @@ export default function UpgradeSuccess() {
         </h1>
         <p className="mt-4 text-[15px] text-white/55 leading-relaxed">
           {deepLinkFired
-            ? "Te llevamos de vuelta a SmartFixOS…"
+            ? "Te llevamos de vuelta a Archilla OS…"
             : "Estamos activando tu plan."}
         </p>
 
@@ -87,7 +87,7 @@ export default function UpgradeSuccess() {
             href="smartfixos://refresh-plan"
             className="inline-flex items-center gap-2 rounded-full bg-lime-400 text-black px-6 h-11 text-[13px] font-semibold hover:bg-lime-300 transition-colors shadow-[0_10px_40px_rgba(143,201,63,0.30)]"
           >
-            Abrir SmartFixOS <ArrowRight className="h-4 w-4" />
+            Abrir Archilla OS <ArrowRight className="h-4 w-4" />
           </a>
           <Link
             to="/"

@@ -33,10 +33,10 @@ const PLATFORMS = {
     description: "Datos exportados desde Square POS"
   },
   smartfixos: {
-    name: "SmartFixOS",
+    name: "Archilla OS",
     icon: "🛠️",
     color: "from-cyan-600 to-blue-600",
-    description: "Formato nativo de SmartFixOS"
+    description: "Formato nativo de Archilla OS"
   },
   generic: {
     name: "CSV Genérico",
@@ -144,7 +144,7 @@ function parseSquare(row, headers) {
   return { name, phone, email, notes: "", _source: "square" };
 }
 
-function parseSmartFixOS(row, headers) {
+function parseArchilla OS(row, headers) {
   const get = (key) => {
     const idx = headers.findIndex(h => h.toLowerCase().trim() === key.toLowerCase());
     return idx >= 0 ? (row[idx] || "").trim() : "";
@@ -183,7 +183,7 @@ function parseGeneric(row, headers) {
 const PARSERS = {
   repairshopr: parseRepairShopr,
   square: parseSquare,
-  smartfixos: parseSmartFixOS,
+  smartfixos: parseArchilla OS,
   generic: parseGeneric
 };
 

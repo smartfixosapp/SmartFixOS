@@ -210,7 +210,7 @@ function FieldLabel({ label, hint }) {
 
 // ── Preview del email ─────────────────────────────────────────────────────────
 function EmailPreview({ config, bizInfo }) {
-  const fromName = config.email_from_name || bizInfo.name || "SmartFixOS";
+  const fromName = config.email_from_name || bizInfo.name || "Archilla OS";
   const subject = (config.email_subject_sale || "🧾 Tu recibo de venta #{number}").replace("#{number}", "S-2026-0042");
   const dateStr = new Date().toLocaleDateString("es-PR", { day: "numeric", month: "long", year: "numeric" });
   const logo = bizInfo.logo_url;
@@ -272,7 +272,7 @@ function EmailPreview({ config, bizInfo }) {
     <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-top:none;border-radius:0 0 20px 20px;padding:20px 28px;text-align:center;">
       <p style="margin:0 0 3px;color:rgba(255,255,255,0.6);font-size:13px;font-weight:600;">${fromName}</p>
       ${bizInfo.phone ? `<p style="margin:0 0 3px;color:rgba(255,255,255,0.4);font-size:11px;">📞 ${bizInfo.phone}</p>` : ''}
-      <p style="margin:10px 0 0;color:rgba(255,255,255,0.25);font-size:10px;">Powered by SmartFixOS</p>
+      <p style="margin:10px 0 0;color:rgba(255,255,255,0.25);font-size:10px;">Powered by Archilla OS</p>
     </div>
   </div>
 </td></tr></table>

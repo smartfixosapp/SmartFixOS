@@ -71,7 +71,7 @@ export async function notifyCashRegisterHandler(req) {
                 ${detailsHtml}
 
                 <div style="text-align: center; margin-top: 30px; font-size: 12px; color: #9CA3AF;">
-                    Enviado automáticamente por SmartFixOS
+                    Enviado automáticamente por Archilla OS
                 </div>
             </div>
         `;
@@ -82,7 +82,7 @@ export async function notifyCashRegisterHandler(req) {
             
             return base44.integrations.Core.SendEmail({
                 to: admin.email,
-                subject: `[SmartFixOS] ${title} - ${new Date().toLocaleDateString()}`,
+                subject: `[Archilla OS] ${title} - ${new Date().toLocaleDateString()}`,
                 body: emailBody
             });
         });

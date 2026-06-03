@@ -52,7 +52,7 @@ export default function ThermalLabel({ order, onClose, autoPrint = false }) {
         {/* LOGO Y HEADER */}
         <div style={{ textAlign: 'center', marginBottom: '4mm', borderBottom: '2px dashed #000', paddingBottom: '3mm' }}>
           <div style={{ fontSize: '16pt', fontWeight: 'bold', marginBottom: '2mm' }}>
-            SmartFixOS
+            Archilla OS
           </div>
           <div style={{ fontSize: '9pt' }}>ETIQUETA DE EQUIPO</div>
         </div>

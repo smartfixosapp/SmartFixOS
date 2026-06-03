@@ -112,7 +112,7 @@
   min-width: 28px;
   font-variant-numeric: tabular-nums;
   font-weight: 700;
-  color: rgba(10, 132, 255, 1);
+  color: rgba(255, 87, 34, 1);
   font-size: 13px;
 }
 
@@ -199,8 +199,8 @@
 }
 
 .pmn-method.is-active {
-  background: rgba(10, 132, 255, 0.18);
-  border-color: rgba(10, 132, 255, 0.7);
+  background: rgba(255, 87, 34, 0.18);
+  border-color: rgba(255, 87, 34, 0.7);
 }
 
 .pmn-method:active { transform: scale(0.98); }
@@ -235,8 +235,8 @@
 }
 
 .pmn-input-field:focus {
-  border-color: rgba(10, 132, 255, 0.7);
-  background: rgba(10, 132, 255, 0.06);
+  border-color: rgba(255, 87, 34, 0.7);
+  background: rgba(255, 87, 34, 0.06);
 }
 
 .pmn-keypad {

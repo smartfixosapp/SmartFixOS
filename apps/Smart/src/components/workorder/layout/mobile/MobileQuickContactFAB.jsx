@@ -10,7 +10,7 @@ export default function MobileQuickContactFAB({ phone, customerName, orderNumber
 
   const cleanPhone = phone.replace(/\D/g, "");
   const waMsg = encodeURIComponent(
-    `Hola ${customerName || ""}, le contactamos de SmartFixOS sobre su orden #${orderNumber || ""}.`
+    `Hola ${customerName || ""}, le contactamos de Archilla OS sobre su orden #${orderNumber || ""}.`
   );
 
   const toggle = () => {

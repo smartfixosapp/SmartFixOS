@@ -59,21 +59,21 @@ function HashHandoffNotice() {
     <div className="fixed inset-0 z-[100] bg-[#0a0a0a]/95 backdrop-blur-sm flex items-center justify-center p-6">
       <div className="max-w-md w-full bg-[#111] border border-white/[0.08] rounded-2xl p-8 text-center">
         <div className="w-14 h-14 mx-auto mb-5 rounded-full flex items-center justify-center"
-             style={{ background: "rgba(143,201,63,0.15)" }}>
-          <CheckCircle2 className="w-7 h-7" style={{ color: "#8FC93F" }} />
+             style={{ background: "rgba(255,87,34,0.15)" }}>
+          <CheckCircle2 className="w-7 h-7" style={{ color: "#FF5722" }} />
         </div>
         <h2 className="text-2xl font-semibold tracking-tight text-white mb-2"
             style={{ fontFamily: '"Bricolage Grotesque", system-ui, sans-serif' }}>
           Casi listo
         </h2>
         <p className="text-white/65 text-[15px] leading-relaxed mb-7">
-          Tu enlace de acceso está listo. Abre la app SmartFixOS para terminar de iniciar sesión.
+          Tu enlace de acceso está listo. Abre la app Archilla OS para terminar de iniciar sesión.
         </p>
         <a
           href={deepLink}
           className="block w-full bg-white text-black font-semibold py-3.5 rounded-xl hover:bg-white/90 transition-colors mb-3"
         >
-          Abrir en SmartFixOS
+          Abrir en Archilla OS
         </a>
         <button
           onClick={() => setDismissed(true)}
@@ -165,7 +165,7 @@ function BetaSlotsCounter({ slots, loading, error }) {
 
   return (
     <div className="mt-5 inline-flex items-center gap-2 text-[12.5px] text-white/55">
-      <span className="h-1.5 w-1.5 rounded-full" style={{ background: "#8FC93F", boxShadow: "0 0 8px #8FC93F" }} />
+      <span className="h-1.5 w-1.5 rounded-full" style={{ background: "#FF5722", boxShadow: "0 0 8px #FF5722" }} />
       <span><span className="text-white font-semibold tabular-nums">{remaining}</span> de {limit} cupos disponibles</span>
     </div>
   );
@@ -214,9 +214,9 @@ function WaitlistForm() {
 
   if (done) {
     return (
-      <div className="rounded-2xl border border-lime-400/30 bg-lime-400/[0.06] px-6 py-5 text-center">
-        <div className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-lime-400/15 border border-lime-400/30 mb-3">
-          <CheckCircle2 className="h-5 w-5" style={{ color: "#8FC93F" }} />
+      <div className="rounded-2xl border border-[#FF5722]/30 bg-[#FF5722]/[0.06] px-6 py-5 text-center">
+        <div className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-[#FF5722]/15 border border-[#FF5722]/30 mb-3">
+          <CheckCircle2 className="h-5 w-5" style={{ color: "#FF5722" }} />
         </div>
         <div className="text-[15px] font-semibold text-white mb-1">Estás en la lista</div>
         <p className="text-[13px] text-white/55 leading-relaxed max-w-sm mx-auto">
@@ -283,7 +283,7 @@ const COMO_ENTRAR_STEPS = [
   { icon: Compass,      title: "Tap al botón",          body: "Únete a la beta arriba abre la página de TestFlight en Safari." },
   { icon: Smartphone,   title: "¿No tienes TestFlight?", body: "Apple te lleva al App Store. TestFlight es gratis, solo necesitas tu Apple ID." },
   { icon: Download,     title: "Instala TestFlight",     body: "Tap Get. No te pide tarjeta, ni Apple Developer, ni nada raro." },
-  { icon: ArrowRight,   title: "Abre TestFlight",        body: "El invite ya está cacheado en tu cuenta. Ves SmartFixOS esperándote." },
+  { icon: ArrowRight,   title: "Abre TestFlight",        body: "El invite ya está cacheado en tu cuenta. Ves Archilla OS esperándote." },
   { icon: CheckCircle2, title: "Tap Accept → Install",   body: "La app baja en ~10 segundos a tu home screen." },
   { icon: Sparkles,     title: "Punto naranja = beta",   body: "Vas a verlo al lado del nombre. Es la marca oficial de Apple para apps beta." },
   { icon: ShieldCheck,  title: "14 días gratis",         body: "Crea tu taller dentro de la app. Sin tarjeta. Cancelable cuando quieras." },
@@ -352,7 +352,7 @@ function PhoneScreenshot({ src, caption, index }) {
       transition={{ delay: (index % 5) * 0.05, duration: 0.5 }}
       className="group flex flex-col items-center"
     >
-      <div className="relative w-full max-w-[200px] aspect-[9/19.5] rounded-[2.2rem] bg-[#0f0f0f] border border-white/[0.08] p-[5px] shadow-[0_20px_50px_rgba(0,0,0,0.4)] transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-[0_30px_70px_rgba(143,201,63,0.12)] group-hover:border-white/15">
+      <div className="relative w-full max-w-[200px] aspect-[9/19.5] rounded-[2.2rem] bg-[#0f0f0f] border border-white/[0.08] p-[5px] shadow-[0_20px_50px_rgba(0,0,0,0.4)] transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-[0_30px_70px_rgba(255,87,34,0.12)] group-hover:border-white/15">
         <div className="absolute top-[14px] left-1/2 -translate-x-1/2 h-[18px] w-[80px] rounded-full bg-black z-10" />
         <img
           src={src}
@@ -374,7 +374,7 @@ function TourCompleto() {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2.5 mb-5">
-            <span className="h-1.5 w-1.5 rounded-full" style={{ background: "#1FA0DC", boxShadow: "0 0 10px #1FA0DC" }} />
+            <span className="h-1.5 w-1.5 rounded-full" style={{ background: "#FF5722", boxShadow: "0 0 10px #FF5722" }} />
             <span className="text-[11px] uppercase tracking-[0.24em] font-medium text-white/45">Tour completo</span>
           </div>
           <h2
@@ -441,7 +441,7 @@ function ComoEntrar() {
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-14">
           <div className="inline-flex items-center gap-2.5 mb-5">
-            <span className="h-1.5 w-1.5 rounded-full" style={{ background: "#8FC93F", boxShadow: "0 0 10px #8FC93F" }} />
+            <span className="h-1.5 w-1.5 rounded-full" style={{ background: "#FF5722", boxShadow: "0 0 10px #FF5722" }} />
             <span className="text-[11px] uppercase tracking-[0.24em] font-medium text-white/45">Cómo entrar</span>
           </div>
           <h2
@@ -502,113 +502,95 @@ function ComoEntrar() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Animated wordmark — "smartfix[engranaje]s"
+//  Animated wordmark — logo glossy + "Archilla OS"
 // ─────────────────────────────────────────────────────────────────────────────
-const GEAR_PATH = "M 90.57 39.13 L 91.48 43.43 L 99.38 42.18 L 99.38 57.82 L 91.48 56.57 L 90.57 60.87 L 89.21 65.05 L 96.68 67.92 L 88.86 81.47 L 82.64 76.43 L 79.70 79.70 L 76.43 82.64 L 81.47 88.86 L 67.92 96.68 L 65.05 89.21 L 60.87 90.57 L 56.57 91.48 L 57.82 99.38 L 42.18 99.38 L 43.43 91.48 L 39.13 90.57 L 34.95 89.21 L 32.08 96.68 L 18.53 88.86 L 23.57 82.64 L 20.30 79.70 L 17.36 76.43 L 11.14 81.47 L 3.32 67.92 L 10.79 65.05 L 9.43 60.87 L 8.52 56.57 L 0.62 57.82 L 0.62 42.18 L 8.52 43.43 L 9.43 39.13 L 10.79 34.95 L 3.32 32.08 L 11.14 18.53 L 17.36 23.57 L 20.30 20.30 L 23.57 17.36 L 18.53 11.14 L 32.08 3.32 L 34.95 10.79 L 39.13 9.43 L 43.43 8.52 L 42.18 0.62 L 57.82 0.62 L 56.57 8.52 L 60.87 9.43 L 65.05 10.79 L 67.92 3.32 L 81.47 11.14 L 76.43 17.36 L 79.70 20.30 L 82.64 23.57 L 88.86 18.53 L 96.68 32.08 L 89.21 34.95 L 90.57 39.13 Z";
-
-function AnimatedWordmark({ size = "hero", centerColor = "#0a0a0a" }) {
+function AnimatedWordmark({ size = "hero" }) {
   const isHero = size === "hero";
-  const clipId = `gear-clip-${size}`;
 
-  // Letters enter quick (40ms stagger) so attention lands on the gear faster.
-  const letterCount = 8; // "smartfix"
+  const word = "Archilla OS";
   const letterStagger = 0.04;
-  const gearDelay  = 0.05 + letterCount * letterStagger; // 0.37s
-  const finalSDelay = gearDelay + 0.25; // gear lands first, then the closing "s"
+  const logoDelay = 0.05 + word.length * letterStagger;
 
   return (
     <div
       className={
         isHero
-          ? "flex items-center justify-center font-[800] leading-[0.85] tracking-[-0.045em] text-white select-none"
-          : "flex items-center justify-center font-[700] leading-[0.85] tracking-[-0.04em] text-white select-none"
+          ? "flex items-center justify-center gap-[0.18em] font-[800] leading-[0.85] tracking-[-0.045em] text-white select-none"
+          : "flex items-center justify-center gap-[0.18em] font-[700] leading-[0.85] tracking-[-0.04em] text-white select-none"
       }
       style={{
         fontFamily: '"Bricolage Grotesque", system-ui, sans-serif',
-        fontSize: isHero ? "clamp(64px, 14vw, 180px)" : "44px",
+        fontSize: isHero ? "clamp(48px, 11vw, 140px)" : "40px",
       }}
-      aria-label="smartfixos"
+      aria-label="Archilla OS"
     >
-      {"smartfix".split("").map((ch, i) => (
-        <motion.span
-          key={`l-${i}`}
-          initial={{ opacity: 0, y: "0.5em", scale: 0.85 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{
-            delay: 0.05 + i * letterStagger,
-            duration: 0.6,
-            ease: [0.16, 1, 0.3, 1],
-          }}
-          style={{ display: "inline-block" }}
-        >
-          {ch}
-        </motion.span>
-      ))}
-
-      {/* Engranaje — entrada con rotación + overshoot, después loop infinito */}
+      {/* Logo glossy — entrada con rotación + overshoot, después flota suave */}
       <motion.span
         initial={{ opacity: 0, scale: 0.3, rotate: -160 }}
         animate={{ opacity: 1, scale: 1, rotate: 0 }}
         transition={{
-          delay: gearDelay,
+          delay: 0.05,
           duration: 0.95,
-          ease: [0.34, 1.46, 0.5, 1], // overshoot back-out — el gear "encaja"
+          ease: [0.34, 1.46, 0.5, 1],
         }}
         className="relative inline-grid place-items-center"
-        style={{ width: "0.92em", height: "0.92em", margin: "0 -0.02em" }}
+        style={{ width: "1.05em", height: "1.05em", margin: "0 0.04em" }}
         aria-hidden
       >
-        {/* Halo: flash brillante en la entrada, después pulso suave */}
+        {/* Halo naranja: flash brillante en la entrada, después pulso suave */}
         <motion.span
-          className="pointer-events-none absolute inset-[8%] rounded-full -z-10"
+          className="pointer-events-none absolute inset-[6%] rounded-full -z-10"
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: [0, 1, 0.55], scale: [0.5, 1.45, 1] }}
           transition={{
-            delay: gearDelay,
+            delay: 0.05,
             duration: 0.9,
             times: [0, 0.45, 1],
             ease: "easeOut",
           }}
           style={{
             background:
-              "radial-gradient(circle, rgba(143,201,63,0.32) 0%, rgba(31,160,220,0.28) 50%, transparent 75%)",
+              "radial-gradient(circle, rgba(255,122,77,0.38) 0%, rgba(255,87,34,0.30) 50%, transparent 75%)",
             filter: "blur(8px)",
-            animation: `sfx-halo 4s ease-in-out infinite ${gearDelay + 0.9}s`,
+            animation: `sfx-halo 4s ease-in-out infinite ${logoDelay + 0.9}s`,
           }}
         />
-        <svg
-          viewBox="0 0 100 100"
-          xmlns="http://www.w3.org/2000/svg"
+        <img
+          src="/images/logo.png"
+          alt=""
           style={{
-            width: "100%", height: "100%", overflow: "visible",
-            transformOrigin: "50% 50%",
-            // Spin starts after the entrance overshoot finishes
-            animation: `sfx-gear-spin 14s linear infinite ${gearDelay + 0.95}s`,
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
+            animation: `sfx-logo-float 6s ease-in-out infinite ${logoDelay + 0.95}s`,
           }}
-        >
-          <defs>
-            <clipPath id={clipId}><path d={GEAR_PATH} /></clipPath>
-          </defs>
-          <g clipPath={`url(#${clipId})`}>
-            <rect x="0"  y="0" width="50" height="100" fill="#1FA0DC" />
-            <rect x="50" y="0" width="50" height="100" fill="#8FC93F" />
-          </g>
-          <circle cx="50" cy="50" r="22" fill={centerColor} />
-        </svg>
+        />
       </motion.span>
 
-      {/* "s" final — entra después del gear, completa la palabra */}
-      <motion.span
-        initial={{ opacity: 0, y: "0.5em", scale: 0.85 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ delay: finalSDelay, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        style={{ display: "inline-block" }}
-      >
-        s
-      </motion.span>
+      {/* Wordmark "Archilla OS" — letras entran con stagger */}
+      <span className="inline-flex">
+        {word.split("").map((ch, i) => (
+          <motion.span
+            key={`l-${i}`}
+            initial={{ opacity: 0, y: "0.5em", scale: 0.85 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{
+              delay: 0.05 + i * letterStagger,
+              duration: 0.6,
+              ease: [0.16, 1, 0.3, 1],
+            }}
+            style={{ display: "inline-block", whiteSpace: "pre" }}
+          >
+            {ch}
+          </motion.span>
+        ))}
+      </span>
 
       <style>{`
-        @keyframes sfx-gear-spin { to { transform: rotate(360deg); } }
+        @keyframes sfx-logo-float {
+          0%, 100% { transform: translateY(0); }
+          50%      { transform: translateY(-0.04em); }
+        }
         @keyframes sfx-halo {
           0%, 100% { opacity: 0.55; transform: scale(1); }
           50%      { opacity: 1;    transform: scale(1.12); }
@@ -650,7 +632,7 @@ function Hero() {
       >
         <span
           className="h-1.5 w-1.5 rounded-full"
-          style={{ background: "#8FC93F", boxShadow: "0 0 8px #8FC93F" }}
+          style={{ background: "#FF5722", boxShadow: "0 0 8px #FF5722" }}
         />
         Probado en talleres reales · Puerto Rico
       </motion.div>
@@ -665,12 +647,12 @@ function Hero() {
           <button
             type="button"
             onClick={() => document.getElementById("waitlist")?.scrollIntoView({ behavior: "smooth", block: "start" })}
-            className="group relative inline-flex items-center gap-4 rounded-3xl bg-white text-black px-8 sm:px-10 py-5 transition-all hover:bg-gray-50 hover:-translate-y-1 hover:scale-[1.02] shadow-[0_20px_60px_rgba(143,201,63,0.25)] active:scale-[0.98] cursor-pointer"
+            className="group relative inline-flex items-center gap-4 rounded-3xl bg-white text-black px-8 sm:px-10 py-5 transition-all hover:bg-gray-50 hover:-translate-y-1 hover:scale-[1.02] shadow-[0_20px_60px_rgba(255,87,34,0.25)] active:scale-[0.98] cursor-pointer"
           >
             <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 rounded-full bg-white border border-white/15 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-black shadow-md whitespace-nowrap">
               Beta llena · únete a la lista
             </span>
-            <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-blue-600 text-white shrink-0">
+            <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#ff7a4d] to-[#d83c10] text-white shrink-0">
               <Inbox className="h-5 w-5" strokeWidth={2.2} />
             </span>
             <div className="flex flex-col items-start leading-tight">
@@ -684,14 +666,14 @@ function Hero() {
             href={TESTFLIGHT_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="group relative inline-flex items-center gap-4 rounded-3xl bg-white text-black px-8 sm:px-10 py-5 transition-all hover:bg-gray-50 hover:-translate-y-1 hover:scale-[1.02] shadow-[0_20px_60px_rgba(56,189,248,0.30)] active:scale-[0.98]"
+            className="group relative inline-flex items-center gap-4 rounded-3xl bg-white text-black px-8 sm:px-10 py-5 transition-all hover:bg-gray-50 hover:-translate-y-1 hover:scale-[1.02] shadow-[0_20px_60px_rgba(255,87,34,0.30)] active:scale-[0.98]"
           >
             <span
               className={
                 "absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] shadow-md whitespace-nowrap " +
                 (isLow
                   ? "bg-red-400 text-black"
-                  : "bg-lime-400 text-black")
+                  : "bg-[#FF5722] text-black")
               }
             >
               <span className="relative flex h-1.5 w-1.5">
@@ -703,7 +685,7 @@ function Hero() {
                 : "Únete a la beta gratis · 10 cupos"}
             </span>
 
-            <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-blue-600 text-white shrink-0">
+            <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#ff7a4d] to-[#d83c10] text-white shrink-0">
               <FlaskConical className="h-5 w-5" strokeWidth={2.2} />
             </span>
             <div className="flex flex-col items-start leading-tight">
@@ -823,9 +805,9 @@ function Historia() {
 
           <blockquote
             className="border-l-2 pl-6 py-1 my-12 text-2xl sm:text-3xl font-medium leading-[1.3] text-white"
-            style={{ borderColor: "#8FC93F", fontFamily: '"Bricolage Grotesque", system-ui, sans-serif' }}
+            style={{ borderColor: "#FF5722", fontFamily: '"Bricolage Grotesque", system-ui, sans-serif' }}
           >
-            Por eso construí SmartFixOS.
+            Por eso construí Archilla OS.
             <br />
             <span className="text-white/55 text-xl sm:text-2xl">
               El sistema que yo siempre quise tener.
@@ -844,7 +826,7 @@ function Historia() {
           </p>
 
           <div className="pt-6 flex items-center gap-3 text-sm text-white/45">
-            <span className="h-px w-8" style={{ background: "#8FC93F" }} />
+            <span className="h-px w-8" style={{ background: "#FF5722" }} />
             Francis <span className="text-white/30">·</span> San Juan, PR
           </div>
         </motion.div>
@@ -980,8 +962,8 @@ function PlanCard({ name, price, tagline, features, highlighted = false, delay =
       className={[
         "group/plan relative flex flex-col rounded-2xl p-8 sm:p-10 border transition-shadow duration-500",
         highlighted
-          ? "bg-white text-black border-white shadow-[0_20px_60px_-20px_rgba(0,0,0,0.45)] hover:shadow-[0_40px_90px_-20px_rgba(143,201,63,0.55)]"
-          : "bg-transparent text-white border-white/10 hover:border-lime-400/35 hover:shadow-[0_30px_70px_-25px_rgba(143,201,63,0.30)]",
+          ? "bg-white text-black border-white shadow-[0_20px_60px_-20px_rgba(0,0,0,0.45)] hover:shadow-[0_40px_90px_-20px_rgba(255,87,34,0.55)]"
+          : "bg-transparent text-white border-white/10 hover:border-[#FF5722]/35 hover:shadow-[0_30px_70px_-25px_rgba(255,87,34,0.30)]",
       ].join(" ")}
     >
       {/* Glow ambient detrás de la card destacada — sale al hover */}
@@ -991,7 +973,7 @@ function PlanCard({ name, price, tagline, features, highlighted = false, delay =
           className="pointer-events-none absolute -inset-10 -z-10 opacity-0 group-hover/plan:opacity-100 transition-opacity duration-700"
           style={{
             background:
-              "radial-gradient(ellipse at center, rgba(143,201,63,0.35) 0%, rgba(31,160,220,0.18) 35%, transparent 70%)",
+              "radial-gradient(ellipse at center, rgba(255,87,34,0.35) 0%, rgba(255,87,34,0.18) 35%, transparent 70%)",
             filter: "blur(28px)",
           }}
         />
@@ -1008,7 +990,7 @@ function PlanCard({ name, price, tagline, features, highlighted = false, delay =
         >
           <motion.span
             className="h-1.5 w-1.5 rounded-full"
-            style={{ background: "#8FC93F", boxShadow: "0 0 8px #8FC93F" }}
+            style={{ background: "#FF5722", boxShadow: "0 0 8px #FF5722" }}
             animate={{ opacity: [1, 0.35, 1], scale: [1, 1.2, 1] }}
             transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
           />
@@ -1096,7 +1078,7 @@ function PlanCard({ name, price, tagline, features, highlighted = false, delay =
               transition={{ delay: delay + 0.5 + i * 0.07, duration: 0.45, ease: [0.34, 1.46, 0.5, 1] }}
               className={highlighted ? "flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-black mt-px" : "flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-white/[0.06] mt-px"}
             >
-              <Check className="h-3 w-3" strokeWidth={3} style={{ color: "#8FC93F" }} />
+              <Check className="h-3 w-3" strokeWidth={3} style={{ color: "#FF5722" }} />
             </motion.span>
             <span className={highlighted ? "text-black/85" : "text-white/75"}>{f}</span>
           </motion.li>
@@ -1168,7 +1150,7 @@ function Planes() {
         className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full -z-0"
         style={{
           background:
-            "radial-gradient(circle, rgba(143,201,63,0.06) 0%, transparent 60%)",
+            "radial-gradient(circle, rgba(255,87,34,0.06) 0%, transparent 60%)",
           filter: "blur(30px)",
         }}
       />
@@ -1182,7 +1164,7 @@ function Planes() {
           >
             <span
               className="h-1.5 w-1.5 rounded-full"
-              style={{ background: "#8FC93F", boxShadow: "0 0 10px #8FC93F" }}
+              style={{ background: "#FF5722", boxShadow: "0 0 10px #FF5722" }}
             />
             <span className="text-[11px] uppercase tracking-[0.24em] font-medium text-white/45">
               Planes
@@ -1235,11 +1217,11 @@ const FAQ_ITEMS = [
   },
   {
     q: "¿Cuánto cuesta?",
-    a: "Mientras estemos en TestFlight beta, SmartFixOS es completamente gratis — sin tarjeta, sin trial limitado, sin sorpresas. Cuando salgamos al App Store oficial entran los planes Solo ($19/mes) y Equipo ($49/mes), y te avisamos por email con al menos 14 días de anticipación para que decidas.",
+    a: "Mientras estemos en TestFlight beta, Archilla OS es completamente gratis — sin tarjeta, sin trial limitado, sin sorpresas. Cuando salgamos al App Store oficial entran los planes Solo ($19/mes) y Equipo ($49/mes), y te avisamos por email con al menos 14 días de anticipación para que decidas.",
   },
   {
     q: "¿Necesito instalar algo en mi computadora?",
-    a: "No. SmartFixOS corre 100% en el celular o tablet. Sin servidores que mantener, sin actualizaciones manuales. Si tienes iPhone, iPad o Android moderno, ya tienes todo lo que necesitas.",
+    a: "No. Archilla OS corre 100% en el celular o tablet. Sin servidores que mantener, sin actualizaciones manuales. Si tienes iPhone, iPad o Android moderno, ya tienes todo lo que necesitas.",
   },
   {
     q: "¿Mis datos son míos si me cancelo?",
@@ -1452,7 +1434,7 @@ function Waitlist() {
               initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               className="mt-10 inline-flex items-center gap-3 rounded-2xl border border-white/15 bg-white/[0.04] px-6 py-4"
             >
-              <CheckCircle2 className="h-5 w-5" style={{ color: "#8FC93F" }} />
+              <CheckCircle2 className="h-5 w-5" style={{ color: "#FF5722" }} />
               <span className="text-[15px] text-white/85">
                 ¡Listo! Te aviso en cuanto las apps estén disponibles.
               </span>
@@ -1543,14 +1525,14 @@ function Footer() {
         </div>
 
         <div className="text-[11px] uppercase tracking-[0.22em] text-white/25 pt-2 flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
-          <span>SmartFixOS © 2026</span>
+          <span>Archilla OS © 2026</span>
           <span className="text-white/15">·</span>
           <span>v3.5.0</span>
           <span className="text-white/15">·</span>
           <span>San Juan, PR · Hecho a mano 🇵🇷</span>
         </div>
 
-        {/* Studio credit — Archilla Studios construyó SmartFixOS */}
+        {/* Studio credit — Archilla Studios construyó Archilla OS */}
         <div className="mt-6 pt-8 border-t border-white/[0.04] w-full flex flex-col items-center gap-3">
           <span className="text-[10px] uppercase tracking-[0.28em] text-white/30">
             Diseño y desarrollo

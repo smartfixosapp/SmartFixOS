@@ -178,7 +178,7 @@ export default function SoftwareServiceDialog({ open, onClose, onSuccess }) {
       if (formData.customer_email) {
         try {
           await base44.integrations.Core.SendEmail({
-            from_name: "SmartFixOS",
+            from_name: "Archilla OS",
             to: formData.customer_email,
             subject: `Confirmación de Servicio - Orden ${orderNumber}`,
             body: `
@@ -205,7 +205,7 @@ export default function SoftwareServiceDialog({ open, onClose, onSuccess }) {
                   </p>
                   
                   <p style="color: #999; font-size: 12px; margin-top: 30px; text-align: center; border-top: 1px solid #eee; padding-top: 15px;">
-                    SmartFixOS - Sistema de Gestión
+                    Archilla OS - Sistema de Gestión
                   </p>
                 </div>
               </div>

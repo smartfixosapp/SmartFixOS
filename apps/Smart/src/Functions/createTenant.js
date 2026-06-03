@@ -61,7 +61,7 @@ export async function createTenantHandler(req) {
     // Send welcome email
     const emailBody = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2>¡Bienvenido a SmartFixOS!</h2>
+        <h2>¡Bienvenido a Archilla OS!</h2>
         <p>Hola ${adminName || name},</p>
         <p>Tu tienda <strong>${name}</strong> está lista. Tienes acceso completo durante <strong>15 días</strong>.</p>
         <p><strong>Detalles de tu cuenta:</strong></p>
@@ -82,9 +82,9 @@ export async function createTenantHandler(req) {
     try {
       await base44.integrations.Core.SendEmail({
         to: email,
-        subject: '¡Bienvenido a SmartFixOS! Tu prueba gratuita está activa',
+        subject: '¡Bienvenido a Archilla OS! Tu prueba gratuita está activa',
         body: emailBody,
-        from_name: 'SmartFixOS'
+        from_name: 'Archilla OS'
       });
     } catch (emailError) {
       console.warn('Email send failed (non-critical):', emailError);

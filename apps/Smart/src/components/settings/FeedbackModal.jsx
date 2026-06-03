@@ -51,7 +51,7 @@ export default function FeedbackModal({ onClose }) {
       const html = `
         <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#111">
           <div style="background:#0f0f18;border-radius:16px;padding:32px;color:#fff">
-            <h2 style="margin:0 0 8px;font-size:22px">Nuevo Feedback — SmartFixOS</h2>
+            <h2 style="margin:0 0 8px;font-size:22px">Nuevo Feedback — Archilla OS</h2>
             <p style="color:#888;margin:0 0 24px;font-size:13px">${new Date().toLocaleString("es", { timeZone: "America/Puerto_Rico" })}</p>
             <div style="background:#ffffff10;border-radius:12px;padding:20px;margin-bottom:20px">
               <p style="margin:0 0 6px;font-size:12px;color:#888">Tienda</p>
@@ -79,7 +79,7 @@ export default function FeedbackModal({ onClose }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           to:      ADMIN_EMAIL,
-          subject: `[SmartFixOS Feedback] ${typeLabel}: ${title.trim()} — ${tenantName}`,
+          subject: `[Archilla OS Feedback] ${typeLabel}: ${title.trim()} — ${tenantName}`,
           html,
         }),
       });
@@ -119,7 +119,7 @@ export default function FeedbackModal({ onClose }) {
             </div>
             <h3 className="apple-label-primary apple-text-title2 mb-2">¡Gracias por tu feedback!</h3>
             <p className="apple-label-tertiary apple-text-subheadline max-w-xs mx-auto mb-6">
-              Recibimos tu mensaje. Lo revisaremos y tomaremos en cuenta para mejorar SmartFixOS.
+              Recibimos tu mensaje. Lo revisaremos y tomaremos en cuenta para mejorar Archilla OS.
             </p>
             <button
               onClick={onClose}

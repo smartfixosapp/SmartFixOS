@@ -92,7 +92,7 @@ async function generateReceiptPDF(sale, customer, items, biz) {
   };
 
   // ── Header ──
-  txt(biz?.name || "SmartFixOS", { size: 14, bold: true, align: "center" });
+  txt(biz?.name || "Archilla OS", { size: 14, bold: true, align: "center" });
   if (biz?.address) txt(biz.address, { size: 7, align: "center", color: [100, 100, 100] });
   if (biz?.phone)   txt(`Tel: ${biz.phone}`, { size: 7, align: "center", color: [100, 100, 100] });
   y += 2;
@@ -153,7 +153,7 @@ async function generateReceiptPDF(sale, customer, items, biz) {
   }
 
   divider();
-  txt("Powered by SmartFixOS", { size: 6, align: "center", color: [180, 180, 180] });
+  txt("Powered by Archilla OS", { size: 6, align: "center", color: [180, 180, 180] });
 
   return pdf.output("blob");
 }
@@ -161,7 +161,7 @@ async function generateReceiptPDF(sale, customer, items, biz) {
 // ── Receipt email HTML (original, dark-themed) ────────────────────────────
 function formatReceiptHtml(sale, customer, items, biz) {
   const config = getConfig();
-  const fromName = config.email_from_name || biz?.name || "SmartFixOS";
+  const fromName = config.email_from_name || biz?.name || "Archilla OS";
   const phone = biz?.phone || "";
   const date = new Date().toLocaleDateString("es-PR", { year: "numeric", month: "long", day: "numeric" });
   const total = toCurrencyNumber(sale?.total_amount || sale?.total).toFixed(2);
@@ -222,7 +222,7 @@ function formatReceiptHtml(sale, customer, items, biz) {
     <p style="margin:0 0 4px;color:rgba(255,255,255,0.6);font-size:14px;font-weight:600;">${fromName}</p>
     ${phone ? `<p style="margin:0 0 4px;color:rgba(255,255,255,0.4);font-size:12px;">📞 ${phone}</p>` : ""}
     ${config.footer_text ? `<p style="margin:10px 0 0;color:rgba(255,255,255,0.5);font-size:13px;">${config.footer_text}</p>` : ""}
-    <p style="margin:12px 0 0;color:rgba(255,255,255,0.2);font-size:11px;">Powered by SmartFixOS</p>
+    <p style="margin:12px 0 0;color:rgba(255,255,255,0.2);font-size:11px;">Powered by Archilla OS</p>
   </div>
 </div>
 </td></tr></table>
@@ -232,7 +232,7 @@ function formatReceiptHtml(sale, customer, items, biz) {
 // ── Plain-text receipt (WhatsApp fallback) ────────────────────────────────
 function formatReceiptText(sale, customer, items, biz) {
   const config = getConfig();
-  const name = biz?.name || "SmartFixOS";
+  const name = biz?.name || "Archilla OS";
   const phone = biz?.phone || "";
   const addr = biz?.address || "";
   const date = new Date().toLocaleDateString("es-PR", { year: "numeric", month: "long", day: "numeric" });
@@ -303,7 +303,7 @@ export default function POSSaleActionsModal({ open, onClose, sale, customer, car
 
   if (!open) return null;
 
-  const bizName = businessInfo?.name || "SmartFixOS";
+  const bizName = businessInfo?.name || "Archilla OS";
   const totalStr = `$${toCurrencyNumber(sale?.total_amount || sale?.total).toFixed(2)}`;
   const saleNum = sale?.sale_number || sale?.id?.slice(-6) || "—";
 

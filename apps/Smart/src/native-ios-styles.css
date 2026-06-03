@@ -78,7 +78,7 @@ input, textarea, [contenteditable="true"], .ios-selectable {
 
 html.sfx-liquid-glass-emulated body {
   background-image:
-    radial-gradient(1200px 800px at 70% -10%, rgba(10, 132, 255, 0.12), transparent 60%),
+    radial-gradient(1200px 800px at 70% -10%, rgba(255, 87, 34, 0.12), transparent 60%),
     radial-gradient(900px 600px at -10% 100%, rgba(191, 90, 242, 0.10), transparent 70%);
   background-attachment: fixed;
 }

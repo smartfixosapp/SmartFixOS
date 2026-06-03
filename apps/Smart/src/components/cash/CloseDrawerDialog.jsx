@@ -388,7 +388,7 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
       .footer{text-align:center;color:#aaa;font-size:11px;margin-top:32px}
     </style></head><body>
     <h1>📋 Cierre de Caja</h1>
-    <div class="sub">${dateStr} · Generado por SmartFixOS</div>
+    <div class="sub">${dateStr} · Generado por Archilla OS</div>
     <div class="section">
       <h2>💰 Ventas del Turno</h2>
       <div class="row"><span>Efectivo</span><span>$${(s.totalCash||0).toFixed(2)}</span></div>
@@ -408,7 +408,7 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
       <div class="row"><span>Diferencia</span><span class="${isBalanced?'balanced':'unbalanced'} badge">${difference>=0?'+':''}${difference.toFixed(2)}</span></div>
       <div class="row profit"><span>Ganancia Neta</span><span>$${netProfit.toFixed(2)}</span></div>
     </div>
-    <div class="footer">SmartFixOS · smartfixos.com · ${new Date().toLocaleTimeString('es-PR')}</div>
+    <div class="footer">Archilla OS · smartfixos.com · ${new Date().toLocaleTimeString('es-PR')}</div>
     </body></html>`;
     const w = window.open('', '_blank', 'width=800,height=900');
     w.document.write(html);

@@ -91,7 +91,7 @@ export default function Upgrade() {
             : null;
         if (!tenantId) {
           setErrorMsg(
-            "No encontramos un taller asociado a tu cuenta. Crea tu cuenta desde la app SmartFixOS.",
+            "No encontramos un taller asociado a tu cuenta. Crea tu cuenta desde la app Archilla OS.",
           );
           setStatus("error");
           return;
@@ -169,7 +169,7 @@ export default function Upgrade() {
     return (
       <StripeReturn
         title="¡Pago confirmado!"
-        body="Vuelve a la app SmartFixOS — tu plan se activa en segundos."
+        body="Vuelve a la app Archilla OS — tu plan se activa en segundos."
       />
     );
   }
@@ -190,7 +190,7 @@ export default function Upgrade() {
       <DownloadAppGate
         planLabel={planAmount ? `Plan ${planName} · $${planAmount}/mes` : null}
         title="Suscríbete desde la app."
-        body="Para empezar tu plan necesitas tener la app SmartFixOS instalada. Descárgala, crea tu taller, y desde ahí abrimos Stripe Checkout para ti."
+        body="Para empezar tu plan necesitas tener la app Archilla OS instalada. Descárgala, crea tu taller, y desde ahí abrimos Stripe Checkout para ti."
       />
     );
   }

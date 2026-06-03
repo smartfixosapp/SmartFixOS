@@ -239,22 +239,22 @@ export async function registerTenantHandler(req) {
     // 8. Email de activación con LINK (no PIN)
     const appUrl = Deno.env.get('VITE_APP_URL') || 'https://smart-fix-os-smart.vercel.app';
     const activationUrl = `${appUrl}/TenantActivate?token=${activationToken}&email=${encodeURIComponent(email)}`;
-    const logoUrl = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png';
+    const logoUrl = 'https://smartfixosapp.com/images/logo.png';
     const formattedEnd = trialEndDate.toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' });
 
     try {
       const resendKey = Deno.env.get('RESEND_API_KEY');
       if (!resendKey) throw new Error('RESEND_API_KEY no configurado');
-      const from = `${Deno.env.get('FROM_NAME') || 'SmartFixOS'} <${Deno.env.get('FROM_EMAIL') || 'noreply@smartfixos.com'}>`;
+      const from = `${Deno.env.get('FROM_NAME') || 'Archilla OS'} <${Deno.env.get('FROM_EMAIL') || 'noreply@smartfixos.com'}>`;
 
       const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#0a0a0a;font-family:'Segoe UI',Arial,sans-serif;color:#e5e7eb;">
 <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
   <div style="text-align:center;margin-bottom:40px;">
-    <img src="${logoUrl}" alt="SmartFixOS" style="height:50px;" />
+    <img src="${logoUrl}" alt="Archilla OS" style="height:50px;" />
   </div>
   <div style="background:linear-gradient(135deg,#0c1a2e,#0a1520);border:1px solid #1e3a5f;border-radius:20px;padding:40px;margin-bottom:24px;">
-    <h1 style="color:#fff;font-size:28px;font-weight:800;margin:0 0 8px;text-align:center;">¡Bienvenido a SmartFixOS!</h1>
+    <h1 style="color:#fff;font-size:28px;font-weight:800;margin:0 0 8px;text-align:center;">¡Bienvenido a Archilla OS!</h1>
     <p style="color:#9ca3af;text-align:center;margin:0 0 32px;font-size:16px;">Tu cuenta para <strong style="color:#e5e7eb;">${tenantName}</strong> fue creada ✅</p>
     <div style="background:linear-gradient(135deg,#0e4f6e,#065f46);border:2px solid #06b6d4;border-radius:16px;padding:32px;text-align:center;margin-bottom:32px;">
       <p style="color:#67e8f9;font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin:0 0 20px;">Último paso: activa tu cuenta</p>
@@ -286,14 +286,14 @@ export async function registerTenantHandler(req) {
   <div style="text-align:center;">
     <p style="color:#4b5563;font-size:13px;margin:0 0 8px;">¿No creaste esta cuenta? Ignora este mensaje.</p>
     <p style="color:#4b5563;font-size:13px;margin:0 0 8px;">¿Preguntas? <a href="mailto:smartfixosapp@gmail.com" style="color:#22d3ee;">smartfixosapp@gmail.com</a></p>
-    <p style="color:#374151;font-size:12px;margin:0;">SmartFixOS — Hecho en Puerto Rico 🇵🇷</p>
+    <p style="color:#374151;font-size:12px;margin:0;">Archilla OS — Hecho en Puerto Rico 🇵🇷</p>
   </div>
 </div></body></html>`;
 
       const emailRes = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ from, to: [email], subject: `¡Activa tu cuenta SmartFixOS, ${ownerName}!`, html }),
+        body: JSON.stringify({ from, to: [email], subject: `¡Activa tu cuenta Archilla OS, ${ownerName}!`, html }),
       });
       if (!emailRes.ok) throw new Error(`Resend ${emailRes.status}: ${await emailRes.text()}`);
       const r = await emailRes.json();

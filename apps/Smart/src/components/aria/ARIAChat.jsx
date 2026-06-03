@@ -438,7 +438,7 @@ export default function ARIAChat() {
   const TOUR_STEPS = [
     { id: "welcome",   emoji: "🧩", color: "from-blue-500 via-violet-500 to-rose-500",
       title: "¡Hola! Soy JENAI 👋",  subtitle: "Tour guiado · 7 pasos · ~2 min",
-      content: "Te voy a mostrar las funciones principales de SmartFixOS. Puedes volver aquí cuando quieras.",
+      content: "Te voy a mostrar las funciones principales de Archilla OS. Puedes volver aquí cuando quieras.",
       page: null, aiTopic: null },
     { id: "dashboard", emoji: "📊", color: "from-cyan-500 to-blue-600",
       title: "Dashboard", subtitle: "El centro de mando",
@@ -498,7 +498,7 @@ export default function ARIAChat() {
     const load = async () => {
       setTourTipLoading(true);
       try {
-        const prompt = `Eres JENAI, asistente de SmartFixOS (taller de reparación). Da UN tip práctico y corto (máx 2 oraciones, máx 30 palabras) sobre: ${step.aiTopic}. Directo, sin saludos. En español.`;
+        const prompt = `Eres JENAI, asistente de Archilla OS (taller de reparación). Da UN tip práctico y corto (máx 2 oraciones, máx 30 palabras) sobre: ${step.aiTopic}. Directo, sin saludos. En español.`;
         const tip = await callJENAI(prompt, { maxTokens: 80, temperature: 0.6 });
         setTourTips(prev => ({ ...prev, [tourStep]: tip }));
         tourLoadedTips.current.add(tourStep);
@@ -713,7 +713,7 @@ export default function ARIAChat() {
   // ── Construye el prompt de sistema ───────────────────────────────────────────
   const buildSystem = () => {
     const session  = readSession();
-    const bizName  = session?.storeName || "SmartFixOS";
+    const bizName  = session?.storeName || "Archilla OS";
 
     // Build order context if available
     let orderBlock = "";
@@ -1505,7 +1505,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
               <div>
                 <p className="apple-text-headline text-apple-blue leading-none">JENAI</p>
                 <p className="apple-text-caption2 apple-label-tertiary leading-none mt-0.5">
-                  SmartFixOS
+                  Archilla OS
                 </p>
               </div>
             </div>

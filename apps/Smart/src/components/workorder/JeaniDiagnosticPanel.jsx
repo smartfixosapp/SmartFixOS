@@ -23,7 +23,7 @@ import { toast } from "sonner";
 function buildDiagnosticPrompt({ customer, orders, currentOrder, userQuestion }) {
   const lines = [];
 
-  lines.push("Eres JEANI, asistente de diagnóstico técnico de SmartFixOS para talleres de reparación de dispositivos electrónicos (celulares, laptops, tablets, consolas).");
+  lines.push("Eres JEANI, asistente de diagnóstico técnico de Archilla OS para talleres de reparación de dispositivos electrónicos (celulares, laptops, tablets, consolas).");
   lines.push("CONTEXTO: Un técnico de reparación te consulta sobre un equipo que necesita diagnóstico. Las fotos adjuntas (si las hay) son del DISPOSITIVO ELECTRÓNICO en reparación — muestra la condición física del equipo, pantalla, placa, batería, etc. Analízalas para identificar daños visibles, componentes afectados, o pistas de diagnóstico.");
   lines.push("");
   lines.push("Tu trabajo es:");

@@ -1039,7 +1039,7 @@ export default function PurchaseOrderDialog({
         </DialogFooter>
       </DialogContent>
 
-      {/* Scanner IA — único uso de IA en SmartFixOS. */}
+      {/* Scanner IA — único uso de IA en Archilla OS. */}
       <POInvoiceScannerDialog
         open={showAIScanner}
         onClose={() => setShowAIScanner(false)}

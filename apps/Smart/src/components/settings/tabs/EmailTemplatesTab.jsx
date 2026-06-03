@@ -260,7 +260,7 @@ export default function EmailTemplatesTab() {
 
       setBrandingRecordId(brandingRecord?.id || null);
       setBusinessInfo({
-        business_name: config.business_name || "SmartFixOS",
+        business_name: config.business_name || "Archilla OS",
         phone: config.business_phone || "",
         whatsapp: config.business_whatsapp || "",
         address: config.business_address || "",
@@ -273,7 +273,7 @@ export default function EmailTemplatesTab() {
         hours_saturday: config.hours_saturday || "",
         hours_sunday: config.hours_sunday || "",
         google_review_link: config.google_review_link || "",
-        logo_url: branding.logo_url || "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png",
+        logo_url: branding.logo_url || "https://smartfixosapp.com/images/logo.png",
         warranty_repairs: branding.warranty_repairs || "",
         warranty_sales: branding.warranty_sales || ""
       });

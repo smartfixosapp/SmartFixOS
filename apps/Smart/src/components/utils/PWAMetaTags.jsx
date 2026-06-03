@@ -45,7 +45,7 @@ export default function PWAMetaTags() {
       appleTitle.name = 'apple-mobile-web-app-title';
       document.head.appendChild(appleTitle);
     }
-    appleTitle.content = 'SmartFixOS';
+    appleTitle.content = 'Archilla OS';
 
     // Application Name
     let appName = document.querySelector('meta[name="application-name"]');
@@ -54,7 +54,7 @@ export default function PWAMetaTags() {
       appName.name = 'application-name';
       document.head.appendChild(appName);
     }
-    appName.content = 'SmartFixOS';
+    appName.content = 'Archilla OS';
 
     // Mobile optimized
     let mobileOptimized = document.querySelector('meta[name="mobile-web-app-capable"]');

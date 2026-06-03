@@ -224,7 +224,7 @@ export default function FirstTimeSetupWizard({ onComplete }) {
       }
 
       localStorage.setItem(SETUP_KEY, "true");
-      toast.success("¡Taller configurado! Bienvenido a SmartFixOS 🎉");
+      toast.success("¡Taller configurado! Bienvenido a Archilla OS 🎉");
       onComplete?.();
     } catch (e) {
       console.error(e);

@@ -67,7 +67,7 @@ export async function createStripeSubscriptionHandler(req) {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: 'SmartFixOS',
+              name: 'Archilla OS',
               description: 'Sistema de gestión para talleres de reparación electrónica',
             },
             unit_amount: Math.round((tenant.monthly_cost || 49) * 100),

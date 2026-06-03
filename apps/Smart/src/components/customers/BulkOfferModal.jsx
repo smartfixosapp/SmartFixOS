@@ -13,7 +13,7 @@ import { toast } from "sonner";
 function applyVars(text, customer, tallerName) {
   return (text || "")
     .replace(/\{\{nombre\}\}/gi, customer.name || "Cliente")
-    .replace(/\{\{taller\}\}/gi, tallerName || "SmartFixOS")
+    .replace(/\{\{taller\}\}/gi, tallerName || "Archilla OS")
     .replace(/\{\{telefono\}\}/gi, customer.phone || "")
     .replace(/\{\{email\}\}/gi, customer.email || "");
 }
@@ -28,7 +28,7 @@ function buildHtml(bodyText, customerName, tallerName) {
 <tr><td align="center">
 <table width="100%" style="max-width:560px;background:#111;border-radius:16px;overflow:hidden;border:1px solid #222">
 <tr><td style="background:linear-gradient(135deg,#0ea5e9,#6366f1);padding:28px 32px;text-align:center">
-<h1 style="margin:0;color:#fff;font-size:22px;font-weight:900;letter-spacing:-0.5px">${tallerName || "SmartFixOS"}</h1>
+<h1 style="margin:0;color:#fff;font-size:22px;font-weight:900;letter-spacing:-0.5px">${tallerName || "Archilla OS"}</h1>
 <p style="margin:6px 0 0;color:rgba(255,255,255,0.7);font-size:13px">Taller de reparación</p>
 </td></tr>
 <tr><td style="padding:32px">
@@ -36,7 +36,7 @@ function buildHtml(bodyText, customerName, tallerName) {
 <div style="color:#ccc;font-size:14px">${lines}</div>
 </td></tr>
 <tr><td style="background:#0d0d0d;padding:20px 32px;text-align:center;border-top:1px solid #1f1f1f">
-<p style="margin:0;color:#555;font-size:11px">© ${new Date().getFullYear()} ${tallerName || "SmartFixOS"} · Powered by SmartFixOS</p>
+<p style="margin:0;color:#555;font-size:11px">© ${new Date().getFullYear()} ${tallerName || "Archilla OS"} · Powered by Archilla OS</p>
 </td></tr>
 </table></td></tr></table></body></html>`;
 }
@@ -69,7 +69,7 @@ const COLOR = {
 
 // ── Componente principal ──────────────────────────────────────────────────────
 export default function BulkOfferModal({ open, onClose, customers = [] }) {
-  const tallerName = localStorage.getItem("smartfix_business_name") || "SmartFixOS";
+  const tallerName = localStorage.getItem("smartfix_business_name") || "Archilla OS";
 
   const [tab, setTab]             = useState("email");
   const [filter, setFilter]       = useState("all");

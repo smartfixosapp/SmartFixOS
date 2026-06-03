@@ -17,7 +17,7 @@ export default function LegalRefunds() {
   return (
     <LegalLayout title="Política de Reembolsos" eyebrow="Legal" lastUpdated="23 mayo 2026">
       <p>
-        Queremos que estés contento con SmartFixOS. Esta política explica cómo
+        Queremos que estés contento con Archilla OS. Esta política explica cómo
         manejamos cancelaciones y reembolsos de manera <strong>simple, honesta y
         rápida</strong>.
       </p>
@@ -59,7 +59,7 @@ export default function LegalRefunds() {
       </p>
       <ul>
         <li>
-          Desde la app SmartFixOS → Ajustes → Suscripción → "Manejar suscripción" →
+          Desde la app Archilla OS → Ajustes → Suscripción → "Manejar suscripción" →
           Cancelar (te lleva al portal de Stripe)
         </li>
         <li>
@@ -107,7 +107,7 @@ export default function LegalRefunds() {
         </li>
         <li>
           <strong>Fraude de tarjeta</strong> — si tu tarjeta fue usada sin tu autorización
-          para suscribirte a SmartFixOS, cancelamos y reembolsamos. Reporta también
+          para suscribirte a Archilla OS, cancelamos y reembolsamos. Reporta también
           a tu banco.
         </li>
         <li>
@@ -154,7 +154,7 @@ export default function LegalRefunds() {
       </p>
       <ul>
         <li>Asunto: "Solicitud de reembolso"</li>
-        <li>Email asociado a tu cuenta SmartFixOS</li>
+        <li>Email asociado a tu cuenta Archilla OS</li>
         <li>Nombre de tu taller</li>
         <li>Motivo del reembolso (breve, una línea está bien)</li>
         <li>Fecha aproximada del cargo si aplica</li>

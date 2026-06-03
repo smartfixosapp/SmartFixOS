@@ -23,7 +23,7 @@ export default function CustomerApproval() {
   const [order, setOrder] = useState(null);
   const [pageStatus, setPageStatus] = useState(STATUS.loading);
   const [submitting, setSubmitting] = useState(false);
-  const [bizName, setBizName] = useState("SmartFixOS");
+  const [bizName, setBizName] = useState("Archilla OS");
   const [showItems, setShowItems] = useState(true);
 
   useEffect(() => {

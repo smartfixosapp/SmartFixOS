@@ -190,7 +190,7 @@ export default function Billing() {
           <p className="mt-6 text-center text-xs text-white/25">
             Serás redirigido de forma segura al portal de Stripe.
             <br />
-            SmartFixOS no almacena datos de tarjetas.
+            Archilla OS no almacena datos de tarjetas.
           </p>
         </motion.div>
       </main>

@@ -134,7 +134,7 @@ export default function CreateCustomerDialog({ open, onClose, onSuccess, custome
             try {
               await appClient.integrations.Core.SendEmail({
                 to: formData.email,
-                subject: "Bienvenido a SmartFixOS",
+                subject: "Bienvenido a Archilla OS",
                 body: `
                   <h2>¡Bienvenido ${formData.name}!</h2>
                   <p>Gracias por confiar en nosotros.</p>

@@ -119,7 +119,7 @@ export default function RequestAccessModal({ open, onClose }) {
     const emailBody = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-radius: 16px;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #06b6d4; font-size: 32px; margin: 0;">SmartFixOS</h1>
+          <h1 style="color: #06b6d4; font-size: 32px; margin: 0;">Archilla OS</h1>
           <p style="color: #f59e0b; font-size: 18px; margin-top: 10px;">⚠️ Nueva Solicitud de Acceso</p>
         </div>
         
@@ -155,7 +155,7 @@ export default function RequestAccessModal({ open, onClose }) {
         </div>
         
         <div style="text-align: center; margin-top: 30px; color: #64748b; font-size: 12px;">
-          <p>© ${new Date().getFullYear()} SmartFixOS • Sistema de Gestión</p>
+          <p>© ${new Date().getFullYear()} Archilla OS • Sistema de Gestión</p>
         </div>
       </div>
     `;
@@ -167,7 +167,7 @@ export default function RequestAccessModal({ open, onClose }) {
 
       await dataClient.mail.send({
         to: accessRequestEmail,
-        from_name: "SmartFixOS Sistema",
+        from_name: "Archilla OS Sistema",
         subject: "⚠️ Nueva Solicitud de Acceso - Requiere Aprobación",
         body: emailBody
       });

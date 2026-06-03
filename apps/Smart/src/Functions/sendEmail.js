@@ -48,7 +48,7 @@ export async function sendEmailHandler(req) {
 
     // ✅ Crear registro en EmailLog (antes de enviar)
     const logEntry = await base44.asServiceRole.entities.EmailLog.create({
-      from_name: from_name || 'SmartFixOS',
+      from_name: from_name || 'Archilla OS',
       to_email,
       subject,
       body_html,
@@ -62,7 +62,7 @@ export async function sendEmailHandler(req) {
     try {
       // ✅ Enviar email usando integración Core.SendEmail
       await base44.integrations.Core.SendEmail({
-        from_name: from_name || 'SmartFixOS',
+        from_name: from_name || 'Archilla OS',
         to: to_email,
         subject: subject,
         body: body_html

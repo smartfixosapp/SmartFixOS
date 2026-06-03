@@ -44,10 +44,10 @@ const SplashLoader = () => {
       >
         <img
           src="/icons/icon-1024.png"
-          alt="SmartFixOS"
+          alt="Archilla OS"
           className="w-full h-full object-contain"
           style={{
-            filter: "drop-shadow(0 0 24px rgba(10, 132, 255, 0.55))",
+            filter: "drop-shadow(0 0 24px rgba(255, 87, 34, 0.55))",
           }}
         />
       </motion.div>
@@ -69,7 +69,7 @@ const SplashLoader = () => {
         className="mt-4 flex flex-col items-center"
       >
         <p className="text-white text-[15px] font-semibold tracking-tight">
-          SmartFixOS
+          Archilla OS
         </p>
         <p className="mt-1 text-white/40 text-[10px] tracking-[0.32em] uppercase">
           Smart · Fix · Operate
@@ -98,7 +98,7 @@ const SplashLoader = () => {
           position: absolute;
           inset: 0;
           background:
-            radial-gradient(ellipse 60% 45% at 50% 38%, rgba(10, 132, 255, 0.10), transparent 65%),
+            radial-gradient(ellipse 60% 45% at 50% 38%, rgba(255, 87, 34, 0.10), transparent 65%),
             radial-gradient(ellipse 70% 50% at 50% 100%, rgba(94, 92, 230, 0.06), transparent 70%);
           pointer-events: none;
         }
@@ -115,8 +115,8 @@ const SplashLoader = () => {
           border-radius: 50%;
           background: radial-gradient(
             circle,
-            rgba(10, 132, 255, 0.45) 0%,
-            rgba(10, 132, 255, 0.18) 35%,
+            rgba(255, 87, 34, 0.45) 0%,
+            rgba(255, 87, 34, 0.18) 35%,
             transparent 70%
           );
           filter: blur(12px);

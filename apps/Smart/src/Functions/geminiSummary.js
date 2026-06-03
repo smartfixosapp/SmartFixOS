@@ -19,7 +19,7 @@ export async function geminiSummaryHandler(req) {
     } = await req.json();
 
     const prompt = `
-Eres el asistente financiero de SmartFixOS, un sistema para talleres de reparación.
+Eres el asistente financiero de Archilla OS, un sistema para talleres de reparación.
 Analiza los siguientes datos financieros y dame un resumen ejecutivo en ESPAÑOL, directo y útil para el dueño del negocio.
 El tono debe ser profesional pero amigable. Usa emojis con moderación.
 

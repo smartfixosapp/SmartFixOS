@@ -53,7 +53,7 @@ export default function DashboardSidebar({
             {session?.userName || "Usuario"}
           </p>
           <p className="apple-text-caption1 apple-label-secondary leading-tight mt-0.5 truncate">
-            {businessName || session?.storeName || "SmartFixOS"}
+            {businessName || session?.storeName || "Archilla OS"}
           </p>
         </div>
       </div>

@@ -177,7 +177,7 @@ async function ensureSettings(base44, tenantId = null) {
             slug: 'app-main-settings',
             tenant_id: tenantId,
             payload: {
-                businessName: 'SmartFixOS Store',
+                businessName: 'Archilla OS Store',
                 setupCompleted: true,
                 setupDate: new Date().toISOString()
             }

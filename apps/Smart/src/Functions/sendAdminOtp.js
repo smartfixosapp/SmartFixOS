@@ -126,11 +126,11 @@ export async function sendAdminOtpHandler(req) {
     const emailHtml = `
 <div style="font-family:Arial,sans-serif;background:#0a0a0a;color:#e5e7eb;padding:40px;max-width:520px;margin:0 auto;border-radius:16px;">
   <div style="text-align:center;margin-bottom:28px;">
-    <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png"
-      alt="SmartFixOS" style="height:48px;object-fit:contain;" />
+    <img src="https://smartfixosapp.com/images/logo.png"
+      alt="Archilla OS" style="height:48px;object-fit:contain;" />
   </div>
   <h2 style="color:#22d3ee;margin:0 0 6px;font-size:22px;">🔐 Código de acceso al Panel</h2>
-  <p style="color:#9ca3af;margin:0 0 24px;font-size:14px;">Panel de Administración SmartFixOS — Acceso SuperAdmin</p>
+  <p style="color:#9ca3af;margin:0 0 24px;font-size:14px;">Panel de Administración Archilla OS — Acceso SuperAdmin</p>
   <div style="background:#0e4f6e;border:2px solid #06b6d4;border-radius:12px;padding:28px;text-align:center;margin-bottom:24px;">
     <p style="color:#67e8f9;font-size:11px;letter-spacing:3px;margin:0 0 14px;text-transform:uppercase;">Tu código de 6 dígitos</p>
     <div style="font-size:52px;font-weight:900;letter-spacing:18px;color:#ffffff;font-family:monospace;line-height:1;">${otp}</div>
@@ -138,7 +138,7 @@ export async function sendAdminOtpHandler(req) {
   </div>
   <div style="background:#1a1a1a;border:1px solid #374151;border-radius:8px;padding:16px;margin-bottom:20px;">
     <p style="color:#f87171;font-size:13px;font-weight:bold;margin:0 0 6px;">⚠️ Seguridad</p>
-    <p style="color:#9ca3af;font-size:12px;margin:0;">Nunca compartas este código. El equipo de SmartFixOS jamás te pedirá tu código OTP ni tu PIN secreto.</p>
+    <p style="color:#9ca3af;font-size:12px;margin:0;">Nunca compartas este código. El equipo de Archilla OS jamás te pedirá tu código OTP ni tu PIN secreto.</p>
   </div>
   <p style="color:#4b5563;font-size:12px;text-align:center;margin:0;">IP de acceso: ${ip} · ${new Date().toLocaleString('es', { timeZone: 'America/Puerto_Rico' })} AST</p>
 </div>`;
@@ -150,7 +150,7 @@ export async function sendAdminOtpHandler(req) {
         "Authorization": `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: `SmartFixOS Security <${FROM_EMAIL}>`,
+        from: `Archilla OS Security <${FROM_EMAIL}>`,
         to: [SUPER_ADMIN_EMAIL],
         subject: `🔐 Código de acceso: ${otp} — Panel SuperAdmin`,
         html: emailHtml,

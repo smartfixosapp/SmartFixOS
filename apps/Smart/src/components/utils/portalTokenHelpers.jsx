@@ -249,8 +249,8 @@ export async function sendPortalLinkEmail(orderId, customerEmail, customerName, 
             Este es un mensaje automático. Si tienes preguntas, contáctanos directamente.
           </p>
           <div style="margin-top: 15px;">
-            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png"
-                 alt="SmartFixOS"
+            <img src="https://smartfixosapp.com/images/logo.png"
+                 alt="Archilla OS"
                  style="height: 40px; width: auto;" />
           </div>
         </div>
@@ -259,7 +259,7 @@ export async function sendPortalLinkEmail(orderId, customerEmail, customerName, 
 
     // ✅ Enviar email
     await base44.functions.invoke('sendEmail', {
-      from_name: "SmartFixOS - Portal de Clientes",
+      from_name: "Archilla OS - Portal de Clientes",
       to_email: customerEmail,
       subject: `📱 Estado de tu Orden ${order.order_number}`,
       body_html: emailBody,

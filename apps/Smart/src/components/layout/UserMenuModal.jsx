@@ -314,7 +314,7 @@ export default function UserMenuModal({ open, onClose, user }) {
       const credential = await navigator.credentials.create({
         publicKey: {
           challenge: createChallenge(),
-          rp: { name: "SmartFixOS", id: window.location.hostname },
+          rp: { name: "Archilla OS", id: window.location.hostname },
           user: {
             id: new TextEncoder().encode(`smartfix:${baseUser.id}`),
             name: baseUser.email || baseUser.full_name || baseUser.id,

@@ -370,7 +370,7 @@ export default function MonthlyReportModal({ open, onClose, targetMonth }) {
               {/* ── Footer ── */}
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2" style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}>
                 <p className="apple-text-caption2 apple-label-secondary font-semibold tabular-nums">
-                  SmartFixOS · Reporte {monthLabel} · Generado {format(new Date(), "dd/MM/yyyy HH:mm")}
+                  Archilla OS · Reporte {monthLabel} · Generado {format(new Date(), "dd/MM/yyyy HH:mm")}
                 </p>
                 <button
                   onClick={handlePrint}

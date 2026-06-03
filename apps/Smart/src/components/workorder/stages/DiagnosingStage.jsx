@@ -433,7 +433,7 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
   <div style="background:linear-gradient(135deg,#7C3AED 0%,#4F46E5 100%);padding:48px 30px;text-align:center;">
     ${businessInfo.logo_url ? `<img src="${businessInfo.logo_url}" alt="${businessInfo.business_name}" style="height:70px;width:auto;margin:0 auto 18px;display:block;filter:drop-shadow(0 4px 20px rgba(0,0,0,0.2));" />` : ""}
     <h1 style="color:white;margin:0;font-size:26px;font-weight:800;">🔍 Diagnóstico Completado</h1>
-    <p style="color:rgba(255,255,255,0.8);margin:8px 0 0;font-size:15px;">${businessInfo.business_name || "SmartFixOS"}</p>
+    <p style="color:rgba(255,255,255,0.8);margin:8px 0 0;font-size:15px;">${businessInfo.business_name || "Archilla OS"}</p>
   </div>
   <div style="padding:40px 36px;">
     <p style="font-size:18px;color:#111827;margin:0 0 20px;font-weight:600;">Hola <strong>${order.customer_name}</strong> 👋</p>
@@ -493,7 +493,7 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
 
     <div style="margin-top:40px;padding-top:24px;border-top:1px solid #E5E7EB;text-align:center;">
       ${businessInfo.logo_url ? `<img src="${businessInfo.logo_url}" alt="${businessInfo.business_name}" style="height:36px;width:auto;margin:0 auto 10px;display:block;opacity:0.55;" />` : ""}
-      <p style="color:#374151;font-size:13px;font-weight:700;margin:0;">${businessInfo.business_name || "SmartFixOS"}</p>
+      <p style="color:#374151;font-size:13px;font-weight:700;margin:0;">${businessInfo.business_name || "Archilla OS"}</p>
       ${businessInfo.address ? `<p style="color:#9CA3AF;font-size:12px;margin:4px 0 0;">${businessInfo.address}</p>` : ""}
       ${businessInfo.phone ? `<p style="color:#9CA3AF;font-size:12px;margin:4px 0 0;">📞 ${businessInfo.phone}</p>` : ""}
     </div>

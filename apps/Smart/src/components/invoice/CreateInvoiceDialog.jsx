@@ -242,8 +242,8 @@ export default function CreateInvoiceDialog({ open, onClose }) {
                 <!-- Header con gradiente -->
                 <div style="background: linear-gradient(135deg, #00A8E8 0%, #10B981 50%, #A8D700 100%); padding: 60px 30px; text-align: center;">
                   <img 
-                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png"
-                    alt="SmartFixOS"
+                    src="https://smartfixosapp.com/images/logo.png"
+                    alt="Archilla OS"
                     style="height: 120px; width: auto; margin: 0 auto; display: block; filter: drop-shadow(0 4px 20px rgba(0,0,0,0.2));"
                   />
                   <h1 style="color: white; margin: 20px 0 0 0; font-size: 32px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.3);">
@@ -327,11 +327,11 @@ export default function CreateInvoiceDialog({ open, onClose }) {
                 <!-- Footer -->
                 <div style="padding: 30px 40px; border-top: 2px solid #E5E7EB; text-align: center; background: #F9FAFB;">
                   <img 
-                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png"
-                    alt="SmartFixOS"
+                    src="https://smartfixosapp.com/images/logo.png"
+                    alt="Archilla OS"
                     style="height: 60px; width: auto; margin: 0 auto 20px auto; display: block; opacity: 0.7;"
                   />
-                  <p style="margin: 8px 0; color: #111827; font-size: 14px; font-weight: 700;">SmartFixOS</p>
+                  <p style="margin: 8px 0; color: #111827; font-size: 14px; font-weight: 700;">Archilla OS</p>
                   <p style="margin: 4px 0; color: #6B7280; font-size: 12px;">Tu taller de confianza</p>
                 </div>
               </div>
@@ -340,7 +340,7 @@ export default function CreateInvoiceDialog({ open, onClose }) {
           `;
 
           await base44.integrations.Core.SendEmail({
-            from_name: "SmartFixOS",
+            from_name: "Archilla OS",
             to: selectedCompany.email,
             subject: `📄 Factura ${invoiceNumber} - ${selectedCompany.company_name}`,
             body: emailHTML

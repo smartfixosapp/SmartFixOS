@@ -76,9 +76,9 @@ function buildSystemPrompt(order, checklist, deviceCategory, mode = "diagnosis")
     .join(", ");
 
   const modeContext = mode === "repair"
-    ? `Eres JENAI, la asistente de reparacion de SmartFixOS. El tecnico esta EN PROCESO DE REPARAR el dispositivo y necesita ayuda tecnica practica.
+    ? `Eres JENAI, la asistente de reparacion de Archilla OS. El tecnico esta EN PROCESO DE REPARAR el dispositivo y necesita ayuda tecnica practica.
 Enfocate en: guias de reparacion paso a paso, soldadura, reemplazo de componentes, herramientas necesarias, precauciones, y solucion de problemas durante la reparacion.`
-    : `Eres JENAI, la asistente de diagnostico de SmartFixOS para talleres de reparacion de dispositivos electronicos.`;
+    : `Eres JENAI, la asistente de diagnostico de Archilla OS para talleres de reparacion de dispositivos electronicos.`;
 
   return `${modeContext}
 
@@ -238,7 +238,7 @@ export default function DiagnosticAI({ order, checklist = [], deviceCategory = "
               </Badge>
             </div>
             <p className="text-[11px] text-white/40">
-              Preguntale a JENAI · powered by SmartFixOS
+              Preguntale a JENAI · powered by Archilla OS
               {issueCount > 0 && <span className="ml-1 text-red-400">· {issueCount} problema{issueCount > 1 ? "s" : ""} detectado{issueCount > 1 ? "s" : ""}</span>}
               {warningCount > 0 && <span className="ml-1 text-amber-400">· {warningCount} a revisar</span>}
             </p>

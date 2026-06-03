@@ -146,7 +146,7 @@ export default function DashboardBilling() {
     return (
       <DownloadAppGate
         title="Maneja tu suscripción desde la app."
-        body="Para abrir el portal de Stripe necesitas tener la app SmartFixOS instalada y haber iniciado sesión. Descárgala y desde Ajustes → Suscripción aparece este mismo botón."
+        body="Para abrir el portal de Stripe necesitas tener la app Archilla OS instalada y haber iniciado sesión. Descárgala y desde Ajustes → Suscripción aparece este mismo botón."
       />
     );
   }
@@ -155,7 +155,7 @@ export default function DashboardBilling() {
     return (
       <DownloadAppGate
         title="Crea tu taller desde la app."
-        body="Aún no tienes un taller registrado en tu cuenta. Abre la app SmartFixOS y completa el wizard de bienvenida — desde ahí podrás suscribirte y manejar tu plan."
+        body="Aún no tienes un taller registrado en tu cuenta. Abre la app Archilla OS y completa el wizard de bienvenida — desde ahí podrás suscribirte y manejar tu plan."
       />
     );
   }

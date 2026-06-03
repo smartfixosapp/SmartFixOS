@@ -31,15 +31,15 @@ export async function sendVerificationEmailHandler(req) {
         <div class="container">
           <div class="header">
             <div class="logo">
-              <span style="color: white; font-size: 24px; font-weight: bold;">🔧 SmartFixOS</span>
+              <span style="color: white; font-size: 24px; font-weight: bold;">🔧 Archilla OS</span>
             </div>
-            <h1>¡Bienvenido a SmartFixOS!</h1>
+            <h1>¡Bienvenido a Archilla OS!</h1>
           </div>
           
           <div class="content">
             <p>Hola <strong>${full_name}</strong>,</p>
             
-            <p>Gracias por registrarte en SmartFixOS. Para completar la configuración de tu cuenta de administrador, por favor verifica tu correo electrónico haciendo clic en el botón de abajo:</p>
+            <p>Gracias por registrarte en Archilla OS. Para completar la configuración de tu cuenta de administrador, por favor verifica tu correo electrónico haciendo clic en el botón de abajo:</p>
             
             <div style="text-align: center;">
               <a href="${verificationUrl}" class="button">Verificar Email y Continuar</a>
@@ -51,7 +51,7 @@ export async function sendVerificationEmailHandler(req) {
           </div>
           
           <div class="footer">
-            <p>© ${new Date().getFullYear()} SmartFixOS. Todos los derechos reservados.</p>
+            <p>© ${new Date().getFullYear()} Archilla OS. Todos los derechos reservados.</p>
           </div>
         </div>
       </body>
@@ -60,7 +60,7 @@ export async function sendVerificationEmailHandler(req) {
 
     await base44.integrations.Core.SendEmail({
       to: email,
-      subject: '🔐 Verifica tu email - SmartFixOS',
+      subject: '🔐 Verifica tu email - Archilla OS',
       body: emailBody
     });
 

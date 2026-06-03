@@ -42,7 +42,7 @@ export async function generateWorkOrderPDF(order, businessInfo = {}) {
     doc.setFontSize(28);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(255, 255, 255);
-    doc.text(businessInfo.name || 'SmartFixOS', margin, y);
+    doc.text(businessInfo.name || 'Archilla OS', margin, y);
     y += 8;
   }
 

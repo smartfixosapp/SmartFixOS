@@ -19,7 +19,7 @@ const STEPS = [
     color: "bg-apple-purple",
     title: "¡Hola! Soy tu asistente ✨",
     subtitle: "Tour guiado • 7 pasos • ~2 min",
-    content: "Te voy a mostrar cómo funciona SmartFixOS. Vamos a recorrer las funciones principales de tu taller digital.",
+    content: "Te voy a mostrar cómo funciona Archilla OS. Vamos a recorrer las funciones principales de tu taller digital.",
     page: null,
     selector: null,
     aiTopic: null,

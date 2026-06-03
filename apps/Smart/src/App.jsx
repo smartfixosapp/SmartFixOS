@@ -26,7 +26,7 @@ class AppErrorBoundary extends React.Component {
       return (
         <div style={{ position: "fixed", inset: 0, background: "#0a0a0a", color: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "monospace", zIndex: 99999 }}>
           <div style={{ maxWidth: 480, width: "100%", background: "#1a1a1a", borderRadius: 12, padding: 24, border: "1px solid #333" }}>
-            <p style={{ color: "#f87171", fontWeight: "bold", marginBottom: 12, fontSize: 16 }}>⚠️ Error al cargar SmartFixOS</p>
+            <p style={{ color: "#f87171", fontWeight: "bold", marginBottom: 12, fontSize: 16 }}>⚠️ Error al cargar Archilla OS</p>
             <pre style={{ fontSize: 11, color: "#fca5a5", whiteSpace: "pre-wrap", wordBreak: "break-all", maxHeight: 200, overflow: "auto" }}>{this.state.error?.toString()}</pre>
             <button onClick={() => window.location.reload()} style={{ marginTop: 16, padding: "8px 16px", background: "#06b6d4", color: "#000", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: "bold", fontSize: 13 }}>
               Recargar app

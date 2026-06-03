@@ -16,7 +16,7 @@ export default function TrialExpiredScreen({ tenantName, onActivatePlan, onConta
           </div>
           <h1 className="apple-text-large-title apple-label-primary mb-3">Tu período de prueba ha finalizado</h1>
           <p className="apple-text-body apple-label-secondary">
-            Gracias por probar SmartFixOS
+            Gracias por probar Archilla OS
           </p>
         </div>
 

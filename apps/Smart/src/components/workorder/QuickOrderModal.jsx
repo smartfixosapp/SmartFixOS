@@ -116,7 +116,7 @@ async function sendAdminNewOrderEmail({ recipients, orderNumber, customerName, d
     <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;background:#0b1220;color:#e5eefc;">
       <div style="background:linear-gradient(135deg,#06b6d4,#10b981);padding:24px;border-radius:16px;">
         <h1 style="margin:0;font-size:28px;color:#ffffff;">Nueva orden ${safeOrder}</h1>
-        <p style="margin:10px 0 0;color:#eaffff;font-size:16px;">Se registró una nueva orden en SmartFixOS.</p>
+        <p style="margin:10px 0 0;color:#eaffff;font-size:16px;">Se registró una nueva orden en Archilla OS.</p>
       </div>
       <div style="background:#111827;border:1px solid #1f2937;border-radius:16px;padding:24px;margin-top:20px;">
         <p style="margin:0 0 12px;font-size:15px;"><strong>Cliente:</strong> ${safeCustomer}</p>
@@ -134,7 +134,7 @@ async function sendAdminNewOrderEmail({ recipients, orderNumber, customerName, d
       to: emails,
       subject: `Nueva orden ${safeOrder} - ${safeCustomer}`,
       body: html,
-      from_name: "SmartFixOS",
+      from_name: "Archilla OS",
     }),
   });
 
@@ -799,7 +799,7 @@ export default function QuickOrderModal({ open, onClose, onSuccess }) {
           });
 
           await base44.integrations.Core.SendEmail({
-            from_name: businessInfo.business_name || "SmartFixOS",
+            from_name: businessInfo.business_name || "Archilla OS",
             to: customerEmail,
             subject: emailData.subject,
             body: emailData.body

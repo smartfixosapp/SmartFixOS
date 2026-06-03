@@ -47,7 +47,7 @@ function buildReceiptHtml({ employee_name, employee_email, amount, type, payment
   <div class="wrap">
     <div class="header">
       <h1>💳 Recibo de Pago</h1>
-      <p>SmartFixOS · Sistema de Gestión</p>
+      <p>Archilla OS · Sistema de Gestión</p>
     </div>
     <div class="body">
       <div class="badge">✅ Pago Confirmado</div>
@@ -70,7 +70,7 @@ function buildReceiptHtml({ employee_name, employee_email, amount, type, payment
       </div>
     </div>
     <div class="footer">
-      <p>SmartFixOS · Recibo generado automáticamente</p>
+      <p>Archilla OS · Recibo generado automáticamente</p>
       <p>Este documento es un comprobante oficial de pago.</p>
     </div>
   </div>
@@ -209,7 +209,7 @@ export async function processPayrollHandler(req) {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            from: `SmartFixOS <${FROM_EMAIL}>`,
+            from: `Archilla OS <${FROM_EMAIL}>`,
             to: [employee_email],
             subject: `Recibo de Pago — ${new Date(period_start).toLocaleDateString("es-PR")} al ${new Date(period_end).toLocaleDateString("es-PR")}`,
             html: receiptHtml,

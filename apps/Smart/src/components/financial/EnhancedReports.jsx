@@ -178,7 +178,7 @@ export default function EnhancedReports({ dateFilter, customStartDate, customEnd
       
       // Logo
       try {
-        const logoUrl = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png';
+        const logoUrl = 'https://smartfixosapp.com/images/logo.png';
         const img = new Image();
         img.crossOrigin = 'anonymous';
         img.src = logoUrl;
@@ -386,7 +386,7 @@ export default function EnhancedReports({ dateFilter, customStartDate, customEnd
         doc.setPage(i);
         doc.setFontSize(8);
         doc.setTextColor(150);
-        doc.text(`SmartFixOS - Reporte Financiero`, 14, doc.internal.pageSize.getHeight() - 10);
+        doc.text(`Archilla OS - Reporte Financiero`, 14, doc.internal.pageSize.getHeight() - 10);
         doc.text(`Página ${i} de ${totalPages}`, pageWidth - 40, doc.internal.pageSize.getHeight() - 10);
       }
 

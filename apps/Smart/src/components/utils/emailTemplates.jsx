@@ -3,7 +3,7 @@
  * Header con colores del logo, cuerpo profesional con alto contraste
  */
 
-const DEFAULT_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png";
+const DEFAULT_LOGO_URL = "https://smartfixosapp.com/images/logo.png";
 
 const EMAIL_STYLES = {
   container: "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; max-width: 650px; margin: 0 auto; background: #ffffff;",
@@ -80,7 +80,7 @@ export function createWelcomeEmail({
   ` : '';
 
   return {
-    subject: `✅ Orden Recibida - ${orderNumber} | ${businessInfo.business_name || 'SmartFixOS'}`,
+    subject: `✅ Orden Recibida - ${orderNumber} | ${businessInfo.business_name || 'Archilla OS'}`,
     body: `
       <!DOCTYPE html>
       <html lang="es">
@@ -95,7 +95,7 @@ export function createWelcomeEmail({
           <div style="${EMAIL_STYLES.header}">
             <img 
               src="${logoUrl}"
-              alt="${businessInfo.business_name || 'SmartFixOS'}"
+              alt="${businessInfo.business_name || 'Archilla OS'}"
               style="height: 120px; width: auto; margin: 0 auto; display: block; filter: drop-shadow(0 4px 20px rgba(0,0,0,0.2));"
             />
             <h1 style="${EMAIL_STYLES.headerTitle}">¡Orden Recibida!</h1>
@@ -189,11 +189,11 @@ export function createWelcomeEmail({
             <div style="${EMAIL_STYLES.footer}">
               <img 
                 src="${logoUrl}"
-                alt="${businessInfo.business_name || 'SmartFixOS'}"
+                alt="${businessInfo.business_name || 'Archilla OS'}"
                 style="height: 60px; width: auto; margin: 0 auto 20px auto; display: block; opacity: 0.7;"
               />
               <p style="margin: 8px 0; color: #111827; font-size: 14px; font-weight: 700;">
-                ${businessInfo.business_name || "SmartFixOS"}
+                ${businessInfo.business_name || "Archilla OS"}
               </p>
               <p style="margin: 4px 0; color: #6B7280; font-size: 13px;">
                 ${businessInfo.slogan || "Tu taller de confianza"}
@@ -440,7 +440,7 @@ export function createStatusChangeEmail({
           <div style="${EMAIL_STYLES.header}">
             <img 
               src="${logoUrl}"
-              alt="${businessInfo.business_name || 'SmartFixOS'}"
+              alt="${businessInfo.business_name || 'Archilla OS'}"
               style="height: 120px; width: auto; margin: 0 auto; display: block; filter: drop-shadow(0 4px 20px rgba(0,0,0,0.2));"
             />
             <h1 style="${EMAIL_STYLES.headerTitle}">${statusInfo.emoji} ${statusInfo.title}</h1>
@@ -523,11 +523,11 @@ export function createStatusChangeEmail({
             <div style="${EMAIL_STYLES.footer}">
               <img 
                 src="${logoUrl}"
-                alt="${businessInfo.business_name || 'SmartFixOS'}"
+                alt="${businessInfo.business_name || 'Archilla OS'}"
                 style="height: 60px; width: auto; margin: 0 auto 20px auto; display: block; opacity: 0.7;"
               />
               <p style="margin: 8px 0; color: #111827; font-size: 14px; font-weight: 700;">
-                ${businessInfo.business_name || "SmartFixOS"}
+                ${businessInfo.business_name || "Archilla OS"}
               </p>
               <p style="margin: 4px 0; color: #6B7280; font-size: 13px;">
                 ${businessInfo.slogan || "Tu taller de confianza"}
@@ -611,7 +611,7 @@ export function createQuoteEmail({
   `).join('');
 
   return {
-    subject: `💰 Cotización ${partName ? `- ${partName}` : ''} | ${businessInfo.business_name || 'SmartFixOS'}`,
+    subject: `💰 Cotización ${partName ? `- ${partName}` : ''} | ${businessInfo.business_name || 'Archilla OS'}`,
     body: `
       <!DOCTYPE html>
       <html lang="es">
@@ -626,7 +626,7 @@ export function createQuoteEmail({
           <div style="${EMAIL_STYLES.header}">
             <img 
               src="${logoUrl}"
-              alt="${businessInfo.business_name || 'SmartFixOS'}"
+              alt="${businessInfo.business_name || 'Archilla OS'}"
               style="height: 120px; width: auto; margin: 0 auto; display: block; filter: drop-shadow(0 4px 20px rgba(0,0,0,0.2));"
             />
             <h1 style="${EMAIL_STYLES.headerTitle}">💰 Cotización de Precio</h1>
@@ -686,11 +686,11 @@ export function createQuoteEmail({
             <div style="${EMAIL_STYLES.footer}">
               <img 
                 src="${logoUrl}"
-                alt="${businessInfo.business_name || 'SmartFixOS'}"
+                alt="${businessInfo.business_name || 'Archilla OS'}"
                 style="height: 60px; width: auto; margin: 0 auto 20px auto; display: block; opacity: 0.7;"
               />
               <p style="margin: 8px 0; color: #111827; font-size: 14px; font-weight: 700;">
-                ${businessInfo.business_name || "SmartFixOS"}
+                ${businessInfo.business_name || "Archilla OS"}
               </p>
               <p style="margin: 4px 0; color: #6B7280; font-size: 13px;">
                 ${businessInfo.slogan || "Tu taller de confianza"}
@@ -752,7 +752,7 @@ export function createCashRegisterClosingEmail({
   const diffColor = difference >= 0 ? "#10B981" : "#EF4444";
 
   return {
-    subject: `📊 Cierre de Caja - ${drawerDate} | ${businessInfo.business_name || 'SmartFixOS'}`,
+    subject: `📊 Cierre de Caja - ${drawerDate} | ${businessInfo.business_name || 'Archilla OS'}`,
     body: `
       <!DOCTYPE html>
       <html lang="es">
@@ -825,7 +825,7 @@ export function createCashRegisterClosingEmail({
             </div>
 
             <div style="margin-top: 40px; text-align: center; color: #9CA3AF; font-size: 12px;">
-              Este es un reporte automático generado por SmartFixOS
+              Este es un reporte automático generado por Archilla OS
             </div>
           </div>
         </div>
@@ -845,7 +845,7 @@ export async function getBusinessInfo() {
     const brandingConfigs = await base44.entities.AppSettings.filter({ slug: "business-branding" });
     
     let businessData = {
-      business_name: "SmartFixOS",
+      business_name: "Archilla OS",
       slogan: "Tu taller de confianza",
       phone: "",
       whatsapp: "",
@@ -883,7 +883,7 @@ export async function getBusinessInfo() {
   } catch (error) {
     console.error("Error loading business info for email:", error);
     return {
-      business_name: "SmartFixOS",
+      business_name: "Archilla OS",
       slogan: "Tu taller de confianza",
       logo_url: DEFAULT_LOGO_URL,
       warranty_repairs: "",

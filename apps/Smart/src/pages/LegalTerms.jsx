@@ -16,10 +16,10 @@ export default function LegalTerms() {
   return (
     <LegalLayout title="Términos y Condiciones" eyebrow="Legal" lastUpdated="23 mayo 2026">
       <p>
-        Bienvenido a SmartFixOS. Estos Términos y Condiciones ("Términos") rigen el uso
-        de la aplicación SmartFixOS, los sitios web smartfixos.com y www.smartfixos.com,
+        Bienvenido a Archilla OS. Estos Términos y Condiciones ("Términos") rigen el uso
+        de la aplicación Archilla OS, los sitios web smartfixos.com y www.smartfixos.com,
         y cualquier servicio relacionado ("Servicio") operados por <strong>Archilla Studios</strong>{" "}
-        (en adelante "nosotros", "nuestro" o "SmartFixOS").
+        (en adelante "nosotros", "nuestro" o "Archilla OS").
       </p>
       <p>
         Al crear una cuenta, instalar la aplicación o usar cualquier parte del Servicio,
@@ -28,7 +28,7 @@ export default function LegalTerms() {
 
       <h2>1. Descripción del Servicio</h2>
       <p>
-        SmartFixOS es un sistema operativo para talleres de reparación: gestión de
+        Archilla OS es un sistema operativo para talleres de reparación: gestión de
         órdenes de trabajo, punto de venta, inventario, finanzas, clientes y empleados,
         accesible desde dispositivos iOS y Android.
       </p>
@@ -44,7 +44,7 @@ export default function LegalTerms() {
 
       <h2>3. Planes y Suscripción</h2>
       <p>
-        SmartFixOS ofrece los siguientes planes de suscripción mensual:
+        Archilla OS ofrece los siguientes planes de suscripción mensual:
       </p>
       <ul>
         <li><strong>Plan Solo</strong> — $19 USD/mes. Para el técnico independiente.</li>
@@ -78,7 +78,7 @@ export default function LegalTerms() {
 
       <h2>5. Contenido del Cliente</h2>
       <p>
-        Tú conservas la propiedad de toda la data que introduces en SmartFixOS:
+        Tú conservas la propiedad de toda la data que introduces en Archilla OS:
         clientes, órdenes, productos, fotos, facturas, configuraciones, etc.
         ("Contenido del Cliente").
       </p>
@@ -95,7 +95,7 @@ export default function LegalTerms() {
 
       <h2>6. Propiedad Intelectual</h2>
       <p>
-        El software SmartFixOS, su código, diseño, marca, logos, y toda propiedad
+        El software Archilla OS, su código, diseño, marca, logos, y toda propiedad
         intelectual relacionada son propiedad exclusiva de Archilla Studios. Te
         otorgamos una licencia limitada, no exclusiva e intransferible para usar el
         Servicio según estos Términos.
@@ -114,7 +114,7 @@ export default function LegalTerms() {
       <h2>7. Limitación de Responsabilidad</h2>
       <p>
         El Servicio se ofrece <strong>"tal como está"</strong> y "según disponibilidad",
-        sin garantías expresas o implícitas. SmartFixOS hace esfuerzos razonables para
+        sin garantías expresas o implícitas. Archilla OS hace esfuerzos razonables para
         mantener el Servicio operativo y los datos seguros, pero no garantizamos:
       </p>
       <ul>

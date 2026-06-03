@@ -35,7 +35,7 @@ export default function Receipt() {
   const [txs, setTxs]       = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError]   = useState(null);
-  const [bizName, setBizName] = useState("SmartFixOS");
+  const [bizName, setBizName] = useState("Archilla OS");
 
   useEffect(() => {
     if (!orderId) { setError("ID de orden no proporcionado."); setLoading(false); return; }
@@ -276,7 +276,7 @@ export default function Receipt() {
 
         {/* Footer */}
         <p className="text-center apple-text-caption2 apple-label-tertiary print:text-gray-400">
-          Powered by SmartFixOS · <span className="tabular-nums">{new Date().getFullYear()}</span>
+          Powered by Archilla OS · <span className="tabular-nums">{new Date().getFullYear()}</span>
         </p>
       </div>
 

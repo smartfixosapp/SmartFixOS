@@ -52,9 +52,9 @@ async function sendTrialReminder(base44, tenantId) {
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h2>¡Te quedan 7 días de prueba!</h2>
       <p>Hola ${tenant.admin_name || 'Administrador'},</p>
-      <p>Tu período de prueba en SmartFixOS vence en <strong>7 días</strong> (${tenant.trial_end_date}).</p>
+      <p>Tu período de prueba en Archilla OS vence en <strong>7 días</strong> (${tenant.trial_end_date}).</p>
       <p>Para continuar usando el sistema sin interrupciones, activa tu plan de pago ahora.</p>
-      <p><strong>Plan SmartFixOS: $65/mes</strong></p>
+      <p><strong>Plan Archilla OS: $65/mes</strong></p>
       <a href="https://smartfixos.app/Activate" style="background-color: #00A8E8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
         Activar Plan Ahora
       </a>
@@ -68,7 +68,7 @@ async function sendTrialReminder(base44, tenantId) {
     to: tenant.email,
     subject: '⏰ Tu prueba gratuita vence en 7 días',
     body: emailBody,
-    from_name: 'SmartFixOS'
+    from_name: 'Archilla OS'
   });
 
   // Log notification
@@ -95,8 +95,8 @@ async function sendTrialExpiration(base44, tenantId) {
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h2 style="color: #FF6B6B;">Tu período de prueba ha finalizado</h2>
       <p>Hola ${tenant.admin_name || 'Administrador'},</p>
-      <p>Tu prueba gratuita en SmartFixOS ha expirado. Para continuar accediendo al sistema y no perder tus datos, necesitas activar un plan.</p>
-      <p><strong>Plan SmartFixOS: $65/mes</strong></p>
+      <p>Tu prueba gratuita en Archilla OS ha expirado. Para continuar accediendo al sistema y no perder tus datos, necesitas activar un plan.</p>
+      <p><strong>Plan Archilla OS: $65/mes</strong></p>
       <p>✅ Acceso completo al sistema</p>
       <p>✅ Gestión de órdenes de trabajo</p>
       <p>✅ Sistema POS integrado</p>
@@ -114,7 +114,7 @@ async function sendTrialExpiration(base44, tenantId) {
     to: tenant.email,
     subject: '⚠️ Tu período de prueba ha expirado',
     body: emailBody,
-    from_name: 'SmartFixOS'
+    from_name: 'Archilla OS'
   });
 
   // Log notification
@@ -147,16 +147,16 @@ async function sendActivationConfirmation(base44, tenantId) {
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h2 style="color: #10B981;">¡Plan activado correctamente!</h2>
       <p>Hola ${tenant.admin_name || 'Administrador'},</p>
-      <p>Tu plan de pago en SmartFixOS está activo. ¡Gracias por confiar en nosotros!</p>
+      <p>Tu plan de pago en Archilla OS está activo. ¡Gracias por confiar en nosotros!</p>
       <p><strong>Detalles de tu suscripción:</strong></p>
       <ul>
-        <li>Plan: ${tenant.plan || 'SmartFixOS'}</li>
+        <li>Plan: ${tenant.plan || 'Archilla OS'}</li>
         <li>Costo: $${tenant.monthly_cost || 49}/mes</li>
         <li>Próximo pago: ${tenant.next_billing_date || 'N/A'}</li>
       </ul>
       <p>Acceso completo al sistema disponible 24/7. Tus datos están protegidos con encriptación de grado empresarial.</p>
       <a href="https://smartfixos.app" style="background-color: #00A8E8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 20px;">
-        Ir a SmartFixOS
+        Ir a Archilla OS
       </a>
       <p style="margin-top: 40px; color: #999; font-size: 12px;">
         ¿Preguntas? Contacta a support@smartfixos.com
@@ -166,9 +166,9 @@ async function sendActivationConfirmation(base44, tenantId) {
 
   await base44.integrations.Core.SendEmail({
     to: tenant.email,
-    subject: '✅ Tu plan en SmartFixOS está activo',
+    subject: '✅ Tu plan en Archilla OS está activo',
     body: emailBody,
-    from_name: 'SmartFixOS'
+    from_name: 'Archilla OS'
   });
 
   // Log notification

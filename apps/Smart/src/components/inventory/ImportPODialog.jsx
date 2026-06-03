@@ -126,7 +126,7 @@ async function pdfFileToPngBlob(pdfFile) {
 // Pedimos JSON en el prompt y lo parseamos en cliente: es más permisivo
 // que los structured outputs y evita errores de schema strict.
 async function extractWithAI(fileUrl) {
-  const prompt = `Eres Jeani, asistente de SmartFixOS (sistema para talleres de reparación de electrónicos). Lee esta orden de compra / factura / proforma de proveedor y devuelve SOLO un objeto JSON válido (sin texto antes ni después, sin markdown, sin \`\`\`) con esta forma:
+  const prompt = `Eres Jeani, asistente de Archilla OS (sistema para talleres de reparación de electrónicos). Lee esta orden de compra / factura / proforma de proveedor y devuelve SOLO un objeto JSON válido (sin texto antes ni después, sin markdown, sin \`\`\`) con esta forma:
 
 {
   "supplier_name": "string",
@@ -231,7 +231,7 @@ async function matchItemsWithAI(rawItems, products) {
     .map((it, i) => `${i + 1}. ${it.raw_name}`)
     .join("\n");
 
-  const prompt = `Eres Jeani, asistente experto en piezas y accesorios de reparación de electrónicos para SmartFixOS.
+  const prompt = `Eres Jeani, asistente experto en piezas y accesorios de reparación de electrónicos para Archilla OS.
 
 Tengo una orden de compra con estos items (cada uno tiene su número):
 ${itemsText}

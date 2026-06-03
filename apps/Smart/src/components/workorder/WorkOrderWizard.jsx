@@ -76,7 +76,7 @@ async function sendAdminNewOrderEmail({ recipients, orderNumber, customerName, d
     <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;background:#0b1220;color:#e5eefc;">
       <div style="background:linear-gradient(135deg,#06b6d4,#10b981);padding:24px;border-radius:16px;">
         <h1 style="margin:0;font-size:28px;color:#ffffff;">Nueva orden ${safeOrder}</h1>
-        <p style="margin:10px 0 0;color:#eaffff;font-size:16px;">Se registró una nueva orden en SmartFixOS.</p>
+        <p style="margin:10px 0 0;color:#eaffff;font-size:16px;">Se registró una nueva orden en Archilla OS.</p>
       </div>
       <div style="background:#111827;border:1px solid #1f2937;border-radius:16px;padding:24px;margin-top:20px;">
         <p style="margin:0 0 12px;font-size:15px;"><strong>Cliente:</strong> ${safeCustomer}</p>
@@ -94,7 +94,7 @@ async function sendAdminNewOrderEmail({ recipients, orderNumber, customerName, d
       to: emails,
       subject: `Nueva orden ${safeOrder} - ${safeCustomer}`,
       body: html,
-      from_name: "SmartFixOS",
+      from_name: "Archilla OS",
     }),
   });
 
@@ -118,7 +118,7 @@ async function sendTechnicianAssignmentEmail({ recipient, orderNumber, customerN
     <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;background:#0b1220;color:#e5eefc;">
       <div style="background:linear-gradient(135deg,#8b5cf6,#06b6d4);padding:24px;border-radius:16px;">
         <h1 style="margin:0;font-size:28px;color:#ffffff;">Trabajo asignado ${safeOrder}</h1>
-        <p style="margin:10px 0 0;color:#eaffff;font-size:16px;">Se te asignó una nueva orden en SmartFixOS.</p>
+        <p style="margin:10px 0 0;color:#eaffff;font-size:16px;">Se te asignó una nueva orden en Archilla OS.</p>
       </div>
       <div style="background:#111827;border:1px solid #1f2937;border-radius:16px;padding:24px;margin-top:20px;">
         <p style="margin:0 0 12px;font-size:15px;"><strong>Técnico:</strong> ${safeTech}</p>
@@ -137,7 +137,7 @@ async function sendTechnicianAssignmentEmail({ recipient, orderNumber, customerN
       to: [email],
       subject: `Trabajo asignado ${safeOrder} - ${safeCustomer}`,
       body: html,
-      from_name: "SmartFixOS",
+      from_name: "Archilla OS",
     }),
   });
 
@@ -1072,7 +1072,7 @@ Reescribe en lenguaje profesional para documentación.`;
     setJenaiError("");
 
     try {
-      const systemPrompt = `Eres JENAI, asistente de SmartFixOS para talleres de reparacion.
+      const systemPrompt = `Eres JENAI, asistente de Archilla OS para talleres de reparacion.
 El tecnico te da informacion de un cliente y su dispositivo en texto libre (y opcionalmente fotos).
 Extrae todos los campos posibles.
 
@@ -3315,7 +3315,7 @@ Reglas:
                 </div>
                 <div>
                   <h3 className="text-white font-semibold text-lg tracking-tight">Crear con JENAI</h3>
-                  <p className="text-[10px] text-white/50">powered by SmartFixOS</p>
+                  <p className="text-[10px] text-white/50">powered by Archilla OS</p>
                 </div>
               </div>
 
