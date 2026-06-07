@@ -28,7 +28,7 @@ export async function createStripeSubscriptionHandler(req) {
       return Response.json({ success: false, error: 'No autenticado' }, { status: 401 });
     }
 
-    const { tenantId, successUrl, cancelUrl } = await req.json();
+    const { tenantId, successUrl, cancelUrl, plan: planRaw } = await req.json();
     if (!tenantId) {
       return Response.json({ success: false, error: 'tenantId requerido' }, { status: 400 });
     }
@@ -37,6 +37,13 @@ export async function createStripeSubscriptionHandler(req) {
     if (!tenant) {
       return Response.json({ success: false, error: 'Tienda no encontrada' }, { status: 404 });
     }
+
+    const PLAN_AMOUNTS = { solo: 19, team: 39, pro: 79 };
+    const plan = ["solo", "team", "pro"].includes(String(planRaw || "").toLowerCase())
+      ? String(planRaw).toLowerCase()
+      : "team";
+    const planAmount = PLAN_AMOUNTS[plan];
+    const planLabel = plan === "solo" ? "Plan Solo" : plan === "pro" ? "Plan Pro" : "Plan Equipo";
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"));
     const origin = req.headers.get("origin") || Deno.env.get("VITE_APP_URL") || "http://localhost:5173";
@@ -67,10 +74,10 @@ export async function createStripeSubscriptionHandler(req) {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: 'Archilla OS',
+              name: `Archilla OS — ${planLabel}`,
               description: 'Sistema de gestión para talleres de reparación electrónica',
             },
-            unit_amount: Math.round((tenant.monthly_cost || 49) * 100),
+            unit_amount: Math.round(planAmount * 100),
             recurring: { interval: 'month' }
           },
           quantity: 1,
@@ -81,11 +88,13 @@ export async function createStripeSubscriptionHandler(req) {
       cancel_url: cancelUrl || `${origin}/?payment_cancelled=true`,
       metadata: {
         tenant_id: tenantId,
+        plan,
         app_id: Deno.env.get("APP_ID") || ""
       },
       subscription_data: {
         metadata: {
-          tenant_id: tenantId
+          tenant_id: tenantId,
+          plan
         }
       }
     });

@@ -106,13 +106,17 @@ export async function registerTenantHandler(req) {
       return Response.json({ success: false, error: 'Email inválido' }, { status: 400 });
     }
 
-    const planMap = { basic: 'starter', smartfixos: 'starter', pro: 'pro', enterprise: 'pro', business: 'pro' };
-    const plan = planMap[rawPlan] || 'starter';
-    const PLANS = {
-      starter: { max_users: 999, monthly_cost: 14.99, label: 'Starter' },
-      pro:     { max_users: 999, monthly_cost: 39.99, label: 'Pro'     },
+    const planMap = {
+      basic: 'solo', smartfixos: 'solo', starter: 'solo', solo: 'solo',
+      team: 'team', pro: 'pro', enterprise: 'pro', business: 'pro',
     };
-    const planCfg = PLANS[plan];
+    const intendedPlan = planMap[String(rawPlan || '').toLowerCase()] || 'team';
+    const PLANS = {
+      solo: { max_users: 1,   monthly_cost: 19, label: 'Solo' },
+      team: { max_users: 5,   monthly_cost: 39, label: 'Team' },
+      pro:  { max_users: 999, monthly_cost: 79, label: 'Pro'  },
+    };
+    const planCfg = PLANS[intendedPlan];
 
     // 0. Límite beta: máximo 5 tenants
     const MAX_TENANTS = 5;
@@ -157,15 +161,15 @@ export async function registerTenantHandler(req) {
       country: country || 'US',
       currency: 'USD',
       status: 'active',
-      plan,
+      plan: 'trial',
       monthly_cost: planCfg.monthly_cost,
-      subscription_status: 'active',
+      subscription_status: 'trialing',
       trial_period_days: 15,
       trial_end_date: trialEndStr,
       admin_name: ownerName,
       admin_phone: phone || '',
       timezone: 'America/Puerto_Rico',
-      metadata: { max_users: planCfg.max_users, plan_label: planCfg.label, setup_complete: false },
+      metadata: { max_users: planCfg.max_users, plan_label: planCfg.label, intended_plan: intendedPlan, setup_complete: false },
     }, sb);
     console.log(`✅ Tenant creado: ${tenant.id} (${tenantName})`);
 

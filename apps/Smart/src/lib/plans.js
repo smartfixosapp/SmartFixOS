@@ -1,10 +1,11 @@
 /**
  * SmartFixOS — Plan Definitions
  *
- *   solo — $14.99/mes — talleres individuales, sin módulos de equipo
- *   team — $44.99/mes — todo desbloqueado: empleados, nómina, comisiones, chat…
+ *   solo — $19/mes — talleres individuales, sin módulos de equipo
+ *   team — $39/mes — empleados, nómina, comisiones, chat, finanzas mensual…
+ *   pro  — $79/mes — multi-sucursal, empleados ilimitados, export, soporte
  *
- * Facturación anual: -33%  →  solo $9.99/m ($119.88/año),  team $29.99/m ($359.88/año)
+ * Facturación anual: paga 10 meses, llevas 12 (2 meses gratis)
  */
 
 // ── Plan definitions ─────────────────────────────────────────────
@@ -13,18 +14,26 @@ export const PLANS = {
   solo: {
     id: 'solo',
     label: 'Plan Solo',
-    price: 14.99,
-    priceAnnual: 119.88,   // $9.99/mo × 12
+    price: 19,
+    priceAnnual: 190,
     tagline: 'Para técnicos independientes',
-    trialDays: 15,
+    trialDays: 14,
   },
   team: {
     id: 'team',
     label: 'Plan Equipo',
-    price: 44.99,
-    priceAnnual: 359.88,   // $29.99/mo × 12
+    price: 39,
+    priceAnnual: 390,
     tagline: 'Gestión completa de equipo',
-    trialDays: 15,
+    trialDays: 14,
+  },
+  pro: {
+    id: 'pro',
+    label: 'Plan Pro',
+    price: 79,
+    priceAnnual: 790,
+    tagline: 'Varias sucursales y todo el poder',
+    trialDays: 14,
   },
 };
 
@@ -39,6 +48,10 @@ export const PLAN_LIMITS = {
     max_orders_monthly:  -1,
     max_skus:            -1,
   },
+  pro: {
+    max_orders_monthly:  -1,
+    max_skus:            -1,
+  },
 };
 
 // ── Helpers ──────────────────────────────────────────────────────
@@ -49,13 +62,17 @@ export function normalizePlanId(raw) {
     // Current
     solo:       'solo',
     team:       'team',
+    pro:        'pro',
+    // Trial / top-tier equivalents
+    trial:      'team',
+    beta:       'pro',
+    founders_lifetime: 'pro',
     // Legacy
     starter:    'solo',
     basic:      'solo',
     smartfixos: 'solo',
-    pro:        'team',
-    business:   'team',
-    enterprise: 'team',
+    business:   'pro',
+    enterprise: 'pro',
   };
   return map[String(raw || '').trim().toLowerCase()] || 'solo';
 }
@@ -99,7 +116,9 @@ export function checkPlanLimit(planId, limitKey, currentCount) {
 /** Get the upgrade plan (null if already on highest) */
 export function getUpgradePlan(currentPlanId) {
   const id = normalizePlanId(currentPlanId);
-  return id === 'solo' ? PLANS.team : null;
+  if (id === 'solo') return PLANS.team;
+  if (id === 'team') return PLANS.pro;
+  return null;
 }
 
 // ── Compatibility shims ─────────────────────────────────────────

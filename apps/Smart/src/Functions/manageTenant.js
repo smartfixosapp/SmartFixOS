@@ -1,22 +1,28 @@
 import { createClientFromRequest } from '../../../../lib/unified-custom-sdk-supabase.js';
 import Stripe from 'npm:stripe@14.19.0';
 
-// Solo 2 planes oficiales: starter ($14.99) y pro ($39.99)
+// 3 planes oficiales: solo ($19), team ($39), pro ($79)
 // Los aliases legacy se mantienen para no romper tenants viejos en DB
 const PLAN_MAP = {
-  starter:    { max_users: 999, monthly_cost: 14.99, label: 'Starter' },
-  pro:        { max_users: 999, monthly_cost: 39.99, label: 'Pro'     },
+  solo:       { max_users: 1,   monthly_cost: 19, label: 'Solo' },
+  team:       { max_users: 5,   monthly_cost: 39, label: 'Team' },
+  pro:        { max_users: 999, monthly_cost: 79, label: 'Pro'  },
   // Legacy aliases — mapean al plan equivalente
-  smartfixos: { max_users: 999, monthly_cost: 14.99, label: 'Starter' },
-  basic:      { max_users: 999, monthly_cost: 14.99, label: 'Starter' },
-  business:   { max_users: 999, monthly_cost: 39.99, label: 'Pro'     },
-  enterprise: { max_users: 999, monthly_cost: 39.99, label: 'Pro'     },
+  starter:    { max_users: 1,   monthly_cost: 19, label: 'Solo' },
+  smartfixos: { max_users: 1,   monthly_cost: 19, label: 'Solo' },
+  basic:      { max_users: 1,   monthly_cost: 19, label: 'Solo' },
+  business:   { max_users: 999, monthly_cost: 79, label: 'Pro'  },
+  enterprise: { max_users: 999, monthly_cost: 79, label: 'Pro'  },
 };
 
 function normalizePlan(plan) {
-  const map = { smartfixos: 'starter', basic: 'starter', enterprise: 'pro', business: 'pro' };
+  const map = {
+    starter: 'solo', smartfixos: 'solo', basic: 'solo',
+    business: 'pro', enterprise: 'pro',
+  };
   const normalized = String(plan || '').trim().toLowerCase();
-  return map[normalized] || (normalized === 'pro' || normalized === 'starter' ? normalized : 'starter');
+  if (map[normalized]) return map[normalized];
+  return ['solo', 'team', 'pro'].includes(normalized) ? normalized : 'solo';
 }
 
 async function getLatestSubscription(base44, tenantId) {
@@ -160,7 +166,7 @@ export async function manageTenantHandler(req) {
     if (action === 'set_plan') {
       const normalizedPlan = normalizePlan(plan);
       const planData = PLAN_MAP[normalizedPlan];
-      if (!planData) return Response.json({ success: false, error: 'Plan inválido. Usa: basic, pro, enterprise' }, { status: 400 });
+      if (!planData) return Response.json({ success: false, error: 'Plan inválido. Usa: solo, team, pro' }, { status: 400 });
 
       const trialEndDate = tenant.trial_end_date || null;
       await base44.asServiceRole.entities.Tenant.update(tenantId, {

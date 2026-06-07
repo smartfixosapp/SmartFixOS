@@ -52,6 +52,9 @@ export async function stripeWebhookHandler(req) {
           console.warn("checkout.session.completed: no tenant_id en metadata");
           break;
         }
+        const plan = ["solo", "team", "pro"].includes(String(session.metadata?.plan || "").toLowerCase())
+          ? String(session.metadata.plan).toLowerCase()
+          : "team";
 
         const subscription = await stripe.subscriptions.retrieve(session.subscription);
         const nextBillingDate = new Date(subscription.current_period_end * 1000)
@@ -59,6 +62,7 @@ export async function stripeWebhookHandler(req) {
         const amount = (session.amount_total || 0) / 100;
 
         await base44.asServiceRole.entities.Tenant.update(tenantId, {
+          plan,
           subscription_status: 'active',
           trial_status: 'completed',
           stripe_subscription_id: session.subscription,
@@ -71,7 +75,7 @@ export async function stripeWebhookHandler(req) {
 
         await base44.asServiceRole.entities.Subscription.create({
           tenant_id: tenantId,
-          plan: 'smartfixos',
+          plan,
           status: 'active',
           amount,
           billing_cycle_start: new Date().toISOString().split('T')[0],
@@ -99,12 +103,16 @@ export async function stripeWebhookHandler(req) {
         const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
         const tenantId = subscription.metadata?.tenant_id;
         if (!tenantId) break;
+        const plan = ["solo", "team", "pro"].includes(String(subscription.metadata?.plan || "").toLowerCase())
+          ? String(subscription.metadata.plan).toLowerCase()
+          : "team";
 
         const nextBillingDate = new Date(subscription.current_period_end * 1000)
           .toISOString().split('T')[0];
         const amount = (invoice.amount_paid || 0) / 100;
 
         await base44.asServiceRole.entities.Tenant.update(tenantId, {
+          plan,
           subscription_status: 'active',
           last_payment_date: new Date().toISOString(),
           last_payment_amount: amount,
@@ -114,7 +122,7 @@ export async function stripeWebhookHandler(req) {
 
         await base44.asServiceRole.entities.Subscription.create({
           tenant_id: tenantId,
-          plan: 'smartfixos',
+          plan,
           status: 'active',
           amount,
           next_billing_date: nextBillingDate,
@@ -137,6 +145,9 @@ export async function stripeWebhookHandler(req) {
         const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
         const tenantId = subscription.metadata?.tenant_id;
         if (!tenantId) break;
+        const plan = ["solo", "team", "pro"].includes(String(subscription.metadata?.plan || "").toLowerCase())
+          ? String(subscription.metadata.plan).toLowerCase()
+          : "team";
 
         const tenant = await base44.asServiceRole.entities.Tenant.get(tenantId);
         const failedAttempts = (tenant?.failed_payment_attempts || 0) + 1;
@@ -150,7 +161,7 @@ export async function stripeWebhookHandler(req) {
 
         await base44.asServiceRole.entities.Subscription.create({
           tenant_id: tenantId,
-          plan: 'smartfixos',
+          plan,
           status: newStatus,
           amount,
           payment_method: 'stripe',
@@ -167,15 +178,19 @@ export async function stripeWebhookHandler(req) {
         const subscription = event.data.object;
         const tenantId = subscription.metadata?.tenant_id;
         if (!tenantId) break;
+        const plan = ["solo", "team", "pro"].includes(String(subscription.metadata?.plan || "").toLowerCase())
+          ? String(subscription.metadata.plan).toLowerCase()
+          : "team";
 
         await base44.asServiceRole.entities.Tenant.update(tenantId, {
+          plan: 'expired',
           subscription_status: 'cancelled',
           stripe_subscription_id: null
         });
 
         await base44.asServiceRole.entities.Subscription.create({
           tenant_id: tenantId,
-          plan: 'smartfixos',
+          plan,
           status: 'cancelled',
           payment_method: 'stripe',
           cancellation_date: new Date().toISOString().split('T')[0],

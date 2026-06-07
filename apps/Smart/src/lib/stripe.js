@@ -57,14 +57,16 @@ export const STRIPE_PUBLISHABLE_KEY =
 // los productos en live mode (NO son los mismos IDs).
 const STRIPE_PRICES_TEST = Object.freeze({
   solo: "price_1TaEWc0ynKjNBHk65T30N5Ck", // $19/mes USD — Plan Solo
-  team: "price_1TaEaR0ynKjNBHk6vSkR8Cbt", // $49/mes USD — Plan Equipo (Team)
+  team: "", // $39/mes USD — crear price test y pegar aqui
+  pro: "",  // $79/mes USD — crear price test y pegar aqui
 });
 
 // Placeholder hasta que tengamos productos live (esperando verificación
 // de cuenta + banco en Stripe).
 const STRIPE_PRICES_LIVE = Object.freeze({
-  solo: "", // ⚠️ Pendiente: crear producto en live mode y pegar Price ID
-  team: "", // ⚠️ Pendiente: crear producto en live mode y pegar Price ID
+  solo: "", // $19/mes USD — crear price live y pegar aqui
+  team: "", // $39/mes USD — crear price live y pegar aqui
+  pro: "",  // $79/mes USD — crear price live y pegar aqui
 });
 
 export const STRIPE_PRICES =
@@ -73,7 +75,8 @@ export const STRIPE_PRICES =
 // ── Monto display (USD/mes) — sincronizado con BILLING_CONTRACT §1 ─
 export const PLAN_AMOUNTS_USD = Object.freeze({
   solo: 19,
-  team: 49,
+  team: 39,
+  pro: 79,
 });
 
 // ── Trial — sincronizado con BILLING_CONTRACT §2.1 ─────────────
@@ -94,6 +97,13 @@ export const PLANS = Object.freeze({
     tagline: "Cuando ya no eres solo tú.",
     price: PLAN_AMOUNTS_USD.team,
     priceId: STRIPE_PRICES.team,
+  },
+  pro: {
+    slug: "pro",
+    name: "Pro",
+    tagline: "Varias sucursales y todo el poder.",
+    price: PLAN_AMOUNTS_USD.pro,
+    priceId: STRIPE_PRICES.pro,
   },
 });
 
