@@ -698,6 +698,14 @@ function Hero() {
 
         <BetaSlotsCounter slots={slots} loading={loading} error={error} />
 
+        <a
+          href="/registro"
+          className="mt-4 inline-flex items-center gap-1.5 text-[14px] font-medium text-white/70 hover:text-white underline underline-offset-4 decoration-white/30 transition-colors"
+        >
+          O crea tu taller desde la web
+          <ArrowRight className="h-3.5 w-3.5" />
+        </a>
+
         {/* CTAs secundarios — App Store + Google Play más pequeños */}
         <div className="mt-8 flex flex-col items-center gap-3.5">
           <span className="text-[10px] uppercase tracking-[0.24em] text-white/35">
