@@ -1,0 +1,103 @@
+:root {
+  --ar-bg: #0a0a0a;
+  --ar-bg-elev: #121212;
+  --ar-card: #141414;
+  --ar-card-hover: #181818;
+
+  --ar-accent: #FF5722;
+  --ar-accent-ink: #FFFFFF;
+  --ar-grad-from: #ff7a4d;
+  --ar-grad-to: #d83c10;
+  --ar-glow: rgba(255, 87, 34, 0.45);
+
+  --ar-text: rgba(255, 255, 255, 0.92);
+  --ar-text-2: rgba(255, 255, 255, 0.55);
+  --ar-text-3: rgba(255, 255, 255, 0.35);
+  --ar-text-disabled: rgba(255, 255, 255, 0.22);
+
+  --ar-border: rgba(255, 255, 255, 0.10);
+  --ar-border-strong: rgba(255, 255, 255, 0.16);
+  --ar-border-accent: rgba(255, 87, 34, 0.40);
+
+  --ar-st-diag: #e0b341;
+  --ar-st-rep: #FF5722;
+  --ar-st-listo: #3ec5b1;
+  --ar-ok: #3ec5b1;
+  --ar-warn: #e0b341;
+  --ar-danger: #ff5247;
+
+  --ar-radius-sm: 10px;
+  --ar-radius-md: 16px;
+  --ar-radius-lg: 24px;
+  --ar-radius-xl: 32px;
+
+  --ar-container: 1200px;
+  --ar-container-narrow: 760px;
+}
+
+.ar-grad {
+  background-image: linear-gradient(135deg, var(--ar-grad-from) 0%, var(--ar-grad-to) 100%);
+}
+
+.ar-grad-text {
+  background-image: linear-gradient(135deg, var(--ar-grad-from) 0%, var(--ar-grad-to) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.ar-shadow-card {
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 20px 50px -30px rgba(0, 0, 0, 0.8);
+}
+
+.ar-shadow-lift {
+  box-shadow: 0 30px 70px -35px rgba(0, 0, 0, 0.9);
+}
+
+.ar-shadow-lift-accent {
+  box-shadow: 0 30px 70px -34px rgba(0, 0, 0, 0.9), 0 0 0 1px var(--ar-border-accent), 0 24px 60px -30px var(--ar-glow);
+}
+
+.ar-shadow-btn {
+  box-shadow: 0 8px 24px -8px rgba(216, 60, 16, 0.5);
+}
+
+.ar-shadow-device {
+  box-shadow: 0 60px 130px -45px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+.ar-focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--ar-bg), 0 0 0 4px var(--ar-accent);
+}
+
+@keyframes ar-halo {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.12); opacity: 0.25; }
+}
+
+@keyframes ar-grad-sweep {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+@keyframes ar-ping-soft {
+  0% { transform: scale(1); opacity: 0.6; }
+  70%, 100% { transform: scale(2.2); opacity: 0; }
+}
+
+.ar-anim-halo {
+  animation: ar-halo 3.2s ease-in-out infinite;
+}
+
+.ar-ping-soft {
+  animation: ar-ping-soft 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ar-anim-halo,
+  .ar-ping-soft {
+    animation: none;
+  }
+}
