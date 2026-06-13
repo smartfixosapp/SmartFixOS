@@ -11,8 +11,8 @@ import { checkRateLimit, getClientIP, tooManyRequests } from './_lib/rateLimit.j
 const SB_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://idntuvtabecwubzswpwi.supabase.co';
 // SB_KEY must be set in Vercel dashboard as SUPABASE_SERVICE_ROLE_KEY
 const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
-const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@smartfixos.com';
-const FROM_NAME = process.env.FROM_NAME || 'SmartFixOS';
+const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@archillaos.com';
+const FROM_NAME = process.env.FROM_NAME || 'Archilla OS';
 const APP_URL = process.env.APP_URL || 'https://smart-fix-os-smart.vercel.app';
 
 const sbHeaders = {
@@ -238,38 +238,37 @@ export default async function handler(req, res) {
 
     // 8. Email de activación
     const activationUrl = `${APP_URL}/TenantActivate?token=${activationToken}&email=${encodeURIComponent(email)}`;
-    const logoUrl = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png';
     const formattedEnd = trialEndDate.toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' });
 
     try {
         const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#0a0a0a;font-family:'Segoe UI',Arial,sans-serif;color:#e5e7eb;">
 <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
-  <div style="text-align:center;margin-bottom:32px;"><img src="${logoUrl}" alt="SmartFixOS" style="height:48px;"/></div>
-  <div style="background:linear-gradient(135deg,#0c1a2e,#0a1520);border:1px solid #1e3a5f;border-radius:20px;padding:36px;margin-bottom:20px;">
-    <h1 style="color:#fff;font-size:26px;font-weight:800;margin:0 0 8px;text-align:center;">¡Bienvenido a SmartFixOS!</h1>
+  <div style="text-align:center;margin-bottom:32px;font-size:24px;font-weight:800;color:#fff;letter-spacing:-0.5px;"><span style="color:#FF5722;">●</span> Archilla OS</div>
+  <div style="background:linear-gradient(135deg,#1c1410,#141009);border:1px solid #3d2a1f;border-radius:20px;padding:36px;margin-bottom:20px;">
+    <h1 style="color:#fff;font-size:26px;font-weight:800;margin:0 0 8px;text-align:center;">¡Bienvenido a Archilla OS!</h1>
     <p style="color:#9ca3af;text-align:center;margin:0 0 28px;font-size:15px;">Tu cuenta para <strong style="color:#e5e7eb;">${tenantName}</strong> fue creada ✅</p>
-    <div style="background:linear-gradient(135deg,#0e4f6e,#065f46);border:2px solid #06b6d4;border-radius:14px;padding:28px;text-align:center;margin-bottom:28px;">
-      <p style="color:#67e8f9;font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin:0 0 16px;">Último paso</p>
+    <div style="background:linear-gradient(135deg,#3d1d0f,#2a1409);border:2px solid #FF5722;border-radius:14px;padding:28px;text-align:center;margin-bottom:28px;">
+      <p style="color:#ffab91;font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin:0 0 16px;">Último paso</p>
       <p style="color:#d1d5db;font-size:14px;margin:0 0 20px;">Configura tu taller y elige tu PIN de acceso</p>
-      <a href="${activationUrl}" style="display:inline-block;background:linear-gradient(135deg,#0891b2,#059669);color:#fff;font-weight:800;font-size:17px;padding:16px 44px;border-radius:50px;text-decoration:none;">Activar mi cuenta →</a>
-      <p style="color:#a7f3d0;font-size:11px;margin:16px 0 0;">⚠️ Expira en 24 horas</p>
+      <a href="${activationUrl}" style="display:inline-block;background:linear-gradient(135deg,#FF5722,#e64a19);color:#fff;font-weight:800;font-size:17px;padding:16px 44px;border-radius:50px;text-decoration:none;">Activar mi cuenta →</a>
+      <p style="color:#ffccbc;font-size:11px;margin:16px 0 0;">⚠️ Expira en 24 horas</p>
     </div>
-    <div style="border-top:1px solid #1e3a5f;padding-top:20px;font-size:14px;">
+    <div style="border-top:1px solid #3d2a1f;padding-top:20px;font-size:14px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:10px;"><span style="color:#9ca3af;">Negocio</span><span style="color:#fff;font-weight:600;">${tenantName}</span></div>
       <div style="display:flex;justify-content:space-between;margin-bottom:10px;"><span style="color:#9ca3af;">Plan</span><span style="color:#fff;font-weight:600;">${planCfg.label}</span></div>
-      <div style="display:flex;justify-content:space-between;"><span style="color:#9ca3af;">Trial hasta</span><span style="color:#34d399;font-weight:700;">${formattedEnd}</span></div>
+      <div style="display:flex;justify-content:space-between;"><span style="color:#9ca3af;">Trial hasta</span><span style="color:#FF7043;font-weight:700;">${formattedEnd}</span></div>
     </div>
   </div>
   <div style="text-align:center;font-size:12px;color:#4b5563;">
     <p>¿No creaste esta cuenta? Ignora este mensaje.</p>
-    <p>SmartFixOS — Hecho en Puerto Rico 🇵🇷</p>
+    <p>Archilla OS — Hecho en Puerto Rico 🇵🇷</p>
   </div>
 </div></body></html>`;
 
         await sendResendEmail({
           to: email,
-          subject: `¡Activa tu cuenta SmartFixOS, ${ownerName}!`,
+          subject: `¡Activa tu cuenta de Archilla OS, ${ownerName}!`,
           html,
           fromName: FROM_NAME,
           fromEmail: FROM_EMAIL,
