@@ -18,6 +18,7 @@ function lazyWithRetry(fn) {
 
 const Landing          = lazyWithRetry(() => import("./Landing"));
 const Registro         = lazyWithRetry(() => import("./Registro"));
+const TenantActivate   = lazyWithRetry(() => import("./TenantActivate"));
 const Upgrade          = lazyWithRetry(() => import("./Upgrade"));
 const UpgradeSuccess   = lazyWithRetry(() => import("./UpgradeSuccess"));
 const DashboardBilling = lazyWithRetry(() => import("./DashboardBilling"));
@@ -42,6 +43,7 @@ function PagesContent() {
         <Route path="/registro"          element={<Registro />} />
         <Route path="/signup"            element={<Registro />} />
         <Route path="/crear-taller"      element={<Registro />} />
+        <Route path="/TenantActivate"    element={<TenantActivate />} />
         <Route path="/upgrade"           element={<Upgrade />} />
         <Route path="/upgrade-success"   element={<UpgradeSuccess />} />
         <Route path="/dashboard/billing" element={<DashboardBilling />} />
