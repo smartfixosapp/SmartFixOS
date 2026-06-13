@@ -191,11 +191,11 @@ export default async function handler(req, res) {
       name: tenantName, slug, email,
       password_hash: randomUUID(),
       country: country || 'US', currency: 'USD', status: 'active',
-      plan, monthly_cost: planCfg.monthly_cost,
+      plan: 'trial', monthly_cost: planCfg.monthly_cost,
       subscription_status: 'active', trial_period_days: 15,
       trial_end_date: trialEndStr, admin_name: ownerName,
       admin_phone: phone || '', timezone: 'America/Puerto_Rico',
-      metadata: { max_users: planCfg.max_users, plan_label: planCfg.label, setup_complete: false },
+      metadata: { max_users: planCfg.max_users, plan_label: planCfg.label, selected_plan: plan, setup_complete: false },
     });
     console.log(`✅ Tenant: ${tenant.id} (${tenantName})`);
 
