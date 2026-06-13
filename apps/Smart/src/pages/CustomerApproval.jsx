@@ -78,7 +78,7 @@ export default function CustomerApproval() {
 
       if (error) throw error;
 
-      fetch("/api/notify-approval", {
+      fetch("https://idntuvtabecwubzswpwi.supabase.co/functions/v1/notify-approval", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ orderId: order.id, tenantId: order.tenant_id }),
