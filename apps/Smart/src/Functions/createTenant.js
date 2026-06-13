@@ -74,7 +74,7 @@ export async function createTenantHandler(req) {
           Iniciar Sesión
         </a>
         <p style="margin-top: 40px; color: #999; font-size: 12px;">
-          ¿Preguntas? Contacta a support@smartfixos.com
+          ¿Preguntas? Contacta a support@archillaos.com
         </p>
       </div>
     `;

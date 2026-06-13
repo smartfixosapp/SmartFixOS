@@ -28,7 +28,7 @@ services:
       - key: RESEND_API_KEY
         sync: false
       - key: FROM_EMAIL
-        value: noreply@smartfixos.com
+        value: noreply@archillaos.com
       - key: FROM_NAME
         value: SmartFixOS
       - key: CRON_SECRET

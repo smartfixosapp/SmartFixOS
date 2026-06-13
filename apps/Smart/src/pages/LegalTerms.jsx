@@ -17,7 +17,7 @@ export default function LegalTerms() {
     <LegalLayout title="Términos y Condiciones" eyebrow="Legal" lastUpdated="23 mayo 2026">
       <p>
         Bienvenido a Archilla OS. Estos Términos y Condiciones ("Términos") rigen el uso
-        de la aplicación Archilla OS, los sitios web smartfixos.com y www.smartfixos.com,
+        de la aplicación Archilla OS, los sitios web archillaos.com y app.archillaos.com,
         y cualquier servicio relacionado ("Servicio") operados por <strong>Archilla Studios</strong>{" "}
         (en adelante "nosotros", "nuestro" o "Archilla OS").
       </p>
@@ -64,7 +64,7 @@ export default function LegalTerms() {
       <h2>4. Cancelación</h2>
       <p>
         Puedes cancelar tu suscripción en cualquier momento desde
-        www.smartfixos.com (sección "Manejar Suscripción") o escribiendo a
+        app.archillaos.com (sección "Manejar Suscripción") o escribiendo a
         archillastudios@gmail.com.
       </p>
       <ul>

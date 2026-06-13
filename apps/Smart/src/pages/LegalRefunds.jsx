@@ -29,7 +29,7 @@ export default function LegalRefunds() {
           gusta, no pagas nada, no haces nada.
         </li>
         <li>
-          <strong>Cancela cuando quieras</strong> — desde www.smartfixos.com o
+          <strong>Cancela cuando quieras</strong> — desde app.archillaos.com o
           escribiéndonos. La cancelación es efectiva al final del período pagado;
           mantienes acceso hasta esa fecha.
         </li>
@@ -63,7 +63,7 @@ export default function LegalRefunds() {
           Cancelar (te lleva al portal de Stripe)
         </li>
         <li>
-          Directo en <a href="https://www.smartfixos.com/dashboard/billing">www.smartfixos.com/dashboard/billing</a>
+          Directo en <a href="https://app.archillaos.com/dashboard/billing">app.archillaos.com/dashboard/billing</a>
         </li>
         <li>
           Escribiendo a <a href="mailto:archillastudios@gmail.com">archillastudios@gmail.com</a> y respondemos en 24h hábiles.

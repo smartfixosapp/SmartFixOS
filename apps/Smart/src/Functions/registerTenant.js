@@ -249,7 +249,7 @@ export async function registerTenantHandler(req) {
     try {
       const resendKey = Deno.env.get('RESEND_API_KEY');
       if (!resendKey) throw new Error('RESEND_API_KEY no configurado');
-      const from = `${Deno.env.get('FROM_NAME') || 'Archilla OS'} <${Deno.env.get('FROM_EMAIL') || 'noreply@smartfixos.com'}>`;
+      const from = `${Deno.env.get('FROM_NAME') || 'Archilla OS'} <${Deno.env.get('FROM_EMAIL') || 'noreply@archillaos.com'}>`;
 
       const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#0a0a0a;font-family:'Segoe UI',Arial,sans-serif;color:#e5e7eb;">

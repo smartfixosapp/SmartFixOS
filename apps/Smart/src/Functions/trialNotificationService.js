@@ -59,7 +59,7 @@ async function sendTrialReminder(base44, tenantId) {
         Activar Plan Ahora
       </a>
       <p style="margin-top: 40px; color: #999; font-size: 12px;">
-        Si tienes preguntas, contáctanos: support@smartfixos.com
+        Si tienes preguntas, contáctanos: support@archillaos.com
       </p>
     </div>
   `;
@@ -159,7 +159,7 @@ async function sendActivationConfirmation(base44, tenantId) {
         Ir a Archilla OS
       </a>
       <p style="margin-top: 40px; color: #999; font-size: 12px;">
-        ¿Preguntas? Contacta a support@smartfixos.com
+        ¿Preguntas? Contacta a support@archillaos.com
       </p>
     </div>
   `;

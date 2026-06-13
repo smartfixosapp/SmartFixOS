@@ -392,7 +392,7 @@ export async function sendTemplatedEmailWithBase44(base44, { event_type, order_d
     if (order_data.customer_email) recipients.push(order_data.customer_email);
   }
   if (template.send_to === "admin" || template.send_to === "both") {
-    recipients.push(businessInfo.business_email || "admin@smartfixos.com");
+    recipients.push(businessInfo.business_email || "admin@archillaos.com");
   }
 
   const results = [];

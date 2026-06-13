@@ -1,5 +1,5 @@
 /**
- * Auth helpers · SmartFixOS web (www.smartfixos.com)
+ * Auth helpers · SmartFixOS web (app.archillaos.com)
  *
  * Wraps Supabase Auth for the public marketing flow:
  *   - Magic link  (primary)

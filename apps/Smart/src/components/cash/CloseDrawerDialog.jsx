@@ -263,7 +263,7 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
         });
 
         await base44.integrations.Core.SendEmail({
-          to: businessInfo.email || "info@smartfixos.com", // Fallback a email de configuración
+          to: businessInfo.email || "info@archillaos.com", // Fallback a email de configuración
           subject: emailTemplate.subject,
           body: emailTemplate.body
         });
@@ -408,7 +408,7 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
       <div class="row"><span>Diferencia</span><span class="${isBalanced?'balanced':'unbalanced'} badge">${difference>=0?'+':''}${difference.toFixed(2)}</span></div>
       <div class="row profit"><span>Ganancia Neta</span><span>$${netProfit.toFixed(2)}</span></div>
     </div>
-    <div class="footer">Archilla OS · smartfixos.com · ${new Date().toLocaleTimeString('es-PR')}</div>
+    <div class="footer">Archilla OS · archillaos.com · ${new Date().toLocaleTimeString('es-PR')}</div>
     </body></html>`;
     const w = window.open('', '_blank', 'width=800,height=900');
     w.document.write(html);

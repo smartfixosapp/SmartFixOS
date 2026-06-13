@@ -608,7 +608,7 @@ function BackupTool() {
     setWorking(true);
     try {
       const cloneName = `${tenant.name} (Clone)`;
-      const cloneEmail = `clone-${Date.now()}@demo.smartfixos.com`;
+      const cloneEmail = `clone-${Date.now()}@demo.archillaos.com`;
 
       const { data: newTenant, error } = await adminSupabase.from("tenant").insert({
         name: cloneName,

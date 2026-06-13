@@ -24,7 +24,7 @@ export async function createStripePortalSessionHandler(req) {
   }
 
   const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"));
-  const origin = req.headers.get("origin") || Deno.env.get("VITE_APP_URL") || "https://www.smartfixos.com";
+  const origin = req.headers.get("origin") || Deno.env.get("VITE_APP_URL") || "https://app.archillaos.com";
 
   try {
     const body = await req.json().catch(() => ({}));

@@ -1,5 +1,5 @@
 /**
- * Stripe configuration · SmartFixOS web (www.smartfixos.com)
+ * Stripe configuration · SmartFixOS web (app.archillaos.com)
  *
  * SOURCE OF TRUTH for Price IDs and the publishable key reference.
  * Mantén este archivo sincronizado con BILLING_CONTRACT.md §1.

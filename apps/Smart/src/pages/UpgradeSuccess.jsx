@@ -25,7 +25,7 @@ import { CheckCircle2, ArrowRight } from "lucide-react";
  * (iOS user) AND a regular desktop browser (rare, but possible if
  * someone completes Stripe Checkout from a forwarded link). The page
  * degrades gracefully — on desktop the deep link silently fails and
- * the user gets the "Volver a smartfixos.com" fallback.
+ * the user gets the "Volver a archillaos.com" fallback.
  */
 export default function UpgradeSuccess() {
   const [searchParams] = useSearchParams();
@@ -93,7 +93,7 @@ export default function UpgradeSuccess() {
             to="/"
             className="text-[12px] text-white/40 hover:text-white/70 transition-colors"
           >
-            o vuelve a smartfixos.com
+            o vuelve a archillaos.com
           </Link>
         </div>
 

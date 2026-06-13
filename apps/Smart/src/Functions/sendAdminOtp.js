@@ -70,7 +70,7 @@ export async function sendAdminOtpHandler(req) {
     // ── Verificar que sea el SuperAdmin ────────────────────────────────────────
     const SUPER_ADMIN_EMAIL = Deno.env.get("SUPER_ADMIN_EMAIL") || "smartfixosapp@gmail.com";
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-    const FROM_EMAIL = Deno.env.get("FROM_EMAIL") || "noreply@smartfixos.com";
+    const FROM_EMAIL = Deno.env.get("FROM_EMAIL") || "noreply@archillaos.com";
 
     if (!email || email.trim().toLowerCase() !== SUPER_ADMIN_EMAIL.toLowerCase()) {
       // No revelar si el email existe o no (previene enumeración)

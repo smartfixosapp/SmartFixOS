@@ -307,7 +307,7 @@ function StripeReturn({ title, body }) {
           to="/"
           className="mt-10 inline-flex items-center gap-2 rounded-full bg-white text-black px-6 h-11 text-[13px] font-semibold hover:bg-gray-50 transition-colors"
         >
-          <ArrowLeft className="h-4 w-4" /> Ir a smartfixos.com
+          <ArrowLeft className="h-4 w-4" /> Ir a archillaos.com
         </Link>
       </motion.div>
     </div>

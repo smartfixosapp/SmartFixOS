@@ -26,7 +26,7 @@ export default function LegalLayout({ title, eyebrow, lastUpdated, children }) {
             to="/"
             className="inline-flex items-center font-[700] tracking-[-0.04em] text-white text-2xl leading-none select-none hover:opacity-80 transition-opacity"
             style={{ fontFamily: '"Bricolage Grotesque", system-ui, sans-serif' }}
-            aria-label="Volver a smartfixos.com"
+            aria-label="Volver a archillaos.com"
           >
             <span>smartfix</span>
             <span

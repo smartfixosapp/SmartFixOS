@@ -200,7 +200,7 @@ export async function processPayrollHandler(req) {
         });
 
         const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-        const FROM_EMAIL = Deno.env.get("FROM_EMAIL") || "noreply@smartfixos.com";
+        const FROM_EMAIL = Deno.env.get("FROM_EMAIL") || "noreply@archillaos.com";
 
         const emailRes = await fetch("https://api.resend.com/emails", {
           method: "POST",
