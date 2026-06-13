@@ -77,6 +77,13 @@ export default function CustomerApproval() {
         .eq("id", order.id);
 
       if (error) throw error;
+
+      fetch("/api/notify-approval", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: order.id, tenantId: order.tenant_id }),
+      }).catch(() => {});
+
       setPageStatus(decision === "approved" ? STATUS.approved : STATUS.rejected);
     } catch (e) {
       console.error(e);
