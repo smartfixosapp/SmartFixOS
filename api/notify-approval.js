@@ -6,7 +6,7 @@ const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABAS
 
 const APNS_KEY_ID = process.env.APNS_KEY_ID;
 const APNS_TEAM_ID = process.env.APNS_TEAM_ID;
-const APNS_AUTH_KEY = process.env.APNS_AUTH_KEY;
+const APNS_AUTH_KEY = (process.env.APNS_AUTH_KEY || '').replace(/\\n/g, '\n');
 const APNS_BUNDLE_ID = process.env.APNS_BUNDLE_ID || 'com.archillastudios.SmartFixOS';
 
 function sbH() {
