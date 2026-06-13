@@ -60,7 +60,7 @@ export default function Registro() {
     "w-full h-12 rounded-xl bg-white/5 border border-white/10 px-4 text-[15px] text-white placeholder:text-zinc-500 focus:outline-none focus:border-orange-500/60 focus:bg-white/[0.07] transition-colors";
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white flex flex-col">
+    <div className="h-dvh overflow-y-auto bg-zinc-950 text-white flex flex-col">
       <header className="flex items-center justify-between px-6 py-5 max-w-2xl mx-auto w-full">
         <Link to="/" className="flex items-center gap-2 font-semibold tracking-tight">
           <span className="h-8 w-8 rounded-lg bg-orange-500 flex items-center justify-center">

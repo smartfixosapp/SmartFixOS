@@ -317,7 +317,7 @@ export default function TenantActivate() {
             <h2 className="apple-text-title2 apple-label-primary mb-3">Enlace inválido o expirado</h2>
             <p className="apple-text-body apple-label-secondary mb-6">Este enlace de activación ya fue usado o expiró (válido 24 horas).</p>
             <p className="apple-text-footnote apple-label-tertiary mb-6">¿Necesitas ayuda?</p>
-            <a href="mailto:smartfixosapp@gmail.com"
+            <a href="mailto:soporte@archillaos.com"
               className="apple-btn apple-btn-primary apple-btn-lg inline-block">
               Contactar soporte
             </a>
@@ -372,14 +372,13 @@ export default function TenantActivate() {
   const stepIcons  = [Building2, Phone, Clock, Lock];
 
   return (
-    <div className="min-h-dvh apple-surface apple-type flex flex-col items-center justify-start py-8 px-4">
+    <div className="h-dvh overflow-y-auto apple-surface apple-type flex flex-col items-center justify-start py-8 px-4">
       {/* Header */}
       <div className="w-full max-w-2xl mx-auto mb-6">
         <div className="text-center mb-6">
-          <img
-            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png"
-            alt="SmartFixOS" className="h-10 mx-auto mb-4"
-          />
+          <div className="text-xl font-extrabold tracking-tight mb-4 apple-label-primary">
+            <span style={{ color: "#FF5722" }}>●</span> Archilla OS
+          </div>
           <h1 className="apple-text-title1 apple-label-primary">Configura tu taller</h1>
           <p className="apple-text-footnote apple-label-secondary mt-1 tabular-nums">Paso {step + 1} de {TOTAL_STEPS}</p>
           {skipMode && (
