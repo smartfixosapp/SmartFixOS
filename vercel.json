@@ -3,6 +3,10 @@
   "outputDirectory": "apps/Smart/dist",
   "installCommand": "pnpm install --no-frozen-lockfile",
   "framework": null,
+  "redirects": [
+    { "source": "/terms", "destination": "/legal/terms", "permanent": false },
+    { "source": "/privacy", "destination": "/privacidad.html", "permanent": false }
+  ],
   "rewrites": [
     { "source": "/((?!assets/|icons/|images/|\\.well-known/|registerSW\\.js|manifest\\.json|favicon\\.ico).*)", "destination": "/index.html" }
   ],

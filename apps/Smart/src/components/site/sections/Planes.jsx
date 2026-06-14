@@ -57,7 +57,7 @@ function BetaBadge() {
       }}
     >
       <span className="h-1.5 w-1.5 rounded-full" style={{ background: "var(--ar-ok)", boxShadow: "0 0 8px var(--ar-ok)" }} />
-      Gratis en beta
+      14 días gratis
     </span>
   );
 }
@@ -101,13 +101,13 @@ function PlanCard({ nombre, para, precio, features, featured }) {
 
       <div className="mt-6 flex items-end gap-3">
         <span className="font-brico text-[44px] font-extrabold leading-none tracking-[-0.03em]" style={{ color: "var(--ar-text)" }}>
-          Gratis
+          ${Math.round(count)}
         </span>
         <span className="flex flex-col leading-tight pb-1">
-          <span className="font-brico text-[20px] font-bold tabular-nums line-through" style={{ color: "var(--ar-text-3)" }}>
-            ${Math.round(count)}/mes
+          <span className="font-brico text-[20px] font-bold tabular-nums" style={{ color: "var(--ar-text-2)" }}>
+            /mes
           </span>
-          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ar-ink3">precio futuro</span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ar-ink3">14 días gratis</span>
         </span>
       </div>
 
@@ -148,13 +148,13 @@ export function Planes() {
 
         <motion.div variants={fadeUp}>
           <Heading as="h2" className="mt-5 max-w-[18ch]">
-            Gratis durante la beta. Punto.
+            Empieza con 14 días gratis.
           </Heading>
         </motion.div>
 
         <motion.div variants={fadeUp}>
           <Lede className="mt-5 max-w-[56ch]">
-            Mientras estamos en beta, todo es gratis y sin tarjeta. Cuando salgamos del App Store, estos serán los precios.
+            Prueba 14 días gratis, sin tarjeta. Luego eliges el plan que te sirva.
           </Lede>
         </motion.div>
       </motion.div>
@@ -178,7 +178,7 @@ export function Planes() {
         viewport={VIEWPORT}
         className="mx-auto mt-8 max-w-3xl text-center font-mono text-[12px] leading-[1.6] text-ar-ink3"
       >
-        Durante la beta no se cobra y no pedimos tarjeta. El alta, el pago y la suscripción se manejan desde la web — nunca dentro del app. Los precios aplican solo al salir del App Store oficial.
+        14 días gratis para probar, sin tarjeta. Después, el precio del plan que elijas. Cancela cuando quieras.
       </motion.p>
     </Section>
   );

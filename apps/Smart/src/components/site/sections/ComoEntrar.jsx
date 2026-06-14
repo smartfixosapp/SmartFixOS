@@ -100,7 +100,7 @@ export function ComoEntrar() {
           href={TESTFLIGHT_URL}
           target="_blank"
           rel="noopener noreferrer"
-          subLabel="GRATIS DURANTE LA BETA · SIN TARJETA"
+          subLabel="14 DÍAS GRATIS · SIN TARJETA"
         >
           Probar el app
         </ButtonPrimary>

@@ -65,7 +65,7 @@ export function Hero() {
                 <FlaskConical className="h-4 w-4" strokeWidth={2.2} />
                 <span className="flex flex-col items-start leading-tight">
                   <span className="inline-flex items-center gap-1.5">Probar el app <ArrowRight className="h-4 w-4" /></span>
-                  <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/80">GRATIS DURANTE LA BETA</span>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/80">14 DÍAS GRATIS</span>
                 </span>
               </a>
             )}

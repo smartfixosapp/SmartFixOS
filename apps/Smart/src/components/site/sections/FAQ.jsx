@@ -11,15 +11,15 @@ const FAQS = [
   },
   {
     q: "¿Cuánto cuesta?",
-    a: "Durante la beta, nada — y no pedimos tarjeta. Después: $19 Solo o $49 Equipo al mes.",
+    a: "$19 Solo o $49 Equipo al mes. Pruebas 14 días gratis, sin tarjeta.",
   },
   {
-    q: "¿Por qué me registro en la web y no en el app?",
-    a: "Apple no permite registrarte ni cobrarte dentro del app. Por eso tu cuenta y tu pago viven en la web; el app es para trabajar.",
+    q: "¿Cómo me suscribo?",
+    a: "Desde el app (App Store) o desde la web, lo que prefieras. Los planes y los 14 días gratis están en ambos.",
   },
   {
     q: "¿Necesito tarjeta para probar?",
-    a: "No. Pruebas gratis 15 días sin tarjeta, y durante la beta sigue gratis.",
+    a: "No. Tienes 14 días gratis para probar, sin tarjeta.",
   },
   {
     q: "¿Calcula el IVU de Puerto Rico?",
