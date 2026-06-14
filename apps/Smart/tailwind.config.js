@@ -49,6 +49,12 @@ module.exports = {
           'Consolas',
           'monospace',
         ],
+        brico: [
+          '"Bricolage Grotesque"',
+          'system-ui',
+          '-apple-system',
+          'sans-serif',
+        ],
       },
       fontSize: {
         // Apple HIG escala — [tamaño, { lineHeight, letterSpacing, fontWeight }]
@@ -161,6 +167,27 @@ module.exports = {
           tertiary: 'rgb(var(--surface-tertiary) / <alpha-value>)',
           grouped:  'rgb(var(--surface-grouped) / <alpha-value>)',
           elevated: 'rgb(var(--surface-elevated) / <alpha-value>)',
+        },
+
+        ar: {
+          bg:            'var(--ar-bg)',
+          elev:          'var(--ar-bg-elev)',
+          card:          'var(--ar-card)',
+          'card-hover':  'var(--ar-card-hover)',
+          accent:        'var(--ar-accent)',
+          'accent-ink':  'var(--ar-accent-ink)',
+          ink:           'var(--ar-text)',
+          ink2:          'var(--ar-text-2)',
+          ink3:          'var(--ar-text-3)',
+          'ink-dis':     'var(--ar-text-disabled)',
+          line:          'var(--ar-border)',
+          'line-strong': 'var(--ar-border-strong)',
+          'line-accent': 'var(--ar-border-accent)',
+          ok:            'var(--ar-ok)',
+          warn:          'var(--ar-warn)',
+          danger:        'var(--ar-danger)',
+          'grad-from':   'var(--ar-grad-from)',
+          'grad-to':     'var(--ar-grad-to)',
         },
       },
 
