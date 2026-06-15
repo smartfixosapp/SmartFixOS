@@ -2,6 +2,7 @@
   "name": "smart-fix-copy-copy-6d4cf555",
   "private": true,
   "version": "0.0.0",
+  "packageManager": "pnpm@9.7.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
