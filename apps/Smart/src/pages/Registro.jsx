@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Wrench, CheckCircle2, Mail, Loader2, ArrowRight, ShieldCheck } from "lucide-react";
 
-const TESTFLIGHT_URL = "https://testflight.apple.com/join/MjGuBHkP";
+const APP_STORE_URL = "https://apps.apple.com/app/id6771861853";
 
 export default function Registro() {
   const [form, setForm] = useState({
@@ -101,7 +101,7 @@ export default function Registro() {
                 ))}
               </div>
               <a
-                href={TESTFLIGHT_URL}
+                href={APP_STORE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-7 inline-flex items-center gap-2 rounded-full bg-white text-black font-semibold px-6 h-12 text-[14px] hover:bg-gray-100 transition-colors"

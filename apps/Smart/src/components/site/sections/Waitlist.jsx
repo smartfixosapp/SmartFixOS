@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, ArrowRight } from "lucide-react";
 import { Section, Heading, Lede, ButtonPrimary, ButtonSecondary, GlowBlob, cx } from "../primitives";
 import { EASE, VIEWPORT, fadeUp } from "../motion";
-import { TESTFLIGHT_URL, REGISTRO_PATH } from "../constants";
+import { APP_STORE_URL, REGISTRO_PATH } from "../constants";
 import { supabase } from "../../../../../../lib/supabase-client.js";
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
@@ -185,7 +185,7 @@ export function Waitlist() {
         </motion.div>
 
         <motion.div variants={fadeUp} className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
-          <ButtonPrimary href={TESTFLIGHT_URL} target="_blank" rel="noopener noreferrer">
+          <ButtonPrimary href={APP_STORE_URL} target="_blank" rel="noopener noreferrer">
             Probar el app
           </ButtonPrimary>
           <ButtonSecondary to={REGISTRO_PATH} icon={<ArrowRight className="h-4 w-4" />}>

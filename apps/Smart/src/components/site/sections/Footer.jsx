@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Container, LogoLockup } from "../primitives";
 import { EASE } from "../motion";
-import { TESTFLIGHT_URL, REGISTRO_PATH, CUENTA_PATH } from "../constants";
+import { APP_STORE_URL, REGISTRO_PATH, CUENTA_PATH } from "../constants";
 
 const linkClass = "font-mono text-[13px] transition-colors";
 const linkStyle = { color: "var(--ar-text-3)" };
@@ -73,7 +73,7 @@ export function Footer() {
                 <FooterRoute to={REGISTRO_PATH}>Crear mi taller</FooterRoute>
                 <FooterRoute to={CUENTA_PATH}>Entrar</FooterRoute>
                 <a
-                  href={TESTFLIGHT_URL}
+                  href={APP_STORE_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={linkClass}

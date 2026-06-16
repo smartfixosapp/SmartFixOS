@@ -7,7 +7,7 @@ import { PhoneMock } from "../PhoneMock";
 import { BetaPill } from "../BetaPill";
 import { useBetaSlots } from "../useBetaSlots";
 import { EASE } from "../motion";
-import { TESTFLIGHT_URL, REGISTRO_PATH } from "../constants";
+import { APP_STORE_URL, REGISTRO_PATH } from "../constants";
 import heroShot from "../../../assets/images/screenshots/03-inicio.png";
 
 const enter = (delay) => ({
@@ -57,7 +57,7 @@ export function Hero() {
               </button>
             ) : (
               <a
-                href={TESTFLIGHT_URL}
+                href={APP_STORE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="ar-grad ar-shadow-btn ar-focus-ring inline-flex h-14 items-center justify-center gap-2.5 rounded-2xl px-7 text-[15px] font-semibold text-white"

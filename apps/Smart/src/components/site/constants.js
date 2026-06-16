@@ -1,4 +1,4 @@
-export const TESTFLIGHT_URL = "https://testflight.apple.com/join/MjGuBHkP";
+export const APP_STORE_URL = "https://apps.apple.com/app/id6771861853";
 export const REGISTRO_PATH = "/registro";
 export const CUENTA_PATH = "/cuenta";
 export const SOPORTE_EMAIL = "soporte@archillaos.com";

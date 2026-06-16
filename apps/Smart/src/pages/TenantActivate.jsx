@@ -342,7 +342,7 @@ export default function TenantActivate() {
             <h2 className="apple-text-title1 apple-label-primary mb-3">¡Cuenta activada!</h2>
             <p className="apple-text-body apple-label-secondary mb-8">Tu taller está listo. Descarga la app y entra con tu email y contraseña.</p>
             <a
-              href="https://testflight.apple.com/join/MjGuBHkP"
+              href="https://apps.apple.com/app/id6771861853"
               target="_blank"
               rel="noopener noreferrer"
               className="apple-btn apple-btn-primary apple-btn-lg w-full inline-flex items-center justify-center"

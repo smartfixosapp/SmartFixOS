@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ArrowRight, FlaskConical } from "lucide-react";
 import { LogoLockup, cx } from "../primitives";
-import { TESTFLIGHT_URL, REGISTRO_PATH, NAV_LINKS } from "../constants";
+import { APP_STORE_URL, REGISTRO_PATH, NAV_LINKS } from "../constants";
 
 export function NavBar() {
   const [scrolled, setScrolled] = useState(false);
@@ -57,7 +57,7 @@ export function NavBar() {
             Crear mi taller
           </Link>
           <a
-            href={TESTFLIGHT_URL}
+            href={APP_STORE_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="ar-grad inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[13px] font-semibold text-white"
@@ -103,7 +103,7 @@ export function NavBar() {
                 <Link to={REGISTRO_PATH} onClick={() => setOpen(false)} className="flex h-12 items-center justify-center rounded-2xl border text-[15px] font-semibold" style={{ borderColor: "var(--ar-border)", color: "var(--ar-text)" }}>
                   Crear mi taller
                 </Link>
-                <a href={TESTFLIGHT_URL} target="_blank" rel="noopener noreferrer" className="ar-grad flex h-12 items-center justify-center gap-2 rounded-2xl text-[15px] font-semibold text-white">
+                <a href={APP_STORE_URL} target="_blank" rel="noopener noreferrer" className="ar-grad flex h-12 items-center justify-center gap-2 rounded-2xl text-[15px] font-semibold text-white">
                   Probar el app <ArrowRight className="h-4 w-4" />
                 </a>
               </div>

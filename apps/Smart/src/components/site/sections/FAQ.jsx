@@ -35,7 +35,7 @@ const FAQS = [
   },
   {
     q: "¿En qué teléfonos corre?",
-    a: "Hoy en iPhone vía TestFlight. ¿Prefieres empezar desde la computadora? Crea tu taller en la web.",
+    a: "Hoy en iPhone, descárgala gratis del App Store. ¿Prefieres empezar desde la computadora? Crea tu taller en la web.",
   },
 ];
 

@@ -1,23 +1,23 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Apple, Mail, KeyRound } from "lucide-react";
+import { Apple, Rocket, KeyRound } from "lucide-react";
 import { Section, Eyebrow, Heading, ButtonPrimary } from "../primitives";
 import { EASE, VIEWPORT, fadeUp, fadeUpAt, scaleIn, staggerList } from "../motion";
-import { TESTFLIGHT_URL, REGISTRO_PATH } from "../constants";
+import { APP_STORE_URL, REGISTRO_PATH } from "../constants";
 
 const STEPS = [
   {
     num: "01",
     icon: Apple,
-    title: "Instala TestFlight",
-    body: "Bájala del App Store. Es la app de Apple para probar betas.",
+    title: "Descárgala del App Store",
+    body: "Búscala como Archilla OS en el App Store y bájala gratis.",
   },
   {
     num: "02",
-    icon: Mail,
-    title: "Abre la invitación",
-    body: "Toca el botón de abajo y acepta entrar a la beta de Archilla OS.",
+    icon: Rocket,
+    title: "Ábrela y empieza",
+    body: "14 días gratis, sin tarjeta. Toca el botón de abajo o ábrela desde tu inicio.",
   },
   {
     num: "03",
@@ -97,7 +97,7 @@ export function ComoEntrar() {
 
       <motion.div {...fadeUpAt(0.1)} className="mt-12 flex flex-col items-center gap-5">
         <ButtonPrimary
-          href={TESTFLIGHT_URL}
+          href={APP_STORE_URL}
           target="_blank"
           rel="noopener noreferrer"
           subLabel="14 DÍAS GRATIS · SIN TARJETA"
