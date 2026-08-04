@@ -58,12 +58,12 @@ Las siguientes variables tienen prefijo `VITE_`, lo que significa que Vite **las
 
 ---
 
-## Vulnerabilidades restantes — 9 abiertas
+## Vulnerabilidades restantes — 7 abiertas (2026-08-04: #1 y #2 resueltas)
 
 | # | Severidad | Vulnerabilidad | Archivo | Acción |
 |---|---|---|---|---|
-| 1 | 🔴 CRÍTICA | `VITE_SUPABASE_SERVICE_ROLE_KEY` expuesta al browser bundle | `apps/Smart/src/pages/SuperAdmin.jsx:27,846` | Mover a Deno; rotar la llave |
-| 2 | 🔴 CRÍTICA | `VITE_SUPABASE_SERVICE_ROLE_KEY` usada para crear cliente desde el browser | `apps/Smart/src/pages/gacc/gaccContext.jsx:16` | Mover a Deno; rotar |
+| 1 | ✅ RESUELTO (2026-08-04) | ~~`VITE_SUPABASE_SERVICE_ROLE_KEY` expuesta al browser bundle~~ | `apps/Smart/src/pages/SuperAdmin.jsx` | El archivo ya no existe en el repo (eliminado en el pivote a app nativa iOS, Sprint 136). No queda código que lea esta var. |
+| 2 | ✅ RESUELTO (2026-08-04) | ~~`VITE_SUPABASE_SERVICE_ROLE_KEY` usada para crear cliente desde el browser~~ | `apps/Smart/src/pages/gacc/gaccContext.jsx:16` | `getAdminClient()` ya no lee `VITE_SUPABASE_SERVICE_ROLE_KEY`. Ahora apunta a `gaccDataProxy.js` (nuevo, server-side en Render), que reenvía las queries a Supabase con la service_role key real — la cual nunca sale del servidor. El navegador solo guarda un token opaco de sesión de panel, emitido por `verifyAdminOtp.js` tras OTP + PIN secreto (login en `/GACCLogin`, nuevo) y validado en cada request contra la tabla `admin_panel_sessions` (`021_admin_panel_sessions.sql`, expira en 2h). **Pendiente de tu parte:** la key vieja se considera filtrada (estuvo en un bundle público) — rotarla en el dashboard de Supabase y actualizar `SUPABASE_SERVICE_ROLE_KEY` en Render. Ver prompt de seguimiento. |
 | 3 | 🔴 ALTA | `VITE_OPENAI_API_KEY` embebida en el bundle | `apps/Smart/src/lib/jenaiEngine.js`, `components/aria/ARIAChat.jsx` | Proxy por `/ai/invoke`; rotar |
 | 4 | 🔴 ALTA | `VITE_GEMINI_API_KEY` embebida en el bundle | `apps/Smart/src/lib/geminiAI.js` | Proxy por `/ai/gemini-summary`; rotar |
 | 5 | 🟡 MEDIA | `VITE_GROQ_API_KEY` embebida en el bundle | `apps/Smart/src/lib/groqAI.js`, `geminiAI.js`, `jenaiEngine.js`, `ARIAChat.jsx` | Proxy por Deno; rotar |
@@ -72,7 +72,7 @@ Las siguientes variables tienen prefijo `VITE_`, lo que significa que Vite **las
 | 8 | 🟡 MEDIA | Stored XSS — términos del wizard de work orders | `apps/Smart/src/components/workorder/wizard/TermsStep.jsx:35` | DOMPurify |
 | 9 | 🟢 BAJA | 7 usos de `document.write`/`innerHTML` en vistas de impresión (nueva ventana) | `PrintHelper.jsx`, `ExportService.jsx`, `CloseDrawerDialog.jsx`, `PurchaseOrderDetailDialog.jsx`, `WorkOrderPanel.jsx`, `JeaniStageReportPanel.jsx`, `WODetailCenter.jsx` | Escapar los valores del DB antes de inyectar |
 
-**Total: 9 vulnerabilidades restantes — 2 críticas, 2 altas, 4 medias, 1 baja.**
+**Total: 7 vulnerabilidades restantes — 2 altas, 4 medias, 1 baja.** (2 críticas resueltas el 2026-08-04, pendiente rotar la key filtrada — ver siguiente paso #1 más abajo.)
 
 ---
 
@@ -89,7 +89,11 @@ SECURITY_AUDIT_2026-04-21.md               (este reporte)
 ```
 
 ## Siguiente paso recomendado (en orden)
-1. **Rotar la service_role key de Supabase AHORA** — es la vulnerabilidad #1.
-2. Borrar `VITE_SUPABASE_SERVICE_ROLE_KEY` del `.env` y refactorizar `SuperAdmin.jsx` + `gaccContext.jsx` para llamar a una Function Deno nueva (`/manageTenant` ya existe para esto).
-3. Rotar OpenAI/Gemini/Groq/Resend y mover las llamadas de IA al Functions server.
-4. Añadir DOMPurify a los 3 componentes con `dangerouslySetInnerHTML` que reciben input tenant.
+1. ~~Refactorizar `SuperAdmin.jsx` + `gaccContext.jsx`~~ ✅ hecho 2026-08-04 (`gaccDataProxy.js` + `021_admin_panel_sessions.sql` + `GACCLogin.jsx`). **Falta por hacer tú, fuera de este repo:**
+   a. Rotar la service_role key de Supabase (se considera filtrada — estuvo en un bundle público).
+   b. Borrar `VITE_SUPABASE_SERVICE_ROLE_KEY` de Vercel → Environment Variables (ya no la usa ningún código).
+   c. Poner la key nueva como `SUPABASE_SERVICE_ROLE_KEY` (sin prefijo VITE_) en Render → Environment Variables.
+   d. Setear `SUPER_ADMIN_EMAIL` y `ADMIN_SECRET_PIN` en Render si no estaban ya (los necesita `/GACCLogin`, ver `.env.production.example`).
+   e. Redesplegar Vercel y Render, y probar el login en `/GACCLogin`.
+2. Rotar OpenAI/Gemini/Groq/Resend y mover las llamadas de IA al Functions server (vulnerabilidades #3-5, aún abiertas).
+3. Añadir DOMPurify a los 3 componentes con `dangerouslySetInnerHTML` que reciben input tenant (#6-8, aún abiertas).

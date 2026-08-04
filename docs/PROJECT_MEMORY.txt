@@ -187,15 +187,30 @@ PENDIENTE / ROADMAP EXPLÍCITO
   apps/Smart/src.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-SEGURIDAD — SECURITY_AUDIT_2026-04-21.md (9 hallazgos, NINGUNO resuelto)
+SEGURIDAD — SECURITY_AUDIT_2026-04-21.md (7 hallazgos abiertos, 2 críticas
+resueltas el 2026-08-04)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-CRÍTICAS (2):
+CRÍTICAS (2) — ✅ RESUELTAS 2026-08-04:
 - VITE_SUPABASE_SERVICE_ROLE_KEY expuesta en el bundle del navegador
-  (SuperAdmin.jsx, gaccContext.jsx) — bypass total de RLS.
-  → Recomendación #1 del propio audit: "Rotar la service_role key de
-    Supabase AHORA".
+  (SuperAdmin.jsx — ya no existe en el repo — y gacc/gaccContext.jsx:16) —
+  bypass total de RLS. Además, el "login" de GACC era solo un flag en
+  localStorage sin verificación server-side (PinAccess.jsx, el gate
+  original, ya había sido eliminado del router web) — cualquiera con
+  devtools tenía acceso total sin credenciales.
+  → Fix: gaccContext.jsx ya no lee esa var. Nuevo gaccDataProxy.js
+    (server-side, Render) reenvía las queries a Supabase con la
+    service_role real, que nunca sale del servidor. El navegador solo
+    guarda un token opaco de sesión (admin_panel_sessions, 021 migration,
+    expira en 2h) emitido por verifyAdminOtp.js tras OTP + PIN secreto —
+    nuevo login en /GACCLogin (GACCLogin.jsx). Rate limit + tabla
+    allowlist en el proxy como defensa en profundidad.
+  → PENDIENTE (fuera de este repo, requiere dashboard access): rotar la
+    service_role key en Supabase (se considera filtrada), borrar
+    VITE_SUPABASE_SERVICE_ROLE_KEY de Vercel, y setear la key nueva como
+    SUPABASE_SERVICE_ROLE_KEY (sin VITE_) + SUPER_ADMIN_EMAIL +
+    ADMIN_SECRET_PIN en Render. Ver SECURITY_AUDIT_2026-04-21.md.
 
-ALTAS (2):
+ALTAS (2) — aún abiertas:
 - VITE_OPENAI_API_KEY y VITE_GEMINI_API_KEY embebidas en el bundle
   (riesgo de cobros ilimitados por abuso de las keys).
 
@@ -208,7 +223,7 @@ BAJA (1):
 - 7 usos de document.write/innerHTML en vistas de impresión (nueva
   ventana), sin escapar valores provenientes de la base de datos.
 
-Mitigaciones ya implementadas (no forman parte de los 9 hallazgos abiertos):
+Mitigaciones ya implementadas (no forman parte de los 7 hallazgos abiertos):
 - Rate limiting en rutas de auth (5/15min) y sensibles (20-60/15min).
 - Sanitización de inputs con detector de SQLi disponible.
 - Remoción de JWT fallback hardcoded en lib/supabase-client.js y SDKs
@@ -244,4 +259,4 @@ NOTAS
 - Este archivo es un resumen generado por exploración del repo en la fecha
   indicada arriba; conviene mantenerlo actualizado a mano conforme el
   proyecto evolucione (especialmente el avance de las Fases 2-6 de
-  SmartNative y la resolución de los 9 hallazgos de seguridad).
+  SmartNative y la resolución de los 7 hallazgos de seguridad restantes).

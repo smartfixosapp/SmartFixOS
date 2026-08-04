@@ -7,11 +7,28 @@
  *  - PIN secreto verificado contra ADMIN_SECRET_PIN en env var (jamás en código)
  *  - Sesión eliminada después del primer uso exitoso (one-time use)
  *  - Rate limiting adicional por IP
+ *  - Al verificar con éxito, emite un token opaco de sesión de panel
+ *    (admin_panel_sessions, 2h) que el cliente usa contra gaccDataProxy.js
+ *    en vez de recibir la service_role key real (ver gaccDataProxy.js)
  */
 
 const verifyRateLimitMap = new Map();
 const VERIFY_RATE_MAX = 10;
 const VERIFY_RATE_WINDOW_MS = 15 * 60 * 1000;
+const PANEL_SESSION_MS = 2 * 60 * 60 * 1000; // 2 horas
+
+function generatePanelToken() {
+  // 256 bits de entropía, hex — nunca se guarda en texto plano server-side
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function sha256Hex(input) {
+  const data = new TextEncoder().encode(input);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
 
 function checkVerifyRateLimit(ip) {
   const now = Date.now();
@@ -139,15 +156,49 @@ export async function verifyAdminOtpHandler(req) {
       });
     }
 
-    // ── OTP + PIN correctos ✅ — Eliminar sesión (one-time use) ─────────────────
+    // ── OTP + PIN correctos ✅ — Eliminar sesión OTP (one-time use) ──────────────
     await fetch(`${SUPABASE_URL}/rest/v1/admin_otp_sessions?session_id=eq.${encodeURIComponent(sessionId)}`, {
       method: "DELETE",
       headers: { "apikey": SERVICE_KEY, "Authorization": `Bearer ${SERVICE_KEY}` },
     });
 
+    // ── Emitir token de sesión del panel (2h) ────────────────────────────────
+    // El cliente solo se queda con `panelToken` (opaco); gaccDataProxy.js es
+    // el único que puede canjearlo — y es el único que conoce la
+    // service_role key real. Ver 021_admin_panel_sessions.sql.
+    const panelToken = generatePanelToken();
+    const panelTokenHash = await sha256Hex(panelToken);
+    const panelExpiresAt = new Date(Date.now() + PANEL_SESSION_MS).toISOString();
+
+    const sessionInsertRes = await fetch(`${SUPABASE_URL}/rest/v1/admin_panel_sessions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SERVICE_KEY,
+        "Authorization": `Bearer ${SERVICE_KEY}`,
+        "Prefer": "return=minimal",
+      },
+      body: JSON.stringify({
+        token_hash: panelTokenHash,
+        expires_at: panelExpiresAt,
+        ip_address: ip,
+      }),
+    });
+
+    if (!sessionInsertRes.ok) {
+      const err = await sessionInsertRes.text();
+      console.error("❌ Failed to create admin panel session:", err);
+      return Response.json({ success: false, error: "Error interno creando la sesión del panel." }, { status: 500 });
+    }
+
     console.log(`✅ Admin OTP verified successfully (session: ${sessionId}, IP: ${ip})`);
 
-    return Response.json({ success: true, message: "Verificación exitosa." });
+    return Response.json({
+      success: true,
+      message: "Verificación exitosa.",
+      token: panelToken,
+      expiresAt: panelExpiresAt,
+    });
 
   } catch (err) {
     console.error("❌ verifyAdminOtp error:", err);

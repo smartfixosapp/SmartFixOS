@@ -19,14 +19,19 @@ const SESSION_TIMEOUT_MS = 2 * 60 * 60 * 1000; // 2h
 
 function checkSession(navigate) {
   const raw = localStorage.getItem(SUPER_SESSION_KEY);
-  if (!raw) { navigate("/PinAccess", { replace: true }); return false; }
+  if (!raw) { navigate("/GACCLogin", { replace: true }); return false; }
   try {
     const sess = JSON.parse(raw);
-    if (sess?.role !== "saas_owner") { navigate("/PinAccess", { replace: true }); return false; }
-    if (sess.loginTime && (Date.now() - sess.loginTime) > SESSION_TIMEOUT_MS) {
+    // El token es lo que realmente autoriza (gaccDataProxy.js lo valida en
+    // cada query); `role`/`loginTime` solo controlan la UX de este layout.
+    if (sess?.role !== "saas_owner" || !sess?.token) { navigate("/GACCLogin", { replace: true }); return false; }
+    const expired = sess.expiresAt
+      ? new Date(sess.expiresAt) < new Date()
+      : sess.loginTime && (Date.now() - sess.loginTime) > SESSION_TIMEOUT_MS;
+    if (expired) {
       localStorage.removeItem(SUPER_SESSION_KEY);
       toast.error("Sesion expirada. Inicia sesion de nuevo.");
-      navigate("/PinAccess", { replace: true });
+      navigate("/GACCLogin", { replace: true });
       return false;
     }
     if (!sess.loginTime) {
@@ -34,7 +39,7 @@ function checkSession(navigate) {
     }
     return true;
   } catch {
-    navigate("/PinAccess", { replace: true });
+    navigate("/GACCLogin", { replace: true });
     return false;
   }
 }
@@ -235,7 +240,7 @@ export default function GACCLayout({ activeSection, onSectionChange, onOpenPalet
   const handleLogout = () => {
     localStorage.removeItem(SUPER_SESSION_KEY);
     toast.success("Sesion cerrada");
-    navigate("/PinAccess", { replace: true });
+    navigate("/GACCLogin", { replace: true });
   };
 
   if (!authorized) return null;

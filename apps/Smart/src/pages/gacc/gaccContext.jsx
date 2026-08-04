@@ -8,19 +8,42 @@ import { createClient } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import appClient from "@/api/appClient";
 
-// ── Admin Supabase client (service role, lazy singleton) ─────────────────────
-let _adminInstance = null;
-export function getAdminClient() {
-  if (_adminInstance) return _adminInstance;
-  const url = import.meta.env.VITE_SUPABASE_URL || "https://idntuvtabecwubzswpwi.supabase.co";
-  const srk = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
-  if (srk) {
-    _adminInstance = createClient(url, srk, {
-      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-    });
-    return _adminInstance;
+// ── Admin data client ──────────────────────────────────────────────────────
+// IMPORTANTE: la service_role key real NUNCA vive en el navegador. Este
+// cliente apunta a gaccDataProxy.js (server-side, Render), que es el único
+// que la conoce. El navegador solo guarda un token opaco de sesión de panel
+// (emitido por verifyAdminOtp tras OTP + PIN secreto, ver GACCLogin.jsx),
+// que el proxy valida contra admin_panel_sessions antes de reenviar
+// cualquier query. Ver SECURITY_AUDIT_2026-04-21.md (hallazgo crítico #1) y
+// apps/Smart/src/Functions/gaccDataProxy.js para el detalle completo.
+export const SUPER_SESSION_KEY = "smartfix_saas_session";
+
+export function getAdminSessionToken() {
+  try {
+    const raw = localStorage.getItem(SUPER_SESSION_KEY);
+    if (!raw) return null;
+    const sess = JSON.parse(raw);
+    if (!sess?.token) return null;
+    if (sess.expiresAt && new Date(sess.expiresAt) < new Date()) return null;
+    return sess.token;
+  } catch {
+    return null;
   }
-  return supabase;
+}
+
+let _adminInstance = null;
+let _adminInstanceToken = null;
+export function getAdminClient() {
+  const token = getAdminSessionToken();
+  if (!token) return supabase; // sin sesión de panel válida — cliente normal (RLS aplica)
+  if (_adminInstance && _adminInstanceToken === token) return _adminInstance;
+
+  const functionsBaseUrl = import.meta.env.VITE_FUNCTION_URL || "http://localhost:8686";
+  _adminInstance = createClient(`${functionsBaseUrl}/gaccdata`, token, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  });
+  _adminInstanceToken = token;
+  return _adminInstance;
 }
 
 // ── Plan config ──────────────────────────────────────────────────────────────

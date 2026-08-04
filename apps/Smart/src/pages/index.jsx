@@ -29,6 +29,7 @@ const Receipt          = lazyWithRetry(() => import("./Receipt"));
 const CustomerPortal   = lazyWithRetry(() => import("./CustomerPortal"));
 const CustomerApproval = lazyWithRetry(() => import("./CustomerApproval"));
 const GACC             = lazyWithRetry(() => import("./gacc"));
+const GACCLogin        = lazyWithRetry(() => import("./gacc/GACCLogin"));
 
 function PageLoader() {
   return <PageSpinner />;
@@ -55,6 +56,7 @@ function PagesContent() {
         <Route path="/CustomerApproval"  element={<CustomerApproval />} />
         <Route path="/SuperAdmin"        element={<GACC />} />
         <Route path="/GACC"              element={<GACC />} />
+        <Route path="/GACCLogin"         element={<GACCLogin />} />
         <Route path="*"                  element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
