@@ -1,0 +1,88 @@
+PROJECT MEMORY — Archilla OS (repo técnico: SmartFixOS)
+=========================================================
+Generado a partir de una exploración del repositorio (no existía este archivo previamente).
+Última actualización: 2026-08-04
+
+QUÉ ES
+------
+Archilla OS es el nombre comercial de un ERP/POS para talleres de reparación
+de electrónicos, hecho en Puerto Rico (dominio: archillaos.com). El código
+fuente del repositorio mantiene el nombre interno "SmartFixOS".
+
+Cubre, entre otros módulos:
+- POS (punto de venta) y caja / cierre de caja
+- Órdenes de trabajo / reparaciones (WorkOrderWizard)
+- Inventario y órdenes de compra
+- Clientes (CRM básico)
+- Facturación (invoices, PDFs)
+- Reportes financieros
+- Asistente de IA para diagnóstico (componentes JEANI / ARIA / JENAI)
+- Onboarding, trials y activación de cuentas por email
+
+STACK TÉCNICO
+-------------
+- Frontend: React 18 + Vite 6 + TailwindCSS + shadcn/ui + React Query +
+  React Router v7 (apps/Smart)
+- Backend de funciones: Deno (entry point: src/Functions/server.js)
+- Base de datos: Supabase Cloud (PostgreSQL + Auth + Storage)
+- Móvil: Capacitor (iOS/Android), con código nativo Swift adicional
+  (ver IOS_NATIVE_*.md en la raíz del repo)
+- Hosting: Vercel (frontend) + Render (funciones Deno)
+- Monorepo gestionado con pnpm (pnpm-workspace.yaml)
+- Email transaccional: Resend (RESEND_API_KEY, FROM_EMAIL)
+
+ESTRUCTURA DEL REPO
+--------------------
+apps/Smart/src/
+  pages/        Vistas (Dashboard, POS, Orders, etc.)
+  components/   Componentes UI (shadcn/ui base + custom)
+  Entities/     Schemas JSON de ~67 entidades (Customer, Order, ...)
+  Functions/    Funciones Deno (server.js es el entry point)
+  api/          Capa SDK (base44Client, entities.js, functions.js)
+  hooks/, lib/, utils/
+apps/Smart/db/seeds/   Migraciones SQL (001 → 009)
+apps/SmartNative/      Proyecto nativo iOS/Android
+api/                   Endpoints serverless (multi-tenant, registro, email, etc.)
+supabase/functions/    Edge functions (apple-notifications, apple-verify)
+
+Servicios locales:
+- Frontend (Vite): puerto 5173, `pnpm dev` desde apps/Smart/
+- Functions (Deno): puerto 8686, `bash start-functions-server.sh`
+- `start.sh` arranca ambos en paralelo; `SmartFixOS.command` los abre desde
+  la raíz del repo con navegador incluido.
+
+MULTI-TENANT / SAAS
+--------------------
+El API incluye endpoints como manage-tenant.js, register.js,
+delete-tenant.js, activate-complete.js — indica un sistema SaaS
+multi-tenant con onboarding, período de prueba (trial) y activación de
+cuenta por correo.
+
+ESTADO RECIENTE (según CHANGELOG.md)
+-------------------------------------
+- Rediseño visual grande estilo Apple (SF Pro, design tokens, colores
+  semánticos) en 200+ archivos: POS, Dashboard, Orders, Customers,
+  Inventory (mobile y desktop), WorkOrderWizard, Onboarding, Settings,
+  Recharges, pantallas de auth.
+- Fixes de UX en iOS: gap de tab bar (visualViewport API), loop de
+  "Restaurando sesión" (grace period de 3s), inconsistencias de dark mode.
+
+DOCUMENTACIÓN RELACIONADA EN LA RAÍZ DEL REPO
+-----------------------------------------------
+- IOS_NATIVE_AUTH_REDESIGN.md
+- IOS_NATIVE_CLONE_PROMPT.md
+- IOS_NATIVE_DEMO_BYPASS.md
+- IOS_NATIVE_PHASE_2_POS.md
+- IOS_NATIVE_PHASE_3_WIZARD.md
+- IOS_NATIVE_PHASE_4_EDIT.md
+- SECURITY_AUDIT_2026-04-21.md
+- CHANGELOG.md
+
+NOTAS
+-----
+- El código y los emails transaccionales usan la marca "Archilla OS" de
+  cara al usuario final, mientras que el repositorio y variables internas
+  siguen usando "SmartFixOS" / "smartfixos" en varios lugares.
+- Este archivo es un resumen generado por exploración del repo en la fecha
+  indicada arriba; conviene mantenerlo actualizado a mano conforme el
+  proyecto evolucione.
