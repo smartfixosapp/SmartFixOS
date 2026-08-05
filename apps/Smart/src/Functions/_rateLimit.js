@@ -23,6 +23,7 @@ export const RATE_LIMITS = {
   '/ai/extract-expense':     { max: 30,  windowMs: FIFTEEN_MIN_MS },
   '/ai/generate-image':      { max: 30,  windowMs: FIFTEEN_MIN_MS },
   '/ai/gemini-summary':      { max: 30,  windowMs: FIFTEEN_MIN_MS },
+  '/ai/categorize-expense':  { max: 60,  windowMs: FIFTEEN_MIN_MS },
   '/processPayment':         { max: 30,  windowMs: FIFTEEN_MIN_MS },
   '/createStripeCheckout':   { max: 30,  windowMs: FIFTEEN_MIN_MS },
   '/createStripeSubscription': { max: 30, windowMs: FIFTEEN_MIN_MS },

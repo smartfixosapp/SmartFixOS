@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TrendingDown, DollarSign, Calendar } from "lucide-react";
-// AIExpenseCategorizor removido — IA solo vive en Órdenes de Compra.
+import AIExpenseCategorizor from "./AIExpenseCategorizor";
 import { toast } from "sonner";
 import {
   PAYMENT_METHOD_LABELS,
@@ -263,7 +263,13 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaul
               />
             </div>
 
-            {/* AIExpenseCategorizor removido — IA solo vive en Órdenes de Compra. */}
+            {!isEditing && (
+              <AIExpenseCategorizor
+                description={formData.description}
+                amount={formData.amount}
+                onCategorySuggestion={handleCategorySuggestion}
+              />
+            )}
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">

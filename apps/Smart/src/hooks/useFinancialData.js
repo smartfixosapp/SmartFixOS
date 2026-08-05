@@ -632,11 +632,56 @@ export default function useFinancialData() {
     return { linkedItems: lineItems.filter((it) => it.linked_work_order_id || it.work_order_id).length, linkedWoIds: linkedWoIds.length };
   }, []);
 
-  // Resumen IA financiero removido — IA solo vive en Órdenes de Compra.
+  // Resumen ejecutivo en español, generado por Gemini (gratis) — ver
+  // geminiSummary.js. Antes esto era un stub; ExpenseDialog/JenaiExpenseCapture
+  // ya migraron a Gemini también, así que finanzas queda en un solo proveedor.
   const fetchAiSummary = useCallback(async () => {
-    setAiLoading(false);
-    setAiSummary("");
-  }, []);
+    setAiLoading(true);
+    try {
+      const categoryTotals = {};
+      filteredExpenses.forEach((e) => {
+        const cat = e.category || "other_expense";
+        categoryTotals[cat] = (categoryTotals[cat] || 0) + getExpenseMagnitude(e.amount);
+      });
+      const topCategories = Object.entries(categoryTotals)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([cat, amount]) => ({ label: CATEGORY_LABELS[cat] || cat, amount }));
+
+      const paymentBreakdown = paymentMethodBreakdown
+        .slice(0, 3)
+        .map((p) => ({ method: p.label, total: p.total }));
+
+      const periodLabel =
+        dateFilter === "today" ? "hoy" :
+        dateFilter === "week" ? "los últimos 7 días" :
+        dateFilter === "month" ? "este mes" : "todo el periodo";
+
+      const functionsUrl = import.meta.env.VITE_FUNCTION_URL || "https://smartfixos.onrender.com";
+      const res = await fetch(`${functionsUrl}/ai/gemini-summary`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          totalIncome: totalRevenue,
+          totalExpenses,
+          netProfit,
+          period: periodLabel,
+          salesCount: filteredSales.length,
+          avgTicket: filteredSales.length ? totalRevenue / filteredSales.length : 0,
+          topCategories,
+          paymentBreakdown,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error || "No se pudo generar el resumen");
+      setAiSummary(json.summary || "");
+    } catch (e) {
+      console.error("fetchAiSummary error:", e);
+      setAiSummary("");
+    } finally {
+      setAiLoading(false);
+    }
+  }, [filteredExpenses, filteredSales, paymentMethodBreakdown, totalRevenue, totalExpenses, netProfit, dateFilter]);
 
   const exportAccountingCSV = useCallback(() => {
     try {

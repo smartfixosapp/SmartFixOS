@@ -52,6 +52,7 @@ import { processPayrollHandler } from './processPayroll.js';
 import { verifyAdminOtpHandler } from './verifyAdminOtp.js';
 import { trackParcelHandler } from './trackParcel.js';
 import { geminiSummaryHandler } from './geminiSummary.js';
+import { geminiCategorizeExpenseHandler } from './geminiCategorizeExpense.js';
 import { gaccDataProxyHandler } from './gaccDataProxy.js';
 import { setRequestAuthToken, clearRequestAuthToken } from '../../../../lib/unified-custom-sdk-supabase.js';
 import { checkRateLimit } from './_rateLimit.js';
@@ -73,6 +74,7 @@ const unwrappedRoutes = new Set([
   '/ai/invoke',
   '/ai/chat',
   '/ai/gemini-summary',
+  '/ai/categorize-expense',
   '/ai/generate-image',
   '/sendEmailInternal',
   '/stripeWebhook',     // Stripe espera respuesta directa sin wrapper
@@ -136,6 +138,7 @@ const routes = {
   '/sendTemplatedEmail': sendTemplatedEmailHandler,
   '/trackParcel': trackParcelHandler,
   '/ai/gemini-summary': geminiSummaryHandler,
+  '/ai/categorize-expense': geminiCategorizeExpenseHandler,
 };
 // In production, silence console.log/info/debug to reduce log noise (~221 calls
 // across handlers). Keep console.error and console.warn for visibility into
