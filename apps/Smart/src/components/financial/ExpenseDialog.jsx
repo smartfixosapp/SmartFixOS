@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { dataClient } from "@/components/api/dataClient";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -18,7 +18,8 @@ import {
   buildSettlementFields,
 } from "@/components/utils/deferredPayments";
 
-export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaultCategory }) {
+export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaultCategory, editingExpense }) {
+  const isEditing = !!editingExpense;
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     amount: "",
@@ -28,6 +29,30 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaul
     payment_method: "cash",
     settles_on: "",
   });
+
+  // Precargar el formulario al abrir en modo edición
+  useEffect(() => {
+    if (!open) return;
+    if (editingExpense) {
+      setFormData({
+        amount: String(editingExpense.amount ?? ""),
+        description: editingExpense.description || "",
+        category: editingExpense.category || defaultCategory || "other_expense",
+        reference: editingExpense.reference || "",
+        payment_method: editingExpense.payment_method || "cash",
+        settles_on: editingExpense.settles_on || "",
+      });
+    } else {
+      setFormData({
+        amount: "",
+        description: "",
+        category: defaultCategory || "other_expense",
+        reference: "",
+        payment_method: "cash",
+        settles_on: "",
+      });
+    }
+  }, [open, editingExpense, defaultCategory]);
 
   const categories = [
     { value: "rent", label: "Renta" },
@@ -77,6 +102,41 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaul
         method: formData.payment_method,
         settlesOn: formData.settles_on,
       });
+
+      if (isEditing) {
+        // ── Modo edición: actualizar la transacción existente ──────────────
+        const updates = {
+          amount,
+          description: formData.description,
+          category: normalizeCategory(formData.category),
+          payment_method: formData.payment_method,
+          ...settlementFields,
+        };
+        const updated = await dataClient.entities.Transaction.update(editingExpense.id, updates);
+
+        try {
+          await dataClient.entities.AuditLog.create({
+            action: "expense_updated",
+            entity_type: "transaction",
+            entity_id: editingExpense.id,
+            user_id: me?.id || null,
+            user_name: me?.full_name || me?.email || "Sistema",
+            user_role: me?.role || "system",
+            changes: updates,
+          });
+        } catch (auditError) {
+          console.error("Error creando audit log:", auditError);
+        }
+
+        const updatedPayload = updated || { ...editingExpense, ...updates };
+        if (onSuccess) onSuccess(updatedPayload);
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("expense-updated", { detail: updatedPayload }));
+        }
+        toast.success("Gasto actualizado");
+        setLoading(false);
+        return;
+      }
 
       // Crear transacción de gasto en el mismo cliente que usa Finanzas
       const createdTransaction = await dataClient.entities.Transaction.create({
@@ -152,7 +212,7 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaul
 
     } catch (error) {
       console.error("Error registrando gasto:", error);
-      toast.error("Error al registrar gasto: " + (error.message || "Error desconocido"));
+      toast.error(`Error al ${isEditing ? "actualizar" : "registrar"} gasto: ` + (error.message || "Error desconocido"));
     }
     setLoading(false);
   };
@@ -169,7 +229,7 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaul
                 <TrendingDown className="w-4 h-4 text-apple-orange" />
               </div>
               <DialogTitle className="apple-text-title3 apple-label-primary text-left">
-                {defaultCategory === "payroll" ? "Pagar Nómina" : "Registrar Gasto"}
+                {isEditing ? "Editar Gasto" : defaultCategory === "payroll" ? "Pagar Nómina" : "Registrar Gasto"}
               </DialogTitle>
             </div>
           </DialogHeader>
@@ -325,7 +385,7 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaul
                 disabled={loading}
                 className="apple-btn apple-btn-lg flex-1 bg-apple-orange text-white hover:bg-apple-orange/90 apple-press"
               >
-                {loading ? "Registrando..." : "Confirmar Gasto"}
+                {loading ? (isEditing ? "Guardando..." : "Registrando...") : (isEditing ? "Guardar Cambios" : "Confirmar Gasto")}
               </Button>
             </div>
           </form>
