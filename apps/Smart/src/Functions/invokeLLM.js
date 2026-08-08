@@ -127,6 +127,31 @@ async function tryGeminiAudio(prompt, audioBase64, mimeType) {
 }
 
 /**
+ * Whisper (OpenAI) — respaldo de transcripcion cuando Gemini no esta
+ * configurado o falla. Usa la MISMA OPENAI_API_KEY que ya sirve el
+ * resto de "Archi" (confirmada funcionando), asi que no depende de
+ * que se agregue GEMINI_API_KEY para que el dictado funcione.
+ */
+async function tryWhisperAudio(audioBase64, mimeType) {
+  if (!openai) return { text: null, errorDetail: 'OPENAI_API_KEY no configurada en el servidor' };
+  try {
+    const buffer = Uint8Array.from(atob(audioBase64), c => c.charCodeAt(0));
+    const ext = mimeType.includes('wav') ? 'wav' : mimeType.includes('mp3') ? 'mp3' : 'm4a';
+    const file = new File([buffer], `audio.${ext}`, { type: mimeType });
+    const result = await openai.audio.transcriptions.create({
+      file,
+      model: 'whisper-1',
+      language: 'es',
+    });
+    const text = result?.text?.trim();
+    return text ? { text, errorDetail: null } : { text: null, errorDetail: 'Whisper devolvio texto vacio' };
+  } catch (error) {
+    console.warn(`⚠️ Whisper audio fallo (${error.message})`);
+    return { text: null, errorDetail: `Whisper: ${error.message}` };
+  }
+}
+
+/**
  * Normalize JSON schema for OpenAI structured outputs
  */
 function normalizeSchema(schema) {
@@ -204,13 +229,19 @@ export async function invokeLLMHandler(req) {
       const transcriptionPrompt = payload.prompt ||
         'Transcribe este audio a texto en español de Puerto Rico. Es una nota dictada por un técnico de un taller de reparación de celulares y computadoras. Devuelve SOLO la transcripción literal del audio, sin comentarios, sin comillas, sin formato adicional.';
       console.log(`🎙️ Transcripcion de audio solicitada (${audioMimeType}, ${audioBase64.length} chars base64)`);
-      const { text: transcript, errorDetail } = await tryGeminiAudio(transcriptionPrompt, audioBase64, audioMimeType);
-      if (transcript) {
+      const geminiResult = await tryGeminiAudio(transcriptionPrompt, audioBase64, audioMimeType);
+      if (geminiResult.text) {
         console.log('✅ Audio transcrito por Gemini');
-        return Response.json({ response: transcript });
+        return Response.json({ response: geminiResult.text });
       }
-      console.error(`❌ Gemini no pudo transcribir el audio: ${errorDetail}`);
-      return Response.json({ error: 'No se pudo transcribir el audio', detail: errorDetail }, { status: 502 });
+      console.warn(`↪️ Gemini no transcribio (${geminiResult.errorDetail}), probando Whisper`);
+      const whisperResult = await tryWhisperAudio(audioBase64, audioMimeType);
+      if (whisperResult.text) {
+        console.log('✅ Audio transcrito por Whisper');
+        return Response.json({ response: whisperResult.text });
+      }
+      console.error(`❌ Gemini y Whisper fallaron: gemini=${geminiResult.errorDetail} whisper=${whisperResult.errorDetail}`);
+      return Response.json({ error: 'No se pudo transcribir el audio', detail: `gemini: ${geminiResult.errorDetail} | whisper: ${whisperResult.errorDetail}` }, { status: 502 });
     }
 
     if (!openai) {
