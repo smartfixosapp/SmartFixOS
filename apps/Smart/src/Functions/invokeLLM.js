@@ -1,5 +1,7 @@
 import OpenAI from 'npm:openai@^4.0.0';
 
+// Redeploy forzado — confirmar que GEMINI_API_KEY guardada en Render
+// se recoge en un build fresco.
 const openai_api_key = Deno.env.get('OPENAI_API_KEY');
 if (!openai_api_key) {
   console.warn('⚠️ Warning: OPENAI_API_KEY not found in environment variables');
