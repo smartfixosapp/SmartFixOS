@@ -1,0 +1,262 @@
+PROJECT MEMORY — Archilla OS (repo técnico: SmartFixOS)
+=========================================================
+Generado a partir de exploración profunda del repositorio (frontend, backend,
+base de datos y documentación de roadmap/seguridad).
+Última actualización: 2026-08-04
+
+QUÉ ES
+------
+Archilla OS es el nombre comercial de un ERP/POS para talleres de reparación
+de electrónicos, hecho en Puerto Rico (dominio: archillaos.com). El código
+fuente del repositorio mantiene el nombre interno "SmartFixOS".
+
+Dominio funcional cubierto por el producto (en distintas capas, ver abajo):
+POS, órdenes de trabajo/reparaciones, inventario y compras, clientes (CRM),
+facturación, caja/arqueo, reportes financieros, asistente de IA para
+diagnóstico (ARIA/JENAI), onboarding/trials/activación de cuentas, y un
+panel interno multi-tenant (GACC/SuperAdmin).
+
+STACK TÉCNICO
+-------------
+- Frontend web: React 18 + Vite 6 + TailwindCSS + shadcn/ui + React Query +
+  React Router v7 (apps/Smart)
+- App móvil nativa (nueva): Swift/SwiftUI puro, apps/SmartNative
+- App móvil legacy: Capacitor (WebView sobre el mismo React), apps/Smart/ios
+- Backend de funciones: Deno, un solo servidor unificado
+  (apps/Smart/src/Functions/server.js), desplegado en Render
+- Backend serverless adicional: Node.js en api/ (Vercel)
+- Edge functions: Supabase Edge Functions (supabase/functions/, integración Apple)
+- Base de datos: Supabase Cloud (PostgreSQL + Auth + Storage), 20 migraciones
+  (apps/Smart/db/seeds/001 → 020), ~70 tablas
+- Pagos: Stripe (checkout, suscripciones, billing portal, webhooks) +
+  Apple In-App Purchase / App Store Server Notifications v2
+- Monorepo pnpm (pnpm-workspace.yaml)
+- Email transaccional: Resend (RESEND_API_KEY, FROM_EMAIL)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+HALLAZGO ARQUITECTÓNICO CLAVE: PIVOTE DE WEB OPERATIVA → APP NATIVA iOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+El router real de la web (apps/Smart/src/pages/index.jsx) SOLO expone estas
+rutas: Landing, Registro, TenantActivate, Upgrade/UpgradeSuccess,
+DashboardBilling, Billing, LegalTerms, LegalRefunds, Receipt, CustomerPortal,
+CustomerApproval y GACC/SuperAdmin. NO hay ruta a Dashboard, POS, Órdenes,
+Inventario, Clientes, Caja, Configuración, etc.
+
+Commits recientes ("eliminado en Sprint 136 junto al web auth", "PinAccess
+web ya no existe") confirman que fue deliberado: la operación diaria del
+taller se está migrando a apps/SmartNative (app nativa Swift/SwiftUI), y
+apps/Smart (web) quedó reducida a: marketing + registro/activación de tenant
++ facturación/suscripción + portal de clientes + panel interno GACC.
+
+Consecuencia práctica: gran parte del código bajo apps/Smart/src/components/
+(POS, WorkOrder, Inventory, Customers, Financial, Cash, Settings, Printing,
+Invoice, Onboarding, Tutorial, ARIA/JENAI, CRM, Catálogo, Recargas) es código
+real y desarrollado — NO placeholders — pero está HUÉRFANO: ninguna ruta del
+router web actual lo alcanza. El "Rediseño Apple" del CHANGELOG (ver más
+abajo) cayó sobre estas pantallas antes/durante el pivote. Sirve hoy como
+base de referencia para portar lógica a Swift, no como código en producción
+vía web.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+QUÉ ESTÁ LISTO Y EN PRODUCCIÓN (con ruta activa / desplegado)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+WEB (apps/Smart, enrutado):
+- Landing/Marketing — completo.
+- Registro/Activación de tenant (wizard multipaso, upload de logo,
+  políticas) — completo.
+- Billing/Suscripciones — Stripe real (no simulado): checkout, subscription,
+  billing portal, webhook manejando checkout.session.completed,
+  invoice.payment_succeeded/failed, customer.subscription.deleted.
+- Portal de clientes — aprobación de cotizaciones vía push, recibos.
+- GACC / SuperAdmin — el módulo más grande y pulido del árbol enrutado
+  (12 archivos, ~5.900 líneas): CommandCenter, AnalyticsView, RevenueView,
+  OperationsView, SecurityView, StoreDetail, StoresDirectory, ToolsView,
+  CommandPalette. Panel interno para gestionar todos los tenants.
+- Páginas legales (Terms, Refunds) — completo, texto estático.
+
+BACKEND (apps/Smart/src/Functions, Deno, corre en Render como servidor único):
+~55 handlers agrupados por dominio:
+- Multi-tenant/tenant lifecycle: registerTenant, manageTenant, createTenant,
+  createFirstAdmin, checkPlanLimits, validateTrialStatus,
+  trialNotificationService.
+- Pagos/Stripe (implementación real, no solo dependencia instalada):
+  createStripeCheckout, createStripeSubscription, createStripePortalSession,
+  stripeWebhook, processRecurringPayments, processPayroll, registerRefund.
+- Notificaciones: notifyNewOrder, notifyCashRegister, notifyPickupReminder,
+  notifyWarrantyCheck, handleOrderStatusChange, handleWarrantyTransition,
+  updateOrderCountdowns.
+- IA: aiChat, aiAnalytics, aiExtractExpense, invokeLLM, geminiSummary,
+  generateImage, extractFile.
+- OTP admin, utilidades de mantenimiento, KPIs/reportes (getKPIs,
+  getRevenueByMethod, getExpensesByCategory, getPortalOrder).
+- Rate limiting (_rateLimit.js) y sanitización de inputs (_sanitize.js)
+  implementados y conectados en server.js.
+
+BACKEND SERVERLESS (api/, Node.js, Vercel) — 12 endpoints:
+register.js, activate-complete.js, validate-token.js, manage-tenant.js,
+delete-tenant.js (multi-tenant/onboarding) · send-email.js, send-raw-email.js,
+send-punch-notification.js, seed-email-templates.js, admin-otp.js (emails/OTP)
+· cash-register.js, upload-logo.js.
+
+INTEGRACIONES APPLE (supabase/functions/, completas y robustas):
+- apple-verify: verifica JWS de App Store Server API con validación de
+  cadena de certificados hasta Apple Root CA G3.
+- apple-notifications: webhook de App Store Server Notifications v2
+  (SUBSCRIBED, EXPIRE, GRACE_PERIOD, etc.), actualiza tenant.plan/
+  subscription_status.
+
+BASE DE DATOS (apps/Smart/db/seeds/, 20 migraciones):
+001 (users) → 002 (esquema completo: tenant, order, sale, customer,
+transaction, invoice, inventory, role/permission, work_order_config, ~70
+tablas) → 003-004 (alter + datos) → 005-007 (sistema de triggers
+fn_trigger_*) → 006 (admin_otp_sessions, storage RLS) → 008/010/012/014/018
+(aislamiento multi-tenant y fixes de RLS iterativos) → 009 (triggers de orden
++ templates) → 011/012/015/016 (catálogo de dispositivos/marcas, ~90KB de
+datos) → 013 (presencia de tenant) → 017 (shift_task) → 019/020 (sistema de
+planes, luego simplificado).
+
+MODELO DE DATOS (apps/Smart/src/Entities/):
+60 esquemas JSON — clientes, órdenes, inventario/productos, facturas/ventas,
+caja, empleados/nómina, permisos/roles, tenants, notificaciones,
+marketing/comunicaciones, catálogo de dispositivos, proveedores/compras.
+Modelo maduro, independiente de qué capa UI lo consuma hoy.
+
+APP NATIVA iOS (apps/SmartNative, Swift/SwiftUI):
+- Fase 1 COMPLETA: auth (login, PIN, biometría) + 5 tabs read-only
+  (Dashboard, Órdenes -listado y detalle-, Clientes, Inventario,
+  Financiero). ~50 archivos Swift reales.
+
+DESPLIEGUE:
+- Render: un solo servicio Docker (smartfixos-api) corre el server Deno
+  unificado (health check /health, puerto 8686).
+- Vercel: hostea el frontend estático (build de apps/Smart) + funciones
+  serverless de api/.
+- Supabase Edge Functions: se despliegan directo a Supabase, no aparecen en
+  render.yaml/vercel.json.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CÓDIGO EXTENSO PERO SIN RUTA ACTIVA HOY (huérfano en la web)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Órdenes de trabajo/WorkOrder: el módulo más grande de todos —
+  78 archivos / ~14.800 líneas (wizard de 8 pasos, stages, layout
+  mobile/desktop). Muy desarrollado.
+- Configuración (settings): 40 archivos / ~7.700 líneas (tabs por dominio).
+- POS, Inventario, Clientes, Financiero, Caja, Facturación (invoice),
+  Impresión: 5-17 archivos cada uno, con lógica real (modales de pago,
+  PDFs, checkout).
+- IA/diagnóstico: ARIAChat.jsx, JENAIInsightBanner.jsx.
+- Onboarding, Tutorial, CRM, Catálogo, Recargas, Reparaciones rápidas:
+  módulos de un solo componente cada uno.
+- PinAccess (NovedadesPanel.jsx): resto del sistema de login por PIN,
+  eliminado del flujo web según mensajes de commit.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PENDIENTE / ROADMAP EXPLÍCITO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- App nativa iOS, Fases 2-6 (solo especificadas en docs, sin código todavía):
+  · Fase 2 — POS con carrito/pagos (IOS_NATIVE_PHASE_2_POS.md)
+  · Fase 3 — Work Order Wizard de 8 pasos (IOS_NATIVE_PHASE_3_WIZARD.md)
+  · Fase 4 — Edición/cambio de estado/cola de órdenes
+    (IOS_NATIVE_PHASE_4_EDIT.md); parcialmente reflejada: existe
+    OrderStatusPicker.swift básico (45 líneas) pero falta StatusChangeSheet,
+    audit log y OrderQueueViewModel descritos en el spec.
+  · Demo bypass (IOS_NATIVE_DEMO_BYPASS.md) — no implementado, no existe
+    carpeta Core/Demo/.
+  · Rediseño de Auth (IOS_NATIVE_AUTH_REDESIGN.md) — spec de UI, sin
+    confirmar si ya se aplicó a LoginView.swift.
+- SIGUIENTE_PASO.txt: pendiente copiar manualmente a apps/Smart/ios
+  (Capacitor) los archivos LoadingOptimizer, NumericInputHelper,
+  NativeUIPlugin (Swift/TS/React) y compilar en Xcode. Nota: esto es sobre
+  el proyecto Capacitor legacy, no sobre SmartNative.
+- Deuda técnica / TODOs reales en código (solo 2 encontrados):
+  · tenantContext.jsx — verificación de permisos incompleta.
+  · extractFile.js:240 — procesamiento de PDF pendiente
+    ("Implement proper PDF processing with uploaded file").
+- "Próximamente" marcados en UI: SMS de notificaciones, gestión completa de
+  catálogo (settings/tabs), fallback de Stripe sin claves configuradas.
+- processPayment.js (api/, Vercel) es una SIMULACIÓN explícita de pago
+  ("Simulación: en producción, integrar con Stripe") que convive con el
+  flujo real de Stripe en Functions/ — candidato a eliminar, riesgo de uso
+  accidental.
+- Duplicación funcional entre api/ (Vercel) y Functions/ (Deno/Render):
+  OTP de admin y plantillas de email están implementados en ambos lados —
+  sugiere migración a medias entre los dos backends, sin decidir cuál es
+  la fuente de verdad.
+- Cero archivos de test (*.test.*, *.spec.*, __tests__) en todo
+  apps/Smart/src.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SEGURIDAD — SECURITY_AUDIT_2026-04-21.md (7 hallazgos abiertos, 2 críticas
+resueltas el 2026-08-04)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRÍTICAS (2) — ✅ RESUELTAS 2026-08-04:
+- VITE_SUPABASE_SERVICE_ROLE_KEY expuesta en el bundle del navegador
+  (SuperAdmin.jsx — ya no existe en el repo — y gacc/gaccContext.jsx:16) —
+  bypass total de RLS. Además, el "login" de GACC era solo un flag en
+  localStorage sin verificación server-side (PinAccess.jsx, el gate
+  original, ya había sido eliminado del router web) — cualquiera con
+  devtools tenía acceso total sin credenciales.
+  → Fix: gaccContext.jsx ya no lee esa var. Nuevo gaccDataProxy.js
+    (server-side, Render) reenvía las queries a Supabase con la
+    service_role real, que nunca sale del servidor. El navegador solo
+    guarda un token opaco de sesión (admin_panel_sessions, 021 migration,
+    expira en 2h) emitido por verifyAdminOtp.js tras OTP + PIN secreto —
+    nuevo login en /GACCLogin (GACCLogin.jsx). Rate limit + tabla
+    allowlist en el proxy como defensa en profundidad.
+  → PENDIENTE (fuera de este repo, requiere dashboard access): rotar la
+    service_role key en Supabase (se considera filtrada), borrar
+    VITE_SUPABASE_SERVICE_ROLE_KEY de Vercel, y setear la key nueva como
+    SUPABASE_SERVICE_ROLE_KEY (sin VITE_) + SUPER_ADMIN_EMAIL +
+    ADMIN_SECRET_PIN en Render. Ver SECURITY_AUDIT_2026-04-21.md.
+
+ALTAS (2) — aún abiertas:
+- VITE_OPENAI_API_KEY y VITE_GEMINI_API_KEY embebidas en el bundle
+  (riesgo de cobros ilimitados por abuso de las keys).
+
+MEDIAS (4):
+- VITE_GROQ_API_KEY expuesta.
+- 3 casos de Stored XSS vía dangerouslySetInnerHTML sin sanitizar:
+  NotificationPanel.jsx, EmailTemplatesTab.jsx, TermsStep.jsx.
+
+BAJA (1):
+- 7 usos de document.write/innerHTML en vistas de impresión (nueva
+  ventana), sin escapar valores provenientes de la base de datos.
+
+Mitigaciones ya implementadas (no forman parte de los 7 hallazgos abiertos):
+- Rate limiting en rutas de auth (5/15min) y sensibles (20-60/15min).
+- Sanitización de inputs con detector de SQLi disponible.
+- Remoción de JWT fallback hardcoded en lib/supabase-client.js y SDKs
+  unificados; .env correctamente ignorado en git.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ESTADO RECIENTE SEGÚN CHANGELOG.md (2026-04-17, previo/durante el pivote)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Rediseño visual estilo Apple (SF Pro, design tokens, colores semánticos)
+  en 200+ archivos: POS, Dashboard, Orders, Customers, Inventory (mobile y
+  desktop), WorkOrderWizard, Onboarding, Settings, Recharges, auth.
+  (Nota: hoy estas pantallas son en su mayoría el código "huérfano"
+  descrito arriba, no accesible vía el router web actual.)
+- Fixes de UX en iOS: gap de tab bar (visualViewport API), loop de
+  "Restaurando sesión" (grace period de 3s), inconsistencias de dark mode.
+
+DOCUMENTACIÓN RELACIONADA EN LA RAÍZ DEL REPO
+-----------------------------------------------
+- IOS_NATIVE_AUTH_REDESIGN.md, IOS_NATIVE_CLONE_PROMPT.md (roadmap Fase
+  0-6), IOS_NATIVE_DEMO_BYPASS.md, IOS_NATIVE_PHASE_2_POS.md,
+  IOS_NATIVE_PHASE_3_WIZARD.md, IOS_NATIVE_PHASE_4_EDIT.md
+- SECURITY_AUDIT_2026-04-21.md
+- CHANGELOG.md
+- SIGUIENTE_PASO.txt
+- apps/Smart/docs/FN_TRIGGER.md (sistema de triggers por schedule/eventos,
+  funcional, depende de que los seeds 005-007 se hayan corrido)
+
+NOTAS
+-----
+- El código y los emails transaccionales usan la marca "Archilla OS" de
+  cara al usuario final, mientras que el repositorio y variables internas
+  siguen usando "SmartFixOS" / "smartfixos" en varios lugares.
+- Este archivo es un resumen generado por exploración del repo en la fecha
+  indicada arriba; conviene mantenerlo actualizado a mano conforme el
+  proyecto evolucione (especialmente el avance de las Fases 2-6 de
+  SmartNative y la resolución de los 7 hallazgos de seguridad restantes).

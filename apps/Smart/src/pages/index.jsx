@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { PageSpinner } from "@/components/ui/spinner";
+import RequireAuth from "@/components/auth/RequireAuth";
 
 function lazyWithRetry(fn) {
   return lazy(() =>
@@ -29,6 +30,9 @@ const Receipt          = lazyWithRetry(() => import("./Receipt"));
 const CustomerPortal   = lazyWithRetry(() => import("./CustomerPortal"));
 const CustomerApproval = lazyWithRetry(() => import("./CustomerApproval"));
 const GACC             = lazyWithRetry(() => import("./gacc"));
+const GACCLogin        = lazyWithRetry(() => import("./gacc/GACCLogin"));
+const Login            = lazyWithRetry(() => import("./Login"));
+const Financial        = lazyWithRetry(() => import("./Financial"));
 
 function PageLoader() {
   return <PageSpinner />;
@@ -55,6 +59,9 @@ function PagesContent() {
         <Route path="/CustomerApproval"  element={<CustomerApproval />} />
         <Route path="/SuperAdmin"        element={<GACC />} />
         <Route path="/GACC"              element={<GACC />} />
+        <Route path="/GACCLogin"         element={<GACCLogin />} />
+        <Route path="/Login"             element={<Login />} />
+        <Route path="/Financial"         element={<RequireAuth roles={["admin", "super_admin"]}><Financial /></RequireAuth>} />
         <Route path="*"                  element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>

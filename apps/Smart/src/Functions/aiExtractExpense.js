@@ -1,9 +1,9 @@
 // AI Expense Extraction - Reads receipts, bank statements, payroll screenshots, and invoices
-// Uses OpenAI Vision to extract structured financial data from uploaded documents
-import OpenAI from 'npm:openai@^4.0.0';
-
-const openai_api_key = Deno.env.get('OPENAI_API_KEY');
-const openai = openai_api_key ? new OpenAI({ apiKey: openai_api_key }) : null;
+// Uses Gemini Vision (free tier) to extract structured financial data from uploaded documents.
+// Used by JenaiExpenseCapture.jsx (finanzas) y POInvoiceScannerDialog.jsx (inventario/compras).
+const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+const GEMINI_MODEL = 'gemini-1.5-flash';
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
 const MAX_DOWNLOAD_BYTES = 25 * 1024 * 1024; // 25 MB
 const REQUEST_TIMEOUT = 60000;
@@ -158,41 +158,43 @@ function uint8ArrayToBase64(bytes) {
   return btoa(binary);
 }
 
-async function extractFromImage(fileUrl, fileData, contentType, documentType) {
-  if (!openai) throw new Error('OpenAI API not configured');
+async function extractFromImage(fileData, contentType, documentType) {
+  if (!GEMINI_API_KEY) throw new Error('Gemini API not configured');
 
   const prompt = PROMPTS[documentType];
   if (!prompt) throw new Error(`Unknown document_type: ${documentType}`);
 
-  let imageUrl = fileUrl;
-  // Use base64 data URL for reliability
-  if (fileData && contentType.startsWith('image/')) {
-    const base64 = uint8ArrayToBase64(fileData);
-    imageUrl = `data:${contentType};base64,${base64}`;
-  }
+  const base64 = uint8ArrayToBase64(fileData);
 
-  console.log(`🤖 Extracting ${documentType} with OpenAI Vision...`);
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    messages: [
-      {
-        role: 'system',
-        content: prompt + '\n\nIMPORTANTE: Responde SOLO con el JSON, sin markdown, sin backticks, sin texto adicional.'
-      },
-      {
-        role: 'user',
-        content: [
-          { type: 'text', text: 'Analiza este documento y extrae los datos en el formato JSON especificado.' },
-          { type: 'image_url', image_url: { url: imageUrl, detail: 'high' } }
-        ]
-      }
-    ],
-    max_tokens: 2000,
-    temperature: 0.1,
-    response_format: { type: 'json_object' }
+  console.log(`🤖 Extracting ${documentType} with Gemini Vision...`);
+  const body = {
+    contents: [{
+      parts: [
+        { text: prompt + '\n\nAnaliza este documento y extrae los datos en el formato JSON especificado.' },
+        { inlineData: { mimeType: contentType, data: base64 } },
+      ],
+    }],
+    generationConfig: {
+      temperature: 0.1,
+      maxOutputTokens: 2000,
+      responseMimeType: 'application/json',
+    },
+  };
+
+  const res = await fetch(GEMINI_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
   });
 
-  const text = response.choices[0].message.content;
+  if (!res.ok) {
+    const err = await res.text();
+    console.error('❌ Gemini error:', err);
+    throw new Error('Gemini API error extracting document');
+  }
+
+  const data = await res.json();
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
   console.log('✅ Extraction complete');
   try {
     return JSON.parse(text);
@@ -236,7 +238,7 @@ export async function aiExtractExpenseHandler(req) {
       );
     }
 
-    const result = await extractFromImage(fileUrl, fileData, contentType, documentType);
+    const result = await extractFromImage(fileData, contentType, documentType);
     return Response.json(result);
   } catch (error) {
     console.error('💥 Error in aiExtractExpense:', error);

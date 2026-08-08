@@ -52,6 +52,8 @@ import { processPayrollHandler } from './processPayroll.js';
 import { verifyAdminOtpHandler } from './verifyAdminOtp.js';
 import { trackParcelHandler } from './trackParcel.js';
 import { geminiSummaryHandler } from './geminiSummary.js';
+import { geminiCategorizeExpenseHandler } from './geminiCategorizeExpense.js';
+import { gaccDataProxyHandler } from './gaccDataProxy.js';
 import { setRequestAuthToken, clearRequestAuthToken } from '../../../../lib/unified-custom-sdk-supabase.js';
 import { checkRateLimit } from './_rateLimit.js';
 import { sanitizeRequest } from './_sanitize.js';
@@ -60,7 +62,9 @@ import { sanitizeRequest } from './_sanitize.js';
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  // apikey/x-client-info/prefer/range: headers supabase-js sends by default
+  // (used by the /gaccdata/* proxy — see gaccDataProxy.js)
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, apikey, x-client-info, prefer, range',
 };
 
 // Routes that should return unwrapped responses (to match Python backend API)
@@ -70,6 +74,7 @@ const unwrappedRoutes = new Set([
   '/ai/invoke',
   '/ai/chat',
   '/ai/gemini-summary',
+  '/ai/categorize-expense',
   '/ai/generate-image',
   '/sendEmailInternal',
   '/stripeWebhook',     // Stripe espera respuesta directa sin wrapper
@@ -133,6 +138,7 @@ const routes = {
   '/sendTemplatedEmail': sendTemplatedEmailHandler,
   '/trackParcel': trackParcelHandler,
   '/ai/gemini-summary': geminiSummaryHandler,
+  '/ai/categorize-expense': geminiCategorizeExpenseHandler,
 };
 // In production, silence console.log/info/debug to reduce log noise (~221 calls
 // across handlers). Keep console.error and console.warn for visibility into
@@ -182,6 +188,25 @@ const isDev = Deno.env.get("DENO_ENV") !== "production";
   const authHeader = req.headers.get('Authorization');
   if (authHeader && authHeader.startsWith('Bearer ')) {
     setRequestAuthToken(authHeader.substring(7));
+  }
+
+  // GACC data proxy (SuperAdmin panel) — prefix route, not exact-match,
+  // because Supabase REST/Storage paths are dynamic per table/bucket
+  // (/gaccdata/rest/v1/<table>). See gaccDataProxy.js for the auth model.
+  if (path.startsWith('/gaccdata/')) {
+    try {
+      const response = await gaccDataProxyHandler(req);
+      const headers = new Headers(response.headers);
+      Object.entries(corsHeaders).forEach(([key, value]) => headers.set(key, value));
+      const body = await response.text();
+      return new Response(body, { status: response.status, headers });
+    } catch (error) {
+      if (isDev) console.error('💥 Error in gaccDataProxy:', error);
+      return new Response(
+        JSON.stringify({ message: error.message }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
   }
 
   // Find and call the appropriate handler

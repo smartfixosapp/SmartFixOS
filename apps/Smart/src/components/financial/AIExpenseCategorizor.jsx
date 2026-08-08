@@ -3,6 +3,8 @@ import { dataClient } from '@/components/api/dataClient';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, Loader2 } from 'lucide-react';
 
+const FUNCTIONS_URL = import.meta.env.VITE_FUNCTION_URL || "https://smartfixos.onrender.com";
+
 export default function AIExpenseCategorizor({ description, amount, onCategorySuggestion }) {
   const [suggestion, setSuggestion] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -34,43 +36,18 @@ export default function AIExpenseCategorizor({ description, amount, onCategorySu
         amount: e.amount
       }));
 
-      const response = await dataClient.integrations.Core.InvokeLLM({
-        prompt: `Categoriza este gasto basándote en el historial:
-
-NUEVO GASTO:
-Descripción: "${description}"
-Monto: $${amount || 0}
-
-HISTORIAL DE GASTOS PREVIOS:
-${expensePatterns.slice(0, 20).map(e =>
-  `"${e.description}" → ${e.category} ($${e.amount})`
-).join('\n')}
-
-CATEGORÍAS DISPONIBLES:
-- repair_payment: Pagos de reparaciones
-- parts: Piezas y componentes
-- supplies: Suministros generales
-- other_expense: Otros gastos
-- refund: Reembolsos
-
-Responde en JSON con:
-- category: categoría sugerida
-- confidence: high/medium/low
-- reasoning: por qué elegiste esta categoría
-- alternative_categories: array de categorías alternativas`,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            category: { type: "string" },
-            confidence: { type: "string" },
-            reasoning: { type: "string" },
-            alternative_categories: {
-              type: "array",
-              items: { type: "string" }
-            }
-          }
-        }
+      // Gemini (gratis), no OpenAI vía /ai/invoke — ver geminiCategorizeExpense.js
+      const res = await fetch(`${FUNCTIONS_URL}/ai/categorize-expense`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          description,
+          amount: amount || 0,
+          recentExpenses: expensePatterns,
+        }),
       });
+      const response = await res.json();
+      if (!res.ok) throw new Error(response?.error || 'No se pudo categorizar el gasto');
 
       setSuggestion(response);
 
