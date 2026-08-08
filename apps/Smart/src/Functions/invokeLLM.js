@@ -83,7 +83,7 @@ async function tryGemini(prompt, { responseJsonSchema } = {}) {
  * de este cambio. Si Gemini no responde, el caller devuelve error.
  */
 async function tryGeminiAudio(prompt, audioBase64, mimeType) {
-  if (!gemini_api_key) return null;
+  if (!gemini_api_key) return { text: null, errorDetail: 'GEMINI_API_KEY no configurada en el servidor' };
   try {
     const res = await fetch(`${GEMINI_URL}?key=${gemini_api_key}`, {
       method: 'POST',
@@ -105,16 +105,22 @@ async function tryGeminiAudio(prompt, audioBase64, mimeType) {
         ],
       }),
     });
+    const bodyText = await res.text();
     if (!res.ok) {
-      console.warn(`⚠️ Gemini audio respondio ${res.status}`);
-      return null;
+      console.warn(`⚠️ Gemini audio respondio ${res.status}: ${bodyText.slice(0, 500)}`);
+      return { text: null, errorDetail: `Gemini ${res.status}: ${bodyText.slice(0, 300)}` };
     }
-    const data = await res.json();
+    const data = JSON.parse(bodyText);
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    return text ? text.trim() : null;
+    const finishReason = data?.candidates?.[0]?.finishReason;
+    if (!text) {
+      console.warn(`⚠️ Gemini audio sin texto, finishReason=${finishReason}, body=${bodyText.slice(0, 500)}`);
+      return { text: null, errorDetail: `Gemini sin texto (finishReason=${finishReason || 'desconocido'})` };
+    }
+    return { text: text.trim(), errorDetail: null };
   } catch (error) {
     console.warn(`⚠️ Gemini audio fallo (${error.message})`);
-    return null;
+    return { text: null, errorDetail: `Excepcion: ${error.message}` };
   }
 }
 
@@ -196,13 +202,13 @@ export async function invokeLLMHandler(req) {
       const transcriptionPrompt = payload.prompt ||
         'Transcribe este audio a texto en español de Puerto Rico. Es una nota dictada por un técnico de un taller de reparación de celulares y computadoras. Devuelve SOLO la transcripción literal del audio, sin comentarios, sin comillas, sin formato adicional.';
       console.log(`🎙️ Transcripcion de audio solicitada (${audioMimeType}, ${audioBase64.length} chars base64)`);
-      const transcript = await tryGeminiAudio(transcriptionPrompt, audioBase64, audioMimeType);
+      const { text: transcript, errorDetail } = await tryGeminiAudio(transcriptionPrompt, audioBase64, audioMimeType);
       if (transcript) {
         console.log('✅ Audio transcrito por Gemini');
         return Response.json({ response: transcript });
       }
-      console.error('❌ Gemini no pudo transcribir el audio');
-      return Response.json({ error: 'No se pudo transcribir el audio' }, { status: 502 });
+      console.error(`❌ Gemini no pudo transcribir el audio: ${errorDetail}`);
+      return Response.json({ error: 'No se pudo transcribir el audio', detail: errorDetail }, { status: 502 });
     }
 
     if (!openai) {
