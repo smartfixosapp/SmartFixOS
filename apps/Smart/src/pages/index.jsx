@@ -32,6 +32,8 @@ const CustomerApproval = lazyWithRetry(() => import("./CustomerApproval"));
 const GACC             = lazyWithRetry(() => import("./gacc"));
 const GACCLogin        = lazyWithRetry(() => import("./gacc/GACCLogin"));
 const Login            = lazyWithRetry(() => import("./Login"));
+const EmployeeLogin    = lazyWithRetry(() => import("./EmployeeLogin"));
+const EmployeeHome     = lazyWithRetry(() => import("./EmployeeHome"));
 const Financial        = lazyWithRetry(() => import("./Financial"));
 
 function PageLoader() {
@@ -61,6 +63,8 @@ function PagesContent() {
         <Route path="/GACC"              element={<GACC />} />
         <Route path="/GACCLogin"         element={<GACCLogin />} />
         <Route path="/Login"             element={<Login />} />
+        <Route path="/EmpleadoLogin"     element={<EmployeeLogin />} />
+        <Route path="/EmpleadoHome"      element={<EmployeeHome />} />
         <Route path="/Financial"         element={<RequireAuth roles={["admin", "super_admin"]}><Financial /></RequireAuth>} />
         <Route path="*"                  element={<Navigate to="/" replace />} />
       </Routes>

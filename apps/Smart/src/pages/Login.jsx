@@ -127,6 +127,12 @@ export default function Login() {
               Crea uno
             </Link>
           </p>
+          <p className="mt-2 text-[13px] text-zinc-500 text-center">
+            ¿Eres empleado?{" "}
+            <Link to="/EmpleadoLogin" className="text-orange-400 hover:text-orange-300">
+              Entra con el código del taller y tu PIN
+            </Link>
+          </p>
         </motion.div>
       </main>
     </div>
