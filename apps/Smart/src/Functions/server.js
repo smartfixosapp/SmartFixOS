@@ -20,7 +20,6 @@ import { notifyNewOrderHandler } from './notifyNewOrder.js';
 import { maintenanceJobsHandler } from './maintenanceJobs.js';
 import { sendVerificationEmailHandler } from './sendVerificationEmail.js';
 import { verifyAndCreateAdminHandler } from './verifyAndCreateAdmin.js';
-import { createFirstAdminHandler } from './createFirstAdmin.js';
 import { createStripeCheckoutHandler } from './createStripeCheckout.js';
 import { createStripeSubscriptionHandler } from './createStripeSubscription.js';
 import { createStripePortalSessionHandler } from './createStripePortalSession.js';
@@ -106,7 +105,6 @@ const routes = {
   '/maintenanceJobs': maintenanceJobsHandler,
   '/sendVerificationEmail': sendVerificationEmailHandler,
   '/verifyAndCreateAdmin': verifyAndCreateAdminHandler,
-  '/createFirstAdmin': createFirstAdminHandler,
   '/createStripeCheckout': createStripeCheckoutHandler,
   '/createStripeSubscription': createStripeSubscriptionHandler,
   '/createStripePortalSession': createStripePortalSessionHandler,
@@ -301,7 +299,6 @@ console.log(`   🔧 /notifyNewOrder: http://localhost:$${port}/notifyNewOrder` 
 console.log(`   🔧 /maintenanceJobs: http://localhost:$${port}/maintenanceJobs` );
 console.log(`   🔧 /sendVerificationEmail: http://localhost:$${port}/sendVerificationEmail` );
 console.log(`   🔧 /verifyAndCreateAdmin: http://localhost:$${port}/verifyAndCreateAdmin` );
-console.log(`   🔧 /createFirstAdmin: http://localhost:$${port}/createFirstAdmin` );
 console.log(`   🔧 /createStripeCheckout: http://localhost:$${port}/createStripeCheckout` );
 console.log(`   🔧 /createStripeSubscription: http://localhost:$${port}/createStripeSubscription` );
 console.log(`   🔧 /stripeWebhook: http://localhost:$${port}/stripeWebhook` );
