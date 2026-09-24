@@ -7,7 +7,7 @@
  */
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { LogOut, Wrench } from "lucide-react";
+import { LogOut, Wrench, Users } from "lucide-react";
 import { supabase } from "../../../../lib/supabase-client.js";
 
 const ROLE_LABELS = {
@@ -18,6 +18,7 @@ const ROLE_LABELS = {
   cashier: "Cajero",
   technician: "Técnico",
 };
+const ADMIN_LEVEL = ["owner", "admin", "manager", "contable"];
 
 export default function EmployeeHome() {
   const navigate = useNavigate();
@@ -113,6 +114,16 @@ export default function EmployeeHome() {
                 acceso que la app nativa). Las pantallas de trabajo diario (Órdenes, POS,
                 Inventario) todavía no existen aquí — vienen en el siguiente paso.
               </p>
+
+              {roles.some((r) => ADMIN_LEVEL.includes(r)) && (
+                <Link
+                  to="/Empleados"
+                  className="mt-6 flex items-center gap-2 w-full h-11 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors justify-center text-[14px] font-medium"
+                >
+                  <Users className="h-4 w-4" />
+                  Gestionar empleados
+                </Link>
+              )}
             </>
           )}
         </div>
