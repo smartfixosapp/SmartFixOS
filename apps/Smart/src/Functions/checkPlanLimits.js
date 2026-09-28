@@ -10,21 +10,17 @@
 import { createClientFromRequest } from '../../../../lib/unified-custom-sdk-supabase.js';
 
 const PLAN_LIMITS = {
-  starter: { max_orders_monthly: 50, max_skus: 50 },
-  pro:     { max_orders_monthly: -1, max_skus: -1 },
+  solo: { max_orders_monthly: -1, max_skus: -1 },
 };
 
 const PLAN_INFO = {
-  starter: { label: 'Starter', price: 14.99 },
-  pro:     { label: 'Pro',     price: 39.99 },
+  solo: { label: 'Solo', price: 9.99 },
 };
 
-const UPGRADE_MAP = { starter: 'pro', pro: null };
+const UPGRADE_MAP = { solo: null };
 
-function normalizePlan(raw) {
-  const map = { smartfixos: 'starter', basic: 'starter', enterprise: 'pro', business: 'pro' };
-  const n = String(raw || '').trim().toLowerCase();
-  return map[n] || (PLAN_LIMITS[n] ? n : 'starter');
+function normalizePlan(_raw) {
+  return 'solo';
 }
 
 export async function checkPlanLimitsHandler(req) {
@@ -57,7 +53,7 @@ export async function checkPlanLimitsHandler(req) {
     }
 
     const planId = normalizePlan(tenant.plan);
-    const limits = PLAN_LIMITS[planId] || PLAN_LIMITS.starter;
+    const limits = PLAN_LIMITS[planId] || PLAN_LIMITS.solo;
     const max = limits[key];
 
     if (max === undefined) {

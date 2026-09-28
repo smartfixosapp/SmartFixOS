@@ -17,9 +17,9 @@ import { REGISTRO_PATH } from "../constants";
 
 const PLANES = [
   {
-    nombre: "Solo",
-    para: "Un técnico, un mostrador.",
-    precio: 19,
+    nombre: "Archilla OS",
+    para: "Todo tu taller, todo incluido.",
+    precio: 9.99,
     features: [
       "Órdenes",
       "POS",
@@ -27,16 +27,6 @@ const PLANES = [
       "IVU 11.5%",
       "Inventario",
       "Portal del cliente",
-      "1 usuario",
-    ],
-    featured: false,
-  },
-  {
-    nombre: "Equipo",
-    para: "Tú y tu equipo.",
-    precio: 49,
-    features: [
-      "Todo lo de Solo",
       "Hasta 5 usuarios",
       "Chat interno",
       "Nómina y comisiones",
@@ -100,8 +90,8 @@ function PlanCard({ nombre, para, precio, features, featured }) {
       <p className="mt-2 text-[15px] leading-[1.45] text-ar-ink2">{para}</p>
 
       <div className="mt-6 flex items-end gap-3">
-        <span className="font-brico text-[44px] font-extrabold leading-none tracking-[-0.03em]" style={{ color: "var(--ar-text)" }}>
-          ${Math.round(count)}
+        <span className="font-brico text-[44px] font-extrabold leading-none tracking-[-0.03em] tabular-nums" style={{ color: "var(--ar-text)" }}>
+          ${count.toFixed(2)}
         </span>
         <span className="flex flex-col leading-tight pb-1">
           <span className="font-brico text-[20px] font-bold tabular-nums" style={{ color: "var(--ar-text-2)" }}>
@@ -164,7 +154,7 @@ export function Planes() {
         whileInView="show"
         viewport={VIEWPORT}
         variants={staggerList}
-        className="mx-auto mt-12 grid max-w-3xl grid-cols-1 items-start gap-6 md:grid-cols-2"
+        className="mx-auto mt-12 grid max-w-sm grid-cols-1 items-start gap-6"
       >
         {PLANES.map((p) => (
           <PlanCard key={p.nombre} {...p} />

@@ -97,7 +97,7 @@ export async function registerTenantHandler(req) {
   try {
     const sb = getSb();
     const body = await req.json().catch(() => ({}));
-    const { ownerName, email, password, phone, businessName, country, plan: rawPlan } = body;
+    const { ownerName, email, password, phone, businessName, country } = body;
 
     if (!ownerName || !email || !password) {
       return Response.json({ success: false, error: 'Nombre, email y contraseña son requeridos' }, { status: 400 });
@@ -106,15 +106,9 @@ export async function registerTenantHandler(req) {
       return Response.json({ success: false, error: 'Email inválido' }, { status: 400 });
     }
 
-    const planMap = {
-      basic: 'solo', smartfixos: 'solo', starter: 'solo', solo: 'solo',
-      team: 'team', pro: 'pro', enterprise: 'pro', business: 'pro',
-    };
-    const intendedPlan = planMap[String(rawPlan || '').toLowerCase()] || 'team';
+    const intendedPlan = 'solo';
     const PLANS = {
-      solo: { max_users: 1,   monthly_cost: 19, label: 'Solo' },
-      team: { max_users: 5,   monthly_cost: 39, label: 'Team' },
-      pro:  { max_users: 999, monthly_cost: 79, label: 'Pro'  },
+      solo: { max_users: 5, monthly_cost: 9.99, label: 'Solo' },
     };
     const planCfg = PLANS[intendedPlan];
 

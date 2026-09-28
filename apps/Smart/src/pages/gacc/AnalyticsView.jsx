@@ -401,18 +401,18 @@ function FeatureAdoption({ tenants }) {
   const adoption = useMemo(() => {
     const total = tenants.filter(t => t.status === "active").length || 1;
     const features = [
-      // Todas las features estan disponibles en ambos planes (starter y pro)
-      { key: "pos", label: "POS", plans: ["starter", "pro"] },
-      { key: "inventory", label: "Inventario", plans: ["starter", "pro"] },
-      { key: "orders_photos", label: "Fotos en Ordenes", plans: ["starter", "pro"] },
-      { key: "suppliers", label: "Proveedores", plans: ["starter", "pro"] },
-      { key: "reports", label: "Reportes Financieros", plans: ["starter", "pro"] },
-      { key: "automations", label: "Automatizaciones", plans: ["starter", "pro"] },
+      // Todas las features estan disponibles en el unico plan (solo)
+      { key: "pos", label: "POS", plans: ["solo"] },
+      { key: "inventory", label: "Inventario", plans: ["solo"] },
+      { key: "orders_photos", label: "Fotos en Ordenes", plans: ["solo"] },
+      { key: "suppliers", label: "Proveedores", plans: ["solo"] },
+      { key: "reports", label: "Reportes Financieros", plans: ["solo"] },
+      { key: "automations", label: "Automatizaciones", plans: ["solo"] },
     ];
 
     return features.map(f => {
       const eligible = tenants.filter(t =>
-        t.status === "active" && f.plans.includes(t.effective_plan || t.plan || "starter")
+        t.status === "active" && f.plans.includes(t.effective_plan || t.plan || "solo")
       ).length;
       const pct = total > 0 ? Math.round((eligible / total) * 100) : 0;
       return { ...f, eligible, pct };
