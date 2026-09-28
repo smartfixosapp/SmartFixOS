@@ -50,6 +50,15 @@ export function NavBar() {
 
         <div className="hidden items-center gap-2.5 md:flex">
           <Link
+            to="/Login"
+            className="rounded-lg px-3 py-2 text-[13px] font-semibold transition-colors"
+            style={{ color: "var(--ar-text-2)" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--ar-text)")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--ar-text-2)")}
+          >
+            Iniciar sesión
+          </Link>
+          <Link
             to={REGISTRO_PATH}
             className="rounded-full border px-4 py-2 text-[13px] font-semibold transition-colors"
             style={{ borderColor: "var(--ar-border)", color: "var(--ar-text)" }}
@@ -100,6 +109,9 @@ export function NavBar() {
                 </a>
               ))}
               <div className="mt-6 flex flex-col gap-3">
+                <Link to="/Login" onClick={() => setOpen(false)} className="flex h-12 items-center justify-center text-[15px] font-semibold" style={{ color: "var(--ar-text-2)" }}>
+                  Iniciar sesión
+                </Link>
                 <Link to={REGISTRO_PATH} onClick={() => setOpen(false)} className="flex h-12 items-center justify-center rounded-2xl border text-[15px] font-semibold" style={{ borderColor: "var(--ar-border)", color: "var(--ar-text)" }}>
                   Crear mi taller
                 </Link>
