@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { PageSpinner } from "@/components/ui/spinner";
 import RequireAuth from "@/components/auth/RequireAuth";
+import Layout from "@/components/layout/Layout";
 
 function lazyWithRetry(fn) {
   return lazy(() =>
@@ -36,6 +37,9 @@ const EmployeeLogin    = lazyWithRetry(() => import("./EmployeeLogin"));
 const EmployeeHome     = lazyWithRetry(() => import("./EmployeeHome"));
 const EmployeesList    = lazyWithRetry(() => import("./EmployeesList"));
 const Financial        = lazyWithRetry(() => import("./Financial"));
+const Dashboard        = lazyWithRetry(() => import("./Dashboard"));
+const Orders           = lazyWithRetry(() => import("./Orders"));
+const SettingsPage     = lazyWithRetry(() => import("./Settings"));
 
 function PageLoader() {
   return <PageSpinner />;
@@ -67,7 +71,10 @@ function PagesContent() {
         <Route path="/EmpleadoLogin"     element={<EmployeeLogin />} />
         <Route path="/EmpleadoHome"      element={<EmployeeHome />} />
         <Route path="/Empleados"         element={<EmployeesList />} />
-        <Route path="/Financial"         element={<RequireAuth roles={["admin", "super_admin"]}><Financial /></RequireAuth>} />
+        <Route path="/Financial"         element={<RequireAuth roles={["admin", "super_admin"]}><Layout><Financial /></Layout></RequireAuth>} />
+        <Route path="/Dashboard"         element={<RequireAuth roles={["admin", "super_admin"]}><Layout><Dashboard /></Layout></RequireAuth>} />
+        <Route path="/Orders"            element={<RequireAuth roles={["admin", "super_admin"]}><Layout><Orders /></Layout></RequireAuth>} />
+        <Route path="/Settings"          element={<RequireAuth roles={["admin", "super_admin"]}><Layout><SettingsPage /></Layout></RequireAuth>} />
         <Route path="*"                  element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>

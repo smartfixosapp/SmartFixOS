@@ -41,8 +41,7 @@ import {
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import OrderProgressBar from "./OrderProgressBar"; // This import might be removed if OrderTimeline fully replaces it
-import OrderTimeline from "./OrderTimeline"; // New import
+import OrderTimeline from "./OrderTimeline";
 import DeleteOrderDialog from "./DeleteOrderDialog";
 import RefundModal from "./RefundModal";
 import { openWhatsApp, makeCall } from "@/components/utils/helpers";

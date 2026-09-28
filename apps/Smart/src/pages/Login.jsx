@@ -25,7 +25,7 @@ export default function Login() {
     setError(null);
     setGoogleLoading(true);
     try {
-      const dest = location.state?.from || "/Financial";
+      const dest = location.state?.from || "/Dashboard";
       await appClient.auth.login("google", undefined, undefined, dest);
     } catch (err) {
       setError(err?.message || "No se pudo iniciar sesión con Google.");
@@ -43,7 +43,7 @@ export default function Login() {
     setLoading(true);
     try {
       await appClient.auth.login("email", email.trim().toLowerCase(), password);
-      const dest = location.state?.from || "/Financial";
+      const dest = location.state?.from || "/Dashboard";
       navigate(dest, { replace: true });
     } catch (err) {
       const msg = err?.message || "";
