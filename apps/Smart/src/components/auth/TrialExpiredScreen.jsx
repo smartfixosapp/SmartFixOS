@@ -52,20 +52,12 @@ export default function TrialExpiredScreen({ tenantName, onActivatePlan, onConta
             </p>
           </div>
 
-          {/* Planes */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="liquid-glass rounded-2xl p-5 text-center">
-              <p className="apple-text-footnote apple-label-tertiary mb-1">{PLANS.starter.label}</p>
-              <p className="text-2xl font-black text-white tabular-nums">${PLANS.starter.price}</p>
-              <p className="apple-text-caption2 apple-label-tertiary mt-1">/ mes</p>
-              <p className="apple-text-caption2 apple-label-secondary mt-2">{PLANS.starter.tagline}</p>
-            </div>
-            <div className="liquid-glass-strong rounded-2xl p-5 text-center ring-1 ring-cyan-500/30">
-              <p className="apple-text-footnote text-cyan-400 mb-1">{PLANS.pro.label}</p>
-              <p className="text-2xl font-black text-white tabular-nums">${PLANS.pro.price}</p>
-              <p className="apple-text-caption2 apple-label-tertiary mt-1">/ mes</p>
-              <p className="apple-text-caption2 text-cyan-400/70 mt-2">{PLANS.pro.tagline}</p>
-            </div>
+          {/* Plan */}
+          <div className="liquid-glass-strong rounded-2xl p-5 text-center ring-1 ring-cyan-500/30">
+            <p className="apple-text-footnote text-cyan-400 mb-1">{PLANS.solo.label}</p>
+            <p className="text-2xl font-black text-white tabular-nums">${PLANS.solo.price}</p>
+            <p className="apple-text-caption2 apple-label-tertiary mt-1">/ mes</p>
+            <p className="apple-text-caption2 text-cyan-400/70 mt-2">{PLANS.solo.tagline}</p>
           </div>
         </div>
 

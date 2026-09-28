@@ -32,17 +32,8 @@ const DEFAULT_SCHEDULE = {
   sun: { open: false, from: "09:00", to: "17:00" },
 };
 
-// Solo 2 planes: Starter ($14.99) y Pro ($39.99)
-// Legacy keys (basic/business/enterprise) mapean a starter o pro
-const PLAN_INFO = {
-  starter:    { label: "Starter",    color: "blue",    max_users: 999, price: "$14.99/mes" },
-  pro:        { label: "Pro",        color: "green",   max_users: 999, price: "$39.99/mes" },
-  // Legacy aliases — mismas configuraciones, solo distintos keys
-  basic:      { label: "Starter",    color: "blue",    max_users: 999, price: "$14.99/mes" },
-  smartfixos: { label: "Starter",    color: "blue",    max_users: 999, price: "$14.99/mes" },
-  business:   { label: "Pro",        color: "green",   max_users: 999, price: "$39.99/mes" },
-  enterprise: { label: "Pro",        color: "green",   max_users: 999, price: "$39.99/mes" },
-};
+// Un solo plan: Archilla OS ($9.99/mes), todo incluido.
+const PLAN_INFO = { label: "Archilla OS", color: "blue", max_users: 999, price: "$9.99/mes" };
 
 const STEPS = [
   { id: 1, label: "Identidad",  icon: Building2        },
@@ -239,8 +230,7 @@ export default function FirstTimeSetupWizard({ onComplete }) {
     onComplete?.();
   };
 
-  const planKey  = tenantInfo?.plan || "starter";
-  const planData = PLAN_INFO[planKey] || PLAN_INFO.starter;
+  const planData = PLAN_INFO;
   const maxUsers = tenantInfo?.metadata?.max_users ?? planData.max_users;
   const trialEnd = tenantInfo?.trial_end_date ? new Date(tenantInfo.trial_end_date) : null;
   const trialDaysLeft = trialEnd ? Math.max(0, Math.ceil((trialEnd - new Date()) / (1000 * 60 * 60 * 24))) : null;

@@ -11,7 +11,7 @@ const FAQS = [
   },
   {
     q: "¿Cuánto cuesta?",
-    a: "$19 Solo o $49 Equipo al mes. Pruebas 14 días gratis, sin tarjeta.",
+    a: "$9.99 al mes, un solo plan con todo incluido. Pruebas 14 días gratis, sin tarjeta.",
   },
   {
     q: "¿Cómo me suscribo?",
@@ -27,7 +27,7 @@ const FAQS = [
   },
   {
     q: "¿Sirve para más de un técnico?",
-    a: "Sí. El plan Equipo da chat interno, nómina, comisiones y multi-device en tiempo real.",
+    a: "Sí, hasta 5 usuarios en el mismo plan: chat interno, nómina, comisiones y multi-device en tiempo real.",
   },
   {
     q: "¿Mis datos están seguros?",

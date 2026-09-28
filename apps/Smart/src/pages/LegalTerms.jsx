@@ -44,11 +44,10 @@ export default function LegalTerms() {
 
       <h2>3. Planes y Suscripción</h2>
       <p>
-        Archilla OS ofrece los siguientes planes de suscripción mensual:
+        Archilla OS ofrece una sola suscripción mensual:
       </p>
       <ul>
-        <li><strong>Plan Solo</strong> — $19 USD/mes. Para el técnico independiente.</li>
-        <li><strong>Plan Equipo</strong> — $49 USD/mes. Hasta 5 empleados, multi-device, chat interno.</li>
+        <li><strong>Archilla OS</strong> — $9.99 USD/mes. Incluye todo: órdenes, POS, inventario, finanzas, hasta 5 usuarios, chat interno y multi-device.</li>
       </ul>
       <p>
         Toda suscripción incluye un período de prueba de <strong>14 días sin tarjeta de crédito</strong>.

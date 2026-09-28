@@ -211,10 +211,10 @@ export default function DashboardBilling() {
                 Contactar soporte
               </a>
               <Link
-                to="/upgrade?plan=team"
+                to="/upgrade?plan=solo"
                 className="inline-flex items-center gap-2 rounded-full bg-lime-400 text-black px-5 h-10 text-[13px] font-semibold hover:bg-lime-300 transition-colors"
               >
-                Ver planes disponibles
+                Activar mi plan
               </Link>
             </div>
           </div>

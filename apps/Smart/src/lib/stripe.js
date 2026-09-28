@@ -52,58 +52,39 @@ export const STRIPE_PUBLISHABLE_KEY =
   (typeof import.meta !== "undefined" && import.meta.env?.VITE_STRIPE_PUBLISHABLE_KEY) || "";
 
 // ── Price IDs · TEST MODE ──────────────────────────────────────
-// Sprint 134 — creados en Stripe Dashboard por Francis (22 may 2026).
-// Cuando salgamos a live, los reemplazamos por los Price IDs de
-// los productos en live mode (NO son los mismos IDs).
+// Un solo plan a $9.99/mes. El price id de abajo (price_1TaEWc...)
+// todavia corresponde al Price object viejo de $19 en Stripe test —
+// HAY QUE CREAR un Price nuevo de $9.99 en el Stripe Dashboard y
+// pegar su id aqui antes de activar billing (VITE_BILLING_ENABLED).
 const STRIPE_PRICES_TEST = Object.freeze({
-  solo: "price_1TaEWc0ynKjNBHk65T30N5Ck", // $19/mes USD — Plan Solo
-  team: "", // $39/mes USD — crear price test y pegar aqui
-  pro: "",  // $79/mes USD — crear price test y pegar aqui
+  solo: "price_1TaEWc0ynKjNBHk65T30N5Ck", // OJO: sigue siendo el price de $19 — reemplazar por uno de $9.99
 });
 
 // Placeholder hasta que tengamos productos live (esperando verificación
 // de cuenta + banco en Stripe).
 const STRIPE_PRICES_LIVE = Object.freeze({
-  solo: "", // $19/mes USD — crear price live y pegar aqui
-  team: "", // $39/mes USD — crear price live y pegar aqui
-  pro: "",  // $79/mes USD — crear price live y pegar aqui
+  solo: "", // $9.99/mes USD — crear price live y pegar aqui
 });
 
 export const STRIPE_PRICES =
   STRIPE_MODE === "live" ? STRIPE_PRICES_LIVE : STRIPE_PRICES_TEST;
 
-// ── Monto display (USD/mes) — sincronizado con BILLING_CONTRACT §1 ─
+// ── Monto display (USD/mes) ─────────────────────────────────────
 export const PLAN_AMOUNTS_USD = Object.freeze({
-  solo: 19,
-  team: 39,
-  pro: 79,
+  solo: 9.99,
 });
 
-// ── Trial — sincronizado con BILLING_CONTRACT §2.1 ─────────────
+// ── Trial ────────────────────────────────────────────────────────
 export const TRIAL_DAYS = 14;
 
-// ── Plan metadata para uso en UI ───────────────────────────────
+// ── Plan metadata para uso en UI — un solo plan, todo incluido ──
 export const PLANS = Object.freeze({
   solo: {
     slug: "solo",
-    name: "Solo",
-    tagline: "Para el técnico independiente.",
+    name: "Archilla OS",
+    tagline: "Todo tu taller, todo incluido.",
     price: PLAN_AMOUNTS_USD.solo,
     priceId: STRIPE_PRICES.solo,
-  },
-  team: {
-    slug: "team",
-    name: "Equipo",
-    tagline: "Cuando ya no eres solo tú.",
-    price: PLAN_AMOUNTS_USD.team,
-    priceId: STRIPE_PRICES.team,
-  },
-  pro: {
-    slug: "pro",
-    name: "Pro",
-    tagline: "Varias sucursales y todo el poder.",
-    price: PLAN_AMOUNTS_USD.pro,
-    priceId: STRIPE_PRICES.pro,
   },
 });
 

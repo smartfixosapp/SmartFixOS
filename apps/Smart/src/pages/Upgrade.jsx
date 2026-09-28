@@ -9,7 +9,7 @@ import { STRIPE_PRICES, PLANS, isStripeConfigured } from "@/lib/stripe";
 import DownloadAppGate from "@/components/DownloadAppGate";
 
 /**
- * /upgrade?plan=solo|team
+ * /upgrade?plan=solo
  *
  * Sprint 135 pivot — this route is the target of the iOS app's
  * SFSafariViewController when the user taps "Upgrade" in-app.
@@ -56,7 +56,7 @@ export default function Upgrade() {
         // 1. Validar plan param antes de pedir sesión — falla rápido si bad URL
         if (!planSlug || !PLANS[planSlug]) {
           setErrorMsg(
-            `Plan inválido: "${planSlug || "(vacío)"}". Las opciones son "solo" o "team".`,
+            `Plan inválido: "${planSlug || "(vacío)"}". La única opción es "solo".`,
           );
           setStatus("error");
           return;

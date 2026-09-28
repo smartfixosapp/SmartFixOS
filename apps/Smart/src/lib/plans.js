@@ -1,11 +1,10 @@
 /**
  * SmartFixOS — Plan Definitions
  *
- *   solo — $19/mes — talleres individuales, sin módulos de equipo
- *   team — $39/mes — empleados, nómina, comisiones, chat, finanzas mensual…
- *   pro  — $79/mes — multi-sucursal, empleados ilimitados, export, soporte
- *
- * Facturación anual: paga 10 meses, llevas 12 (2 meses gratis)
+ *   solo — $9.99/mes — un solo plan, todo incluido (hasta 5 usuarios,
+ *   chat interno, nómina, multi-device). Los ids team/pro/legacy se
+ *   mantienen solo para no romper tenants viejos en DB; todos
+ *   normalizan a 'solo'.
  */
 
 // ── Plan definitions ─────────────────────────────────────────────
@@ -13,26 +12,10 @@
 export const PLANS = {
   solo: {
     id: 'solo',
-    label: 'Plan Solo',
-    price: 19,
-    priceAnnual: 190,
-    tagline: 'Para técnicos independientes',
-    trialDays: 14,
-  },
-  team: {
-    id: 'team',
-    label: 'Plan Equipo',
-    price: 39,
-    priceAnnual: 390,
-    tagline: 'Gestión completa de equipo',
-    trialDays: 14,
-  },
-  pro: {
-    id: 'pro',
-    label: 'Plan Pro',
-    price: 79,
-    priceAnnual: 790,
-    tagline: 'Varias sucursales y todo el poder',
+    label: 'Archilla OS',
+    price: 9.99,
+    priceAnnual: 99.90,
+    tagline: 'Todo tu taller, todo incluido',
     trialDays: 14,
   },
 };
@@ -44,37 +27,13 @@ export const PLAN_LIMITS = {
     max_orders_monthly:  -1,
     max_skus:            -1,
   },
-  team: {
-    max_orders_monthly:  -1,
-    max_skus:            -1,
-  },
-  pro: {
-    max_orders_monthly:  -1,
-    max_skus:            -1,
-  },
 };
 
 // ── Helpers ──────────────────────────────────────────────────────
 
-/** Normalize legacy plan names to canonical plan IDs */
+/** Normalize legacy plan names to canonical plan IDs — un solo plan real */
 export function normalizePlanId(raw) {
-  const map = {
-    // Current
-    solo:       'solo',
-    team:       'team',
-    pro:        'pro',
-    // Trial / top-tier equivalents
-    trial:      'team',
-    beta:       'pro',
-    founders_lifetime: 'pro',
-    // Legacy
-    starter:    'solo',
-    basic:      'solo',
-    smartfixos: 'solo',
-    business:   'pro',
-    enterprise: 'pro',
-  };
-  return map[String(raw || '').trim().toLowerCase()] || 'solo';
+  return 'solo';
 }
 
 /** Get plan config (metadata + limits) */
@@ -113,11 +72,8 @@ export function checkPlanLimit(planId, limitKey, currentCount) {
   };
 }
 
-/** Get the upgrade plan (null if already on highest) */
-export function getUpgradePlan(currentPlanId) {
-  const id = normalizePlanId(currentPlanId);
-  if (id === 'solo') return PLANS.team;
-  if (id === 'team') return PLANS.pro;
+/** @deprecated Un solo plan — no hay upgrade de tier. Siempre null. */
+export function getUpgradePlan(_currentPlanId) {
   return null;
 }
 

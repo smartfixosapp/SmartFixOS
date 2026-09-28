@@ -1,28 +1,15 @@
 import { createClientFromRequest } from '../../../../lib/unified-custom-sdk-supabase.js';
 import Stripe from 'npm:stripe@14.19.0';
 
-// 3 planes oficiales: solo ($19), team ($39), pro ($79)
-// Los aliases legacy se mantienen para no romper tenants viejos en DB
+// Un solo plan oficial: solo ($9.99/mes), todo incluido hasta 5 usuarios.
+// Los aliases legacy se mantienen para no romper tenants viejos en DB —
+// todos normalizan a 'solo'.
 const PLAN_MAP = {
-  solo:       { max_users: 1,   monthly_cost: 19, label: 'Solo' },
-  team:       { max_users: 5,   monthly_cost: 39, label: 'Team' },
-  pro:        { max_users: 999, monthly_cost: 79, label: 'Pro'  },
-  // Legacy aliases — mapean al plan equivalente
-  starter:    { max_users: 1,   monthly_cost: 19, label: 'Solo' },
-  smartfixos: { max_users: 1,   monthly_cost: 19, label: 'Solo' },
-  basic:      { max_users: 1,   monthly_cost: 19, label: 'Solo' },
-  business:   { max_users: 999, monthly_cost: 79, label: 'Pro'  },
-  enterprise: { max_users: 999, monthly_cost: 79, label: 'Pro'  },
+  solo: { max_users: 5, monthly_cost: 9.99, label: 'Solo' },
 };
 
-function normalizePlan(plan) {
-  const map = {
-    starter: 'solo', smartfixos: 'solo', basic: 'solo',
-    business: 'pro', enterprise: 'pro',
-  };
-  const normalized = String(plan || '').trim().toLowerCase();
-  if (map[normalized]) return map[normalized];
-  return ['solo', 'team', 'pro'].includes(normalized) ? normalized : 'solo';
+function normalizePlan(_plan) {
+  return 'solo';
 }
 
 async function getLatestSubscription(base44, tenantId) {
@@ -213,7 +200,7 @@ export async function manageTenantHandler(req) {
     // ─────────────────────────────────────────────
     if (action === 'edit') {
       const nextPlan = normalizePlan(payload.plan || tenant.plan);
-      const selectedPlan = PLAN_MAP[nextPlan] || PLAN_MAP.smartfixos;
+      const selectedPlan = PLAN_MAP[nextPlan] || PLAN_MAP.solo;
       const nextMaxUsers = Number(payload.max_users || tenant?.metadata?.max_users || selectedPlan.max_users) || selectedPlan.max_users;
       const nextMonthlyCost = Number(payload.monthly_cost ?? tenant.monthly_cost ?? selectedPlan.monthly_cost);
       const nextTrialEndDate = payload.trial_end_date || tenant.trial_end_date || null;

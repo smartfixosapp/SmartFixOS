@@ -161,7 +161,7 @@ export default function PaymentActivationScreen({
         </div>
 
         <p className="text-center apple-text-caption1 apple-label-tertiary mt-6 tabular-nums">
-          Se cobrará $49.00 USD/mes. Puedes cancelar en cualquier momento.
+          Se cobrará ${planInfo.price} USD/mes. Puedes cancelar en cualquier momento.
         </p>
       </div>
     </div>
