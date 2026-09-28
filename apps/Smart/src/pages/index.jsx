@@ -71,10 +71,10 @@ function PagesContent() {
         <Route path="/EmpleadoLogin"     element={<EmployeeLogin />} />
         <Route path="/EmpleadoHome"      element={<EmployeeHome />} />
         <Route path="/Empleados"         element={<EmployeesList />} />
-        <Route path="/Financial"         element={<RequireAuth roles={["admin", "super_admin"]}><Layout><Financial /></Layout></RequireAuth>} />
-        <Route path="/Dashboard"         element={<RequireAuth roles={["admin", "super_admin"]}><Layout><Dashboard /></Layout></RequireAuth>} />
-        <Route path="/Orders"            element={<RequireAuth roles={["admin", "super_admin"]}><Layout><Orders /></Layout></RequireAuth>} />
-        <Route path="/Settings"          element={<RequireAuth roles={["admin", "super_admin"]}><Layout><SettingsPage /></Layout></RequireAuth>} />
+        <Route path="/Financial"         element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><Financial /></Layout></RequireAuth>} />
+        <Route path="/Dashboard"         element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><Dashboard /></Layout></RequireAuth>} />
+        <Route path="/Orders"            element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><Orders /></Layout></RequireAuth>} />
+        <Route path="/Settings"          element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><SettingsPage /></Layout></RequireAuth>} />
         <Route path="*"                  element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
