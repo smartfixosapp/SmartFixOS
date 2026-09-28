@@ -39,6 +39,7 @@ const EmployeesList    = lazyWithRetry(() => import("./EmployeesList"));
 const Financial        = lazyWithRetry(() => import("./Financial"));
 const Dashboard        = lazyWithRetry(() => import("./Dashboard"));
 const Orders           = lazyWithRetry(() => import("./Orders"));
+const POS              = lazyWithRetry(() => import("./POS"));
 const SettingsPage     = lazyWithRetry(() => import("./Settings"));
 
 function PageLoader() {
@@ -74,6 +75,7 @@ function PagesContent() {
         <Route path="/Financial"         element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><Financial /></Layout></RequireAuth>} />
         <Route path="/Dashboard"         element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><Dashboard /></Layout></RequireAuth>} />
         <Route path="/Orders"            element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><Orders /></Layout></RequireAuth>} />
+        <Route path="/POS"               element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><POS /></Layout></RequireAuth>} />
         <Route path="/Settings"          element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><SettingsPage /></Layout></RequireAuth>} />
         <Route path="*"                  element={<Navigate to="/" replace />} />
       </Routes>
