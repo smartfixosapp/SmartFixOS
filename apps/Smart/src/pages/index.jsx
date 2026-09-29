@@ -36,7 +36,7 @@ const Login            = lazyWithRetry(() => import("./Login"));
 const EmployeeLogin    = lazyWithRetry(() => import("./EmployeeLogin"));
 const EmployeeHome     = lazyWithRetry(() => import("./EmployeeHome"));
 const EmployeesList    = lazyWithRetry(() => import("./EmployeesList"));
-const Financial        = lazyWithRetry(() => import("./Financial"));
+const Financial        = lazyWithRetry(() => import("./Finanzas"));
 const Dashboard        = lazyWithRetry(() => import("./Dashboard"));
 const Orders           = lazyWithRetry(() => import("./Orders"));
 const POS              = lazyWithRetry(() => import("./POS"));
@@ -80,7 +80,7 @@ function PagesContent() {
         <Route path="/EmpleadoLogin"     element={<EmployeeLogin />} />
         <Route path="/EmpleadoHome"      element={<EmployeeHome />} />
         <Route path="/Empleados"         element={<EmployeesList />} />
-        <Route path="/Financial"         element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><Financial /></Layout></RequireAuth>} />
+        <Route path="/Financial"         element={<RequireAuth roles={["admin", "super_admin", "owner", "contable"]}><Layout><Financial /></Layout></RequireAuth>} />
         <Route path="/Dashboard"         element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><Dashboard /></Layout></RequireAuth>} />
         <Route path="/Orders"            element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><Orders /></Layout></RequireAuth>} />
         <Route path="/Orders/:orderId"   element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><OrderDetailRoute /></Layout></RequireAuth>} />
