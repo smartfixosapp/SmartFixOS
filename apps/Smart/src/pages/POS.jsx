@@ -1,250 +1,720 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Search, Minus, Plus, Trash2, ShoppingCart, Package, Lock } from "lucide-react";
-import { toast } from "sonner";
-import { dataClient } from "@/components/api/dataClient";
-import StockWarningBadge, { canAddToCart } from "@/components/pos/StockWarningBadge";
-import PaymentModal from "@/components/pos/PaymentModal";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { MoreHorizontal, PauseCircle, Wrench, Search, PlusCircle, RefreshCw, History, ScanBarcode, Loader2, Package, Smartphone, ShoppingCart, X, Camera } from "lucide-react";
+import { P, tint, Toast, AlertDialog, Dialog, TextAction } from "@/components/pos/native/posUi";
+import { ProductCard, ContextMenu, Showcase, TipoChips, CategoryChips, QuickRow, SearchBar, CashClosedBanner, ContextStrip, SessionStrip } from "@/components/pos/native/Catalog";
+import { CartPane, CartAdjustments, cartOfferFor } from "@/components/pos/native/Cart";
+import PaymentDialog from "@/components/pos/native/PaymentDialog";
+import ReceiptDialog, { ManagerPinDialog } from "@/components/pos/native/Receipt";
+import { ManualItemDialog, VariantPickerDialog, CustomerSelectorDialog, HeldCartsDialog } from "@/components/pos/native/Dialogs";
+import SalesHistoryDialog from "@/components/pos/native/SalesHistory";
+import OrderPayDialog from "@/components/pos/native/OrderPay";
+import { OpenCashSheet, CloseCashSheet } from "@/components/cash/CashSheets";
+import { fetchTenant, resolveCurrentEmployee } from "@/lib/orderDetailApi";
+import { canCloseCashRegister, isAdminOrOwner, fetchOpenRegister, subscribeToRegisters } from "@/lib/cashRegisterApi";
+import {
+  loadCatalog, loadProducts, recordPosSale, confirmRegisterStillOpen, RegisterClosedError, addLoyaltyPoints, deductStockForSale,
+  restoreStockForSale, voidSaleRow, insertRefundTransaction, fetchCustomer,
+} from "@/lib/posApi";
+import {
+  r2, usd, cartTotals, tenantTaxRate, taxRateLabel, posRecibo, newLineId, filterCatalog, categoriesFor, offerResolution,
+  effectiveUnitPrice, isActive,
+} from "@/lib/posLogic";
+import { methodLabelFor } from "@/components/pos/native/PaymentDialog";
 
-const TILE_COLORS = ["#34C759", "#FF9F0A", "#5AC8FA", "#BF5AF2", "#FF453A", "#FFD60A"];
-function tileColor(id) {
-  let hash = 0;
-  const s = String(id || "");
-  for (let i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) >>> 0;
-  return TILE_COLORS[hash % TILE_COLORS.length];
+function storedTenantId() {
+  try {
+    return localStorage.getItem("smartfix_tenant_id") || "";
+  } catch {
+    return "";
+  }
+}
+
+function readJSON(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function validCart(v) {
+  return Array.isArray(v) ? v.filter((i) => i && typeof i.id === "string" && Number.isFinite(Number(i.quantity)) && Number.isFinite(Number(i.unitPrice))) : [];
+}
+
+function idList(v) {
+  return Array.isArray(v) ? v.filter((x) => typeof x === "string") : [];
+}
+
+function writeJSON(key, value) {
+  try {
+    if (value === null) localStorage.removeItem(key);
+    else localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    return;
+  }
+}
+
+function useIsDesktop() {
+  const q = "(min-width: 1024px)";
+  const [v, setV] = useState(() => typeof window !== "undefined" && window.matchMedia(q).matches);
+  useEffect(() => {
+    const m = window.matchMedia(q);
+    const on = () => setV(m.matches);
+    m.addEventListener("change", on);
+    return () => m.removeEventListener("change", on);
+  }, []);
+  return v;
+}
+
+function ScannerDialog({ open, onClose, onCode }) {
+  const videoRef = useRef(null);
+  const onCodeRef = useRef(onCode);
+  const onCloseRef = useRef(onClose);
+  onCodeRef.current = onCode;
+  onCloseRef.current = onClose;
+  const [unsupported, setUnsupported] = useState(false);
+  const [error, setError] = useState(null);
+  useEffect(() => {
+    if (!open) return undefined;
+    setError(null);
+    const supported = typeof window !== "undefined" && "BarcodeDetector" in window && navigator.mediaDevices?.getUserMedia;
+    setUnsupported(!supported);
+    if (!supported) return undefined;
+    let stream = null;
+    let alive = true;
+    let raf = 0;
+    (async () => {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        const video = videoRef.current;
+        if (!alive || !video) { stream.getTracks().forEach((t) => t.stop()); return; }
+        video.srcObject = stream;
+        await video.play();
+        const detector = new window.BarcodeDetector();
+        const tick = async () => {
+          if (!alive) return;
+          try {
+            const codes = await detector.detect(video);
+            if (codes.length && codes[0].rawValue) {
+              onCodeRef.current(codes[0].rawValue);
+              onCloseRef.current();
+              return;
+            }
+          } catch {
+            alive = alive && true;
+          }
+          raf = requestAnimationFrame(tick);
+        };
+        tick();
+      } catch (e) {
+        setError(e?.message || String(e));
+      }
+    })();
+    return () => {
+      alive = false;
+      cancelAnimationFrame(raf);
+      stream?.getTracks().forEach((t) => t.stop());
+    };
+  }, [open]);
+  return (
+    <Dialog open={open} onClose={onClose} title="Escanear código de barras" width={520} leading={<TextAction onClick={onClose}>Cancelar</TextAction>} trailing={null}>
+      {unsupported ? (
+        <div className="flex flex-col items-center text-center" style={{ padding: 24, gap: 10 }}>
+          <Camera className="w-10 h-10" style={{ color: P.ter }} />
+          <p style={{ fontSize: 15, color: P.sub }}>Este navegador no lee códigos con la cámara. Usa un lector de código de barras conectado o escribe el código en la búsqueda y presiona Enter.</p>
+        </div>
+      ) : (
+        <div className="flex flex-col" style={{ gap: 10 }}>
+          <video ref={videoRef} playsInline muted style={{ width: "100%", borderRadius: 14, background: "#000", aspectRatio: "4 / 3", objectFit: "cover" }} />
+          {error && <p style={{ fontSize: 13, color: P.danger }}>{error}</p>}
+        </div>
+      )}
+    </Dialog>
+  );
 }
 
 export default function POS() {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [cart, setCart] = useState([]);
-  const [showPayment, setShowPayment] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isDesktop = useIsDesktop();
+  const tenantId = storedTenantId();
 
-  const loadProducts = useCallback(async () => {
-    try {
-      const rows = await dataClient.entities.Product.list("name", 1000);
-      setProducts(rows || []);
-    } catch (err) {
-      console.error("POS products load error:", err);
-    } finally {
-      setLoading(false);
-    }
+  const [tenant, setTenant] = useState(null);
+  const [employee, setEmployee] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [variants, setVariants] = useState({});
+  const [offers, setOffers] = useState([]);
+  const [register, setRegister] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+
+  const [cart, setCart] = useState(() => (tenantId ? validCart(readJSON(`pos_cart_${tenantId}`, [])) : []));
+  const [recents, setRecents] = useState(() => (tenantId ? idList(readJSON(`pos_recents_${tenantId}`, [])) : []));
+  const [pinned, setPinned] = useState(() => (tenantId ? idList(readJSON(`pos_pinned_${tenantId}`, [])) : []));
+  const [taxEnabled, setTaxEnabled] = useState(true);
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [redeemedPoints, setRedeemedPoints] = useState(0);
+  const [customer, setCustomer] = useState(null);
+  const [notes, setNotes] = useState("");
+  const [heldCarts, setHeldCarts] = useState([]);
+  const [session, setSession] = useState({ count: 0, total: 0, cash: 0, card: 0, ath: 0 });
+
+  const [searchText, setSearchText] = useState("");
+  const [query, setQuery] = useState("");
+  const [tipo, setTipo] = useState("all");
+  const [category, setCategory] = useState(null);
+
+  const [toast, setToast] = useState(null);
+  const [menu, setMenu] = useState(null);
+  const [showcase, setShowcase] = useState(null);
+  const [outOfStock, setOutOfStock] = useState(null);
+  const [variantProduct, setVariantProduct] = useState(null);
+  const [dialog, setDialog] = useState(null);
+  const [pendingDiscount, setPendingDiscount] = useState(null);
+  const [discountNonce, setDiscountNonce] = useState(0);
+  const [lastSale, setLastSale] = useState(null);
+  const lastDeltasRef = useRef({});
+  const toastTimer = useRef(null);
+  const searchRef = useRef(null);
+
+  const isAdmin = isAdminOrOwner(employee);
+  const taxRate = tenantTaxRate(tenant);
+  const taxLabel = taxRateLabel(tenant);
+  const totals = useMemo(() => cartTotals({ cart, taxEnabled, discountAmount, customer }), [cart, taxEnabled, discountAmount, customer]);
+
+  const showToast = useCallback((message, isError = false) => {
+    setToast({ message, isError, id: Date.now() });
+    clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 2200);
   }, []);
 
+  useEffect(() => () => clearTimeout(toastTimer.current), []);
+
+  useEffect(() => { if (tenantId) writeJSON(`pos_cart_${tenantId}`, cart.length ? cart : null); }, [cart, tenantId]);
+
   useEffect(() => {
-    loadProducts();
-  }, [loadProducts]);
+    const t = setTimeout(() => setQuery(searchText), searchText ? 250 : 0);
+    return () => clearTimeout(t);
+  }, [searchText]);
 
-  const filteredProducts = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return products;
-    return products.filter(
-      (p) =>
-        p.name?.toLowerCase().includes(q) ||
-        p.sku?.toLowerCase().includes(q) ||
-        p.barcode?.toLowerCase().includes(q)
-    );
-  }, [products, search]);
-
-  const addToCart = (product) => {
-    const qtyInCart = cart.find((c) => c.id === product.id)?.quantity || 0;
-    const check = canAddToCart(product, 1, qtyInCart);
-    if (!check.allowed) {
-      toast.error(check.message);
-      return;
+  const load = useCallback(async () => {
+    if (!tenantId) return;
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const c = await loadCatalog(tenantId);
+      setProducts(c.products);
+      setVariants(c.variants);
+      setOffers(c.offers);
+      setRegister(c.register);
+    } catch (e) {
+      setLoadError(e?.message || String(e));
     }
-    setCart((prev) => {
-      const existing = prev.find((c) => c.id === product.id);
-      if (existing) {
-        return prev.map((c) => (c.id === product.id ? { ...c, quantity: c.quantity + 1 } : c));
-      }
-      return [
-        ...prev,
-        {
-          id: product.id,
-          name: product.name,
-          price: Number(product.price || 0),
-          quantity: 1,
-          taxable: product.taxable !== false,
-        },
-      ];
+    setLoading(false);
+  }, [tenantId]);
+
+  const silentReload = useCallback(async () => {
+    const rows = await loadProducts(tenantId).catch(() => null);
+    if (rows) setProducts(rows);
+  }, [tenantId]);
+
+  const refreshRegister = useCallback(async () => {
+    const r = await fetchOpenRegister(tenantId).catch(() => undefined);
+    if (r !== undefined) setRegister(r);
+  }, [tenantId]);
+
+  useEffect(() => {
+    if (!tenantId) return;
+    load();
+    fetchTenant(tenantId).then(setTenant).catch(() => {});
+    resolveCurrentEmployee(tenantId).then(setEmployee).catch(() => {});
+  }, [tenantId, load]);
+
+  useEffect(() => {
+    if (!tenantId) return undefined;
+    const off = subscribeToRegisters(tenantId, refreshRegister);
+    const onChanged = () => refreshRegister();
+    window.addEventListener("cash-register-changed", onChanged);
+    return () => { off(); window.removeEventListener("cash-register-changed", onChanged); };
+  }, [tenantId, refreshRegister]);
+
+  useEffect(() => {
+    const id = new URLSearchParams(location.search).get("customer");
+    if (!id || !tenantId) return;
+    fetchCustomer(tenantId, id).then((c) => { if (c) setCustomer(c); }).catch(() => {});
+  }, [location.search, tenantId]);
+
+  const filtered = useMemo(() => filterCatalog({ products, tipo, category, query }), [products, tipo, category, query]);
+  const categories = useMemo(() => categoriesFor(products, tipo), [products, tipo]);
+  const offersById = useMemo(() => {
+    const map = {};
+    filtered.forEach((p) => { const r = offerResolution(p, offers); if (r) map[p.id] = r; });
+    return map;
+  }, [filtered, offers]);
+  const cartIndex = useMemo(() => {
+    const m = {};
+    cart.forEach((i) => { if (i.productId) m[i.productId] = (m[i.productId] || 0) + i.quantity; });
+    return m;
+  }, [cart]);
+  const quantityFor = (p) => cartIndex[p.id] || 0;
+  const activeById = useMemo(() => {
+    const m = {};
+    products.forEach((p) => { if (isActive(p)) m[p.id] = p; });
+    return m;
+  }, [products]);
+  const recentProducts = recents.map((id) => activeById[id]).filter(Boolean);
+  const pinnedProducts = pinned.map((id) => activeById[id]).filter(Boolean);
+  const hasOutOfStock = cart.some((i) => i.productId && products.find((p) => p.id === i.productId && Number(p.stock) === 0 && p.stock !== null && p.stock !== ""));
+
+  const bumpRecent = (id) => {
+    setRecents((prev) => {
+      const next = [id, ...prev.filter((x) => x !== id)].slice(0, 5);
+      writeJSON(`pos_recents_${tenantId}`, next);
+      return next;
     });
   };
 
-  const updateQty = (id, delta) => {
-    setCart((prev) =>
-      prev
-        .map((c) => (c.id === id ? { ...c, quantity: c.quantity + delta } : c))
-        .filter((c) => c.quantity > 0)
+  const togglePin = (product) => {
+    setPinned((prev) => {
+      const next = prev.includes(product.id) ? prev.filter((x) => x !== product.id) : [product.id, ...prev];
+      writeJSON(`pos_pinned_${tenantId}`, next);
+      return next;
+    });
+  };
+
+  const addToCart = (product) => {
+    const vars = variants[product.id];
+    if (vars && vars.length) { setVariantProduct(product); return; }
+    const rate = product.taxable !== false ? taxRate : 0;
+    const unit = effectiveUnitPrice(product, offers);
+    setCart((prev) => {
+      const idx = prev.findIndex((i) => i.productId === product.id && !i.variantId);
+      if (idx >= 0) return prev.map((i, k) => (k === idx ? { ...i, quantity: i.quantity + 1 } : i));
+      return [...prev, { id: newLineId(), productId: product.id, productName: product.name, quantity: 1, unitPrice: unit, taxRate: rate, discountPercent: 0, variantId: null }];
+    });
+    bumpRecent(product.id);
+  };
+
+  const addVariant = (product, variant) => {
+    const rate = product.taxable !== false ? taxRate : 0;
+    const unit = variant.price !== null && variant.price !== undefined && variant.price !== "" ? Number(variant.price) : effectiveUnitPrice(product, offers);
+    setCart((prev) => {
+      const idx = prev.findIndex((i) => i.variantId === variant.id);
+      if (idx >= 0) return prev.map((i, k) => (k === idx ? { ...i, quantity: i.quantity + 1 } : i));
+      return [...prev, { id: newLineId(), productId: product.id, productName: `${product.name} — ${variant.label}`, quantity: 1, unitPrice: unit, taxRate: rate, discountPercent: 0, variantId: variant.id }];
+    });
+    bumpRecent(product.id);
+  };
+
+  const addManual = ({ name, price, quantity, taxable }) => {
+    setCart((prev) => [...prev, { id: newLineId(), productId: null, productName: name, quantity, unitPrice: price, taxRate: taxable ? taxRate : 0, discountPercent: 0, variantId: null }]);
+  };
+
+  const updateLine = (id, fn) => setCart((prev) => prev.map((i) => (i.id === id ? fn(i) : i)));
+  const decrement = (id) => setCart((prev) => {
+    const it = prev.find((i) => i.id === id);
+    if (!it) return prev;
+    return it.quantity <= 1 ? prev.filter((i) => i.id !== id) : prev.map((i) => (i.id === id ? { ...i, quantity: i.quantity - 1 } : i));
+  });
+  const removeLine = (id) => setCart((prev) => prev.filter((i) => i.id !== id));
+  const lineFor = (product) => cart.find((i) => i.productId === product.id);
+
+  const clearCart = () => {
+    setCart([]);
+    setDiscountAmount(0);
+    setRedeemedPoints(0);
+    setNotes("");
+    setCustomer(null);
+  };
+
+  const applyDiscount = (amount) => {
+    if (!(amount > 0) || !(totals.subtotal > 0)) {
+      setDiscountAmount(Math.max(0, amount || 0));
+      return;
+    }
+    const withinLimit = Math.round((amount + totals.memberDiscount) * 100) * 100 <= Math.round(totals.subtotal * 100) * 20;
+    if (isAdmin || withinLimit) setDiscountAmount(amount);
+    else { setPendingDiscount(amount); setDialog("discountPin"); }
+  };
+
+  const redeem = () => {
+    const points = Number(customer?.loyalty_points) || 0;
+    const base = Math.max(0, totals.subtotal + totals.taxAmount - totals.memberDiscount);
+    const maxDollars = Math.min(points / 100, base);
+    if (!(maxDollars > 0)) return;
+    const dollars = Math.floor(maxDollars * 100) / 100;
+    setDiscountAmount(dollars);
+    setRedeemedPoints(Math.round(dollars * 100));
+  };
+
+  const holdCart = () => {
+    if (!cart.length) return;
+    setHeldCarts((prev) => [{ id: newLineId(), savedAt: new Date(), items: cart, discount: discountAmount, taxEnabled, notes, customer }, ...prev].slice(0, 3));
+    clearCart();
+    showToast("Carrito en pausa");
+  };
+
+  const resumeCart = (held) => {
+    setHeldCarts((prev) => {
+      let next = prev.filter((h) => h.id !== held.id);
+      if (cart.length) next = [{ id: newLineId(), savedAt: new Date(), items: cart, discount: discountAmount, taxEnabled, notes, customer }, ...next];
+      return next.slice(0, 3);
+    });
+    setCart(held.items);
+    setDiscountAmount(held.discount);
+    setTaxEnabled(held.taxEnabled);
+    setNotes(held.notes);
+    setCustomer(held.customer);
+    setDialog(null);
+  };
+
+  const handleScannedCode = (code, fromSearch = false) => {
+    const trimmed = String(code || "").trim();
+    if (!trimmed) return;
+    const lower = trimmed.toLowerCase();
+    const product = products.find((p) => String(p.sku || "").toLowerCase() === lower || String(p.barcode || "").toLowerCase() === lower);
+    if (product) {
+      addToCart(product);
+      showToast(`✓ ${product.name} añadido`);
+      setSearchText("");
+    } else if (!fromSearch || !/\s/.test(trimmed)) {
+      if (fromSearch && filtered.length > 0) return;
+      showToast(`Código "${trimmed}" no está en el catálogo`, true);
+    }
+  };
+
+  const onSearchChange = (v) => {
+    setSearchText(v);
+    const trimmed = v.trim();
+    if (trimmed.length < 4) return;
+    const lower = trimmed.toLowerCase();
+    const product = products.find((p) => isActive(p) && String(p.sku || "").toLowerCase() === lower);
+    if (product) {
+      addToCart(product);
+      showToast(`✓ ${product.name} añadido`);
+      setSearchText("");
+    }
+  };
+
+  const processSale = async ({ payments, customLabel, split }) => {
+    if (!register) throw new Error("No hay caja registradora abierta. Abre una caja antes de procesar ventas.");
+    if (!tenantId) throw new Error("Sesion expirada");
+    if (!cart.length) throw new Error("El carrito está vacío");
+    if (!payments.length) throw new Error("Sin métodos de pago");
+    const total = totals.total;
+    const totalReceived = r2(payments.reduce((s, p) => s + p.amount, 0));
+    let changeDue = 0;
+    if (split) {
+      const hasCash = payments.some((p) => p.method === "cash");
+      const nonCash = r2(payments.filter((p) => p.method !== "cash").reduce((s, p) => s + p.amount, 0));
+      if (!hasCash && totalReceived < total) throw new Error("El monto recibido no cubre el total");
+      if (Math.round(nonCash * 100) > Math.round(total * 100)) throw new Error("Card/ATH no pueden exceder el total");
+      changeDue = Math.max(0, r2(totalReceived - total));
+    } else {
+      changeDue = payments[0].method === "cash" && !customLabel ? Math.max(0, r2(payments[0].amount - total)) : 0;
+    }
+    const primary = payments.reduce((a, b) => (b.amount > a.amount ? b : a), payments[0]);
+    const snapshot = {
+      items: cart,
+      subtotal: totals.subtotal,
+      taxAmount: totals.taxAmount,
+      discount: totals.totalDiscount,
+      total,
+      method: primary.method,
+      customLabel: split ? null : customLabel,
+      methodLabel: !split && customLabel ? customLabel : methodLabelFor(primary.method),
+      amountReceived: split ? totalReceived : primary.method === "cash" && !customLabel ? payments[0].amount : total,
+      changeDue,
+      customer,
+      occurredAt: new Date(),
+      saleId: null,
+    };
+    try {
+      await confirmRegisterStillOpen(register);
+    } catch (e) {
+      if (e instanceof RegisterClosedError) refreshRegister();
+      throw e;
+    }
+    const employeeName = employee?.full_name || "";
+    const cartSnapshot = cart;
+    const { saleId } = await recordPosSale({
+      tenantId, register, cart, totals, payments, customLabel: split ? null : customLabel, changeDue, employeeName,
+      customerId: customer?.id || null, notes: notes.trim() ? notes : null,
+    });
+    snapshot.saleId = saleId;
+    if (customer?.id) {
+      await addLoyaltyPoints(customer.id, tenantId, Math.round(total));
+      if (redeemedPoints > 0) await addLoyaltyPoints(customer.id, tenantId, -redeemedPoints);
+    }
+    lastDeltasRef.current = {};
+    deductStockForSale({ items: cartSnapshot, products, tenantId, employeeName }).then((d) => { lastDeltasRef.current = d; silentReload(); }, () => silentReload());
+    setSession((s) => {
+      const next = { ...s, count: s.count + 1, total: r2(s.total + total) };
+      if (split) payments.forEach((p) => {
+        if (p.method === "cash") next.cash = r2(next.cash + p.amount);
+        else if (p.method === "card") next.card = r2(next.card + p.amount);
+        else next.ath = r2(next.ath + p.amount);
+      });
+      else if (primary.method === "cash") next.cash = r2(next.cash + total);
+      else if (primary.method === "card") next.card = r2(next.card + total);
+      else next.ath = r2(next.ath + total);
+      return next;
+    });
+    clearCart();
+    const pr = posRecibo(tenant);
+    if (pr.sendEmail || pr.sendWhatsApp || pr.sendPrint) {
+      setLastSale(snapshot);
+      setDialog("receipt");
+      return { showReceipt: true };
+    }
+    showToast("Venta completada");
+    return { showReceipt: false };
+  };
+
+  const voidLastSale = async (reason) => {
+    const sale = lastSale;
+    if (!sale || !register) { setDialog(null); return; }
+    const employeeName = employee?.full_name || "";
+    const reasonText = `Venta anulada — ${reason || "sin motivo especificado"}`;
+    try {
+      if (sale.saleId) await voidSaleRow({ saleId: sale.saleId, reason: reasonText, byName: employeeName, byId: employee?.id || null });
+      await insertRefundTransaction({ tenantId, amount: sale.total, paymentMethod: sale.customLabel ? sale.customLabel.toLowerCase() : sale.method, description: reasonText, recordedBy: employeeName });
+      restoreStockForSale({ items: sale.items, products, tenantId, employeeName, deltas: lastDeltasRef.current }).then(silentReload, silentReload);
+      setSession((s) => {
+        const next = { ...s, count: Math.max(0, s.count - 1), total: Math.max(0, r2(s.total - sale.total)) };
+        if (sale.method === "cash") next.cash = Math.max(0, r2(next.cash - sale.total));
+        else if (sale.method === "card") next.card = Math.max(0, r2(next.card - sale.total));
+        else next.ath = Math.max(0, r2(next.ath - sale.total));
+        return next;
+      });
+      setLastSale(null);
+      showToast("Venta anulada");
+    } catch (e) {
+      showToast(`No se pudo anular: ${e?.message || e}`, true);
+    }
+    setDialog((d) => (d === "receipt" ? null : d));
+  };
+
+  const onCashPill = () => {
+    if (!canCloseCashRegister({ register, employee, tenant })) {
+      showToast("Solo el dueño, un administrador o quien abrió la caja puede cerrarla.", true);
+      return;
+    }
+    setDialog("closeCash");
+  };
+
+  const cardFor = (product) => {
+    const line = lineFor(product);
+    return (
+      <ProductCard
+        key={product.id}
+        product={product}
+        quantity={quantityFor(product)}
+        isPinned={pinned.includes(product.id)}
+        offer={offersById[product.id]}
+        onAdd={() => addToCart(product)}
+        onIncrement={() => line && updateLine(line.id, (i) => ({ ...i, quantity: i.quantity + 1 }))}
+        onDecrement={() => line && decrement(line.id)}
+        onRemove={() => line && removeLine(line.id)}
+        onPin={() => togglePin(product)}
+        onOutOfStock={(proceed) => setOutOfStock({ proceed })}
+        onShowcase={() => setShowcase(product.id)}
+        openMenu={setMenu}
+      />
     );
   };
 
-  const removeFromCart = (id) => setCart((prev) => prev.filter((c) => c.id !== id));
+  const emptyState = (() => {
+    const device = tipo === "device";
+    const title = query ? "Sin resultados" : device ? "Sin dispositivos" : "Sin productos";
+    const sub = query
+      ? `Sin coincidencias para "${query}". Para servicios sueltos usa el menú "…" → Añadir item manual.`
+      : device ? "Añade dispositivos desde Inventario y clasifícalos como 'Dispositivo'." : "Añade accesorios o dispositivos desde Ajustes → Inventario.";
+    const Icon = device ? Smartphone : Package;
+    return (
+      <div className="flex flex-col items-center text-center" style={{ padding: "60px 20px", gap: 8 }}>
+        <Icon className="w-10 h-10" style={{ color: P.ter }} />
+        <p style={{ fontSize: 17, fontWeight: 600 }}>{title}</p>
+        <p style={{ fontSize: 14, color: P.sub, maxWidth: 420 }}>{sub}</p>
+      </div>
+    );
+  })();
 
-  const cartSubtotal = cart.reduce((sum, c) => sum + c.price * c.quantity, 0);
-
-  const handlePaymentSuccess = async () => {
-    try {
-      await Promise.all(
-        cart.map((item) => {
-          const product = products.find((p) => p.id === item.id);
-          if (!product || typeof product.stock !== "number") return Promise.resolve();
-          const newStock = Math.max(0, Number(product.stock) - item.quantity);
-          return dataClient.entities.Product.update(item.id, { stock: newStock });
-        })
-      );
-    } catch (err) {
-      console.error("Stock update error:", err);
-      toast.error("Venta cobrada, pero hubo un problema actualizando el inventario.");
-    }
-    setCart([]);
-    setShowPayment(false);
-    toast.success("Venta completada");
-    loadProducts();
+  const openMoreMenu = (e) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const items = [];
+    if (cart.length) items.push({ label: "Poner carrito en pausa", Icon: PauseCircle, onPress: holdCart }, { divider: true });
+    items.push({ label: "Cobrar a orden existente", Icon: Wrench, onPress: () => setDialog("orderPay") });
+    items.push({ label: "Buscar orden", Icon: Search, onPress: () => navigate("/Orders") });
+    items.push({ label: "Añadir item manual", Icon: PlusCircle, onPress: () => setDialog("manual") });
+    items.push({ label: "Recargar catálogo", Icon: RefreshCw, onPress: load });
+    items.push({ divider: true });
+    items.push({ label: "Historial de transacciones", Icon: History, onPress: () => setDialog("history") });
+    setMenu({ x: r.right - 240, y: r.bottom + 6, items });
   };
 
-  return (
-    <div className="apple-type min-h-dvh pb-16" style={{ background: "#000", color: "#fff" }}>
-      <div className="app-container pt-6 pb-3">
-        <h1 className="apple-text-title1 font-bold text-center" style={{ color: "#fff" }}>Punto de Venta</h1>
+  const adjustments = (
+    <CartAdjustments
+      resetKey={discountNonce}
+      taxEnabled={taxEnabled}
+      onTaxToggle={setTaxEnabled}
+      taxLabel={taxLabel}
+      discountAmount={discountAmount}
+      onApplyDiscount={applyDiscount}
+      onClearDiscount={() => setDiscountAmount(0)}
+      subtotal={totals.subtotal}
+      customer={customer}
+      redeemedPoints={redeemedPoints}
+      onRedeem={redeem}
+      onClearRedeem={() => { setDiscountAmount(0); setRedeemedPoints(0); }}
+      notes={notes}
+      onNotes={setNotes}
+    />
+  );
+
+  const cartPane = (
+    <CartPane
+      cart={cart}
+      totals={totals}
+      taxLabel={taxLabel}
+      customer={customer}
+      discountAmount={discountAmount}
+      onCustomer={() => setDialog("customer")}
+      onClear={clearCart}
+      offerFor={(item) => cartOfferFor(item, products, offerResolution, offers)}
+      rowProps={(item) => ({
+        onIncrement: () => updateLine(item.id, (i) => ({ ...i, quantity: i.quantity + 1 })),
+        onDecrement: () => decrement(item.id),
+        onRemove: () => removeLine(item.id),
+        onPrice: (v) => updateLine(item.id, (i) => ({ ...i, unitPrice: Math.max(0, v) })),
+        onQty: (n) => updateLine(item.id, (i) => ({ ...i, quantity: Math.max(1, n) })),
+        onDiscount: (v) => updateLine(item.id, (i) => ({ ...i, discountPercent: Math.max(0, Math.min(100, v)) })),
+      })}
+      onManualItem={() => setDialog("manual")}
+      adjustments={adjustments}
+      hasOutOfStock={hasOutOfStock}
+      onCharge={() => setDialog("payment")}
+    />
+  );
+
+  const catalog = (
+    <div className="flex flex-col" style={{ gap: 12 }}>
+      {!register && !loading && <CashClosedBanner onOpen={() => setDialog("openCash")} />}
+      <ContextStrip register={register} customer={customer} onCashPill={onCashPill} onCustomer={() => setDialog("customer")} onClearCustomer={() => setCustomer(null)} />
+      <SessionStrip stats={session} />
+      <SearchBar value={searchText} onChange={onSearchChange} onSubmit={() => handleScannedCode(searchText, true)} onScan={() => setDialog("scanner")} inputRef={searchRef} />
+      <TipoChips tipo={tipo} onChange={(t) => { setTipo(t); setCategory(null); }} />
+      <CategoryChips categories={categories} selected={category} onChange={setCategory} />
+      {!searchText && <QuickRow kind="favorites" products={pinnedProducts} quantityFor={quantityFor} onAdd={addToCart} />}
+      {!searchText && <QuickRow kind="recents" products={recentProducts} quantityFor={quantityFor} onAdd={addToCart} />}
+      {loadError && <p style={{ fontSize: 13, color: P.danger }}>{loadError}</p>}
+      {loading ? (
+        <div className="flex justify-center" style={{ padding: 60 }}><Loader2 className="w-7 h-7 animate-spin" style={{ color: P.sub }} /></div>
+      ) : filtered.length === 0 ? emptyState : (
+        <div className="grid" style={{ gap: 10, gridTemplateColumns: `repeat(auto-fill, minmax(${isDesktop ? 180 : 150}px, 1fr))`, paddingTop: 8 }}>
+          {filtered.map(cardFor)}
+        </div>
+      )}
+    </div>
+  );
+
+  const header = (
+    <div className="flex items-center justify-between" style={{ padding: "10px 0" }}>
+      <button onClick={() => setDialog("scanner")} aria-label="Escanear código de barras" className="apple-press" style={{ width: 40, height: 40, borderRadius: 999, color: P.brand, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <ScanBarcode className="w-6 h-6" />
+      </button>
+      <p style={{ fontSize: 17, fontWeight: 600 }}>Punto de Venta</p>
+      <div className="flex items-center gap-1">
+        {heldCarts.length > 0 && (
+          <button onClick={() => setDialog("held")} aria-label={`${heldCarts.length} carritos en pausa`} className="apple-press relative" style={{ width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", color: P.warning }}>
+            <PauseCircle className="w-6 h-6" />
+            <span className="absolute" style={{ top: 4, right: 2, minWidth: 16, height: 16, padding: "0 3px", borderRadius: 999, background: P.danger, color: "#fff", fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{heldCarts.length}</span>
+          </button>
+        )}
+        <button onClick={openMoreMenu} aria-label="Más opciones" title="Cobrar a orden, item manual, recargar catálogo, historial" className="apple-press" style={{ width: 40, height: 40, borderRadius: 999, color: P.brand, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <MoreHorizontal className="w-6 h-6" />
+        </button>
       </div>
+    </div>
+  );
 
-      <div className="app-container flex flex-col lg:flex-row gap-4">
-        <div className="flex-1 min-w-0">
-          <div style={{ position: "relative", marginBottom: 12 }}>
-            <Search className="w-4 h-4" style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "rgba(255,255,255,0.4)" }} />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar producto, SKU…"
-              className="apple-type w-full h-11"
-              style={{ borderRadius: 999, paddingLeft: 40, paddingRight: 16, background: "rgba(255,255,255,0.06)", color: "#fff", border: "none", outline: "none", fontSize: 14 }}
-            />
+  return (
+    <div className="apple-type" style={{ background: P.bg, color: P.text, minHeight: "100dvh" }}>
+      {isDesktop ? (
+        <div className="flex" style={{ height: "calc(100dvh - 88px)" }}>
+          <div className="flex-1 min-w-0 overflow-y-auto" style={{ padding: "0 20px 24px" }}>
+            {header}
+            {catalog}
           </div>
-
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-            <div style={{ padding: "6px 14px", borderRadius: 999, background: "rgba(52,199,89,0.12)", border: "1px solid rgba(52,199,89,0.3)", display: "flex", alignItems: "center", gap: 6 }}>
-              <Lock className="w-3 h-3" style={{ color: "#34C759" }} />
-              <span style={{ fontSize: 13, color: "#34C759", fontWeight: 700 }}>${cartSubtotal.toFixed(2)}</span>
-            </div>
-            <div style={{ padding: "6px 14px", borderRadius: 999, background: "rgba(255,255,255,0.06)", fontSize: 13, color: "rgba(255,255,255,0.55)" }}>
-              Sin cliente
-            </div>
-          </div>
-
-          {loading ? (
-            <div className="text-center py-16" style={{ color: "rgba(255,255,255,0.4)" }}>Cargando productos…</div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {filteredProducts.map((product) => {
-                const qtyInCart = cart.find((c) => c.id === product.id)?.quantity || 0;
-                const outOfStock = typeof product.stock === "number" && product.stock <= 0;
-                const color = tileColor(product.id);
-                return (
-                  <button
-                    key={product.id}
-                    onClick={() => addToCart(product)}
-                    disabled={outOfStock}
-                    className="apple-press text-left disabled:opacity-40 disabled:cursor-not-allowed"
-                    style={{ borderRadius: 16, background: "rgba(255,255,255,0.05)", padding: 10, display: "flex", flexDirection: "column", gap: 8, border: "none", cursor: "pointer" }}
-                  >
-                    <div style={{ height: 84, borderRadius: 12, background: `${color}24`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <Package className="w-6 h-6" style={{ color }} />
-                    </div>
-                    <span style={{ fontSize: 17, fontWeight: 800, color: "#FF6A3D" }}>
-                      ${Number(product.price || 0).toFixed(2)}
-                    </span>
-                    <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)" }} className="line-clamp-2">
-                      {product.name}
-                    </span>
-                    <StockWarningBadge product={product} requestedQty={qtyInCart + 1} />
-                  </button>
-                );
-              })}
-              {filteredProducts.length === 0 && (
-                <div className="col-span-full text-center py-16" style={{ color: "rgba(255,255,255,0.4)" }}>
-                  Sin resultados
-                </div>
-              )}
-            </div>
+          <div style={{ width: 380, borderLeft: `0.5px solid ${P.sep}`, flexShrink: 0 }}>{cartPane}</div>
+        </div>
+      ) : (
+        <div style={{ padding: "0 16px 190px" }}>
+          {header}
+          {catalog}
+          {cart.length > 0 && (
+            <button onClick={() => setDialog("cart")} aria-label={`Ver carrito, ${totals.itemCount} items, total ${usd(totals.total)}`}
+              className="apple-press fixed left-4 right-4 flex items-center justify-between"
+              style={{ bottom: "calc(100px + env(safe-area-inset-bottom, 0px))", zIndex: 95, padding: "16px 20px", borderRadius: 18, background: P.brand, color: "#fff", fontSize: 16, fontWeight: 700, boxShadow: `0 10px 30px ${tint(P.brand, 0.4)}` }}>
+              <span className="flex items-center gap-2"><ShoppingCart className="w-5 h-5" /> {totals.itemCount} items</span>
+              <span>{usd(totals.total)}</span>
+            </button>
           )}
         </div>
+      )}
 
-        <div className="w-full lg:w-80 shrink-0">
-          <div style={{ borderRadius: 18, background: "rgba(255,255,255,0.05)", padding: 16, position: "sticky", top: 16 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-              <ShoppingCart className="w-4 h-4" style={{ color: "rgba(255,255,255,0.6)" }} />
-              <h2 style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>Carrito</h2>
-            </div>
+      <Dialog open={!isDesktop && dialog === "cart"} onClose={() => setDialog(null)} title={`Carrito (${totals.itemCount})`} width={560} height="90dvh" bodyPadding="0"
+        leading={<TextAction onClick={() => setDialog(null)}><X className="w-5 h-5" /></TextAction>}
+        trailing={cart.length ? <TextAction color="#FF453A" onClick={() => { clearCart(); setDialog(null); }}>Vaciar</TextAction> : null}>
+        <div style={{ height: "100%" }}>{cartPane}</div>
+      </Dialog>
 
-            {cart.length === 0 ? (
-              <p className="text-center py-8" style={{ fontSize: 14, color: "rgba(255,255,255,0.4)" }}>
-                Toca un producto para agregarlo
-              </p>
-            ) : (
-              <div className="flex flex-col gap-2 mb-4 max-h-[50vh] overflow-y-auto">
-                {cart.map((item) => (
-                  <div key={item.id} className="flex items-center gap-2">
-                    <div className="flex-1 min-w-0">
-                      <p style={{ fontSize: 13, fontWeight: 700, color: "#fff" }} className="truncate">{item.name}</p>
-                      <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }} className="tabular-nums">
-                        ${item.price.toFixed(2)} c/u
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => updateQty(item.id, -1)}
-                      className="w-6 h-6 rounded-full flex items-center justify-center apple-press"
-                      style={{ background: "rgba(255,255,255,0.08)" }}
-                    >
-                      <Minus className="w-3 h-3" style={{ color: "#fff" }} />
-                    </button>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }} className="w-5 text-center tabular-nums">
-                      {item.quantity}
-                    </span>
-                    <button
-                      onClick={() => updateQty(item.id, 1)}
-                      className="w-6 h-6 rounded-full flex items-center justify-center apple-press"
-                      style={{ background: "rgba(255,255,255,0.08)" }}
-                    >
-                      <Plus className="w-3 h-3" style={{ color: "#fff" }} />
-                    </button>
-                    <button
-                      onClick={() => removeFromCart(item.id)}
-                      className="w-6 h-6 rounded-full flex items-center justify-center apple-press"
-                      style={{ color: "#FF453A" }}
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="flex items-center justify-between pt-3 mb-3" style={{ borderTop: "0.5px solid rgba(255,255,255,0.12)" }}>
-              <span style={{ fontSize: 14, color: "rgba(255,255,255,0.6)" }}>Subtotal</span>
-              <span style={{ fontSize: 20, fontWeight: 800, color: "#fff" }} className="tabular-nums">${cartSubtotal.toFixed(2)}</span>
-            </div>
-
-            <button
-              onClick={() => setShowPayment(true)}
-              disabled={cart.length === 0}
-              className="apple-btn apple-btn-lg w-full disabled:opacity-40"
-              style={{ background: "#FF5722", color: "#fff" }}
-            >
-              Cobrar
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <PaymentModal
-        open={showPayment}
-        onClose={() => setShowPayment(false)}
-        subtotal={cartSubtotal}
-        items={cart}
-        onSuccess={handlePaymentSuccess}
+      <ContextMenu menu={menu} onClose={() => setMenu(null)} />
+      {showcase && <Showcase products={filtered} offersById={offersById} startId={showcase} onClose={() => setShowcase(null)} />}
+      <AlertDialog
+        open={!!outOfStock}
+        title="Sin stock disponible"
+        message="No hay unidades en inventario para este producto."
+        onClose={() => setOutOfStock(null)}
+        actions={[{ label: "Continuar de todas formas", destructive: true, onPress: () => outOfStock?.proceed() }, { label: "Cancelar", bold: true }]}
       />
+      <VariantPickerDialog product={variantProduct} variants={variantProduct ? variants[variantProduct.id] : []} onClose={() => setVariantProduct(null)} onPick={(v) => addVariant(variantProduct, v)} />
+      <ManualItemDialog open={dialog === "manual"} onClose={() => setDialog(null)} onAdd={addManual} />
+      <CustomerSelectorDialog open={dialog === "customer"} tenantId={tenantId} selected={customer} onClose={() => setDialog(null)} onSelect={setCustomer} />
+      <HeldCartsDialog open={dialog === "held"} heldCarts={heldCarts} onClose={() => setDialog(null)} onResume={resumeCart} onDiscard={(h) => setHeldCarts((prev) => prev.filter((x) => x.id !== h.id))} />
+      <ManagerPinDialog open={dialog === "discountPin"} reason="Autorizar descuento mayor al 20%" tenantId={tenantId} onClose={() => { setDialog(null); setPendingDiscount(null); setDiscountNonce((n) => n + 1); }}
+        onAuthorized={() => { if (pendingDiscount !== null) setDiscountAmount(pendingDiscount); setPendingDiscount(null); }} />
+      <PaymentDialog
+        open={dialog === "payment"}
+        onClose={() => setDialog((d) => (d === "payment" ? null : d))}
+        cart={cart}
+        totals={totals}
+        discountAmount={discountAmount}
+        taxLabel={taxLabel}
+        customer={customer}
+        tenant={tenant}
+        products={products}
+        onAddUpsell={addToCart}
+        processSale={processSale}
+      />
+      <ReceiptDialog
+        open={dialog === "receipt"}
+        sale={lastSale}
+        tenant={tenant}
+        tenantId={tenantId}
+        isAdmin={isAdmin}
+        onDone={() => { setLastSale(null); showToast("Venta completada"); setDialog(null); }}
+        onVoid={voidLastSale}
+      />
+      <SalesHistoryDialog open={dialog === "history"} tenantId={tenantId} tenant={tenant} isAdmin={isAdmin} employee={employee} onClose={() => setDialog(null)} />
+      <OrderPayDialog open={dialog === "orderPay"} onClose={() => setDialog(null)} tenantId={tenantId} tenant={tenant} employee={employee} onPaid={(msg) => showToast(msg)} />
+      <ScannerDialog open={dialog === "scanner"} onClose={() => setDialog(null)} onCode={handleScannedCode} />
+      <OpenCashSheet open={dialog === "openCash"} onClose={() => setDialog(null)} tenantId={tenantId} tenant={tenant} employee={employee} onOpened={(r) => setRegister(r)} />
+      <CloseCashSheet open={dialog === "closeCash"} onClose={() => setDialog(null)} register={register} tenantId={tenantId} tenant={tenant} employee={employee}
+        onClosed={() => setRegister(null)} onAlreadyClosed={refreshRegister} />
+      <Toast toast={toast} />
     </div>
   );
 }
