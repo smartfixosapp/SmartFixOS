@@ -80,6 +80,15 @@ export function TenantProvider({ children }) {
       setIsSuperAdmin(superAdmin);
 
       if (superAdmin) {
+        if (user.tenant_id) {
+          const own = await dataClient.entities.Tenant.get(user.tenant_id).catch(() => null);
+          if (own?.id) {
+            setCurrentTenant(own);
+            tenantRef.current = own;
+            setLoading(false);
+            return;
+          }
+        }
         const tenants = await dataClient.entities.Tenant.filter({ status: "active" });
         if (tenants?.length) {
           setCurrentTenant(tenants[0]);

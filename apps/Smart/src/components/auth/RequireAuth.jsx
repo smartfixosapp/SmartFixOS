@@ -15,6 +15,28 @@ import { useNavigate, useLocation } from "react-router-dom";
 import appClient from "@/api/appClient";
 import { PageSpinner } from "@/components/ui/spinner";
 
+function pinTenantScope(tenantId) {
+  if (!tenantId) return;
+  try {
+    localStorage.setItem("smartfix_tenant_id", tenantId);
+    localStorage.setItem("current_tenant_id", tenantId);
+    const sessionTenant = (raw) => {
+      try {
+        const s = raw ? JSON.parse(raw) : null;
+        return s?.tenant_id || s?.user?.tenant_id || s?.session?.tenant_id || null;
+      } catch {
+        return null;
+      }
+    };
+    const emp = localStorage.getItem("employee_session");
+    if (emp && sessionTenant(emp) !== tenantId) localStorage.removeItem("employee_session");
+    const legacy = sessionStorage.getItem("911-session");
+    if (legacy && sessionTenant(legacy) !== tenantId) sessionStorage.removeItem("911-session");
+  } catch {
+    return;
+  }
+}
+
 export default function RequireAuth({ children, roles }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -29,6 +51,7 @@ export default function RequireAuth({ children, roles }) {
           setState("denied");
           return;
         }
+        pinTenantScope(user?.tenant_id);
         setState("ok");
       })
       .catch(() => {
