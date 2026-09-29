@@ -47,6 +47,7 @@ import RefundModal from "./RefundModal";
 import { openWhatsApp, makeCall } from "@/components/utils/helpers";
 import { sendTemplatedEmail } from "@/api/functions";
 import { navigateToPOS } from "../utils/posNavigation";
+import { tenantBrandName } from "@/lib/tenantBrand";
 
 const statusColors = {
   intake: "bg-blue-500/20 text-blue-400 border-blue-500/30",
@@ -174,7 +175,7 @@ export default function OrderDetailDialog({ order, open, onClose, onOrderUpdated
   };
 
   const handleWhatsApp = () => {
-    const message = `Hola ${editedOrder.customer_name}, te contactamos de 911 SmartFix sobre tu orden ${editedOrder.order_number}`;
+    const message = `Hola ${editedOrder.customer_name}, te contactamos de ${tenantBrandName()} sobre tu orden ${editedOrder.order_number}`;
     openWhatsApp(editedOrder.customer_phone, message);
   };
 

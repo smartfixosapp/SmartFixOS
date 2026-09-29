@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { base44 } from "@/api/base44Client";
+import { tenantBrandName } from "@/lib/tenantBrand";
 
 export default function ThermalSaleReceipt({ sale, customer, onClose, autoPrint = false }) {
   const [terms, setTerms] = useState("");
@@ -212,7 +213,7 @@ export default function ThermalSaleReceipt({ sale, customer, onClose, autoPrint 
                 {pc.footer_text || '¡Gracias por su compra!'}
               </div>
               <div style={{ fontSize: '7pt', textAlign: 'center', marginTop: '2mm', color: '#555' }}>
-                Atendido por: {sale.employee || '911 Smart Fix'}
+                Atendido por: {sale.employee || tenantBrandName()}
               </div>
             </div>
           );

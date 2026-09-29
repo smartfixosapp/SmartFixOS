@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { User, Phone, Mail, MessageSquare, History } from "lucide-react";
 import { openWhatsApp } from "../utils/helpers";
 import { logWorkOrderContactEvent } from "@/components/workorder/utils/auditEvents";
+import { tenantBrandName } from "@/lib/tenantBrand";
 
 export default function ClientInfoCard({ order, compact = false, onViewHistory }) {
   if (!order) return null;
@@ -30,7 +31,7 @@ export default function ClientInfoCard({ order, compact = false, onViewHistory }
       channel: "whatsapp",
       target: order.customer_phone
     });
-    openWhatsApp(order.customer_phone, `Hola ${order.customer_name}, te escribimos de 911 SmartFix sobre tu orden ${order.order_number}.`);
+    openWhatsApp(order.customer_phone, `Hola ${order.customer_name}, te escribimos de ${tenantBrandName()} sobre tu orden ${order.order_number}.`);
   };
 
   const handleEmailClick = (e) => {

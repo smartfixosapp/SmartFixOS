@@ -1,5 +1,6 @@
 import { base44 } from "@/api/base44Client";
 import { formatPhoneE164 } from "@/utils";
+import { tenantBrandName } from "@/lib/tenantBrand";
 
 /**
  * Servicio para enviar SMS a clientes
@@ -173,7 +174,7 @@ class SMSService {
       return { success: false, error: "No phone number" };
     }
 
-    const message = `🎉 ¡Buenas noticias de 911 SmartFix!
+    const message = `🎉 ¡Buenas noticias de ${tenantBrandName()}!
 
 Su ${order.device_brand} ${order.device_model} está listo para recoger.
 
@@ -200,7 +201,7 @@ Traiga esta orden al recoger.
       return { success: false, error: "Auto-send disabled" };
     }
 
-    const message = `📅 Recordatorio de 911 SmartFix
+    const message = `📅 Recordatorio de ${tenantBrandName()}
 
 Hola ${customerName},
 
@@ -231,7 +232,7 @@ Si necesita reagendar, llámenos al (787) 123-4567.
       return { success: false, error: "No phone number" };
     }
 
-    const message = `📱 Actualización - 911 SmartFix
+    const message = `📱 Actualización - ${tenantBrandName()}
 
 Orden: ${order.order_number}
 Cliente: ${order.customer_name}
@@ -255,7 +256,7 @@ Para más detalles, llámenos al (787) 123-4567.`;
       return { success: false, error: "SMS disabled" };
     }
 
-    const message = `🎁 ¡Oferta Especial! - 911 SmartFix
+    const message = `🎁 ¡Oferta Especial! - ${tenantBrandName()}
 
 Hola ${customerName},
 
@@ -317,7 +318,7 @@ Para cancelar SMS, responde STOP.`;
       return { success: false, error: "No phone number" };
     }
 
-    const message = `✅ Orden Recibida - 911 SmartFix
+    const message = `✅ Orden Recibida - ${tenantBrandName()}
 
 Gracias ${order.customer_name}!
 

@@ -11,6 +11,7 @@ import { upsertLocalOrder } from "@/components/utils/localOrderCache";
 import { upsertLocalSale, upsertLocalTransactions } from "@/components/utils/localFinancialCache";
 import { DollarSign, CreditCard, Smartphone, MoreHorizontal } from "lucide-react";
 import { useDeviceDetection } from "../utils/useDeviceDetection";
+import { tenantBrandName } from "@/lib/tenantBrand";
 
 const PROMOS = {
   "VERANO10": { type: "percent", value: 10 },
@@ -188,7 +189,7 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
           if (currentOrder.customer_email) {
             try {
               const emailBody = `
-                <h2>${paymentMode === "deposit" ? "Depósito Registrado" : "Recibo de Pago"} - 911 SmartFix</h2>
+                <h2>${paymentMode === "deposit" ? "Depósito Registrado" : "Recibo de Pago"} - ${tenantBrandName()}</h2>
                 <p><strong>Orden:</strong> ${currentOrder.order_number}</p>
                 <p><strong>Cliente:</strong> ${currentOrder.customer_name}</p>
                 <p><strong>Método de pago:</strong> ${paymentMethod}</p>

@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { tenantBrandName } from "@/lib/tenantBrand";
 
 /**
  * Servicio para exportar reportes a CSV y PDF
@@ -194,7 +195,7 @@ class ExportService {
 </head>
 <body>
   <div class="header">
-    <div class="logo">911 SmartFix</div>
+    <div class="logo">${tenantBrandName()}</div>
     <div class="title">${title}</div>
     <div class="subtitle">${subtitle || ""}</div>
   </div>

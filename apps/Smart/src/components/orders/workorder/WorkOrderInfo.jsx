@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { openWhatsApp, makeCall } from '@/components/utils/helpers';
 import { base44 } from '@/api/base44Client';
+import { tenantBrandName } from "@/lib/tenantBrand";
 
 const getDeviceIcon = (type) => {
   switch (type) {
@@ -72,7 +73,7 @@ export default function WorkOrderInfoHeader({ order, assignedUser, onUpdate }) {
               onClick={() =>
                 openWhatsApp(
                   order.customer_phone,
-                  `Hola ${order.customer_name}, te escribimos de 911 SmartFix sobre tu orden ${order.order_number}.`
+                  `Hola ${order.customer_name}, te escribimos de ${tenantBrandName()} sobre tu orden ${order.order_number}.`
                 )
               }
               className="flex items-center gap-1.5 hover:text-green-400"

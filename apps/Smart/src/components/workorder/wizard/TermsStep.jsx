@@ -2,10 +2,12 @@ import React from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { tenantBrandName } from "@/lib/tenantBrand";
 
 export default function TermsStep({ formData, updateFormData, config }) {
+  const brand = tenantBrandName();
   const termsText = config?.terms_text?.es || `
-    <h3>Términos y Condiciones - 911 SmartFix Puerto Rico</h3>
+    <h3>Términos y Condiciones - ${brand}</h3>
 
     <p>1. El cliente autoriza la reparación del equipo descrito en esta orden.</p>
 
@@ -13,11 +15,11 @@ export default function TermsStep({ formData, updateFormData, config }) {
 
     <p>3. El tiempo estimado de reparación es solo una estimación y puede variar según disponibilidad de piezas.</p>
 
-    <p>4. 911 SmartFix no se hace responsable por pérdida de datos. Se recomienda hacer respaldo antes de entregar el equipo.</p>
+    <p>4. ${brand} no se hace responsable por pérdida de datos. Se recomienda hacer respaldo antes de entregar el equipo.</p>
 
     <p>5. Las reparaciones tienen garantía de 30 días en mano de obra. Las piezas tienen garantía del fabricante.</p>
 
-    <p>6. Si el equipo no es recogido en 60 días después de completada la reparación, 911 SmartFix se reserva el derecho de disponer del equipo.</p>
+    <p>6. Si el equipo no es recogido en 60 días después de completada la reparación, ${brand} se reserva el derecho de disponer del equipo.</p>
 
     <p>7. Al firmar esta orden, el cliente acepta todos los términos y condiciones aquí descritos.</p>
   `;
