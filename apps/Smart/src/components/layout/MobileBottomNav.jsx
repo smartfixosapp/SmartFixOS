@@ -191,17 +191,6 @@ export default function MobileBottomNav() {
         className="liquid-glass-floating relative flex items-center justify-around px-1 h-[64px] w-full"
         style={{ borderRadius: "28px" }}
       >
-        {/* Sliding indicator bar — CSS transition con % del pill */}
-        <div
-          className="absolute bottom-[10px] h-[3px] rounded-full pointer-events-none"
-          style={{
-            background: "rgb(var(--apple-orange))",
-            width: "28px",
-            left: `calc(${tabs.findIndex(t => t.id === activeTab)} * 20% + 10% - 14px)`,
-            transition: "left 280ms cubic-bezier(0.34,1.56,0.64,1)",
-          }}
-        />
-
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           const Icon     = tab.icon;
@@ -211,17 +200,21 @@ export default function MobileBottomNav() {
             <button
               key={tab.id}
               onClick={() => handleTabClick(tab)}
-              className="relative z-10 flex flex-col items-center justify-center gap-[5px] flex-1 h-full focus:outline-none active:scale-[0.92] transition-transform duration-[80ms]"
+              className="relative z-10 flex flex-col items-center justify-center gap-[3px] flex-1 h-[46px] mx-0.5 focus:outline-none active:scale-[0.92] transition-all duration-200"
               aria-label={tab.label}
               aria-current={isActive ? "page" : undefined}
-              style={{ WebkitTapHighlightColor: "transparent" }}
+              style={{
+                WebkitTapHighlightColor: "transparent",
+                borderRadius: "20px",
+                background: isActive ? "rgb(var(--apple-orange))" : "transparent",
+              }}
             >
-              {/* Icon — sin ningún fondo, solo color */}
+              {/* Icon */}
               <div className="relative">
                 <Icon
-                  className="w-[23px] h-[23px]"
+                  className="w-[19px] h-[19px]"
                   style={{
-                    color: isActive ? "rgb(var(--apple-orange))" : "rgba(150,150,165,0.7)",
+                    color: isActive ? "#fff" : "rgba(150,150,165,0.7)",
                     transition: "color 180ms ease",
                   }}
                   strokeWidth={isActive ? 2.2 : 1.6}
@@ -233,10 +226,10 @@ export default function MobileBottomNav() {
 
               {/* Label */}
               <span
-                className="text-[10.5px] leading-none transition-all duration-200"
+                className="text-[10px] leading-none transition-all duration-200"
                 style={{
-                  color: isActive ? "rgb(var(--apple-orange))" : "rgba(150,150,165,0.7)",
-                  fontWeight: isActive ? 600 : 400,
+                  color: isActive ? "#fff" : "rgba(150,150,165,0.7)",
+                  fontWeight: isActive ? 700 : 400,
                 }}
               >
                 {tab.label}

@@ -63,12 +63,12 @@ function AreaTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
     <div style={{
-      background: "rgba(18,12,40,0.96)",
-      border: "1px solid rgba(139,92,246,0.35)",
+      background: "rgba(10,10,10,0.96)",
+      border: "1px solid rgba(255,87,34,0.35)",
       borderRadius: 10, padding: "8px 12px", fontSize: 12,
     }}>
       <p style={{ color: "rgba(255,255,255,0.4)", marginBottom: 3 }}>{label}</p>
-      <p style={{ color: "#c4b5fd", fontWeight: 700, fontSize: 15 }}>
+      <p style={{ color: "#FF8A65", fontWeight: 700, fontSize: 15 }}>
         {currency(payload[0]?.value)}
       </p>
     </div>
@@ -185,7 +185,7 @@ function ExecutiveDashboardImpl() {
   // ── Loading skeleton ──────────────────────────────────────────────
   if (loading) return (
     <div className="space-y-3 animate-pulse">
-      <div className="h-36 rounded-2xl" style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.12)" }} />
+      <div className="h-36 rounded-2xl" style={{ background: "rgba(255,87,34,0.08)", border: "1px solid rgba(255,87,34,0.12)" }} />
       <div className="h-44 rounded-2xl" style={{ background: "rgba(255,255,255,0.03)" }} />
       <div className="grid grid-cols-2 gap-3">
         {[1,2,3,4].map(i => <div key={i} className="h-20 rounded-2xl" style={{ background: "rgba(255,255,255,0.03)" }} />)}
@@ -198,7 +198,7 @@ function ExecutiveDashboardImpl() {
   const mainValue = period === "today" ? data.incToday : period === "week" ? data.incWeek : data.incMonth;
   const periodLabel = { today: "Hoy", week: "7 días", month: "Este mes" }[period];
 
-  const TECH_COLORS = ["#8b5cf6", "#7c3aed", "#6d28d9", "#5b21b6", "#4c1d95"];
+  const TECH_COLORS = ["#FF5722", "#FF7A45", "#FF8A65", "#FFAB91", "#FFCCBC"];
 
   return (
     <div className="space-y-4">
@@ -207,14 +207,14 @@ function ExecutiveDashboardImpl() {
       <div
         className="rounded-2xl p-5 relative overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, rgba(109,40,217,0.22) 0%, rgba(79,70,229,0.12) 55%, rgba(12,10,28,0.7) 100%)",
-          border: "1px solid rgba(139,92,246,0.22)",
+          background: "linear-gradient(135deg, rgba(255,87,34,0.20) 0%, rgba(255,87,34,0.08) 55%, rgba(0,0,0,0.7) 100%)",
+          border: "1px solid rgba(255,87,34,0.25)",
         }}
       >
         {/* decorative glow */}
         <div
           className="absolute -top-10 -right-10 w-40 h-40 rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(139,92,246,0.28) 0%, transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, rgba(255,87,34,0.28) 0%, transparent 70%)" }}
         />
 
         <div className="relative">
@@ -230,9 +230,9 @@ function ExecutiveDashboardImpl() {
                 onClick={() => setPeriod(key)}
                 className="px-3 py-1 rounded-full text-xs font-semibold transition-all"
                 style={{
-                  background: period === key ? "rgba(139,92,246,0.85)" : "rgba(255,255,255,0.06)",
+                  background: period === key ? "#FF5722" : "rgba(255,255,255,0.06)",
                   color:      period === key ? "#fff" : "rgba(255,255,255,0.4)",
-                  border: `1px solid ${period === key ? "rgba(167,139,250,0.4)" : "rgba(255,255,255,0.06)"}`,
+                  border: `1px solid ${period === key ? "rgba(255,138,92,0.4)" : "rgba(255,255,255,0.06)"}`,
                 }}
               >
                 {label}
@@ -241,7 +241,7 @@ function ExecutiveDashboardImpl() {
             <button
               onClick={() => navigate("/Financial")}
               className="ml-auto flex items-center gap-0.5 text-xs font-semibold"
-              style={{ color: "rgba(196,181,253,0.75)" }}
+              style={{ color: "rgba(255,158,122,0.9)" }}
             >
               Detalle <ChevronRight className="w-3 h-3" />
             </button>
@@ -255,7 +255,7 @@ function ExecutiveDashboardImpl() {
             <span
               className="text-4xl font-extrabold tabular-nums leading-none"
               style={{
-                background: "linear-gradient(90deg, #ede9fe 0%, #c4b5fd 50%, #818cf8 100%)",
+                background: "linear-gradient(90deg, #ffe8d9 0%, #ffb088 50%, #FF5722 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -292,7 +292,7 @@ function ExecutiveDashboardImpl() {
               </div>
               <div>
                 <p className="text-[10px] uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}>Completadas</p>
-                <p className="text-sm font-bold" style={{ color: "#c4b5fd" }}>{data.completionRate}%</p>
+                <p className="text-sm font-bold" style={{ color: "#FF8A65" }}>{data.completionRate}%</p>
               </div>
             </div>
           )}
@@ -309,8 +309,8 @@ function ExecutiveDashboardImpl() {
             <AreaChart data={activeSeries} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
               <defs>
                 <linearGradient id="fg" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="#8b5cf6" stopOpacity={0.38} />
-                  <stop offset="92%" stopColor="#8b5cf6" stopOpacity={0}    />
+                  <stop offset="5%"  stopColor="#FF5722" stopOpacity={0.38} />
+                  <stop offset="92%" stopColor="#FF5722" stopOpacity={0}    />
                 </linearGradient>
               </defs>
               <CartesianGrid stroke="rgba(255,255,255,0.04)" vertical={false} />
@@ -329,11 +329,11 @@ function ExecutiveDashboardImpl() {
               <Area
                 type="monotone"
                 dataKey="value"
-                stroke="#8b5cf6"
+                stroke="#FF5722"
                 strokeWidth={2.2}
                 fill="url(#fg)"
                 dot={false}
-                activeDot={{ r: 4.5, fill: "#c4b5fd", stroke: "#160d30", strokeWidth: 2 }}
+                activeDot={{ r: 4.5, fill: "#FF8A65", stroke: "#000", strokeWidth: 2 }}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -347,9 +347,9 @@ function ExecutiveDashboardImpl() {
             label: "Órdenes activas",
             value: data.activas, suffix: "",
             Icon: Zap,
-            color:  "#818cf8",
-            bg:     "rgba(129,140,248,0.1)",
-            border: "rgba(129,140,248,0.18)",
+            color:  "#5AC8FA",
+            bg:     "rgba(90,200,250,0.1)",
+            border: "rgba(90,200,250,0.18)",
             onClick: () => navigate("/Orders"),
           },
           {
@@ -411,7 +411,7 @@ function ExecutiveDashboardImpl() {
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <Wrench className="w-3.5 h-3.5" style={{ color: "rgba(139,92,246,0.8)" }} />
+              <Wrench className="w-3.5 h-3.5" style={{ color: "rgba(255,87,34,0.8)" }} />
               <span className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.7)" }}>
                 Top técnicos
               </span>
@@ -433,8 +433,8 @@ function ExecutiveDashboardImpl() {
                   tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 11 }} axisLine={false} tickLine={false} />
                 <Tooltip
                   contentStyle={{
-                    background: "rgba(18,12,40,0.96)",
-                    border: "1px solid rgba(139,92,246,0.3)",
+                    background: "rgba(10,10,10,0.96)",
+                    border: "1px solid rgba(255,87,34,0.3)",
                     borderRadius: 10, fontSize: 12,
                   }}
                   cursor={{ fill: "rgba(255,255,255,0.02)" }}
@@ -464,7 +464,7 @@ function ExecutiveDashboardImpl() {
             <button
               onClick={() => navigate("/Orders")}
               className="flex items-center gap-0.5 text-xs font-semibold transition-colors"
-              style={{ color: "rgba(196,181,253,0.75)" }}
+              style={{ color: "rgba(255,158,122,0.9)" }}
             >
               Ver todas <ChevronRight className="w-3 h-3" />
             </button>
@@ -495,7 +495,7 @@ function ExecutiveDashboardImpl() {
                   {/* Avatar */}
                   <div
                     className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold"
-                    style={{ background: "rgba(139,92,246,0.18)", color: "#c4b5fd" }}
+                    style={{ background: "rgba(255,87,34,0.18)", color: "#FF8A65" }}
                   >
                     {initials}
                   </div>
