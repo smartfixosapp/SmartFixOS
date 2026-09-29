@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { ORDER_STATUSES, getEffectiveOrderStatus, getStatusConfig } from "@/components/utils/statusRegistry";
+import { ORDER_STATUS, statusInfo } from "@/lib/orderStatus";
 import { Smartphone } from "lucide-react";
 
 function daysSince(dateStr) {
@@ -84,7 +84,7 @@ export default function OrdersKanban({ orders, onCardClick }) {
   const grouped = useMemo(() => {
     const map = new Map();
     (orders || []).forEach((o) => {
-      const st = getEffectiveOrderStatus(o);
+      const st = o.status || "intake";
       if (!map.has(st)) map.set(st, []);
       map.get(st).push(o);
     });
@@ -95,7 +95,7 @@ export default function OrdersKanban({ orders, onCardClick }) {
         return da - db;
       });
     });
-    const order = new Map(ORDER_STATUSES.map((s, i) => [s.id, s.order ?? i]));
+    const order = new Map(Object.keys(ORDER_STATUS).map((k, i) => [k, i]));
     return Array.from(map.entries()).sort((a, b) => (order.get(a[0]) ?? 99) - (order.get(b[0]) ?? 99));
   }, [orders]);
 
@@ -110,7 +110,7 @@ export default function OrdersKanban({ orders, onCardClick }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       {grouped.map(([statusId, list]) => {
-        const config = getStatusConfig(statusId);
+        const config = statusInfo(statusId);
         return (
           <div key={statusId} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>

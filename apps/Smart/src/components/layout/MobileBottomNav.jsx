@@ -82,7 +82,8 @@ export default function MobileBottomNav() {
   const navigate    = useNavigate();
   const location    = useLocation();
   const [activeTab, setActiveTab] = useState("home");
-  const { hasPanelsOpen }         = usePanelState();
+  const { hasPanelsOpen: panelsOpen } = usePanelState();
+  const hasPanelsOpen             = panelsOpen || /^\/Orders\/[^/]+/.test(location.pathname);
   const lastPathRef               = useRef(location.pathname);
   const { pendingOrders }         = useBadgeCounts();
 

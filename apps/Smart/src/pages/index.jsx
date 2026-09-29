@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate, useParams } from 'react-router-dom';
 import { PageSpinner } from "@/components/ui/spinner";
 import RequireAuth from "@/components/auth/RequireAuth";
 import Layout from "@/components/layout/Layout";
@@ -43,6 +43,12 @@ const POS              = lazyWithRetry(() => import("./POS"));
 const SettingsPage     = lazyWithRetry(() => import("./Settings"));
 const Inventory        = lazyWithRetry(() => import("./Inventory"));
 const Customers        = lazyWithRetry(() => import("./Customers"));
+const OrderDetail      = lazyWithRetry(() => import("./OrderDetail"));
+
+function OrderDetailRoute() {
+  const { orderId } = useParams();
+  return <OrderDetail key={orderId} />;
+}
 
 function PageLoader() {
   return <PageSpinner />;
@@ -77,6 +83,7 @@ function PagesContent() {
         <Route path="/Financial"         element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><Financial /></Layout></RequireAuth>} />
         <Route path="/Dashboard"         element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><Dashboard /></Layout></RequireAuth>} />
         <Route path="/Orders"            element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><Orders /></Layout></RequireAuth>} />
+        <Route path="/Orders/:orderId"   element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><OrderDetailRoute /></Layout></RequireAuth>} />
         <Route path="/POS"               element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><POS /></Layout></RequireAuth>} />
         <Route path="/Settings"          element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><SettingsPage /></Layout></RequireAuth>} />
         <Route path="/Inventory"         element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><Inventory /></Layout></RequireAuth>} />

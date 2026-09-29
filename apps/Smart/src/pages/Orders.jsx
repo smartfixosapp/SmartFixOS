@@ -1,14 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 import { dataClient } from "@/components/api/dataClient";
-import { getEffectiveOrderStatus, getStatusConfig } from "@/components/utils/statusRegistry";
+import { statusInfo } from "@/lib/orderStatus";
 import OrdersKanban from "@/components/orders/OrdersKanban";
-import OrderDetailDialog from "@/components/orders/OrderDetailDialog";
 
 export default function Orders() {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedOrder, setSelectedOrder] = useState(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
@@ -27,35 +27,45 @@ export default function Orders() {
     loadOrders();
   }, [loadOrders]);
 
-  const handleOrderUpdated = async (updated) => {
-    if (!updated?.id) {
-      const currentId = selectedOrder?.id;
-      await loadOrders();
-      if (currentId) {
-        const fresh = await dataClient.entities.Order.get(currentId).catch(() => null);
-        setSelectedOrder(fresh && !fresh.is_deleted ? fresh : null);
+  const openOrder = (order) => {
+    const seq = (o) => {
+      const raw = String(o?.order_number || "").trim();
+      const dash = raw.indexOf("-");
+      if (dash < 0) return 0;
+      const tail = raw.slice(dash + 1);
+      return /^\d+$/.test(tail) ? parseInt(tail, 10) : 0;
+    };
+    let queueMessage = null;
+    const current = seq(order);
+    if (current > 0) {
+      const blockers = orders
+        .filter((o) => o.id !== order.id && !o.is_deleted && o.status === "intake" && seq(o) > 0 && seq(o) < current)
+        .sort((a, b) => seq(a) - seq(b));
+      if (blockers.length) {
+        const names = blockers.slice(0, 5).map((o) => o.order_number).filter(Boolean).join(", ");
+        queueMessage = blockers.length === 1
+          ? `Tienes 1 orden anterior en Recepción (${names}) — recuerda trabajar en orden si es posible.`
+          : `Tienes ${blockers.length} órdenes anteriores en Recepción (${names}) — recuerda trabajar en orden si es posible.`;
       }
-      return;
     }
-    setOrders((prev) => prev.map((o) => (o.id === updated.id ? { ...o, ...updated } : o)));
-    setSelectedOrder((prev) => (prev && prev.id === updated.id ? { ...prev, ...updated } : prev));
+    navigate(`/Orders/${order.id}`, { state: queueMessage ? { queueMessage } : undefined });
   };
 
   const statusCounts = useMemo(() => {
     const map = new Map();
     orders.forEach((o) => {
-      const st = getEffectiveOrderStatus(o);
+      const st = o.status;
       map.set(st, (map.get(st) || 0) + 1);
     });
     return Array.from(map.entries())
-      .map(([id, count]) => ({ id, count, config: getStatusConfig(id) }))
+      .map(([id, count]) => ({ id, count, config: statusInfo(id) }))
       .sort((a, b) => b.count - a.count);
   }, [orders]);
 
   const filteredOrders = useMemo(() => {
     const q = search.trim().toLowerCase();
     return orders.filter((o) => {
-      if (statusFilter !== "all" && getEffectiveOrderStatus(o) !== statusFilter) return false;
+      if (statusFilter !== "all" && o.status !== statusFilter) return false;
       if (!q) return true;
       return (
         o.customer_name?.toLowerCase().includes(q) ||
@@ -119,16 +129,9 @@ export default function Orders() {
         {loading ? (
           <div className="text-center py-16" style={{ color: "rgba(255,255,255,0.4)" }}>Cargando órdenes…</div>
         ) : (
-          <OrdersKanban orders={filteredOrders} onCardClick={setSelectedOrder} onOrderUpdated={handleOrderUpdated} />
+          <OrdersKanban orders={filteredOrders} onCardClick={openOrder} />
         )}
       </div>
-
-      <OrderDetailDialog
-        order={selectedOrder}
-        open={!!selectedOrder}
-        onClose={() => setSelectedOrder(null)}
-        onOrderUpdated={handleOrderUpdated}
-      />
     </div>
   );
 }
