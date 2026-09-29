@@ -9,7 +9,6 @@ export default function Layout({ children }) {
     const root = document.documentElement;
     root.classList.add("dark", "theme-dark");
     root.classList.remove("theme-light");
-    return () => root.classList.remove("dark", "theme-dark");
   }, []);
 
   return (

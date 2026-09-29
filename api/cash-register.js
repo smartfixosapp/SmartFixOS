@@ -2,6 +2,7 @@ import { sendResendEmail } from '../lib/server/resend.js';
 
 const SB_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://idntuvtabecwubzswpwi.supabase.co';
 const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+const SB_ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || SB_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@archillaos.com';
 const DEFAULT_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png";
 
@@ -12,6 +13,35 @@ function sbH(prefer = 'return=representation') {
     'Authorization': `Bearer ${SB_KEY}`,
     'Prefer': prefer,
   };
+}
+
+async function resolveTenant(req, requestedTenantId) {
+  const header = req.headers?.authorization || req.headers?.Authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
+  if (!token) return { status: 401, error: 'Sesión requerida' };
+
+  const res = await fetch(`${SB_URL}/rest/v1/rpc/get_user_tenants`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SB_ANON_KEY,
+      'Authorization': `Bearer ${token}`,
+    },
+    body: '{}',
+  }).catch(() => null);
+  if (!res || !res.ok) return { status: 401, error: 'Sesión inválida o vencida' };
+
+  const tenants = await res.json().catch(() => []);
+  if (!Array.isArray(tenants) || tenants.length === 0) {
+    return { status: 403, error: 'Tu cuenta no pertenece a ningún taller' };
+  }
+  const match = requestedTenantId
+    ? tenants.find((t) => t.tenant_id === requestedTenantId)
+    : tenants.length === 1
+      ? tenants[0]
+      : null;
+  if (!match) return { status: 403, error: 'No tienes acceso a ese taller' };
+  return { tenantId: match.tenant_id, role: match.role };
 }
 
 function calculateTotal(denominations = {}) {
@@ -105,7 +135,6 @@ function normalizeOrderUpdateChanges(changes = {}) {
     'pos_discount_value',
     'pos_discount_type',
     'pos_discount_applied_total',
-    'tenant_id',
     'updated_date',
     'status',
   ]);
@@ -186,17 +215,15 @@ async function sendCashRegisterEmail({ type, tenantId, drawer, performedBy, diff
   });
 }
 
-async function handleOpen(req, res, body) {
-  const { denominations = {}, user = {}, tenantId = null } = body || {};
+async function handleOpen(req, res, body, tenantId) {
+  const { denominations = {}, user = {} } = body || {};
   const total = calculateTotal(denominations);
   const date = new Date().toISOString().split('T')[0];
   const openedBy = user?.full_name || user?.userName || user?.email || 'Sistema';
   const createdById = user?.id || user?.userId || 'system';
   const createdBy = user?.email || user?.userEmail || openedBy;
 
-  const filter = tenantId
-    ? `status=eq.open&tenant_id=eq.${encodeURIComponent(tenantId)}`
-    : `status=eq.open&tenant_id=is.null`;
+  const filter = `status=eq.open&tenant_id=eq.${encodeURIComponent(tenantId)}`;
   const existing = await sbSelect('cash_register', filter, 'id').catch(() => []);
   if (Array.isArray(existing) && existing.length > 0) {
     return res.status(409).json({ success: false, error: 'Ya existe una caja abierta' });
@@ -243,8 +270,8 @@ async function handleOpen(req, res, body) {
   return res.status(200).json({ success: true, drawer });
 }
 
-async function handleClose(req, res, body) {
-  const { drawerId, denominations = {}, user = {}, summary = {}, tenantId = null } = body || {};
+async function handleClose(req, res, body, tenantId) {
+  const { drawerId, denominations = {}, user = {}, summary = {} } = body || {};
   if (!drawerId) return res.status(400).json({ success: false, error: 'drawerId es requerido' });
 
   const countedTotal = calculateTotal(denominations);
@@ -260,7 +287,7 @@ async function handleClose(req, res, body) {
 
   const [drawer] = await sbPatch(
     'cash_register',
-    `id=eq.${encodeURIComponent(drawerId)}`,
+    `id=eq.${encodeURIComponent(drawerId)}&tenant_id=eq.${encodeURIComponent(tenantId)}`,
     {
       status: 'closed',
       closing_balance: countedTotal,
@@ -309,22 +336,23 @@ async function handleClose(req, res, body) {
     console.warn('cash-register close email warning:', emailError.message);
   }
 
+  if (!drawer) return res.status(404).json({ success: false, error: 'Caja no encontrada' });
   return res.status(200).json({ success: true, drawer, difference });
 }
 
-async function handleRecordSale(req, res, body) {
+async function handleRecordSale(req, res, body, tenantId) {
   const { sale, transactions = [], orderUpdate = null } = body || {};
 
   if (!sale || !Array.isArray(sale.items) || sale.items.length === 0) {
     return res.status(400).json({ success: false, error: 'Payload de venta inválido' });
   }
 
-  const createdSaleRows = await sbInsert('sale', sale);
+  const createdSaleRows = await sbInsert('sale', { ...sale, tenant_id: tenantId });
   const createdSale = Array.isArray(createdSaleRows) ? createdSaleRows[0] : createdSaleRows;
 
   const createdTransactions = [];
   for (const tx of transactions) {
-    const createdTxRows = await sbInsert('transaction', tx);
+    const createdTxRows = await sbInsert('transaction', { ...tx, tenant_id: tenantId });
     createdTransactions.push(Array.isArray(createdTxRows) ? createdTxRows[0] : createdTxRows);
   }
 
@@ -336,7 +364,7 @@ async function handleRecordSale(req, res, body) {
     };
     const updatedOrderRows = await sbPatch(
       'order',
-      `id=eq.${encodeURIComponent(orderUpdate.id)}`,
+      `id=eq.${encodeURIComponent(orderUpdate.id)}&tenant_id=eq.${encodeURIComponent(tenantId)}`,
       safeChanges
     );
     updatedOrder = Array.isArray(updatedOrderRows) ? updatedOrderRows[0] : updatedOrderRows;
@@ -353,7 +381,7 @@ async function handleRecordSale(req, res, body) {
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });
 
@@ -364,9 +392,12 @@ export default async function handler(req, res) {
   try {
     const body = req.body || {};
     const action = String(body?.action || '').toLowerCase();
-    if (action === 'open') return await handleOpen(req, res, body);
-    if (action === 'close') return await handleClose(req, res, body);
-    if (action === 'record_sale') return await handleRecordSale(req, res, body);
+    const requestedTenantId = body?.tenantId || body?.sale?.tenant_id || null;
+    const auth = await resolveTenant(req, requestedTenantId);
+    if (auth.error) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (action === 'open') return await handleOpen(req, res, body, auth.tenantId);
+    if (action === 'close') return await handleClose(req, res, body, auth.tenantId);
+    if (action === 'record_sale') return await handleRecordSale(req, res, body, auth.tenantId);
     return res.status(400).json({ success: false, error: 'Acción inválida' });
   } catch (error) {
     console.error('cash-register error:', error.message);

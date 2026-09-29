@@ -59,6 +59,21 @@ export function TenantProvider({ children }) {
 
   const loadTenantContext = async () => {
     try {
+      let pinned = null;
+      try {
+        pinned = localStorage.getItem("smartfix_tenant_id");
+      } catch {
+        pinned = null;
+      }
+      if (pinned) {
+        const pinnedTenant = await dataClient.entities.Tenant.get(pinned).catch(() => null);
+        if (pinnedTenant?.id) {
+          setCurrentTenant(pinnedTenant);
+          tenantRef.current = pinnedTenant;
+          return;
+        }
+      }
+
       const user = await dataClient.auth.me();
       if (!user?.email) {
         // No auth user — try to load tenant from employee session (PIN login)

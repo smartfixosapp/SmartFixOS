@@ -146,7 +146,7 @@ export default function MobileBottomNav() {
 
   const tabs = [
     { id: "orders",    label: "Órdenes",  icon: ClipboardList, path: "/Orders",    badge: pendingOrders },
-    { id: "pos",       label: "Caja",     icon: Wallet,        path: "/POS" },
+    { id: "pos",       label: "POS",      icon: Wallet,        path: "/POS" },
     { id: "home",      label: "Inicio",   icon: LayoutGrid,    path: "/Dashboard",  isCenter: true },
     { id: "financial", label: "Finanzas", icon: TrendingUp,    path: "/Financial" },
     { id: "settings",  label: "Ajustes",  icon: Settings,      path: "/Settings" },
@@ -206,7 +206,7 @@ export default function MobileBottomNav() {
               style={{
                 WebkitTapHighlightColor: "transparent",
                 borderRadius: "20px",
-                background: isActive ? "rgb(var(--apple-orange))" : "transparent",
+                background: isActive ? "#F2662E" : "transparent",
               }}
             >
               {/* Icon */}

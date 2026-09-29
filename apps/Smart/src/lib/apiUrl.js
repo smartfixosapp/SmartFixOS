@@ -1,4 +1,5 @@
 import { Capacitor } from '@capacitor/core';
+import { supabase } from '../../../../lib/supabase-client.js';
 
 // Cuando la app corre dentro de Capacitor (iOS/Android nativo), las rutas
 // relativas "/api/..." resuelven a capacitor://localhost/api/... — el scheme
@@ -15,6 +16,18 @@ export function apiUrl(path) {
     return `${APP_URL}${normalized}`;
   }
   return normalized;
+}
+
+export async function authJsonHeaders() {
+  const headers = { 'Content-Type': 'application/json' };
+  try {
+    const { data } = await supabase.auth.getSession();
+    const token = data?.session?.access_token;
+    if (token) headers.Authorization = `Bearer ${token}`;
+  } catch {
+    return headers;
+  }
+  return headers;
 }
 
 export function isNativeApp() {

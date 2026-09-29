@@ -1,5 +1,5 @@
 import { dataClient } from "@/components/api/dataClient";
-import { apiUrl } from "@/lib/apiUrl";
+import { apiUrl, authJsonHeaders } from "@/lib/apiUrl";
 
 const LOCAL_DRAWER_KEY = "smartfix_local_open_drawer";
 
@@ -175,7 +175,7 @@ export async function openCashRegister(denominations, user) {
     const tenantId = localStorage.getItem("smartfix_tenant_id") || null;
     const response = await fetch(apiUrl("/api/cash-register"), {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: await authJsonHeaders(),
       body: JSON.stringify({ action: "open", denominations, user, tenantId }),
     });
     const payload = await response.json().catch(() => ({}));
@@ -311,7 +311,7 @@ export async function closeCashRegister(drawer, denominations, user, summaryOver
     const tenantId = localStorage.getItem("smartfix_tenant_id") || null;
     const response = await fetch(apiUrl("/api/cash-register"), {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: await authJsonHeaders(),
       body: JSON.stringify({
         action: "close",
         drawerId: drawer.id,

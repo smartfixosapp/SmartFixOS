@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Settings } from "lucide-react";
 import appClient from "@/api/appClient";
 import ExecutiveDashboard from "@/components/dashboard/ExecutiveDashboard";
+import AccountMenu from "@/components/layout/AccountMenu";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -31,9 +32,7 @@ export default function Dashboard() {
             >
               <Settings className="w-4 h-4" style={{ color: "#fff" }} />
             </button>
-            <div style={{ width: 38, height: 38, borderRadius: 999, background: "#FF5722", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14 }}>
-              {initials}
-            </div>
+            <AccountMenu name={user?.full_name || user?.email || ""} initials={initials} />
           </div>
         </div>
       </div>

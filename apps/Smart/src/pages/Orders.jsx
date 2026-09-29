@@ -14,7 +14,7 @@ export default function Orders() {
 
   const loadOrders = useCallback(async () => {
     try {
-      const rows = await dataClient.entities.Order.list("-updated_date", 500);
+      const rows = await dataClient.entities.Order.filter({ is_deleted: false }, "-updated_date", 500);
       setOrders(rows || []);
     } catch (err) {
       console.error("Orders load error:", err);
@@ -27,7 +27,16 @@ export default function Orders() {
     loadOrders();
   }, [loadOrders]);
 
-  const handleOrderUpdated = (updated) => {
+  const handleOrderUpdated = async (updated) => {
+    if (!updated?.id) {
+      const currentId = selectedOrder?.id;
+      await loadOrders();
+      if (currentId) {
+        const fresh = await dataClient.entities.Order.get(currentId).catch(() => null);
+        setSelectedOrder(fresh && !fresh.is_deleted ? fresh : null);
+      }
+      return;
+    }
     setOrders((prev) => prev.map((o) => (o.id === updated.id ? { ...o, ...updated } : o)));
     setSelectedOrder((prev) => (prev && prev.id === updated.id ? { ...prev, ...updated } : prev));
   };

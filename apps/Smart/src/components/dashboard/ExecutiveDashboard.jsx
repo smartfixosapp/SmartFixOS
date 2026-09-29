@@ -95,7 +95,7 @@ function ExecutiveDashboardImpl() {
       const prevMonth = prevMonthDate.toISOString().slice(0, 7);
 
       const [orders, txs, products, employees] = await Promise.all([
-        dataClient.entities.Order.list("-updated_date", 500),
+        dataClient.entities.Order.filter({ is_deleted: false }, "-updated_date", 500),
         dataClient.entities.Transaction.list("-created_date", 1000),
         dataClient.entities.Product.list("-created_date", 300),
         dataClient.entities.AppEmployee.list("full_name", 50),

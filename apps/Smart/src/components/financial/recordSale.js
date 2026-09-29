@@ -1,5 +1,5 @@
 import { dataClient } from "@/components/api/dataClient";
-import { apiUrl } from "@/lib/apiUrl";
+import { apiUrl, authJsonHeaders } from "@/lib/apiUrl";
 
 export function resolveActiveTenantId() {
   try {
@@ -40,9 +40,10 @@ export async function recordSaleAndTransactions({ sale, transactions = [], order
 
   const response = await fetch(apiUrl("/api/cash-register"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await authJsonHeaders(),
     body: JSON.stringify({
       action: "record_sale",
+      tenantId,
       sale: salePayload,
       transactions: transactionPayloads,
       orderUpdate: orderUpdatePayload,
