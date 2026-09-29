@@ -16,7 +16,7 @@ import ServiceSelectorModal from "@/components/common/ServiceSelectorModal";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { generateOrderNumber } from "@/components/utils/sequenceHelpers";
 import { upsertLocalOrder } from "@/components/utils/localOrderCache";
-import { apiUrl } from "@/lib/apiUrl";
+import { apiUrl, authJsonHeaders } from "@/lib/apiUrl";
 
 const LOCAL_CUSTOMERS_KEY = "smartfix_local_customers";
 
@@ -129,7 +129,7 @@ async function sendAdminNewOrderEmail({ recipients, orderNumber, customerName, d
 
   const response = await fetch(apiUrl("/api/send-raw-email"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await authJsonHeaders(),
     body: JSON.stringify({
       to: emails,
       subject: `Nueva orden ${safeOrder} - ${safeCustomer}`,

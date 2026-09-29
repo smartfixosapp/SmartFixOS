@@ -1,8 +1,8 @@
 import { sendResendEmail } from '../lib/server/resend.js';
+import { requireMember } from '../lib/server/requireMember.js';
 
 const SB_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://idntuvtabecwubzswpwi.supabase.co';
 const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
-const SB_ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || SB_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@archillaos.com';
 const DEFAULT_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png";
 
@@ -13,35 +13,6 @@ function sbH(prefer = 'return=representation') {
     'Authorization': `Bearer ${SB_KEY}`,
     'Prefer': prefer,
   };
-}
-
-async function resolveTenant(req, requestedTenantId) {
-  const header = req.headers?.authorization || req.headers?.Authorization || '';
-  const token = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
-  if (!token) return { status: 401, error: 'Sesión requerida' };
-
-  const res = await fetch(`${SB_URL}/rest/v1/rpc/get_user_tenants`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey': SB_ANON_KEY,
-      'Authorization': `Bearer ${token}`,
-    },
-    body: '{}',
-  }).catch(() => null);
-  if (!res || !res.ok) return { status: 401, error: 'Sesión inválida o vencida' };
-
-  const tenants = await res.json().catch(() => []);
-  if (!Array.isArray(tenants) || tenants.length === 0) {
-    return { status: 403, error: 'Tu cuenta no pertenece a ningún taller' };
-  }
-  const match = requestedTenantId
-    ? tenants.find((t) => t.tenant_id === requestedTenantId)
-    : tenants.length === 1
-      ? tenants[0]
-      : null;
-  if (!match) return { status: 403, error: 'No tienes acceso a ese taller' };
-  return { tenantId: match.tenant_id, role: match.role };
 }
 
 function calculateTotal(denominations = {}) {
@@ -393,7 +364,7 @@ export default async function handler(req, res) {
     const body = req.body || {};
     const action = String(body?.action || '').toLowerCase();
     const requestedTenantId = body?.tenantId || body?.sale?.tenant_id || null;
-    const auth = await resolveTenant(req, requestedTenantId);
+    const auth = await requireMember(req, { requestedTenantId });
     if (auth.error) return res.status(auth.status).json({ success: false, error: auth.error });
     if (action === 'open') return await handleOpen(req, res, body, auth.tenantId);
     if (action === 'close') return await handleClose(req, res, body, auth.tenantId);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { apiUrl } from "@/lib/apiUrl";
+import { apiUrl, authJsonHeaders } from "@/lib/apiUrl";
 import {
   Mail, MessageCircle, Printer, X, Send, Check,
   Loader2, ChevronRight, History, Receipt,
@@ -372,7 +372,7 @@ export default function POSSaleActionsModal({ open, onClose, sale, customer, car
     try {
       const res = await fetch(apiUrl("/api/send-raw-email"), {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: await authJsonHeaders(),
         body: JSON.stringify({
           to: emailAddr,
           subject: `Recibo de venta #${saleNum} — ${bizName}`,

@@ -5,7 +5,7 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { base44 } from "@/api/base44Client";
 import { sendTemplatedEmail } from "@/api/functions";
-import { apiUrl } from "@/lib/apiUrl";
+import { apiUrl, authJsonHeaders } from "@/lib/apiUrl";
 // IA removida del WorkOrder Wizard — solo vive en Finanzas → Órdenes de Compra.
 // Stubs locales: cualquier llamada lanza error que el catch() existente captura
 // silenciosamente, dejando los flujos no-IA intactos (texto profesional, foto análisis,
@@ -89,7 +89,7 @@ async function sendAdminNewOrderEmail({ recipients, orderNumber, customerName, d
 
   const response = await fetch(apiUrl("/api/send-raw-email"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await authJsonHeaders(),
     body: JSON.stringify({
       to: emails,
       subject: `Nueva orden ${safeOrder} - ${safeCustomer}`,
@@ -132,7 +132,7 @@ async function sendTechnicianAssignmentEmail({ recipient, orderNumber, customerN
 
   const response = await fetch(apiUrl("/api/send-raw-email"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await authJsonHeaders(),
     body: JSON.stringify({
       to: [email],
       subject: `Trabajo asignado ${safeOrder} - ${safeCustomer}`,
