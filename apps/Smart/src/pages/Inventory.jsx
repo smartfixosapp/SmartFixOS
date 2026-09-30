@@ -2,6 +2,7 @@
 // iPhone, iPad, MacBook → Pantallas, Baterías, Servicios
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { dataClient } from "@/components/api/dataClient";
 import { Button } from "@/components/ui/button";
@@ -998,6 +999,7 @@ function InventoryItemDialog({
 
 // === Componente principal ===
 export default function Inventory() {
+  const navigate = useNavigate();
   const { checkLimit, upgradeTo } = usePlanLimits();
   const [items, setItems] = useState([]);
   const [poList, setPoList] = useState([]);
@@ -1525,10 +1527,10 @@ export default function Inventory() {
           <h1 style={{ fontSize: 34, fontWeight: 800, letterSpacing: "-0.02em", color: "#fff" }}>Inventario</h1>
 
           <div className="flex flex-wrap items-center gap-2">
-            <button onClick={() => setShowPOMenu(true)} className="apple-press" style={pillStyle}>
+            <button onClick={() => navigate("/Compras")} className="apple-press" style={pillStyle}>
               <Truck className="w-4 h-4" /> Órdenes de compra
             </button>
-            <button onClick={() => setShowSuppliers(true)} className="apple-press" style={pillStyle}>
+            <button onClick={() => navigate("/Compras?suppliers=1")} className="apple-press" style={pillStyle}>
               <Store className="w-4 h-4" /> Proveedores
             </button>
 
