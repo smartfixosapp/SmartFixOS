@@ -101,7 +101,7 @@ export default function RequireAuth({ children, roles }) {
     }
     const list = Array.isArray(tenants) ? tenants : [];
     if (list.length === 0) {
-      setState({ status: "none" });
+      setState({ status: "none", email: sessionData.session.user?.email || "" });
       return;
     }
     let stored = null;
@@ -142,6 +142,11 @@ export default function RequireAuth({ children, roles }) {
         title="Tu cuenta no tiene taller"
         body="Esta cuenta no pertenece a ningún taller. Si eres empleado, pídele al dueño que te agregue. Si eres dueño, registra tu taller."
       >
+        {state.email && (
+          <p className="text-center" style={{ fontSize: 14, color: "#8E8E93" }}>
+            Sesión iniciada como <span style={{ color: "#fff", fontWeight: 600 }}>{state.email}</span>. Si tu taller está en otra cuenta, cierra sesión y entra con ese email.
+          </p>
+        )}
         <SignOutButton />
       </Screen>
     );
