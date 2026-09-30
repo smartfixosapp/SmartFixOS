@@ -12,7 +12,7 @@ const SESSION_KEYS = ["911-session", "current_tenant_id"];
 export function clearTenantScope() {
   try {
     const tid = localStorage.getItem("smartfix_tenant_id");
-    if (tid) localStorage.removeItem(`archilla_app_locked_${tid}`);
+    if (tid) { localStorage.removeItem(`archilla_app_locked_${tid}`); localStorage.removeItem(`archilla_last_active_${tid}`); localStorage.removeItem(`archilla_user_active_${tid}`); }
     LOCAL_KEYS.forEach((k) => localStorage.removeItem(k));
     SESSION_KEYS.forEach((k) => sessionStorage.removeItem(k));
   } catch {

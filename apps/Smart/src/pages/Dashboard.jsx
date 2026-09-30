@@ -213,7 +213,7 @@ export default function Dashboard() {
   const watchdog = today.expenses > 0 && today.net < 0;
 
   const primerosActions = {
-    settings: (section) => navigate(section ? `/Settings?section=${section}` : "/Settings"),
+    settings: (section) => navigate(section ? `/Settings?open=${section}` : "/Settings"),
     inventory: () => navigate("/Inventory"),
     newOrder: () => requestNewOrder(),
     pos: () => navigate("/POS"),

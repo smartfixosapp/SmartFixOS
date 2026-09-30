@@ -12,9 +12,13 @@ import { hasB2bCustomers } from "@/lib/invoicesApi";
 import { ConsolidatedInvoiceDialog, InvoiceHistoryDialog } from "@/components/invoices/InvoiceDialogs";
 import { isMonthlyLimitReached } from "@/lib/inicioApi";
 import { safeTZ } from "@/lib/finance/tz";
+import { hiddenStatusesOf } from "@/lib/tenantSettings";
+import { useBusinessMode } from "@/lib/businessMode";
 
 export default function Orders() {
   const navigate = useNavigate();
+  const businessMode = useBusinessMode();
+  useEffect(() => { if (businessMode === "retail") navigate("/POS", { replace: true }); }, [businessMode, navigate]);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -89,10 +93,12 @@ export default function Orders() {
       const st = o.status;
       map.set(st, (map.get(st) || 0) + 1);
     });
+    const hidden = hiddenStatusesOf(tenant);
     return Array.from(map.entries())
+      .filter(([id]) => !hidden.includes(String(id)))
       .map(([id, count]) => ({ id, count, config: statusInfo(id) }))
       .sort((a, b) => b.count - a.count);
-  }, [orders]);
+  }, [orders, tenant]);
 
   const filteredOrders = useMemo(() => {
     const q = search.trim().toLowerCase();

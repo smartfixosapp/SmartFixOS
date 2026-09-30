@@ -218,9 +218,57 @@ function LockScreen({ tenantId, onUnlock }) {
   );
 }
 
+const NEVER_SECONDS = 86400;
+const COLD_GAP_MS = 15000;
+const secNum = (key, def) => { const n = Number(readLocal(key)); return readLocal(key) === "" || !Number.isFinite(n) ? def : n; };
+const activeKey = (tid) => `archilla_last_active_${tid}`;
+const userKey = (tid) => `archilla_user_active_${tid}`;
+const sharedStamp = (tid) => Number(readLocal(userKey(tid))) || 0;
+
+function useAutoLock(tenantId, locked) {
+  const lastActivity = useRef(Date.now());
+  const lastWrite = useRef(0);
+  const hiddenAt = useRef(null);
+  useEffect(() => {
+    if (!tenantId) return undefined;
+    const write = (key) => { try { localStorage.setItem(key, String(Date.now())); } catch { return; } };
+    const prevStamp = Number(readLocal(activeKey(tenantId))) || 0;
+    if (readLocal("security.lockOnColdLaunch") === "true" && prevStamp && Date.now() - prevStamp > COLD_GAP_MS && !isLockedStored(tenantId)) requestAppLock();
+    write(activeKey(tenantId));
+    const bump = () => {
+      const now = Date.now();
+      lastActivity.current = now;
+      if (now - lastWrite.current > 2000) { lastWrite.current = now; write(userKey(tenantId)); }
+    };
+    const evs = ["pointerdown", "keydown", "touchstart", "wheel", "mousemove"];
+    evs.forEach((e) => window.addEventListener(e, bump, { passive: true }));
+    const tick = setInterval(() => {
+      write(activeKey(tenantId));
+      if (isLockedStored(tenantId)) return;
+      const idle = secNum("security.idleLockSeconds", 1800);
+      const last = Math.max(lastActivity.current, sharedStamp(tenantId));
+      if (idle < NEVER_SECONDS && Date.now() - last >= idle * 1000) requestAppLock();
+    }, 5000);
+    const onVis = () => {
+      if (document.visibilityState === "hidden") { hiddenAt.current = Date.now(); write(activeKey(tenantId)); return; }
+      const leftAt = hiddenAt.current;
+      hiddenAt.current = null;
+      const away = leftAt === null ? 0 : Date.now() - Math.max(leftAt, sharedStamp(tenantId));
+      write(activeKey(tenantId));
+      const bg = secNum("security.backgroundLockSeconds", 900);
+      if (!isLockedStored(tenantId) && leftAt !== null && bg < NEVER_SECONDS && away >= bg * 1000) { requestAppLock(); return; }
+      lastActivity.current = Date.now();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => { evs.forEach((e) => window.removeEventListener(e, bump)); clearInterval(tick); document.removeEventListener("visibilitychange", onVis); };
+  }, [tenantId]);
+  useEffect(() => { if (!locked) lastActivity.current = Date.now(); }, [locked]);
+}
+
 export default function AppLock() {
   const [tenantId, setTenantId] = useState(() => readLocal("smartfix_tenant_id"));
   const [locked, setLocked] = useState(() => isLockedStored(readLocal("smartfix_tenant_id")));
+  useAutoLock(tenantId, locked);
   useEffect(() => {
     const sync = () => {
       const tid = readLocal("smartfix_tenant_id");

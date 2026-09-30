@@ -10,6 +10,7 @@ import {
   Users,
 } from "lucide-react";
 
+import { useBusinessMode } from "@/lib/businessMode";
 const NAV_ITEMS = [
   { id: "orders", icon: ClipboardList, label: "Órdenes", path: "/Orders" },
   { id: "pos", icon: Wallet, label: "POS", path: "/POS" },
@@ -30,6 +31,8 @@ export default function ModernTopNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const activeTab = activeIdFor(location.pathname);
+  const mode = useBusinessMode();
+  const items = mode === "retail" ? NAV_ITEMS.filter((item) => item.id !== "orders") : NAV_ITEMS;
 
   return (
     <div className="apple-type px-4 py-3 sm:py-4">
@@ -37,7 +40,7 @@ export default function ModernTopNav() {
         className="liquid-glass relative rounded-full flex items-center justify-between gap-1 p-1.5 max-w-3xl mx-auto"
         aria-label="Navegación principal"
       >
-        {NAV_ITEMS.map((item) => {
+        {items.map((item) => {
           const isActive = activeTab === item.id;
           const Icon = item.icon;
           return (

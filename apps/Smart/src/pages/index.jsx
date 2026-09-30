@@ -40,7 +40,8 @@ const Financial        = lazyWithRetry(() => import("./Finanzas"));
 const Dashboard        = lazyWithRetry(() => import("./Dashboard"));
 const Orders           = lazyWithRetry(() => import("./Orders"));
 const POS              = lazyWithRetry(() => import("./POS"));
-const SettingsPage     = lazyWithRetry(() => import("./Settings"));
+const SettingsPage     = lazyWithRetry(() => import("./Ajustes"));
+const LegacySettingsPage = lazyWithRetry(() => import("./Settings"));
 const Inventory        = lazyWithRetry(() => import("./Inventory"));
 const Compras          = lazyWithRetry(() => import("./Compras"));
 const Equipo           = lazyWithRetry(() => import("./Equipo"));
@@ -87,10 +88,11 @@ function PagesContent() {
         <Route path="/Orders"            element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><Orders /></Layout></RequireAuth>} />
         <Route path="/Orders/:orderId"   element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><OrderDetailRoute /></Layout></RequireAuth>} />
         <Route path="/POS"               element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><POS /></Layout></RequireAuth>} />
-        <Route path="/Settings"          element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><SettingsPage /></Layout></RequireAuth>} />
+        <Route path="/Settings"          element={<RequireAuth><Layout><SettingsPage /></Layout></RequireAuth>} />
+        <Route path="/SettingsLegacy"    element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><LegacySettingsPage /></Layout></RequireAuth>} />
         <Route path="/Inventory"         element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><Inventory /></Layout></RequireAuth>} />
         <Route path="/Compras"           element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><Compras /></Layout></RequireAuth>} />
-        <Route path="/Equipo"            element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><Equipo /></Layout></RequireAuth>} />
+        <Route path="/Equipo"            element={<RequireAuth><Layout><Equipo /></Layout></RequireAuth>} />
         <Route path="/Customers"         element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><Customers /></Layout></RequireAuth>} />
         <Route path="*"                  element={<Navigate to="/" replace />} />
       </Routes>

@@ -9,6 +9,7 @@ import {
   Settings
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useBusinessMode } from "@/lib/businessMode";
 import { usePanelState } from "@/components/utils/panelContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { triggerHaptic } from "@/lib/capacitor";
@@ -79,6 +80,7 @@ function Badge({ count }) {
 }
 
 export default function MobileBottomNav() {
+  const businessMode = useBusinessMode();
   const navigate    = useNavigate();
   const location    = useLocation();
   const [activeTab, setActiveTab] = useState("home");
@@ -146,7 +148,7 @@ export default function MobileBottomNav() {
   };
 
   const tabs = [
-    { id: "orders",    label: "Órdenes",  icon: ClipboardList, path: "/Orders",    badge: pendingOrders },
+    ...(businessMode === "retail" ? [] : [{ id: "orders",    label: "Órdenes",  icon: ClipboardList, path: "/Orders",    badge: pendingOrders }]),
     { id: "pos",       label: "POS",      icon: Wallet,        path: "/POS" },
     { id: "home",      label: "Inicio",   icon: LayoutGrid,    path: "/Dashboard",  isCenter: true },
     { id: "financial", label: "Finanzas", icon: TrendingUp,    path: "/Financial" },
