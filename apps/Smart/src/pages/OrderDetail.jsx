@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { ChevronLeft, MessageSquare, Pencil, MoreHorizontal, Trash2, Zap, Info, History, Check, X, AlertTriangle, Loader2, Hand } from "lucide-react";
+import { ChevronLeft, MessageSquare, Pencil, MoreHorizontal, Trash2, Zap, Info, History, Check, X, AlertTriangle, Loader2, Hand, CalendarClock } from "lucide-react";
 import { statusInfo } from "@/lib/orderStatus";
 import {
   fetchOrder, fetchTenant, changeStatusRpc, patchOrder, logActivity, addInternalNote, addCustomerAdvisories,
@@ -32,6 +32,12 @@ import {
 import { CashClosedSheet, CobrarMenuSheet, QuickPaySheet, DepositsSheet, RefundSheet } from "@/components/orderDetail/Money";
 import { OpenCashSheet } from "@/components/cash/CashSheets";
 import OrderChatSheet from "@/components/orderDetail/OrderChat";
+import { PartsModule, JobCostCard } from "@/components/orderDetail/Parts";
+import { DocumentsSheet, DocumentShareSheet } from "@/components/orderDetail/Documents";
+import ScheduleVisitSheet from "@/components/orderDetail/ScheduleVisit";
+import { OrderTasksCard } from "@/components/tareas/Tasks";
+import { buildReceiptPDF, buildQuotePDF, printLabel, labelsEnabled } from "@/lib/orderDocs";
+import { CloseDraftDialog } from "@/components/compras/PODetail";
 import { findOpenRegister, recordOrderPayment, addDeposit, editDeposit, deleteDeposit, recordOrderRefund } from "@/lib/orderMoneyApi";
 
 function useIsDesktop() {
@@ -68,6 +74,9 @@ export default function OrderDetail() {
 
   const [order, setOrder] = useState(null);
   const [tenant, setTenant] = useState(null);
+  const [costTick, setCostTick] = useState(0);
+  const [docBusy, setDocBusy] = useState(null);
+  const [docShare, setDocShare] = useState(null);
   const [employee, setEmployee] = useState(null);
   const [technicians, setTechnicians] = useState([]);
   const [emails, setEmails] = useState([]);
@@ -532,10 +541,34 @@ export default function OrderDetail() {
       }
       return refreshEmails();
     }
+    if (key === "documents") return setSheet({ name: "documents" });
     if (key === "security") return setSheet({ name: "security" });
     if (key === "tech") return setSheet({ name: "tech" });
     return undefined;
   }, [tenant, toast, reload, refreshEmails, requireRegister, attempt]);
+
+  const payParamDone = useRef(false);
+  useEffect(() => {
+    if (payParamDone.current || !order || !tenant) return;
+    if (new URLSearchParams(location.search).get("pay") === "1") {
+      payParamDone.current = true;
+      navigate(location.pathname, { replace: true });
+      quick("charge");
+    }
+  }, [order, tenant, location.search, quick]);
+
+  const labelDone = useRef(false);
+  useEffect(() => {
+    if (labelDone.current || !order || !tenant || !labelsEnabled()) return;
+    const created = order.created_date ? new Date(order.created_date).getTime() : 0;
+    if (!created || Date.now() - created > 180000) return;
+    let printed = false;
+    try { printed = sessionStorage.getItem(`label.printed.${order.id}`) === "1"; } catch { printed = false; }
+    labelDone.current = true;
+    if (printed) return;
+    try { sessionStorage.setItem(`label.printed.${order.id}`, "1"); } catch { return; }
+    setTimeout(() => printLabel(order, tenant).catch(() => {}), 600);
+  }, [order, tenant]);
 
   const submitPayment = useCallback(async ({ amount, method, customLabel, label }) => {
     const o = orderRef.current;
@@ -711,6 +744,31 @@ export default function OrderDetail() {
     />
   );
 
+  const makeDoc = async (kind) => {
+    const o = orderRef.current;
+    setDocBusy(kind);
+    try {
+      const blob = await (kind === "quote" ? buildQuotePDF : buildReceiptPDF)({ order: o, tenant });
+      logActivity(o.id, "note", by || "Web", kind === "quote" ? "Cotización compartida (PDF)" : "Recibo compartido (PDF)").then(() => reload(), () => {});
+      setSheet(null);
+      setDocShare({ kind, blob });
+    } catch (e) {
+      toast(`No se pudo generar el documento: ${e?.message || e}`, "error");
+    } finally { setDocBusy(null); }
+  };
+  const doLabel = async () => {
+    setDocBusy("label");
+    try { await printLabel(orderRef.current, tenant); setSheet(null); } catch (e) { toast(`No se pudo imprimir la etiqueta: ${e?.message || e}`, "error"); } finally { setDocBusy(null); }
+  };
+
+  const partsBoard = (
+    <>
+      <PartsModule order={order} tenant={tenant} tenantId={tenantId} employeeName={by} onReload={reload} onExtrasChanged={() => setCostTick((n) => n + 1)} onOpenPO={(id) => navigate(`/Compras?po=${id}`)} onCloseDraft={(po) => setSheet({ name: "closeDraft", po })} />
+      <JobCostCard order={order} tenantId={tenantId} tick={costTick} onOpenPO={(id) => navigate(`/Compras?po=${id}`)} />
+      <OrderTasksCard order={order} tenantId={tenantId} employeeName={by} />
+    </>
+  );
+
   const liquidBanner = order.liquid_damage ? (
     <div className="flex items-start gap-3" style={{ padding: 14, borderRadius: 14, background: tint(C.blue, 0.12), color: C.blue }}>
       <AlertTriangle className="w-4 h-4 shrink-0" style={{ marginTop: 2 }} />
@@ -798,6 +856,7 @@ export default function OrderDetail() {
               {header}
               {visitCard}
               {module}
+              {partsBoard}
               {liquidBanner}
               {info}
               {photos}
@@ -806,7 +865,7 @@ export default function OrderDetail() {
           ) : (
             <>
               {liquidBanner}
-              {tab === "actions" && (<>{header}{visitCard}{module}</>)}
+              {tab === "actions" && (<>{header}{visitCard}{module}{partsBoard}</>)}
               {tab === "info" && info}
               {tab === "history" && (<>{photos}{timeline}</>)}
             </>
@@ -828,6 +887,10 @@ export default function OrderDetail() {
         </div>
       )}
 
+      <DocumentsSheet open={sheet?.name === "documents"} onClose={() => setSheet(null)} order={order} busy={docBusy} onReceipt={() => makeDoc("receipt")} onQuote={() => makeDoc("quote")} onLabel={doLabel} />
+      <DocumentShareSheet open={!!docShare} kind={docShare?.kind} order={order} blob={docShare?.blob} onClose={() => setDocShare(null)} />
+      <ScheduleVisitSheet open={sheet?.name === "schedule"} order={order} tenant={tenant} by={by} onClose={() => setSheet(null)} onSaved={() => { toast(order.appointment_at ? "Cita actualizada" : "Cita agendada"); reload(); }} />
+      <CloseDraftDialog open={sheet?.name === "closeDraft"} po={sheet?.po} tenantId={tenantId} employeeName={by} onClose={() => setSheet(null)} onDone={(p, msg) => { toast(msg); reload(); }} />
       <StatusPickerSheet open={sheet?.name === "picker"} onClose={() => setSheet(null)} current={order.status} onPick={pickStatus} />
       <NoteForChangeSheet
         open={sheet?.name === "noteForChange"}
@@ -1073,6 +1136,9 @@ export default function OrderDetail() {
         }}
       />
       <Sheet open={sheet?.name === "menu"} onClose={() => setSheet(null)} title="Más opciones" width={400}>
+        <button onClick={() => setSheet({ name: "schedule" })} className="apple-press w-full flex items-center gap-3 text-left" style={{ padding: "13px 14px", borderRadius: 12, background: C.card2, marginBottom: 8, fontSize: 16, fontWeight: 600 }}>
+          <CalendarClock className="w-5 h-5" style={{ color: C.brand }} /> {order.service_type === "visit" && order.appointment_at ? "Editar cita" : "Agendar cita"}
+        </button>
         <button onClick={() => setSheet({ name: "delete" })} className="apple-press w-full flex items-center gap-3 text-left" style={{ padding: "13px 14px", borderRadius: 12, background: C.card2, color: C.red, fontSize: 15, fontWeight: 600 }}>
           <Trash2 className="w-5 h-5" /> Borrar orden
         </button>

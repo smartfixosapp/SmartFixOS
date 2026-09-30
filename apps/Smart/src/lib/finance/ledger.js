@@ -1,3 +1,4 @@
+import { normalizeTaxPercent } from "@/lib/taxRate";
 import { monthRange, addMonths, addDays, startOfDay, zonedParts, sameDay, daysInMonth, daysBetween, fmt, capitalize } from "@/lib/finance/tz";
 
 export function periodWeekStart(date, tz) {
@@ -101,10 +102,7 @@ export function displayPaymentMethod(raw) {
 }
 
 export function taxRatePercent(tenant) {
-  const raw = tenant?.settings?.tax_rate;
-  if (raw === undefined || raw === null || raw === "") return 11.5;
-  const n = Number(raw);
-  return Number.isFinite(n) ? n : 11.5;
+  return normalizeTaxPercent(tenant?.settings?.tax_rate);
 }
 
 export function recurringItems(tenant) {

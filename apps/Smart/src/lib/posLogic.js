@@ -1,3 +1,4 @@
+import { normalizeTaxPercent } from "@/lib/taxRate";
 export function r2(value) {
   const x = Number(value);
   if (!Number.isFinite(x)) return 0;
@@ -24,10 +25,7 @@ export function parseMoney(text) {
 }
 
 export function tenantTaxPercent(tenant) {
-  const raw = tenant?.settings?.tax_rate;
-  if (raw === undefined || raw === null || raw === "") return 11.5;
-  const n = Number(raw);
-  return Number.isFinite(n) ? n : 11.5;
+  return normalizeTaxPercent(tenant?.settings?.tax_rate);
 }
 
 export function tenantTaxRate(tenant) {

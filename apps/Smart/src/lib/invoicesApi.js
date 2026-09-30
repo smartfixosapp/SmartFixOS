@@ -1,4 +1,5 @@
 import { supabase } from "../../../../lib/supabase-client.js";
+import { normalizeTaxPercent } from "@/lib/taxRate";
 import { sendRawEmail, tenantEmailFromName } from "@/lib/orderEmails";
 
 export const num = (v) => {
@@ -432,9 +433,7 @@ export function downloadBlob(blob, filename) {
 }
 
 export function taxRateOf(tenant) {
-  const raw = tenant?.settings?.tax_rate;
-  const pct = raw === undefined || raw === null || raw === "" ? 11.5 : num(raw);
-  return pct / 100;
+  return normalizeTaxPercent(tenant?.settings?.tax_rate) / 100;
 }
 
 export const recipientEmail = (company) => {

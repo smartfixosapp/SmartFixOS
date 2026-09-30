@@ -68,6 +68,15 @@ export default function Compras() {
     }
   }, []);
 
+  useEffect(() => {
+    const po = params.get("po");
+    if (!po || pos === null) return;
+    if (pos.some((p) => p.id === po)) { setSelectedId(po); setMobileDetail(true); }
+    const next = new URLSearchParams(params);
+    next.delete("po");
+    setParams(next, { replace: true });
+  }, [pos]);
+
   useEffect(() => { if (!toast) return undefined; const t = setTimeout(() => setToast(null), 5000); return () => clearTimeout(t); }, [toast]);
 
   const counts = useMemo(() => { const c = {}; STATUS_KEYS.forEach((k) => { c[k] = 0; }); (pos || []).forEach((p) => { if (c[p.status] !== undefined) c[p.status] += 1; }); return c; }, [pos]);

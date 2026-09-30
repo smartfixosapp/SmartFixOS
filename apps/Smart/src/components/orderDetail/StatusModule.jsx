@@ -1,7 +1,7 @@
 import React from "react";
 import {
   Lock, RotateCcw, Camera, Loader2, DollarSign, StickyNote, Bell, AlertTriangle,
-  KeyRound, UserCog, BadgeCheck, Check, X, Archive,
+  KeyRound, UserCog, BadgeCheck, Check, X, Archive, FileText,
 } from "lucide-react";
 import { statusInfo, nextStatusFor, isOrderClosed, COMMON_STATUSES, STAGE_GUIDE } from "@/lib/orderStatus";
 import { remainingBalance, photoThumbURL } from "@/lib/orderEmails";
@@ -188,6 +188,7 @@ export default function StatusModule({
       { key: "advisories", label: "Avisos", Icon: AlertTriangle, color: C.amber },
       { key: "abandon_notice", label: "Aviso abandono", Icon: Archive, color: C.pink },
     ] : []),
+    { key: "documents", label: "Documentos", Icon: FileText, color: C.brand },
     { key: "security", label: "PIN/Seguridad", Icon: KeyRound, color: C.sub },
     ...(isDesktop ? [{ key: "tech", label: techName || "Técnico", Icon: UserCog, color: C.teal }] : []),
   ];

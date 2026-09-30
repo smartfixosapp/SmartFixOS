@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileClock, X } from "lucide-react";
+import { FileClock, X, CalendarCheck } from "lucide-react";
 import { AlertDialog } from "@/components/pos/native/posUi";
 import { OpenCashSheet, CloseCashSheet } from "@/components/cash/CashSheets";
 import { fetchTenant, resolveCurrentEmployee } from "@/lib/orderDetailApi";
@@ -18,6 +18,7 @@ import { HeroRevenue, ActionTiles, Watchdog, LeftOpenYesterday, EnTurnoAhora, Sh
 import { PartSearchBar, QuickQuoteDialog } from "@/components/inicio/PartSearch";
 import { QuotesListDialog } from "@/components/inicio/Quotes";
 import { WarrantiesDialog, UpcomingVisitsCard, AppointmentsDialog } from "@/components/inicio/Extras";
+import HoyBriefing, { shouldAutoBriefing } from "@/components/inicio/Hoy";
 import { ActiveOffersCard, OffersDialog } from "@/components/inicio/Offers";
 import { PrimerosPasosCard, WelcomeOnboarding, PaywallDialog, welcomeSeen } from "@/components/inicio/Onboarding";
 import PunchKiosk from "@/components/punch/PunchKiosk";
@@ -197,6 +198,13 @@ export default function Dashboard() {
     setCashSheet("close");
   };
 
+  const briefingTried = useRef(false);
+  useEffect(() => {
+    if (briefingTried.current || wide || !ordersLoaded || sheet || wizard || showWelcome || cashSheet) return;
+    briefingTried.current = true;
+    if (shouldAutoBriefing(tz)) setSheet("hoy");
+  }, [wide, ordersLoaded, sheet, wizard, showWelcome, cashSheet, tz]);
+
   const warranties = useMemo(() => activeWarrantyOrders(orders), [orders]);
   const left = leftOpenYesterday(openEntry, register, tz);
   const trial = trialInfo(tenant);
@@ -210,6 +218,14 @@ export default function Dashboard() {
     newOrder: () => requestNewOrder(),
     pos: () => navigate("/POS"),
   };
+
+  const hoyCard = (
+    <button onClick={() => setSheet("hoy")} className="apple-press flex items-center gap-3 text-left" style={{ padding: 16, borderRadius: 16, background: "#1C1C1E" }}>
+      <span style={{ width: 40, height: 40, borderRadius: 999, background: "rgba(242,102,46,0.15)", color: FP.brand, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><CalendarCheck className="w-5 h-5" /></span>
+      <span className="flex-1 min-w-0"><span className="block" style={{ fontSize: 15, fontWeight: 600 }}>Hoy</span><span className="block" style={{ fontSize: 12, color: "#8E8E93" }}>Lo que tienes por atender: órdenes, cobros, tareas e inventario</span></span>
+      <span style={{ color: FP.brand, fontSize: 13, fontWeight: 700 }}>Ver mi día</span>
+    </button>
+  );
 
   const hero = <HeroRevenue revenue={today.revenue} expenses={today.expenses} net={today.net} goal={goal} onClick={() => navigate("/Financial")} />;
   const partSearch = <PartSearchBar tenantId={tenantId} tenant={tenant} onQuote={(seed) => { setQuoteFromList(false); setQuoteSeed(seed); setSheet("quote"); }} />;
@@ -233,6 +249,7 @@ export default function Dashboard() {
         )}
         {trial && <TrialBanner info={trial} onClick={() => setSheet("paywall")} />}
         <PrimerosPasosCard tenant={tenant} tenantId={tenantId} actions={primerosActions} />
+        {hoyCard}
         {wide && hero}
         {wide && <ActionTiles wide onNewOrder={() => requestNewOrder()} onQuotes={() => setSheet("quotes")} />}
         {watchdog && <Watchdog net={today.net} />}
@@ -279,6 +296,9 @@ export default function Dashboard() {
         onAlreadyClosed={() => { setRegister(null); setCashSheet(null); }} />
       <PunchKiosk open={sheet === "punch"} onClose={() => { setSheet(null); loadShift(); loadOverview(); }} tenantId={tenantId} tenant={tenant} sessionEmployee={employee}
         cashOpen={!!register} onOpenCloseCash={(done) => requestCloseCash(done)} onChanged={() => { loadShift(); loadOverview(); }} />
+      <HoyBriefing open={sheet === "hoy"} onClose={() => setSheet(null)} tenant={tenant} tenantId={tenantId} tz={tz} employee={employee} orders={orders} products={products}
+        hasPunch={!!openEntry} hasCash={!!register} onPunch={() => setSheet("punch")} onCash={() => (register ? requestCloseCash() : setCashSheet("open"))}
+        onOpenOrder={openOrder} onPay={(id) => navigate(`/Orders/${id}?pay=1`)} />
       <WelcomeOnboarding open={showWelcome} tenant={tenant} onAction={(key) => { setShowWelcome(false); if (key) primerosActions[key]?.(); }} />
       <AlertDialog open={limitAlert} title="Límite del plan alcanzado" message="Alcanzaste el límite de 50 órdenes este mes. Actualiza a Plan Pro para crear órdenes sin límite." onClose={() => setLimitAlert(false)} actions={[{ label: "Entendido", bold: true }]} />
       {wizard && (
