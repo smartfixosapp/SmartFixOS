@@ -11,12 +11,38 @@ export function periodContaining(date, tz) {
   const back = (weekday - 1 + 7) % 7;
   const start = addDays(day, -back, tz);
   const end = addDays(start, 7, tz);
-  return makePeriod(start, end, tz);
+  return makePeriod(start, end, tz, "week");
 }
 
-function makePeriod(start, end, tz) {
+const QUINCENA_ANCHOR = [2024, 1, 7];
+
+export function periodOfKind(kind, date, tz) {
+  if (kind === "quincena") {
+    const anchor = zonedDate(QUINCENA_ANCHOR[0], QUINCENA_ANCHOR[1], QUINCENA_ANCHOR[2], tz);
+    const day = startOfDay(date, tz);
+    const blocks = Math.floor(daysBetween(anchor, day, tz) / 14);
+    const start = addDays(anchor, blocks * 14, tz);
+    return makePeriod(start, addDays(start, 14, tz), tz, "quincena");
+  }
+  if (kind === "month") {
+    const p = zonedParts(date, tz);
+    const start = zonedDate(p.y, p.m, 1, tz);
+    const next = p.m === 12 ? zonedDate(p.y + 1, 1, 1, tz) : zonedDate(p.y, p.m + 1, 1, tz);
+    return makePeriod(start, next, tz, "month");
+  }
+  return periodContaining(date, tz);
+}
+
+export function lastClosedPeriod(kind, tz, now = new Date()) {
+  return previousPeriod(periodOfKind(kind, now, tz));
+}
+
+export const PERIOD_KIND_LABEL = { week: "semana", quincena: "quincena", month: "mes" };
+
+function makePeriod(start, end, tz, kind = "week") {
   const lastDay = addDays(end, -1, tz);
   return {
+    kind,
     start,
     end,
     tz,
@@ -28,11 +54,11 @@ function makePeriod(start, end, tz) {
 }
 
 export function previousPeriod(p) {
-  return periodContaining(new Date(p.start.getTime() - 60000), p.tz);
+  return periodOfKind(p.kind, new Date(p.start.getTime() - 60000), p.tz);
 }
 
 export function nextPeriod(p) {
-  return periodContaining(new Date(p.end.getTime() + 60000), p.tz);
+  return periodOfKind(p.kind, new Date(p.end.getTime() + 60000), p.tz);
 }
 
 export function lastClosedWeek(tz, now = new Date()) {
@@ -137,7 +163,7 @@ function historyStart(payments, period, lookbackStart) {
   });
   if (!earliest) return period.start;
   const clamped = earliest > lookbackStart ? earliest : lookbackStart;
-  const s = periodContaining(clamped, period.tz).start;
+  const s = periodOfKind(period.kind, clamped, period.tz).start;
   return s < period.start ? s : period.start;
 }
 
@@ -402,7 +428,7 @@ export function payrollLines(data, period) {
     .map((tx) => ({ tx, tag: parsePayrollTag(tx.description, period.tz) }))
     .filter((x) => x.tag.employeeId);
   const carry = {};
-  let step = periodContaining(data.historyStart, period.tz);
+  let step = periodOfKind(period.kind, data.historyStart, period.tz);
   let steps = 0;
   while (step.start < period.start && steps < 400) {
     compute(data, step, owner, payments, carry).forEach((line) => { carry[line.id] = line.advanceLeftover; });
@@ -450,6 +476,10 @@ export async function recordPayrollPayment({ tenantId, employeeId, employeeName,
   }).select("*").single();
   if (error) throw error;
   return data;
+}
+
+export function payrollKindDbLabel(period) {
+  return `Nómina ${PERIOD_KIND_LABEL[period.kind] || "semana"}: ${payrollDbLabel(period)}`;
 }
 
 export function payrollDbLabel(period) {

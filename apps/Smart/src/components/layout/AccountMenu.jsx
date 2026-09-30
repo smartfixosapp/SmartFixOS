@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
-import { Settings, LogOut, Store } from "lucide-react";
+import { Settings, LogOut, Store, Users, PackagePlus } from "lucide-react";
 import { signOut } from "@/components/auth/signOut";
 
 export function SignOutConfirm({ open, onClose }) {
@@ -86,6 +86,22 @@ export default function AccountMenu({ name, initials }) {
               </p>
             )}
           </div>
+          <button
+            role="menuitem"
+            onClick={() => { setOpen(false); navigate("/Equipo"); }}
+            className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5"
+            style={{ color: "#fff", fontSize: 15 }}
+          >
+            <Users className="w-[18px] h-[18px]" /> Equipo y nómina
+          </button>
+          <button
+            role="menuitem"
+            onClick={() => { setOpen(false); navigate("/Compras"); }}
+            className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5"
+            style={{ color: "#fff", fontSize: 15 }}
+          >
+            <PackagePlus className="w-[18px] h-[18px]" /> Compras
+          </button>
           <button
             role="menuitem"
             onClick={() => { setOpen(false); navigate("/Settings"); }}
