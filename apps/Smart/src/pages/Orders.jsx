@@ -1,13 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, Building2 } from "lucide-react";
 import NewOrderWizard from "@/components/wizard/Wizard";
 import { OrderCreatedToast } from "@/components/inicio/Cards";
 import { dataClient } from "@/components/api/dataClient";
 import { statusInfo } from "@/lib/orderStatus";
 import OrdersKanban from "@/components/orders/OrdersKanban";
 import { AlertDialog } from "@/components/pos/native/posUi";
-import { fetchTenant } from "@/lib/orderDetailApi";
+import { fetchTenant, resolveCurrentEmployee } from "@/lib/orderDetailApi";
+import { hasB2bCustomers } from "@/lib/invoicesApi";
+import { ConsolidatedInvoiceDialog, InvoiceHistoryDialog } from "@/components/invoices/InvoiceDialogs";
 import { isMonthlyLimitReached } from "@/lib/inicioApi";
 import { safeTZ } from "@/lib/finance/tz";
 
@@ -21,6 +23,11 @@ export default function Orders() {
   const [created, setCreated] = useState(null);
   const [tenant, setTenant] = useState(null);
   const [limitAlert, setLimitAlert] = useState(false);
+  const [b2b, setB2b] = useState(false);
+  const [employeeName, setEmployeeName] = useState("");
+  const [invoiceOpen, setInvoiceOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [tenantId, setTenantId] = useState("");
 
   const loadOrders = useCallback(async () => {
     try {
@@ -40,7 +47,11 @@ export default function Orders() {
   useEffect(() => {
     let tid = "";
     try { tid = localStorage.getItem("smartfix_tenant_id") || ""; } catch { tid = ""; }
-    if (tid) fetchTenant(tid).then(setTenant).catch(() => {});
+    setTenantId(tid);
+    if (!tid) return;
+    fetchTenant(tid).then(setTenant).catch(() => {});
+    hasB2bCustomers(tid).then(setB2b).catch(() => {});
+    resolveCurrentEmployee(tid).then((e) => setEmployeeName(String(e?.full_name || "").trim())).catch(() => {});
   }, []);
 
   const requestNewOrder = () => {
@@ -103,6 +114,11 @@ export default function Orders() {
       <div className="app-container pt-6 pb-3">
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <h1 className="apple-text-title1 font-bold" style={{ color: "#fff", flex: 1 }}>Órdenes</h1>
+          {b2b && tenant && (
+            <button onClick={() => setInvoiceOpen(true)} aria-label="Factura B2B" title="Factura B2B" className="apple-press" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: 999, background: "rgba(255,255,255,0.08)", color: "#fff" }}>
+              <Building2 className="w-4 h-4" />
+            </button>
+          )}
           <button onClick={requestNewOrder} aria-label="Nueva orden" className="apple-press" style={{ display: "flex", alignItems: "center", gap: 6, height: 40, padding: "0 16px", borderRadius: 999, background: "#F2662E", color: "#fff", fontSize: 14, fontWeight: 700 }}>
             <Plus className="w-4 h-4" strokeWidth={3} /> Nueva orden
           </button>
@@ -162,6 +178,8 @@ export default function Orders() {
         <NewOrderWizard open onClose={() => setWizard(false)}
           onCreated={(order) => { setCreated(order); loadOrders(); setTimeout(() => setCreated((c) => (c && c.id === order?.id ? null : c)), 4000); }} />
       )}
+      {invoiceOpen && <ConsolidatedInvoiceDialog open onClose={() => setInvoiceOpen(false)} tenant={tenant} tenantId={tenantId} employeeName={employeeName} onOpenHistory={() => setHistoryOpen(true)} />}
+      {historyOpen && <InvoiceHistoryDialog open onClose={() => setHistoryOpen(false)} tenant={tenant} tenantId={tenantId} />}
       <AlertDialog open={limitAlert} title="Límite del plan alcanzado" message="Alcanzaste el límite de 50 órdenes este mes. Actualiza a Plan Pro para crear órdenes sin límite." onClose={() => setLimitAlert(false)} actions={[{ label: "Entendido", bold: true }]} />
       <OrderCreatedToast order={created} onView={() => { const id = created?.id; setCreated(null); if (id) navigate(`/Orders/${id}`); }} />
     </div>
