@@ -390,3 +390,33 @@ export function productThumb(p) {
   if (Array.isArray(p?.photo_urls) && p.photo_urls[0]) return p.photo_urls[0];
   return null;
 }
+
+function searchScore(product, tokens) {
+  const name = fold(product.name);
+  const cat = fold(product.category);
+  const sku = fold(product.sku);
+  const barcode = fold(product.barcode);
+  const displayCat = fold(displayCategory(product));
+  let total = 0;
+  tokens.forEach((t) => {
+    if (name.includes(t)) total += 3;
+    else if (sku.includes(t) || barcode.includes(t)) total += 2;
+    else if (cat.includes(t) || displayCat.includes(t)) total += 1;
+    if (SCREEN.has(t) && (cat === "screen" || name.includes("pantalla") || name.includes("screen") || displayCat.includes("pantalla"))) total += 3;
+    else if (BATTERY.has(t) && (cat === "battery" || name.includes("bater") || name.includes("battery"))) total += 3;
+    else if (CHARGER.has(t) && (cat === "charger" || name.includes("cargador") || name.includes("charger"))) total += 3;
+    else if (CABLE.has(t) && (cat === "cable" || name.includes("cable"))) total += 3;
+    else if (CASE.has(t) && (cat === "case" || name.includes("funda") || name.includes("case"))) total += 3;
+    else if (DIAG.has(t) && (cat === "diagnostic" || name.includes("diagn"))) total += 3;
+  });
+  return total;
+}
+
+export function rankedSearch(products, query) {
+  const tokens = searchTokens(query);
+  if (!tokens.length) return { results: products, partial: false };
+  const strict = products.filter((p) => productMatches(p, tokens));
+  if (strict.length) return { results: strict, partial: false };
+  const loose = products.map((p) => ({ p, s: searchScore(p, tokens) })).filter((x) => x.s > 0).sort((a, b) => b.s - a.s).map((x) => x.p);
+  return { results: loose, partial: loose.length > 0 };
+}

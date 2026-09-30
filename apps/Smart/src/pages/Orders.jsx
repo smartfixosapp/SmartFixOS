@@ -1,9 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, Plus } from "lucide-react";
+import NewOrderWizard from "@/components/wizard/Wizard";
+import { OrderCreatedToast } from "@/components/inicio/Cards";
 import { dataClient } from "@/components/api/dataClient";
 import { statusInfo } from "@/lib/orderStatus";
 import OrdersKanban from "@/components/orders/OrdersKanban";
+import { AlertDialog } from "@/components/pos/native/posUi";
+import { fetchTenant } from "@/lib/orderDetailApi";
+import { isMonthlyLimitReached } from "@/lib/inicioApi";
+import { safeTZ } from "@/lib/finance/tz";
 
 export default function Orders() {
   const navigate = useNavigate();
@@ -11,6 +17,10 @@ export default function Orders() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [wizard, setWizard] = useState(false);
+  const [created, setCreated] = useState(null);
+  const [tenant, setTenant] = useState(null);
+  const [limitAlert, setLimitAlert] = useState(false);
 
   const loadOrders = useCallback(async () => {
     try {
@@ -26,6 +36,17 @@ export default function Orders() {
   useEffect(() => {
     loadOrders();
   }, [loadOrders]);
+
+  useEffect(() => {
+    let tid = "";
+    try { tid = localStorage.getItem("smartfix_tenant_id") || ""; } catch { tid = ""; }
+    if (tid) fetchTenant(tid).then(setTenant).catch(() => {});
+  }, []);
+
+  const requestNewOrder = () => {
+    if (isMonthlyLimitReached(tenant, orders, safeTZ(tenant?.timezone))) { setLimitAlert(true); return; }
+    setWizard(true);
+  };
 
   const openOrder = (order) => {
     const seq = (o) => {
@@ -80,7 +101,12 @@ export default function Orders() {
   return (
     <div className="apple-type min-h-dvh" style={{ background: "#000", color: "#fff" }}>
       <div className="app-container pt-6 pb-3">
-        <h1 className="apple-text-title1 font-bold" style={{ color: "#fff" }}>Órdenes</h1>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <h1 className="apple-text-title1 font-bold" style={{ color: "#fff", flex: 1 }}>Órdenes</h1>
+          <button onClick={requestNewOrder} aria-label="Nueva orden" className="apple-press" style={{ display: "flex", alignItems: "center", gap: 6, height: 40, padding: "0 16px", borderRadius: 999, background: "#F2662E", color: "#fff", fontSize: 14, fontWeight: 700 }}>
+            <Plus className="w-4 h-4" strokeWidth={3} /> Nueva orden
+          </button>
+        </div>
       </div>
 
       <div className="app-container pb-3">
@@ -132,6 +158,12 @@ export default function Orders() {
           <OrdersKanban orders={filteredOrders} onCardClick={openOrder} />
         )}
       </div>
+      {wizard && (
+        <NewOrderWizard open onClose={() => setWizard(false)}
+          onCreated={(order) => { setCreated(order); loadOrders(); setTimeout(() => setCreated((c) => (c && c.id === order?.id ? null : c)), 4000); }} />
+      )}
+      <AlertDialog open={limitAlert} title="Límite del plan alcanzado" message="Alcanzaste el límite de 50 órdenes este mes. Actualiza a Plan Pro para crear órdenes sin límite." onClose={() => setLimitAlert(false)} actions={[{ label: "Entendido", bold: true }]} />
+      <OrderCreatedToast order={created} onView={() => { const id = created?.id; setCreated(null); if (id) navigate(`/Orders/${id}`); }} />
     </div>
   );
 }

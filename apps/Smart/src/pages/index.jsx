@@ -42,7 +42,7 @@ const Orders           = lazyWithRetry(() => import("./Orders"));
 const POS              = lazyWithRetry(() => import("./POS"));
 const SettingsPage     = lazyWithRetry(() => import("./Settings"));
 const Inventory        = lazyWithRetry(() => import("./Inventory"));
-const Customers        = lazyWithRetry(() => import("./Customers"));
+const Customers        = lazyWithRetry(() => import("./Clientes"));
 const OrderDetail      = lazyWithRetry(() => import("./OrderDetail"));
 
 function OrderDetailRoute() {

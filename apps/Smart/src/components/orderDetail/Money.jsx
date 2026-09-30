@@ -104,10 +104,11 @@ function QRView({ config, amount, customerName, shopName, onPaid, onCancel, meth
   );
 }
 
-export function QuickPaySheet({ open, onClose, order, tenant, onSubmit }) {
+export function QuickPaySheet({ open, onClose, order, tenant, onSubmit, prefillAmount = null }) {
   const { builtIns, custom, qrFor } = useMemo(() => tenantPaymentMethods(tenant), [tenant]);
   const balance = order ? remainingBalance(order) : 0;
   const total = order ? orderTotal(order) : 0;
+  const due = prefillAmount !== null ? Number(prefillAmount) : balance;
   const [method, setMethod] = useState("cash");
   const [customSel, setCustomSel] = useState(null);
   const [amount, setAmount] = useState("");
@@ -121,7 +122,7 @@ export function QuickPaySheet({ open, onClose, order, tenant, onSubmit }) {
     const first = builtIns[0] || "cash";
     setMethod(first);
     setCustomSel(null);
-    setAmount(first === "cash" ? "" : balance.toFixed(2));
+    setAmount(prefillAmount !== null ? Number(prefillAmount).toFixed(2) : first === "cash" ? "" : balance.toFixed(2));
     setScreen("pay");
     setChange(null);
     setError(null);
@@ -129,7 +130,7 @@ export function QuickPaySheet({ open, onClose, order, tenant, onSubmit }) {
 
   if (!order) return null;
   const isCash = method === "cash" && !customSel;
-  const target = isCash ? parseAmount(amount) : balance;
+  const target = isCash ? parseAmount(amount) : prefillAmount !== null ? Number(prefillAmount) : balance;
   const entered = parseAmount(amount);
   const selQR = customSel ? (customSel.qr && (customSel.qr.imageBase64 || customSel.qr.paymentURL) ? customSel.qr : null) : (!isCash ? qrFor(method) : null);
   const currentLabel = customSel ? customSel.label : PAYMENT_METHODS[method]?.label;
@@ -140,9 +141,10 @@ export function QuickPaySheet({ open, onClose, order, tenant, onSubmit }) {
     setError(null);
     try {
       const baseMethod = customSel ? "ath_movil" : method;
-      await onSubmit({ amount: target, method: baseMethod, customLabel: customSel?.label || null, label: currentLabel, prevBalance: balance });
-      if (isCash && entered - balance > 0.004 && balance > 0) {
-        setChange({ received: entered, total: balance, change: entered - balance });
+      const chargeAmount = isCash && prefillAmount !== null ? Math.min(entered, due) : target;
+      await onSubmit({ amount: chargeAmount, method: baseMethod, customLabel: customSel?.label || null, label: currentLabel, prevBalance: balance });
+      if (isCash && entered - due > 0.004 && due > 0) {
+        setChange({ received: entered, total: due, change: entered - due });
         setScreen("change");
       } else {
         onClose();
@@ -200,14 +202,14 @@ export function QuickPaySheet({ open, onClose, order, tenant, onSubmit }) {
       <div className="flex gap-2">
         {builtIns.map((m) => (
           <MethodChip key={m} label={PAYMENT_METHODS[m].label} Icon={METHOD_ICON[m]} color={PAYMENT_METHODS[m].color} selected={!customSel && method === m}
-            onClick={() => { setCustomSel(null); setMethod(m); setAmount(m === "cash" ? "" : balance.toFixed(2)); }} />
+            onClick={() => { setCustomSel(null); setMethod(m); setAmount(prefillAmount !== null ? Number(prefillAmount).toFixed(2) : m === "cash" ? "" : balance.toFixed(2)); }} />
         ))}
       </div>
       {custom.length > 0 && (
         <div className="flex gap-2" style={{ marginTop: 8 }}>
           {custom.map((c) => (
             <MethodChip key={c.id || c.label} label={c.label} Icon={CreditCard} color={GOLD} selected={customSel?.label === c.label}
-              onClick={() => { setCustomSel(c); setAmount(balance.toFixed(2)); }} />
+              onClick={() => { setCustomSel(c); setAmount((prefillAmount !== null ? Number(prefillAmount) : balance).toFixed(2)); }} />
           ))}
         </div>
       )}
@@ -220,12 +222,12 @@ export function QuickPaySheet({ open, onClose, order, tenant, onSubmit }) {
               style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: C.text, fontSize: 32, fontWeight: 800 }} />
           </div>
           <div className="flex gap-2" style={{ marginTop: 10 }}>
-            <button onClick={() => setAmount(balance.toFixed(2))} className="apple-press" style={{ padding: "7px 14px", borderRadius: 999, background: tint(C.green, 0.15), color: C.green, fontSize: 13, fontWeight: 700 }}>Pago completo</button>
-            {balance > 0 && <button onClick={() => setAmount((balance / 2).toFixed(2))} className="apple-press" style={{ padding: "7px 14px", borderRadius: 999, background: C.card2, color: C.text, fontSize: 13, fontWeight: 700 }}>Mitad ({money(balance / 2)})</button>}
+            <button onClick={() => setAmount(due.toFixed(2))} className="apple-press" style={{ padding: "7px 14px", borderRadius: 999, background: tint(C.green, 0.15), color: C.green, fontSize: 13, fontWeight: 700 }}>{prefillAmount !== null ? "Monto del depósito" : "Pago completo"}</button>
+            {due > 0 && prefillAmount === null && <button onClick={() => setAmount((due / 2).toFixed(2))} className="apple-press" style={{ padding: "7px 14px", borderRadius: 999, background: C.card2, color: C.text, fontSize: 13, fontWeight: 700 }}>Mitad ({money(due / 2)})</button>}
           </div>
-          {entered > balance && balance > 0 && (
+          {entered > due && due > 0 && (
             <div className="flex justify-between" style={{ marginTop: 12, padding: 12, borderRadius: 12, background: tint(C.green, 0.12), color: C.green, fontSize: 15, fontWeight: 700 }}>
-              <span>Cambio a entregar:</span><span>{money(entered - balance)}</span>
+              <span>Cambio a entregar:</span><span>{money(entered - due)}</span>
             </div>
           )}
         </>

@@ -81,6 +81,14 @@ export default function OrderDetail() {
   const [viewer, setViewer] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [queueBanner, setQueueBanner] = useState(location.state?.queueMessage || null);
+  useEffect(() => {
+    if (warrantyParamDone.current || !order) return;
+    if (new URLSearchParams(location.search).get("warranty") === "1") {
+      warrantyParamDone.current = true;
+      setSheet({ name: "warrantyReopen" });
+      navigate(location.pathname, { replace: true });
+    }
+  }, [order, location.search]);
   const [history, setHistory] = useState({ loading: false, orders: [] });
   const [deliveryWarranty, setDeliveryWarranty] = useState(null);
   const [payFlow, setPayFlow] = useState(null);
@@ -92,6 +100,7 @@ export default function OrderDetail() {
   const orderRef = useRef(null);
   const busyRef = useRef(false);
   const warrantyAttemptRef = useRef(null);
+  const warrantyParamDone = useRef(false);
   const noticeRef = useRef(null);
   const countdownRef = useRef(null);
   const clearTimerRef = useRef(null);

@@ -3,6 +3,7 @@ import ModernTopNav from "@/components/layout/ModernTopNav";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import { PanelProvider } from "@/components/utils/panelContext";
 import { TenantProvider } from "@/components/utils/tenantContext";
+import AppLock from "@/components/auth/AppLock";
 
 export default function Layout({ children }) {
   useEffect(() => {
@@ -19,6 +20,7 @@ export default function Layout({ children }) {
         </div>
         {children}
         <MobileBottomNav />
+        <AppLock />
       </PanelProvider>
     </TenantProvider>
   );
