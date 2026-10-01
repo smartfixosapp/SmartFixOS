@@ -1,17 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
-import { Tag, Percent, Gift, Plus, PlusCircle, ChevronRight, Loader2, Trash2, Power } from "lucide-react";
-import { Dialog, TextAction, AlertDialog, Toggle, tint } from "@/components/pos/native/posUi";
+import { Tag, Percent, Gift, MinusCircle, Plus, PlusCircle, ChevronRight, Loader2, Trash2, Power } from "lucide-react";
+import { Dialog, TextAction, AlertDialog, tint } from "@/components/pos/native/posUi";
 import { FP } from "@/lib/finance/ledger";
 import { money } from "@/components/finanzas/ui";
 import { parseMoney } from "@/lib/posLogic";
+import { loadCatalog } from "@/lib/wizard/api";
+import { effectivePrice, partMatchContext } from "@/lib/wizard/helpers";
+import { offerIsDevice, offerDeviceLabel, offerMatchesProduct } from "@/lib/wizard/offers";
 import {
   listOffers, offerType, offerLive, offerDaysLeft, offerExpiringSoon, offerLabel, offerPromoPrice, insertOffer, updateOffer, setOfferActive, deleteOffer,
   offerEndsAtFor, defaultOfferEnd, num,
 } from "@/lib/inicioApi";
 
-const TYPE_ICON = { fixed: Tag, percent: Percent, combo: Gift };
+const TYPE_ICON = { fixed: Tag, percent: Percent, combo: Gift, amount: MinusCircle };
 
 function titleFor(o, product) {
+  if (offerIsDevice(o)) return `Equipo: ${offerDeviceLabel(o)}`;
   if (product) return product.name;
   if (o.category) return `Categoría: ${o.category}`;
   return offerLabel(o);
@@ -68,47 +72,93 @@ export function ActiveOffersCard({ offers, products, onOpen }) {
   );
 }
 
-function OfferEditor({ open, offer, products, onClose, onSaved, tenantId }) {
-  const [scope, setScope] = useState("category");
+const uniqSorted = (list) => [...new Set(list.map((x) => String(x || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "es"));
+const eqName = (a, b) => String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase();
+
+export function OfferEditor({ open, offer, products, onClose, onSaved, tenantId }) {
+  const [scope, setScope] = useState("device");
   const [category, setCategory] = useState("");
   const [productId, setProductId] = useState("");
-  const [type, setType] = useState("percent");
+  const [brand, setBrand] = useState("");
+  const [family, setFamily] = useState("");
+  const [model, setModel] = useState("");
+  const [partFilter, setPartFilter] = useState("");
+  const [cat, setCat] = useState(null);
+  const [type, setType] = useState("amount");
   const [value, setValue] = useState("");
   const [label, setLabel] = useState("");
   const [hasEnd, setHasEnd] = useState(true);
   const [end, setEnd] = useState(defaultOfferEnd());
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
-  const categories = useMemo(() => [...new Set(products.map((p) => String(p.category || "").trim()).filter(Boolean))].sort(), [products]);
+  const categories = useMemo(() => uniqSorted(products.map((p) => p.category)), [products]);
+  const isEdit = !!offer;
   useEffect(() => {
     if (!open) return;
     setError(null);
     if (offer) {
-      setScope(offer.product_id ? "product" : "category");
+      setScope(offerIsDevice(offer) ? "device" : offer.product_id ? "product" : "category");
       setCategory(offer.category || "");
       setProductId(offer.product_id || "");
+      setBrand(offer.device_brand || "");
+      setFamily(offer.device_family || "");
+      setModel(offer.device_model_tag || "");
+      setPartFilter(offer.part_filter || "");
       setType(offerType(offer));
       setValue(offer.value !== null && offer.value !== undefined ? String(offer.value) : "");
       setLabel(offer.label || "");
       setHasEnd(!!offer.ends_at);
       if (offer.ends_at) { const d = new Date(offer.ends_at); setEnd(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`); } else setEnd(defaultOfferEnd());
     } else {
-      setScope("category"); setCategory(""); setProductId(""); setType("percent"); setValue(""); setLabel(""); setHasEnd(true); setEnd(defaultOfferEnd());
+      setScope("device"); setCategory(""); setProductId(""); setBrand(""); setFamily(""); setModel(""); setPartFilter(""); setType("amount"); setValue(""); setLabel(""); setHasEnd(true); setEnd(defaultOfferEnd());
     }
   }, [open, offer]);
+  useEffect(() => {
+    if (open && scope === "device" && !cat && tenantId) loadCatalog(tenantId).then(setCat).catch(() => {});
+  }, [open, scope, cat, tenantId]);
+  const brandNames = useMemo(() => uniqSorted((cat?.brands || []).map((b) => b.name)), [cat]);
+  const brandIds = useMemo(() => new Set((cat?.brands || []).filter((b) => eqName(b.name, brand)).map((b) => b.id)), [cat, brand]);
+  const familyNames = useMemo(() => (brand ? uniqSorted((cat?.families || []).filter((f) => brandIds.has(f.brand_id)).map((f) => f.name)) : []), [cat, brand, brandIds]);
+  const modelNames = useMemo(() => {
+    if (!family) return [];
+    const famIds = new Set((cat?.families || []).filter((f) => brandIds.has(f.brand_id) && eqName(f.name, family)).map((f) => f.id));
+    return uniqSorted((cat?.models || []).filter((m) => famIds.has(m.family_id)).map((m) => m.name));
+  }, [cat, family, brandIds]);
+  const allowedTypes = scope === "device" ? [["percent", "% descuento"], ["amount", "$ menos"], ["fixed", "Precio fijo"]] : [["fixed", "Precio fijo"], ["percent", "% descuento"], ["combo", "Combo / regalo"]];
+  const changeScope = (k) => {
+    setScope(k);
+    if (!(k === "device" ? ["percent", "amount", "fixed"] : ["fixed", "percent", "combo"]).includes(type)) setType(k === "device" ? "amount" : "percent");
+  };
+  const preview = useMemo(() => {
+    if (scope !== "device" || !brand) return null;
+    const v = parseMoney(value) || 0;
+    if (!(v > 0)) return null;
+    const probe = { offer_type: type, value: v, active: true, device_brand: brand, device_family: family, device_model_tag: model, part_filter: partFilter };
+    const p = products.find((x) => {
+      const fam = family || (x.device_family && familyNames.some((n) => eqName(n, x.device_family)) ? x.device_family : "");
+      const ctx = partMatchContext({ category: x.device_category, brand, family: fam, model: model || x.device_model_tag });
+      return offerMatchesProduct(probe, x, ctx);
+    });
+    if (!p) return null;
+    const base = effectivePrice(p);
+    return `Vista previa: ${p.name} ${money(base)} pasa a ${money(offerPromoPrice(probe, base))}`;
+  }, [scope, brand, family, model, partFilter, type, value, products, familyNames]);
   const save = async () => {
     if (saving) return;
-    if (!offer && scope === "category" && !category) { setError("Elige una categoría"); return; }
-    if (!offer && scope === "product" && !productId) { setError("Elige un producto"); return; }
+    if (scope === "device" && !brand) { setError("Elige un equipo"); return; }
+    if (!isEdit && scope === "category" && !category) { setError("Elige una categoría"); return; }
+    if (!isEdit && scope === "product" && !productId) { setError("Elige un producto"); return; }
     const v = parseMoney(value) || 0;
     if (type !== "combo" && !(v > 0)) { setError("Escribe un valor válido"); return; }
+    if (type === "percent" && v > 100) { setError("El porcentaje no puede pasar de 100"); return; }
     setSaving(true);
     setError(null);
     try {
       const orig = offer?.ends_at ? new Date(offer.ends_at) : null;
       const endsAt = !hasEnd ? null : orig ? offerEndsAtFor(end, orig) : offerEndsAtFor(end);
-      if (offer) await updateOffer(offer.id, { type, value: v, label, endsAt });
-      else await insertOffer({ tenantId, scope, productId, category, type, value: v, label, endsAt });
+      const device = { brand, family, model, partFilter };
+      if (offer) await updateOffer(offer.id, { type, value: v, label, endsAt, device: offerIsDevice(offer) ? device : undefined });
+      else await insertOffer({ tenantId, scope, productId, category, type, value: v, label, endsAt, device });
       onSaved();
       onClose();
     } catch (e) {
@@ -119,11 +169,17 @@ function OfferEditor({ open, offer, products, onClose, onSaved, tenantId }) {
   const box = { borderRadius: 12, background: "#2C2C2E", overflow: "hidden" };
   const rowCls = "flex items-center justify-between gap-3";
   const rowStyle = { padding: "11px 14px" };
-  const select = (v, set, opts) => (
+  const divider = { borderTop: "0.5px solid rgba(84,84,88,0.6)" };
+  const select = (v, set, opts, emptyLabel = "Elige…") => (
     <select value={v} onChange={(e) => set(e.target.value)} className="bg-transparent outline-none text-right" style={{ color: FP.brand, fontSize: 15, maxWidth: "60%", colorScheme: "dark" }}>
-      <option value="">Elige…</option>
+      <option value="">{emptyLabel}</option>
       {opts.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
     </select>
+  );
+  const segmented = (items, current, onPick, disabled) => (
+    <div className="grid" style={{ gridTemplateColumns: `repeat(${items.length}, 1fr)`, padding: 2, gap: 2, borderRadius: 9, background: "rgba(118,118,128,0.24)", opacity: disabled ? 0.5 : 1 }}>
+      {items.map(([k, l]) => <button key={String(k)} disabled={disabled} onClick={() => onPick(k)} style={{ padding: "6px 0", borderRadius: 7, fontSize: 13, fontWeight: 600, background: current === k ? "#636366" : "transparent" }}>{l}</button>)}
+    </div>
   );
   return (
     <Dialog open={open} onClose={onClose} title={offer ? "Editar oferta" : "Nueva oferta"} width={480} leading={<TextAction onClick={onClose}>Cancelar</TextAction>} trailing={null}>
@@ -131,15 +187,40 @@ function OfferEditor({ open, offer, products, onClose, onSaved, tenantId }) {
         <div>
           <p style={{ fontSize: 13, color: "#8E8E93", padding: "0 4px 6px" }}>Aplica a</p>
           <div style={box}>
-            <div style={rowStyle}>
-              <div className="grid grid-cols-2" style={{ padding: 2, gap: 2, borderRadius: 9, background: "rgba(118,118,128,0.24)" }}>
-                {[["category", "Categoría"], ["product", "Producto"]].map(([k, l]) => <button key={k} onClick={() => setScope(k)} style={{ padding: "6px 0", borderRadius: 7, fontSize: 13, fontWeight: 600, background: scope === k ? "#636366" : "transparent" }}>{l}</button>)}
+            <div style={rowStyle}>{segmented([["device", "Equipo"], ["category", "Categoría"], ["product", "Producto"]], scope, changeScope, isEdit)}</div>
+            {scope === "device" && (
+              <>
+                <div className={rowCls} style={{ ...rowStyle, ...divider }}>
+                  <span style={{ fontSize: 15 }}>Marca</span>
+                  {select(brand, (v) => { setBrand(v); setFamily(""); setModel(""); }, brandNames.map((b) => [b, b]))}
+                </div>
+                {brand && (
+                  <div className={rowCls} style={{ ...rowStyle, ...divider }}>
+                    <span style={{ fontSize: 15 }}>Familia</span>
+                    {select(family, (v) => { setFamily(v); setModel(""); }, familyNames.map((f) => [f, f]), "Todas")}
+                  </div>
+                )}
+                {family && (
+                  <div className={rowCls} style={{ ...rowStyle, ...divider }}>
+                    <span style={{ fontSize: 15 }}>Modelo</span>
+                    {select(model, setModel, modelNames.map((m) => [m, m]), "Todos")}
+                  </div>
+                )}
+                <input value={partFilter} onChange={(e) => setPartFilter(e.target.value)} placeholder="Solo piezas que incluyan (ej. pantalla)" className="w-full bg-transparent outline-none" style={{ ...rowStyle, ...divider, color: "#fff", fontSize: 15 }} />
+              </>
+            )}
+            {scope === "category" && (
+              <div className={rowCls} style={{ ...rowStyle, ...divider }}>
+                <span style={{ fontSize: 15 }}>Categoría</span>
+                {select(category, setCategory, categories.map((c) => [c, c]))}
               </div>
-            </div>
-            <div className={rowCls} style={{ ...rowStyle, borderTop: "0.5px solid rgba(84,84,88,0.6)" }}>
-              <span style={{ fontSize: 15 }}>{scope === "category" ? "Categoría" : "Producto"}</span>
-              {scope === "category" ? select(category, setCategory, categories.map((c) => [c, c])) : select(productId, setProductId, products.map((p) => [p.id, p.name]))}
-            </div>
+            )}
+            {scope === "product" && (
+              <div className={rowCls} style={{ ...rowStyle, ...divider }}>
+                <span style={{ fontSize: 15 }}>Producto</span>
+                {select(productId, setProductId, products.map((p) => [p.id, p.name]))}
+              </div>
+            )}
           </div>
         </div>
         <div>
@@ -148,35 +229,36 @@ function OfferEditor({ open, offer, products, onClose, onSaved, tenantId }) {
             <div className={rowCls} style={rowStyle}>
               <span style={{ fontSize: 15 }}>Tipo</span>
               <select value={type} onChange={(e) => setType(e.target.value)} className="bg-transparent outline-none text-right" style={{ color: FP.brand, fontSize: 15, colorScheme: "dark" }}>
-                <option value="fixed">Precio fijo</option><option value="percent">% descuento</option><option value="combo">Combo / regalo</option>
+                {allowedTypes.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
               </select>
             </div>
             {type !== "combo" ? (
-              <label className={rowCls} style={{ ...rowStyle, borderTop: "0.5px solid rgba(84,84,88,0.6)" }}>
-                <span style={{ fontSize: 15 }}>{type === "fixed" ? "Precio fijo" : "% descuento"}</span>
+              <label className={rowCls} style={{ ...rowStyle, ...divider }}>
+                <span style={{ fontSize: 15 }}>{type === "fixed" ? "Precio fijo" : type === "amount" ? "Monto menos" : "% descuento"}</span>
                 <span className="flex items-center gap-1">
-                  {type === "fixed" && <span style={{ color: "#8E8E93" }}>$</span>}
-                  <input value={value} onChange={(e) => setValue(e.target.value)} inputMode="decimal" placeholder={type === "fixed" ? "0.00" : "0"} className="bg-transparent outline-none text-right" style={{ width: 100, color: "#fff", fontSize: 15 }} />
+                  {type !== "percent" && <span style={{ color: "#8E8E93" }}>$</span>}
+                  <input value={value} onChange={(e) => setValue(e.target.value)} inputMode="decimal" placeholder={type === "percent" ? "0" : "0.00"} className="bg-transparent outline-none text-right" style={{ width: 100, color: "#fff", fontSize: 15 }} />
                   {type === "percent" && <span style={{ color: "#8E8E93" }}>%</span>}
                 </span>
               </label>
-            ) : <p style={{ ...rowStyle, borderTop: "0.5px solid rgba(84,84,88,0.6)", fontSize: 13, color: "#8E8E93" }}>El combo no cambia el precio — usa la etiqueta para describirlo (ej. {'"Gratis instalación"'}).</p>}
+            ) : <p style={{ ...rowStyle, ...divider, fontSize: 13, color: "#8E8E93" }}>El combo no cambia el precio — usa la etiqueta para describirlo (ej. {'"Gratis instalación"'}).</p>}
           </div>
+          {preview && <p style={{ fontSize: 12, color: FP.success, padding: "6px 4px 0" }}>{preview}</p>}
         </div>
         <div>
           <p style={{ fontSize: 13, color: "#8E8E93", padding: "0 4px 6px" }}>Etiqueta</p>
           <div style={box}><input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Ej. Calidad Original" className="w-full bg-transparent outline-none" style={{ ...rowStyle, color: "#fff", fontSize: 15 }} /></div>
         </div>
         <div>
-          <p style={{ fontSize: 13, color: "#8E8E93", padding: "0 4px 6px" }}>Caducidad</p>
+          <p style={{ fontSize: 13, color: "#8E8E93", padding: "0 4px 6px" }}>Vigencia</p>
           <div style={box}>
-            <div style={rowStyle}><Toggle on={hasEnd} onChange={setHasEnd} label="Tiene fecha de caducidad" /></div>
-            {hasEnd && (
-              <label className={rowCls} style={{ ...rowStyle, borderTop: "0.5px solid rgba(84,84,88,0.6)" }}>
-                <span style={{ fontSize: 15 }}>Termina</span>
+            <div style={rowStyle}>{segmented([[false, "Permanente"], [true, "Hasta fecha"]], hasEnd, setHasEnd, false)}</div>
+            {hasEnd ? (
+              <label className={rowCls} style={{ ...rowStyle, ...divider }}>
+                <span style={{ fontSize: 15 }}>Vence</span>
                 <input type="date" value={end} onChange={(e) => setEnd(e.target.value)} className="bg-transparent outline-none" style={{ color: "#fff", colorScheme: "dark", fontSize: 15 }} />
               </label>
-            )}
+            ) : <p style={{ ...rowStyle, ...divider, fontSize: 13, color: "#8E8E93" }}>No vence. Se apaga cuando tú quieras.</p>}
           </div>
         </div>
         {error && <p style={{ fontSize: 13, color: "#FF453A" }}>{error}</p>}
@@ -205,8 +287,10 @@ export function OffersDialog({ open, onClose, tenantId, products, onChanged }) {
     const live = offerLive(o);
     const product = o.product_id ? byId.get(o.product_id) : null;
     const dl = offerDaysLeft(o);
-    const right = o.active === false ? ["Apagada", "#8E8E93"] : !live ? ["Vencida", FP.danger] : dl === null ? null : [dl === 0 ? "Hoy" : `${dl}d`, dl <= 2 ? FP.warning : "#8E8E93"];
-    const sub = product && offerType(o) !== "combo" ? null : [product ? product.name : o.category ? `Categoría: ${o.category}` : null, offerType(o) === "fixed" ? `Precio ${money(num(o.value))}` : offerType(o) === "percent" ? `${num(o.value)}% off` : "Combo / regalo"].filter(Boolean).join(" · ");
+    const right = o.active === false ? ["Apagada", "#8E8E93"] : !live ? ["Vencida", FP.danger] : dl === null ? ["Permanente", FP.success] : [dl === 0 ? "Hoy" : `${dl}d`, dl <= 2 ? FP.warning : "#8E8E93"];
+    const device = offerIsDevice(o);
+    const valueText = offerType(o) === "fixed" ? `Precio ${money(num(o.value))}` : offerType(o) === "percent" ? `${num(o.value)}% off` : offerType(o) === "amount" ? `-${money(num(o.value))}` : "Combo / regalo";
+    const sub = device ? [`Equipo: ${offerDeviceLabel(o)}`, String(o.part_filter || "").trim(), valueText].filter(Boolean).join(" · ") : product && offerType(o) !== "combo" ? null : [product ? product.name : o.category ? `Categoría: ${o.category}` : null, valueText].filter(Boolean).join(" · ");
     return (
       <div key={o.id} className="group flex items-center gap-3" style={{ padding: "11px 14px", borderTop: "0.5px solid rgba(84,84,88,0.6)" }}>
         <Icon className="w-4 h-4 flex-shrink-0" style={{ color: live ? FP.success : "#8E8E93" }} />

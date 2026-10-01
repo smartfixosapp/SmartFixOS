@@ -338,11 +338,11 @@ export async function listActiveProducts(tenantId) {
   return data || [];
 }
 
-export const offerType = (o) => (["fixed", "percent", "combo"].includes(o?.offer_type) ? o.offer_type : "percent");
+export const offerType = (o) => (["fixed", "percent", "combo", "amount"].includes(o?.offer_type) ? o.offer_type : "percent");
 export const offerLive = (o) => o?.active !== false && (!o?.ends_at || new Date(o.ends_at) > new Date());
 export const offerDaysLeft = (o) => (o?.ends_at ? Math.max(0, Math.ceil((new Date(o.ends_at).getTime() - Date.now()) / DAY)) : null);
 export const offerExpiringSoon = (o) => offerLive(o) && offerDaysLeft(o) !== null && offerDaysLeft(o) <= 2;
-export const offerLabel = (o) => String(o?.label || "").trim() || ({ fixed: "Precio especial", percent: "Descuento", combo: "Combo" }[offerType(o)]);
+export const offerLabel = (o) => String(o?.label || "").trim() || ({ fixed: "Precio especial", percent: "Descuento", combo: "Combo", amount: "Descuento" }[offerType(o)]);
 
 export function offerPromoPrice(o, base) {
   if (o?.value === null || o?.value === undefined || o?.value === "") return base;
@@ -350,12 +350,25 @@ export function offerPromoPrice(o, base) {
   const t = offerType(o);
   if (t === "fixed") return Math.max(0, v);
   if (t === "percent") return Math.max(0, base * (1 - v / 100));
+  if (t === "amount") return v > 0 ? Math.max(0, base - v) : base;
   return base;
 }
 
-export async function insertOffer({ tenantId, scope, productId, category, type, value, label, endsAt }) {
+const cleanText = (v) => String(v || "").trim();
+
+function deviceColumns(device) {
+  return {
+    device_brand: cleanText(device?.brand) || null,
+    device_family: cleanText(device?.family) || null,
+    device_model_tag: cleanText(device?.model) || null,
+    part_filter: cleanText(device?.partFilter) || null,
+  };
+}
+
+export async function insertOffer({ tenantId, scope, productId, category, type, value, label, endsAt, device }) {
   const body = { tenant_id: tenantId, offer_type: type, active: true };
-  if (scope === "product") body.product_id = productId;
+  if (scope === "device") Object.entries(deviceColumns(device)).forEach(([k, v]) => { if (v) body[k] = v; });
+  else if (scope === "product") body.product_id = productId;
   else body.category = category;
   if (type !== "combo") body.value = num(value);
   if (String(label || "").trim()) body.label = String(label).trim();
@@ -364,9 +377,10 @@ export async function insertOffer({ tenantId, scope, productId, category, type, 
   if (error) throw error;
 }
 
-export async function updateOffer(id, { type, value, label, endsAt }) {
+export async function updateOffer(id, { type, value, label, endsAt, device }) {
   const body = { offer_type: type, label: String(label || "").trim(), ends_at: endsAt ? endsAt.toISOString().replace(/\.\d{3}Z$/, "Z") : null };
   if (type !== "combo") body.value = num(value);
+  if (device) Object.assign(body, deviceColumns(device));
   const { error } = await supabase.from("offer").update(body).eq("id", id);
   if (error) throw error;
 }

@@ -1,6 +1,7 @@
 import { supabase } from "../../../../../lib/supabase-client.js";
 import { sendStatusEmail } from "@/lib/orderEmails";
 import { addInternalNote } from "@/lib/orderDetailApi";
+import { newLine, addToOpenDraft } from "@/lib/comprasApi";
 import {
   naturalCompare, newUUID, nowISONoFrac, cartTotals, willDeductStock, isServiceItem, IVU, LIQUID_ADVISORY, sanitizeEmail, isValidEmail,
 } from "./helpers";
@@ -325,6 +326,15 @@ async function nextPONumber(tenantId) {
   return `${prefix}-${String((rows || []).length + 1).padStart(3, "0")}`;
 }
 
+async function addPartToSupplierDraft(pending, order, tenantId, createdByName) {
+  if (!pending.supplierId) throw new Error("Falta el suplidor del pedido.");
+  const line = newLine({
+    inventory_item_id: pending.productId || null, product_name: pending.productName, quantity: pending.quantity, unit_cost: pending.unitCost, unit_price: pending.unitPrice,
+    linked_work_order_id: order.id, linked_work_order_number: order.order_number,
+  });
+  return addToOpenDraft({ tenantId, supplier: { id: pending.supplierId, name: pending.supplierName }, line, by: createdByName });
+}
+
 async function createSupplierPO(pending, order, tenantId, createdByName) {
   const poNumber = await nextPONumber(tenantId);
   const total = pending.quantity * pending.unitCost;
@@ -443,6 +453,7 @@ export async function createOrder({ s, tenantId, tenant, createdByName, onPhase,
       id: l.product.id || newUUID(),
       type: l.product.type === "service" ? "service" : willDeductStock(l) ? "part" : "product",
       name: l.product.name, quantity: l.quantity, price: l.unitPrice, total: l.unitPrice * l.quantity,
+      ...(l.originalPrice !== undefined && l.originalPrice - l.unitPrice > 0.001 ? { original_price: l.originalPrice, offer_id: l.offerId || null, offer_label: l.offerLabel || null } : {}),
     }));
     if (estimate === 0) {
       payload.cost_estimate = cartTotals(s.cart).total;
@@ -509,7 +520,7 @@ export async function createOrder({ s, tenantId, tenant, createdByName, onPhase,
   if (s.pendingParts.length) {
     (async () => {
       let failed = 0;
-      for (const p of s.pendingParts) { try { await createSupplierPO(p, order, tenantId, createdByName); } catch { failed += 1; } }
+      for (const p of s.pendingParts) { try { if (p.mode === "draft") await addPartToSupplierDraft(p, order, tenantId, createdByName); else await createSupplierPO(p, order, tenantId, createdByName); } catch { failed += 1; } }
       if (failed) onBackgroundError?.(`No se pudo crear ${failed} pedido${failed === 1 ? "" : "s"} a suplidor de la orden ${order.order_number}. Pídelo a mano.`);
     })();
   }

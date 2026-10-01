@@ -8,11 +8,13 @@ import { recordOrderPayment } from "@/lib/orderMoneyApi";
 import { sendPaymentReceipt, remainingBalance, orderTotal } from "@/lib/orderEmails";
 import { loadCatalog, buildSearchIndex, loadDeviceChips, loadProducts, createOrder, fetchCustomerById, refetchOrder, registerOpen } from "@/lib/wizard/api";
 import { IOS, STEPS, TOTAL_STEPS, MODES, shouldSkipStep } from "@/lib/wizard/helpers";
+import { listOffers, offerLive } from "@/lib/inicioApi";
+import { offerIsDevice, resolveDeviceOffer, offerDeviceCtx } from "@/lib/wizard/offers";
 import { useWizard, loadDraft, discardDraft, rememberMode } from "./state";
 import { Overlay, W, Banner } from "./ui";
 import StepCustomer, { runNewCustomerAdvance } from "./StepCustomer";
 import StepDevice from "./StepDevice";
-import StepProblem, { AddItemDialog } from "./StepProblem";
+import StepProblem, { AddItemDialog, partNeedsOrder } from "./StepProblem";
 import StepPhotos from "./StepPhotos";
 import StepDetails from "./StepDetails";
 import { StepEstimate, StepSignature, StepConfirm } from "./StepFinish";
@@ -86,6 +88,12 @@ function WizardInner({ onClose, onCreated, prefill, resume, tenantProp, employee
     loadCatalog(tenantId).then((c) => { setCat(c); setIndex(buildSearchIndex(c)); }, () => setCatError(true));
   }, [tenantId]);
   useEffect(() => { loadCat(); loadProducts(tenantId).then(setProducts).catch(() => {}); registerOpen(tenantId).then(setCashOpen).catch(() => {}); }, [tenantId, loadCat]);
+  useEffect(() => {
+    if (!tenantId) return;
+    listOffers(tenantId).then((rows) => set({ offers: rows.filter((o) => offerIsDevice(o) && offerLive(o)) })).catch(() => {});
+  }, [tenantId, set]);
+  const offerKey = `${s.brand?.name || ""}|${s.family?.name || ""}|${s.model?.name || s.customModelText || ""}|${s.offers.length}`;
+  useEffect(() => { w.reapplyOffers(); }, [offerKey, w.reapplyOffers]);
 
   useEffect(() => {
     if (!cat || !s.draftRefs) return;
@@ -320,7 +328,7 @@ function WizardInner({ onClose, onCreated, prefill, resume, tenantProp, employee
         </div>
       </div>
       {bgToast && <div className="fixed left-1/2" style={{ zIndex: 460, bottom: 90, transform: "translateX(-50%)", maxWidth: "calc(100vw - 32px)", padding: "10px 16px", borderRadius: 12, background: IOS.red, color: "#fff", fontSize: 14, fontWeight: 600 }}>{bgToast}</div>}
-      <AddItemDialog open={addItemOpen} onClose={() => setAddItemOpen(false)} products={products} sel={catalogSel} onPick={(p) => w.addItem(p)} />
+      <AddItemDialog open={addItemOpen} onClose={() => setAddItemOpen(false)} products={products} sel={catalogSel} onPick={(p) => { w.addItem(p); if (partNeedsOrder(p)) set({ oosFor: p }); }} resolvePromo={(p) => resolveDeviceOffer(p, s.offers, offerDeviceCtx({ ...catalogSel, customModelText: s.customModelText }))} />
       <WarrantySearchDialog open={warrantyOpen} tenantId={tenantId} onClose={() => setWarrantyOpen(false)} onPick={pickWarrantyOrder} />
       <AlertDialog open={confirmClose} title="¿Descartar orden?" message={w.saveable() ? "Las fotos nunca se subieron. También puedes guardar cliente y equipo para seguir después." : "Perderás los datos capturados. Las fotos nunca se subieron."} onClose={() => setConfirmClose(false)}
         actions={[

@@ -235,13 +235,14 @@ function useAutoLock(tenantId, locked) {
     const prevStamp = Number(readLocal(activeKey(tenantId))) || 0;
     if (readLocal("security.lockOnColdLaunch") === "true" && prevStamp && Date.now() - prevStamp > COLD_GAP_MS && !isLockedStored(tenantId)) requestAppLock();
     write(activeKey(tenantId));
-    const bump = () => {
+    const bump = (e) => {
+      if (e && e.isTrusted === false) return;
       const now = Date.now();
       lastActivity.current = now;
       if (now - lastWrite.current > 2000) { lastWrite.current = now; write(userKey(tenantId)); }
     };
-    const evs = ["pointerdown", "keydown", "touchstart", "wheel", "mousemove"];
-    evs.forEach((e) => window.addEventListener(e, bump, { passive: true }));
+    const evs = ["pointerdown", "pointermove", "keydown", "touchstart", "touchmove", "wheel", "mousemove"];
+    evs.forEach((e) => window.addEventListener(e, bump, { passive: true, capture: true }));
     const tick = setInterval(() => {
       write(activeKey(tenantId));
       if (isLockedStored(tenantId)) return;
@@ -260,7 +261,7 @@ function useAutoLock(tenantId, locked) {
       lastActivity.current = Date.now();
     };
     document.addEventListener("visibilitychange", onVis);
-    return () => { evs.forEach((e) => window.removeEventListener(e, bump)); clearInterval(tick); document.removeEventListener("visibilitychange", onVis); };
+    return () => { evs.forEach((e) => window.removeEventListener(e, bump, { capture: true })); clearInterval(tick); document.removeEventListener("visibilitychange", onVis); };
   }, [tenantId]);
   useEffect(() => { if (!locked) lastActivity.current = Date.now(); }, [locked]);
 }

@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { CHECKLIST_ITEMS, TOTAL_STEPS, shouldSkipStep, activeSteps, cartTotals } from "@/lib/wizard/helpers";
+import { resolveDeviceOffer, offerDeviceCtx, applyOfferToLine } from "@/lib/wizard/offers";
 
 export const DRAFT_KEY = "wizard.draft.v1";
 const LAST_MODE_KEY = "wizard.lastOrderMode";
@@ -63,7 +64,7 @@ export function initialState({ prefill, draft }) {
     nc: emptyNC(),
     category: null, brand: null, family: null, model: null, customModelText: "", stoppedEarly: false,
     problem: "", autoQuickText: "",
-    cart: [], pendingParts: [],
+    cart: [], pendingParts: [], offers: [], oosFor: null,
     photos: [],
     checklist: CHECKLIST_ITEMS.map(([id, label]) => ({ id, label, status: "not_tested" })),
     liquidDamage: false, liquidCorrosion: false, liquidHumidity: false, liquidDried: false,
@@ -179,7 +180,23 @@ export function useWizard(init) {
     const idx = product.id ? cart.findIndex((l) => l.product.id === product.id) : -1;
     if (idx >= 0) return cart.map((l, i) => (i === idx ? { ...l, quantity: l.quantity + quantity } : l));
     const price = product.__manualPrice !== undefined ? product.__manualPrice : null;
-    return [...cart, { key, product, quantity, unitPrice: price !== null ? price : effectiveOf(product) }];
+    const line = { key, product, quantity, unitPrice: price !== null ? price : effectiveOf(product) };
+    const res = price !== null ? null : resolveDeviceOffer(product, ref.current.offers, offerDeviceCtx(ref.current));
+    return [...cart, res ? applyOfferToLine(line, res) : line];
+  }), [setCart]);
+
+  const reapplyOffers = useCallback(() => setCart((cart) => {
+    const ctx = offerDeviceCtx(ref.current);
+    let changed = false;
+    const next = cart.map((l) => {
+      if (l.product.__manualPrice !== undefined || !l.product.id) return l;
+      const res = resolveDeviceOffer(l.product, ref.current.offers, ctx);
+      if (!res && !l.offerId) return l;
+      if (res && l.offerId === res.offer.id && Math.abs(l.unitPrice - res.promo) < 0.001) return l;
+      changed = true;
+      return applyOfferToLine(l, res);
+    });
+    return changed ? next : cart;
   }), [setCart]);
 
   const setQuantity = useCallback((key, qty) => setCart((cart) => (qty <= 0 ? cart.filter((l) => l.key !== key) : cart.map((l) => (l.key === key ? { ...l, quantity: qty } : l)))), [setCart]);
@@ -205,7 +222,7 @@ export function useWizard(init) {
   const totals = useMemo(() => cartTotals(s.cart), [s.cart]);
 
   return {
-    s, set, ref, canAdvance, goTo, jumpForward, goBack, addItem, setQuantity, setCart, saveDraft, steps, logicalStep, totals,
+    s, set, ref, canAdvance, goTo, jumpForward, goBack, addItem, reapplyOffers, setQuantity, setCart, saveDraft, steps, logicalStep, totals,
     hasAnyData: () => hasAnyData(ref.current), saveable: () => saveableProgress(ref.current),
   };
 }

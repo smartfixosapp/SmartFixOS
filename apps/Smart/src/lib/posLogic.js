@@ -181,13 +181,14 @@ function offerLive(o) {
 
 function offerApplies(o, p) {
   if (!offerLive(o)) return false;
+  if (o.device_brand || o.device_family || o.device_model_tag) return false;
   if (o.product_id) return p.id === o.product_id;
   if (o.category) return String(p.category || "").toLowerCase() === String(o.category).toLowerCase();
   return false;
 }
 
 function offerType(o) {
-  return ["fixed", "percent", "combo"].includes(o?.offer_type) ? o.offer_type : "percent";
+  return ["fixed", "percent", "combo", "amount"].includes(o?.offer_type) ? o.offer_type : "percent";
 }
 
 function offerPromo(o, base) {
@@ -195,6 +196,7 @@ function offerPromo(o, base) {
   switch (offerType(o)) {
     case "fixed": return v === null ? base : Math.max(0, v);
     case "percent": return v === null || v <= 0 ? base : Math.max(0, base * (1 - v / 100));
+    case "amount": return v === null || v <= 0 ? base : Math.max(0, base - v);
     default: return base;
   }
 }
@@ -202,7 +204,7 @@ function offerPromo(o, base) {
 function offerLabel(o) {
   if (o.label) return o.label;
   const t = offerType(o);
-  return t === "fixed" ? "Precio especial" : t === "percent" ? "Descuento" : "Combo";
+  return t === "fixed" ? "Precio especial" : t === "combo" ? "Combo" : "Descuento";
 }
 
 export function offerResolution(product, offers) {
