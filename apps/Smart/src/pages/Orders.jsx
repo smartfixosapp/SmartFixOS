@@ -4,7 +4,7 @@ import { Search, Plus, Building2 } from "lucide-react";
 import NewOrderWizard from "@/components/wizard/Wizard";
 import { OrderCreatedToast } from "@/components/inicio/Cards";
 import { dataClient } from "@/components/api/dataClient";
-import { statusInfo } from "@/lib/orderStatus";
+import { statusInfo, PICKER_GROUPS } from "@/lib/orderStatus";
 import OrdersKanban from "@/components/orders/OrdersKanban";
 import { AlertDialog } from "@/components/pos/native/posUi";
 import { fetchTenant, resolveCurrentEmployee } from "@/lib/orderDetailApi";
@@ -94,10 +94,11 @@ export default function Orders() {
       map.set(st, (map.get(st) || 0) + 1);
     });
     const hidden = hiddenStatusesOf(tenant);
-    return Array.from(map.entries())
-      .filter(([id]) => !hidden.includes(String(id)))
-      .map(([id, count]) => ({ id, count, config: statusInfo(id) }))
-      .sort((a, b) => b.count - a.count);
+    const listed = PICKER_GROUPS.flatMap((g) => g.statuses);
+    const extra = Array.from(map.keys()).filter((id) => !listed.includes(id));
+    return [...listed, ...extra]
+      .filter((id) => !hidden.includes(String(id)))
+      .map((id) => ({ id, count: map.get(id) || 0, config: statusInfo(id) }));
   }, [orders, tenant]);
 
   const filteredOrders = useMemo(() => {

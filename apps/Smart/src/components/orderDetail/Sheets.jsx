@@ -4,12 +4,12 @@ import { PICKER_GROUPS, statusInfo, nextStatusFor, NOTE_PRESETS } from "@/lib/or
 import { orderTotal } from "@/lib/orderEmails";
 import { C, tint, Sheet, Btn, money, displayDevice, relativeTime } from "./ui";
 
-export function StatusPickerSheet({ open, onClose, current, onPick }) {
+export function StatusPickerSheet({ open, onClose, current, onPick, hidden = [] }) {
   const next = nextStatusFor(current);
   return (
     <Sheet open={open} onClose={onClose} title="Cambiar Estado" width={520}>
       <div className="flex flex-col gap-5">
-        {PICKER_GROUPS.map((g) => (
+        {PICKER_GROUPS.map((g) => ({ ...g, statuses: g.statuses.filter((raw) => !hidden.includes(raw) || raw === current) })).filter((g) => g.statuses.length).map((g) => (
           <div key={g.key}>
             <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", color: C.sub, margin: "0 4px 8px" }}>{g.title}</p>
             <div className="flex flex-col gap-2">

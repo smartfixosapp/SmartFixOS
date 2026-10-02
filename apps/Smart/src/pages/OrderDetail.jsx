@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { ChevronLeft, MessageSquare, Pencil, MoreHorizontal, Trash2, Zap, Info, History, Check, X, AlertTriangle, Loader2, Hand, CalendarClock } from "lucide-react";
 import { statusInfo } from "@/lib/orderStatus";
+import { hiddenStatusesOf } from "@/lib/tenantSettings";
 import {
   fetchOrder, fetchTenant, changeStatusRpc, patchOrder, logActivity, addInternalNote, addCustomerAdvisories,
   hasLinkedPurchaseLines, normalizeRoles, deleteInternalNote, softDeleteOrder, assignTechnician, fetchTechnicians, findUndiagnosedForTech,
@@ -898,7 +899,7 @@ export default function OrderDetail() {
       <DocumentShareSheet open={!!docShare} kind={docShare?.kind} order={order} blob={docShare?.blob} onClose={() => setDocShare(null)} />
       <ScheduleVisitSheet open={sheet?.name === "schedule"} order={order} tenant={tenant} by={by} onClose={() => setSheet(null)} onSaved={() => { toast(order.appointment_at ? "Cita actualizada" : "Cita agendada"); reload(); }} />
       <CloseDraftDialog open={sheet?.name === "closeDraft"} po={sheet?.po} tenantId={tenantId} employeeName={by} onClose={() => setSheet(null)} onDone={(p, msg) => { toast(msg); reload(); }} />
-      <StatusPickerSheet open={sheet?.name === "picker"} onClose={() => setSheet(null)} current={order.status} onPick={pickStatus} />
+      <StatusPickerSheet open={sheet?.name === "picker"} onClose={() => setSheet(null)} current={order.status} onPick={pickStatus} hidden={hiddenStatusesOf(tenant)} />
       <NoteForChangeSheet
         open={sheet?.name === "noteForChange"}
         status={sheet?.status}
