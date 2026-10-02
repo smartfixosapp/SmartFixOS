@@ -1,11 +1,11 @@
 import React from "react";
 import { Phone, MessageSquare, MessageCircle, Mail, ShieldCheck, Droplets, AlertTriangle, Clock, CheckCircle2, XCircle, Shield } from "lucide-react";
-import { statusInfo, isOrderClosed } from "@/lib/orderStatus";
+import { statusInfo, isTerminal } from "@/lib/orderStatus";
 import { remainingBalance } from "@/lib/orderEmails";
 import { C, tint, Card, Pill, money, displayDevice } from "./ui";
 
 function daysUntilPromised(order) {
-  if (!order?.promised_date || isOrderClosed(order)) return null;
+  if (!order?.promised_date || isTerminal(order.status)) return null;
   const start = new Date(); start.setHours(0, 0, 0, 0);
   const target = new Date(order.promised_date); target.setHours(0, 0, 0, 0);
   return Math.round((target - start) / 86400000);

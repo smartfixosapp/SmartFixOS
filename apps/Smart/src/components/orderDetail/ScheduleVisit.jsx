@@ -7,7 +7,7 @@ import { changeStatusRpc } from "@/lib/orderDetailApi";
 import { sendRawEmail, tenantEmailFromName } from "@/lib/orderEmails";
 
 const toInput = (d) => { const x = new Date(d); return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-${String(x.getDate()).padStart(2, "0")}T${String(x.getHours()).padStart(2, "0")}:${String(x.getMinutes()).padStart(2, "0")}`; };
-import { isOrderClosed } from "@/lib/orderStatus";
+import { isTerminal } from "@/lib/orderStatus";
 const esc = (t) => String(t ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 export default function ScheduleVisitSheet({ open, order, tenant, by, onClose, onSaved }) {
@@ -23,13 +23,13 @@ export default function ScheduleVisitSheet({ open, order, tenant, by, onClose, o
     setError(null);
     setWhen(toInput(order.appointment_at ? new Date(order.appointment_at) : new Date(Date.now() + 3600000)));
     setLocation(order.appointment_location || ""); setNote(order.appointment_note || "");
-    setToStatus(order.status !== "scheduled" && !isOrderClosed(order));
+    setToStatus(order.status !== "scheduled" && !isTerminal(order.status));
   }, [open, order?.id]);
   if (!order) return null;
   const at = new Date(when);
   const valid = !Number.isNaN(at.getTime());
   const days = valid ? Math.round((new Date(at.getFullYear(), at.getMonth(), at.getDate()) - new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate())) / 86400000) : 0;
-  const canToggle = order.status !== "scheduled" && !isOrderClosed(order);
+  const canToggle = order.status !== "scheduled" && !isTerminal(order.status);
   const save = async () => {
     if (!valid || busy) return;
     const changedDate = !order.appointment_at || Math.abs(at.getTime() - new Date(order.appointment_at).getTime()) >= 60000;

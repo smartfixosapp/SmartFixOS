@@ -72,7 +72,7 @@ export function isTerminal(raw) {
 
 export function isOrderClosed(order) {
   if (!order) return false;
-  if (order.status === "not_repairable") return !!order.not_repairable_resolved_at;
+  if (order.status === "not_repairable" || order.status === "cancelled") return !!order.not_repairable_resolved_at;
   return isTerminal(order.status);
 }
 

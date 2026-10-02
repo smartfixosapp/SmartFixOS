@@ -34,7 +34,7 @@ export async function changeStatusRpc(orderId, newStatus, changedBy, visibleToCu
     p_visible_to_customer: visibleToCustomer,
   });
   if (error) throw error;
-  if (newStatus === "not_repairable" && resetNotRepairable) {
+  if ((newStatus === "not_repairable" || newStatus === "cancelled") && resetNotRepairable) {
     await patchOrder(orderId, { not_repairable_resolved_at: null }).catch(() => {});
   }
 }

@@ -237,7 +237,7 @@ export default function OrderDetail() {
     clearInterval(countdownRef.current);
     let tick = null;
     if (undoable) {
-      setNotice({ kind: "countdown", seconds: 5, prev: prevStatus, newStatus, orderId: o.id });
+      setNotice({ kind: "countdown", seconds: 5, prev: prevStatus, newStatus, orderId: o.id, prevResolvedAt: opts.prevResolvedAt || null });
       tick = setInterval(() => {
         setNotice((n) => (n?.kind === "countdown" && n.seconds > 1 ? { ...n, seconds: n.seconds - 1 } : n));
       }, 1000);
@@ -272,6 +272,7 @@ export default function OrderDetail() {
       clearTimeout(clearTimerRef.current);
       if (noticeRef.current) setNotice(null);
       const prev = o.status;
+      const prevResolvedAt = o.not_repairable_resolved_at || null;
       if (newStatus !== "delivered") commitOrder({ ...o, status: newStatus });
       expectedStatusRef.current = newStatus;
       try {
@@ -282,7 +283,7 @@ export default function OrderDetail() {
         return false;
       }
       const fresh = await reload();
-      startEmailFlow(fresh || { ...o, status: newStatus }, newStatus, prev, opts);
+      startEmailFlow(fresh || { ...o, status: newStatus }, newStatus, prev, { ...opts, prevResolvedAt });
       if (opts.afterSuccess) await opts.afterSuccess(fresh);
       return true;
     } finally {
@@ -303,6 +304,7 @@ export default function OrderDetail() {
     try {
       expectedStatusRef.current = n.prev;
       await changeStatusRpc(n.orderId, n.prev, by ? `Web · ${by} (deshacer)` : "Web · deshacer", false, { resetNotRepairable: false });
+      if (n.prevResolvedAt) await patchOrder(n.orderId, { not_repairable_resolved_at: n.prevResolvedAt }).catch(() => {});
       setNotice({ kind: cancelled ? "undone" : "undoneLate" });
       autoClearNotice(3000);
     } catch (e) {
@@ -413,6 +415,11 @@ export default function OrderDetail() {
         return;
       }
       if (orderRef.current?.status === "cancelled") {
+        if (orderRef.current.not_repairable_resolved_at) {
+          if (await attempt("No se pudo reabrir la orden", () => patchOrder(orderRef.current.id, { not_repairable_resolved_at: null }))) toast("Orden reabierta");
+          await reload();
+          return;
+        }
         toast("La orden ya está cancelada y no quedan piezas pendientes.");
         return;
       }

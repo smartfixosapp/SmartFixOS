@@ -1,7 +1,7 @@
 import React from "react";
 import { Star, Lock, Zap, AlertTriangle } from "lucide-react";
 import { remainingBalance } from "@/lib/orderEmails";
-import { isOrderClosed } from "@/lib/orderStatus";
+import { isTerminal } from "@/lib/orderStatus";
 import { C, Card, SectionHeader, Row, money } from "./ui";
 
 function Stars({ rating }) {
@@ -20,7 +20,7 @@ export default function InfoSections({ order, onOpenHistory, onTech, onQuickServ
   const balance = remainingBalance(order);
   const reported = order.device_security?.imei_check_result === "reported";
   const showQuick = order.status === "intake" || order.status === "diagnosing";
-  const hasPromised = !!order.promised_date && !isOrderClosed(order);
+  const hasPromised = !!order.promised_date && !isTerminal(order.status);
   const rating = parseInt(order.review_rating, 10);
 
   return (

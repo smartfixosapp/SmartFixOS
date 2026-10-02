@@ -62,9 +62,7 @@ function stageGuide(order, tenant) {
         title: "No reparable",
         subtitle: "El equipo fue diagnosticado y no se pudo reparar. Cobra el diagnóstico y avisa al cliente para que lo recoja.",
         pills: [
-          { key: "charge", label: "Cobrar diagnóstico", color: C.green },
           { key: "notify", label: "Enviar mensaje", color: C.blue },
-          { key: "resolve_nr", label: "Marcar resuelto", color: C.brand },
         ],
       };
   }
@@ -87,6 +85,9 @@ function stageGuide(order, tenant) {
   }
   const g = STAGE_GUIDE[s];
   if (!g) return null;
+  if (s === "cancelled" && !order.not_repairable_resolved_at) {
+    return { ...g, subtitle: "El cliente canceló la orden. Cobra lo pendiente, si aplica, y ciérrala." };
+  }
   if (s === "delivered") {
     const social = tenant?.settings?.social || {};
     const canReview = (order.customer_phone || order.customer_email) && (social.google_reviews || social.yelp);
@@ -153,7 +154,26 @@ export default function StatusModule({
     `Actualizada ${relativeTime(order.updated_date || order.updated_at)}`,
   ].filter(Boolean).join(" · ");
 
-  const primary = next && (
+  const collectClose = (order.status === "cancelled" || order.status === "not_repairable") && !closed;
+  const collectButtons = collectClose ? (balance > 0.009 ? (
+    <>
+      <button onClick={() => onStagePill("charge")} disabled={saving} className="apple-press flex items-center justify-center gap-2 disabled:opacity-50"
+        style={{ minHeight: 50, padding: "0 18px", borderRadius: 14, background: C.green, color: "#fff", fontWeight: 700, fontSize: 15, flex: 1 }}>
+        <DollarSign className="w-5 h-5" /> Cobrar {money(balance)}
+      </button>
+      <button onClick={() => onStagePill("resolve_nr")} disabled={saving} className="apple-press flex items-center justify-center gap-2 disabled:opacity-50"
+        style={{ minHeight: 50, padding: "0 18px", borderRadius: 14, background: C.card2, color: C.sub, fontWeight: 600, fontSize: 15, flex: 1 }}>
+        Cerrar sin cobrar
+      </button>
+    </>
+  ) : (
+    <button onClick={() => onStagePill("resolve_nr")} disabled={saving} className="apple-press flex items-center justify-center gap-2 disabled:opacity-50"
+      style={{ minHeight: 50, padding: "0 18px", borderRadius: 14, background: C.brand, color: "#fff", fontWeight: 700, fontSize: 15, flex: 1 }}>
+      <BadgeCheck className="w-5 h-5" /> Cerrar orden
+    </button>
+  )) : null;
+
+  const advancePrimary = next && (
     order.status === "ready_for_pickup" ? (
       <button onClick={onDeliver} disabled={saving} className="apple-press flex items-center justify-center gap-2 disabled:opacity-50"
         style={{ minHeight: 50, padding: "0 18px", borderRadius: 14, background: "#059669", color: "#fff", fontWeight: 700, fontSize: 15, flex: 1 }}>
@@ -166,6 +186,8 @@ export default function StatusModule({
       </button>
     )
   );
+
+  const primary = collectButtons || advancePrimary;
 
   const secondary = closed ? (
     <button onClick={onReopen} disabled={saving} className="apple-press flex items-center justify-center gap-2 disabled:opacity-50"
