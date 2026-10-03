@@ -192,7 +192,7 @@ export function ProductCard({ product, quantity, isPinned, offer, onAdd, onIncre
 
 export { ContextMenu, Showcase };
 
-const TIPO_ICON = { all: LayoutGrid, product: Package, service: Wrench, accessory: Boxes, device: Smartphone };
+const TIPO_ICON = { all: LayoutGrid, service: Wrench, accessory: Boxes, device: Smartphone };
 
 export function TipoChips({ tipo, onChange }) {
   return (

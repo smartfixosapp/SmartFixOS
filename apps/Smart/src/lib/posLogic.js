@@ -105,6 +105,14 @@ export function isService(p) {
   return p?.type === "service";
 }
 
+export function isServiceItem(p) {
+  const bucket = String(p?.tipo_principal || "").toLowerCase();
+  if (bucket) return bucket === "servicios";
+  if (isService(p)) return true;
+  if (String(p?.part_type || "").toLowerCase() === "servicio") return true;
+  return String(p?.category || "").toLowerCase() === "diagnostic";
+}
+
 export function isAccessoryItem(p) {
   const bucket = String(p?.tipo_principal || "").toLowerCase();
   if (bucket) return bucket === "accesorios";
@@ -149,18 +157,16 @@ export function displayCategory(p) {
 }
 
 export const TIPO_FILTERS = [
-  { id: "all", label: "Todos" },
-  { id: "product", label: "Piezas" },
-  { id: "service", label: "Servicios" },
   { id: "accessory", label: "Accesorios" },
   { id: "device", label: "Dispositivos" },
+  { id: "service", label: "Servicios" },
+  { id: "all", label: "Todos" },
 ];
 
 export function matchesTipo(p, tipo) {
   switch (tipo) {
-    case "all": return isAccessoryItem(p) || isFullDevice(p);
-    case "product": return !isService(p) && String(p?.type || "").toLowerCase() !== "accessory";
-    case "service": return isService(p);
+    case "all": return isAccessoryItem(p) || isFullDevice(p) || isServiceItem(p);
+    case "service": return isServiceItem(p);
     case "accessory": return isAccessoryItem(p);
     case "device": return isFullDevice(p);
     default: return true;

@@ -163,7 +163,7 @@ export default function POS() {
 
   const [searchText, setSearchText] = useState("");
   const [query, setQuery] = useState("");
-  const [tipo, setTipo] = useState("all");
+  const [tipo, setTipo] = useState("accessory");
   const [category, setCategory] = useState(null);
 
   const [toast, setToast] = useState(null);
@@ -219,6 +219,20 @@ export default function POS() {
     const rows = await loadProducts(tenantId).catch(() => null);
     if (rows) setProducts(rows);
   }, [tenantId]);
+
+  const lastProductsAt = useRef(Date.now());
+  useEffect(() => {
+    if (!tenantId) return undefined;
+    const refreshIfStale = () => {
+      if (document.visibilityState === "hidden") return;
+      if (Date.now() - lastProductsAt.current < 5000) return;
+      lastProductsAt.current = Date.now();
+      silentReload();
+    };
+    document.addEventListener("visibilitychange", refreshIfStale);
+    window.addEventListener("focus", refreshIfStale);
+    return () => { document.removeEventListener("visibilitychange", refreshIfStale); window.removeEventListener("focus", refreshIfStale); };
+  }, [tenantId, silentReload]);
 
   const refreshRegister = useCallback(async () => {
     const r = await fetchOpenRegister(tenantId).catch(() => undefined);
