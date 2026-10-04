@@ -30,6 +30,7 @@ import DiscountBadge, { formatPriceWithDiscount } from "../components/inventory/
 import SetDiscountDialog from "../components/inventory/SetDiscountDialog";
 import ManageCategoriesDialog from "../components/inventory/ManageCategoriesDialog";
 import InventoryReports from "../components/inventory/InventoryReports";
+import RestockDialog from "../components/inventory/RestockDialog";
 import { catalogCache } from "@/components/utils/dataCache";
 import { AlertDialog } from "@/components/pos/native/posUi";
 import { loadSuppliersSafe } from "@/components/utils/suppliers";
@@ -1020,6 +1021,7 @@ export default function Inventory() {
   const [mainCategory, setMainCategory] = useState("todos");
   const [sortKey, setSortKey] = useState("name");
   const [showReports, setShowReports] = useState(false);
+  const [showRestock, setShowRestock] = useState(false);
   const [showManageCategories, setShowManageCategories] = useState(false);
   const [viewMode, setViewMode] = useState("products"); // products | categories
   // ── Ajuste Rápido de Stock ────────────────────────────────────────────
@@ -1548,6 +1550,7 @@ export default function Inventory() {
                     { label: 'Historial de movimientos', Icon: History, action: () => { setShowHistorial(true); setShowMoreMenu(false); } },
                     { label: 'Gestionar categorías', Icon: Settings, action: () => { setShowManageCategories(true); setShowMoreMenu(false); } },
                     { label: 'Reportes', Icon: TrendingUp, action: () => { setShowReports(true); setShowMoreMenu(false); } },
+                    { label: 'Reabastecer', Icon: Box, action: () => { setShowRestock(true); setShowMoreMenu(false); } },
                   ].map((item, i) =>
                     item === null ? (
                       <div key={i} className="h-[0.5px] mx-3" style={{ backgroundColor: "rgba(255,255,255,0.1)" }} />
@@ -1821,6 +1824,8 @@ export default function Inventory() {
             suppliers={suppliers}
           />
         )}
+
+        <RestockDialog open={showRestock} onClose={() => setShowRestock(false)} products={items} tenantId={localStorage.getItem("smartfix_tenant_id") || ""} employeeName={localStorage.getItem("smartfix_employee_name") || "Web"} />
 
         {showReports && (
           <InventoryReports open={showReports} onClose={() => setShowReports(false)} />
