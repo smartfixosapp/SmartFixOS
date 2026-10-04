@@ -67,25 +67,24 @@ export async function recordOrderPayment({ order, amount, method, customLabel, b
   const outstanding = Math.max(0, total - paid);
   const applied = hasEstimate && outstanding > 0 ? Math.min(amount, outstanding) : amount;
   const existing = await listOrderTransactions(order.id, (q) => q.eq("type", "revenue").eq("category", "repair_payment").limit(200));
-  const dup = existing.some((t) => Math.abs(n(t.amount) - applied) < 0.005 && Date.now() - new Date(t.created_at).getTime() < 120000);
+  const payment_method = customLabel ? String(customLabel).toLowerCase() : method;
+  const dup = existing.some((t) => Math.abs(n(t.amount) - applied) < 0.005 && String(t.payment_method || "") === String(payment_method) && Date.now() - new Date(t.created_at).getTime() < 20000);
+  if (dup) return { applied: 0, isPaidNow: !!order.paid, transactionId: null, duplicate: true };
   let txId = null;
-  if (!dup) {
-    const payment_method = customLabel ? String(customLabel).toLowerCase() : method;
-    const { data, error } = await supabase.from("transaction").insert({
-      tenant_id: order.tenant_id,
-      type: "revenue",
-      category: "repair_payment",
-      amount: applied,
-      description: `Pago orden ${order.order_number} · ${order.customer_name || "Cliente"}`,
-      payment_method,
-      recorded_by: by || "Web",
-      order_id: order.id,
-      order_number: order.order_number,
-      is_settled: method !== "card",
-    }).select("id").single();
-    if (error || !data?.id) throw new Error("No se pudo registrar el pago en Finanzas. La orden NO se marcó pagada; intenta de nuevo.");
-    txId = data.id;
-  }
+  const { data, error } = await supabase.from("transaction").insert({
+    tenant_id: order.tenant_id,
+    type: "revenue",
+    category: "repair_payment",
+    amount: applied,
+    description: `Pago orden ${order.order_number} · ${order.customer_name || "Cliente"}`,
+    payment_method,
+    recorded_by: by || "Web",
+    order_id: order.id,
+    order_number: order.order_number,
+    is_settled: method !== "card",
+  }).select("id").single();
+  if (error || !data?.id) throw new Error("No se pudo registrar el pago en Finanzas. La orden NO se marcó pagada; intenta de nuevo.");
+  txId = data.id;
   const newPaid = hasEstimate ? Math.min(paid + amount, total) : paid + amount;
   const newBalance = hasEstimate ? Math.max(0, total - newPaid) : 0;
   const isPaidNow = hasEstimate && newBalance <= 0.004;

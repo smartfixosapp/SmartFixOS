@@ -13,7 +13,7 @@ export async function invokeEdge(name, body) {
     token = null;
   }
   if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(apiUrl(`/api/edge-fn?name=${encodeURIComponent(name)}`), { method: "POST", headers, body: JSON.stringify(body ?? {}) });
+  const res = await fetch(apiUrl(`/edge/${encodeURIComponent(name)}`), { method: "POST", headers, body: JSON.stringify(body ?? {}) });
   const text = await res.text();
   let parsed = null;
   try {
@@ -21,7 +21,8 @@ export async function invokeEdge(name, body) {
   } catch {
     parsed = null;
   }
-  if (res.status === 404 && parsed === null) return supabase.functions.invoke(name, { body });
+  const isJson = (res.headers.get("content-type") || "").includes("json");
+  if (!isJson) return supabase.functions.invoke(name, { body });
   if (!res.ok) {
     return { data: null, error: { message: parsed?.error || `HTTP ${res.status}`, context: { status: res.status } } };
   }

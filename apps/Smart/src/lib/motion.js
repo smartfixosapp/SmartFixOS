@@ -13,8 +13,8 @@ export const dur = (s) => (reduced() ? 0 : s);
 
 export const backdropMotion = {
   initial: { opacity: 0 },
-  animate: { opacity: 1 },
-  exit: { opacity: 0 },
+  animate: { opacity: 1, pointerEvents: "auto" },
+  exit: { opacity: 0, pointerEvents: "none" },
   transition: { duration: dur(MOTION.base) },
 };
 

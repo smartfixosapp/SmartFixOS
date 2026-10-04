@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { AlertCircle, CheckCircle2, ChevronRight, Plus, Minus, BarChart3, CalendarClock, ArrowUpRight, ArrowDownRight, Share, Tag, ArrowUpDown, Search, CircleX, ChevronDown, ChevronUp, Paperclip, Undo2, Info, Loader2, PlusCircle, MinusCircle, Check, Pencil } from "lucide-react";
 import { tint, ErrorBanner } from "@/components/pos/native/posUi";
 import { ContextMenu } from "@/components/pos/native/Catalog";
-import { FP, isRevenue, isExpense, isRefund, isCheckIssued, movSigned, movOutMagnitude, movCatStyle, displayPaymentMethod, num, txDate } from "@/lib/finance/ledger";
+import { FP, isLedgerTx, isRevenue, isExpense, isRefund, isCheckIssued, movSigned, movOutMagnitude, movCatStyle, displayPaymentMethod, num, txDate } from "@/lib/finance/ledger";
 import { fmt } from "@/lib/finance/tz";
 import { money, cardStyle, Bar, downloadText } from "./ui";
 
@@ -131,7 +131,7 @@ export function Movimientos({ monthRows, loading, error, onDismissError, monthLa
   const [asc, setAsc] = useState(false);
   const [menu, setMenu] = useState(null);
 
-  const base = useMemo(() => monthRows.filter((t) => !t.is_deleted), [monthRows]);
+  const base = useMemo(() => monthRows.filter((t) => !t.is_deleted && isLedgerTx(t)), [monthRows]);
   const categoriesPresent = useMemo(() => {
     const seen = {};
     base.forEach((t) => { const s = movCatStyle(t); seen[s.key] = s; });

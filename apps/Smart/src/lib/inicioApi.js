@@ -47,7 +47,8 @@ export async function fetchTodayTotals(tenantId, tz) {
     .gte("created_at", start.toISOString()).order("created_at", { ascending: true }).limit(2000);
   if (error) throw error;
   const rows = data || [];
-  const revenue = rows.filter((t) => t.type === "revenue").reduce((s, t) => s + num(t.amount), 0);
+  const refunds = rows.filter((t) => t.type === "refund").reduce((s, t) => s + Math.abs(num(t.amount)), 0);
+  const revenue = rows.filter((t) => t.type === "revenue").reduce((s, t) => s + num(t.amount), 0) - refunds;
   const expenses = rows.filter((t) => t.type === "expense").reduce((s, t) => s + num(t.amount), 0);
   return { revenue, expenses, net: revenue - expenses };
 }

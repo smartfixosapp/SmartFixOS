@@ -354,7 +354,18 @@ export default function POS() {
     }
   };
 
-  const processSale = async ({ payments, customLabel, split }) => {
+  const saleInFlight = useRef(false);
+  const processSale = async (args) => {
+    if (saleInFlight.current) return { showReceipt: false };
+    saleInFlight.current = true;
+    try {
+      return await processSaleOnce(args);
+    } finally {
+      saleInFlight.current = false;
+    }
+  };
+
+  const processSaleOnce = async ({ payments, customLabel, split }) => {
     if (!register) throw new Error("No hay caja registradora abierta. Abre una caja antes de procesar ventas.");
     if (!tenantId) throw new Error("Sesion expirada");
     if (!cart.length) throw new Error("El carrito está vacío");

@@ -32,6 +32,7 @@ export const num = (v) => {
 export const isRevenue = (tx) => tx.type === "revenue";
 export const isExpense = (tx) => tx.type === "expense";
 export const isRefund = (tx) => tx.type === "refund";
+export const isLedgerTx = (tx) => isRevenue(tx) || isExpense(tx) || isRefund(tx);
 export const isCheckIssued = (tx) => tx.payment_method === "check" && tx.check_status === "issued";
 export const refundAmount = (tx) => Math.abs(num(tx.amount));
 export const txDate = (tx) => (tx.created_at ? new Date(tx.created_at) : null);
@@ -131,7 +132,7 @@ export function ledgerTotals(rows) {
   let e = 0;
   let s = 0;
   rows.forEach((tx) => {
-    if (tx.is_deleted) return;
+    if (tx.is_deleted || !isLedgerTx(tx)) return;
     if (isRevenue(tx)) e += num(tx.amount);
     else if (!isCheckIssued(tx)) s += movOutMagnitude(tx);
   });
