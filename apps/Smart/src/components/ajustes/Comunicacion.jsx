@@ -1,18 +1,18 @@
 import { useState, useEffect, useRef } from "react";
-import { Mail, ShieldCheck, Bell, Wrench, CreditCard, Check, Moon } from "lucide-react";
+import { Mail, ShieldCheck, Bell, Wrench, CreditCard, Check, Moon, Inbox, Stethoscope, GitBranch, BadgeCheck, Truck, OctagonX, ShieldOff, PackageOpen, Package, ThumbsUp, OctagonAlert, BadgeX, BadgeDollarSign, ShoppingBag, Undo2, UserRoundX, Power, Type, MessageSquareText, Eye, AtSign, AlignLeft, Sparkles, Trash2, CheckCircle2, XCircle, HelpCircle, BellOff, RefreshCw, Settings as Gear, ChevronRight, Clock } from "lucide-react";
 import { AlertDialog, tint } from "@/components/pos/native/posUi";
-import { A, SubPage, Group, Row, ToggleRow, Toggle, Field, PrimaryBtn, ErrorLine } from "./ui";
+import { A, SubPage, Group, Row, ToggleRow, Toggle, Field, PrimaryBtn, ErrorLine, ActionRow } from "./ui";
 import { updateTenant, settingsOf, policiesOf, DEFAULT_ABANDONMENT, localGet, localSet } from "@/lib/tenantSettings";
 import { EMAIL_TEMPLATE_DEFAULTS } from "@/lib/emailTemplateDefaults";
 
 const ORDER_T = [
-  ["intake", "Orden Recibida", "¡Orden recibida!", "#3B82F6"], ["diagnosing", "Diagnóstico en Proceso", "Diagnóstico en proceso", "#8B5CF6"], ["in_progress", "En Reparación", "Reparación en progreso", "#06B6D4"],
-  ["waiting_customer", "Esperando al Cliente", "Necesitamos tu respuesta", "#F43F5E"], ["waiting_parts", "Esperando Piezas", "Esperando llegada de la pieza", "#F97316"], ["part_arrived", "Pieza Lista — Trae el Equipo", "¡La pieza ya llegó!", "#FACC15"],
-  ["reparacion_externa", "Reparación en Taller Externo", "Equipo en taller externo (interno)", "#EC4899"], ["ready_for_pickup", "Listo para Recoger", "¡Tu equipo está listo!", "#10B981"], ["delivered", "Equipo Entregado", "¡Orden completada!", "#059669"],
-  ["cancelled", "Orden Cancelada", "Orden cancelada", "#DC2626"], ["warranty_expired", "Garantía Vencida", "Tu garantía finalizó", "#F59E0B"], ["pending_order", "Pendiente de Ordenar", "Pendiente de ordenar pieza", "#B71C1C"],
-  ["device_picked_up", "Equipo Recogido", "Gracias por recoger tu equipo", "#059669"], ["abandoned", "Equipo Sin Reclamar", "Tu equipo sigue esperando", "#800021"], ["not_repairable", "No Reparable", "No pudimos repararlo", "#44403C"],
+  ["intake", "Orden Recibida", "¡Orden recibida!", A.info, Inbox], ["diagnosing", "Diagnóstico en Proceso", "Diagnóstico en proceso", A.vip, Stethoscope], ["in_progress", "En Reparación", "Reparación en progreso", A.vip, Wrench],
+  ["waiting_customer", "Esperando al Cliente", "Necesitamos tu respuesta", A.vip, UserRoundX], ["waiting_parts", "Esperando Piezas", "Esperando llegada de la pieza", A.warning, PackageOpen], ["part_arrived", "Pieza Lista — Trae el Equipo", "¡La pieza ya llegó!", A.teal, Package],
+  ["reparacion_externa", "Reparación en Taller Externo", "Equipo en taller externo (interno)", "#FF375F", GitBranch], ["ready_for_pickup", "Listo para Recoger", "¡Tu equipo está listo!", A.success, BadgeCheck], ["delivered", "Equipo Entregado", "¡Orden completada!", A.success, Truck],
+  ["cancelled", "Orden Cancelada", "Orden cancelada", A.danger, OctagonX], ["warranty_expired", "Garantía Vencida", "Tu garantía finalizó", "#8E8E93", ShieldOff], ["pending_order", "Pendiente de Ordenar", "Pendiente de ordenar pieza", A.warning, PackageOpen],
+  ["device_picked_up", "Equipo Recogido", "Gracias por recoger tu equipo", A.success, ThumbsUp], ["abandoned", "Equipo Sin Reclamar", "Tu equipo sigue esperando", A.danger, OctagonAlert], ["not_repairable", "No Reparable", "No pudimos repararlo", A.warning, BadgeX],
 ];
-const PAY_T = [["deposit_receipt", "Recibo de Depósito", "Depósito recibido", "#0A84FF"], ["payment_receipt", "Recibo de Pago", "Pago recibido", "#4DC780"], ["sale_receipt", "Recibo de Venta", "¡Gracias por tu compra!", "#FFA640"], ["refund_processed", "Reembolso Procesado", "Reembolso procesado", "#FF7373"]];
+const PAY_T = [["deposit_receipt", "Recibo de Depósito", "Depósito recibido", A.info, BadgeDollarSign], ["payment_receipt", "Recibo de Pago", "Pago recibido", A.success, CreditCard], ["sale_receipt", "Recibo de Venta", "¡Gracias por tu compra!", A.warning, ShoppingBag], ["refund_processed", "Reembolso Procesado", "Reembolso procesado", A.danger, Undo2]];
 const ALL_T = [...ORDER_T, ...PAY_T];
 
 const tplMap = (tenant) => { const m = settingsOf(tenant).email_templates; return m && typeof m === "object" && !Array.isArray(m) ? m : {}; };
@@ -38,29 +38,31 @@ export function ComunicacionList({ tenant, go }) {
 
 export function PlantillasLista({ tenant, go, back }) {
   const map = tplMap(tenant);
-  const row = ([id, label, sub, color], i) => {
+  const pill = (text, color) => <span style={{ padding: "2px 6px", borderRadius: 999, background: tint(color, 0.18), color, fontSize: 11, fontWeight: 600 }}>{text}</span>;
+  const row = ([id, label, sub, color, Ic], i) => {
     const o = map[id];
     const edited = hasText(o);
     const active = o?.isActive ?? true;
     return (
-      <button key={id} onClick={() => go("comunicacion", `plantilla:${id}`)} className="apple-press flex items-center gap-3 text-left w-full" style={{ padding: "12px 16px", borderTop: i ? `0.5px solid ${A.sep}` : "none" }}>
-        <span style={{ width: 34, height: 34, borderRadius: 9, background: tint(color, 0.18), color, display: "flex", alignItems: "center", justifyContent: "center" }}><Mail className="w-4 h-4" /></span>
-        <span className="flex-1 min-w-0"><span className="block" style={{ fontSize: 15, fontWeight: 700 }}>{label}</span><span className="block" style={{ fontSize: 12, color: A.sub }}>{sub}</span></span>
-        <span style={{ padding: "2px 9px", borderRadius: 999, background: tint(edited ? "#40C8E0" : "#8E8E93", 0.18), color: edited ? "#40C8E0" : "#8E8E93", fontSize: 11, fontWeight: 700 }}>{edited ? "Editada" : "Sistema"}</span>
-        <span style={{ padding: "2px 9px", borderRadius: 999, background: tint(active ? A.success : A.danger, 0.18), color: active ? A.success : A.danger, fontSize: 11, fontWeight: 700 }}>{active ? "Activa" : "Silenciada"}</span>
+      <button key={id} onClick={() => go("comunicacion", `plantilla:${id}`)} className="apple-press relative flex items-center gap-3 text-left w-full" style={{ padding: "10px 16px" }}>
+        {i > 0 && <span aria-hidden="true" style={{ position: "absolute", top: 0, left: 64, right: 0, height: 0.5, background: A.sep }} />}
+        <span style={{ width: 36, height: 36, borderRadius: 8, background: tint(color, 0.18), color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Ic className="w-4 h-4" strokeWidth={2.4} /></span>
+        <span className="flex-1 min-w-0"><span className="block truncate" style={{ fontSize: 17, fontWeight: 600 }}>{label}</span><span className="block truncate" style={{ fontSize: 12, color: A.sub }}>{sub}</span></span>
+        <span className="flex flex-col items-end" style={{ gap: 4 }}>{edited ? pill("Editada", "#64D2FF") : pill("Sistema", "#8E8E93")}{active ? pill("Activa", A.success) : pill("Silenciada", A.danger)}</span>
+        <ChevronRight className="w-3.5 h-3.5" style={{ color: A.ter }} strokeWidth={2.5} />
       </button>
     );
   };
   return (
     <SubPage title="Notificaciones" onBack={back}>
-      <Group header="Órdenes de Trabajo" icon={Wrench} footer="Estos correos se envían automáticamente cuando una orden cambia de estado." pad={false}>{ORDER_T.map(row)}</Group>
-      <Group header="Pagos & Ventas" icon={CreditCard} footer="Estos correos se envían cuando registras un pago, depósito, venta o reembolso." pad={false}>{PAY_T.map(row)}</Group>
+      <Group header="Órdenes de Trabajo" icon={Wrench} form footer="Estos correos se envían automáticamente cuando una orden cambia de estado." pad={false}>{ORDER_T.map(row)}</Group>
+      <Group header="Pagos & Ventas" icon={CreditCard} form footer="Estos correos se envían cuando registras un pago, depósito, venta o reembolso." pad={false}>{PAY_T.map(row)}</Group>
     </SubPage>
   );
 }
 
 export function EditorPlantilla({ id, tenant, tenantId, reload, back }) {
-  const meta = ALL_T.find((t) => t[0] === id) || [id, id, "", A.brand];
+  const meta = ALL_T.find((t) => t[0] === id) || [id, id, "", A.brand, Mail];
   const sys = EMAIL_TEMPLATE_DEFAULTS[id] || {};
   const sysS = sys.subject?.es || "";
   const sysT = sys.hero_title?.es || "";
@@ -83,21 +85,30 @@ export function EditorPlantilla({ id, tenant, tenantId, reload, back }) {
       back();
     } catch (e) { setError(`No se pudo guardar: ${e?.message || e}`); } finally { setBusy(false); }
   };
+  const MetaIcon = meta[4];
+  const lbl = (Ic, t) => <p className="flex items-center gap-2" style={{ fontSize: 12, fontWeight: 600, color: A.sub, marginBottom: 4 }}><Ic className="w-3.5 h-3.5" />{t}</p>;
   return (
-    <SubPage title={meta[1]} onBack={back}>
-      <div className="flex items-center gap-3"><span style={{ width: 44, height: 44, borderRadius: 12, background: tint(meta[3], 0.18), color: meta[3], display: "flex", alignItems: "center", justifyContent: "center" }}><Mail className="w-5 h-5" /></span><span><b style={{ fontSize: 17 }}>{meta[1]}</b><span className="block" style={{ fontSize: 12, color: A.sub }}>{PAY_T.some((t) => t[0] === id) ? "Pagos & Ventas" : "Órdenes de Trabajo"}</span></span></div>
-      <Group header="Estado" pad={false}><ToggleRow first title="Plantilla activa" sub={d.isActive ? "Se enviará automáticamente cuando aplique" : "Silenciada — no se enviará aunque el evento ocurra"} on={d.isActive} onChange={(v) => setD({ ...d, isActive: v })} color={A.success} /></Group>
-      <Group header="Asunto del email" footer={d.subject.trim() ? null : `Sin personalizar — se usará el asunto del sistema:\n${sysS}`}>
-        <Field rows={2} value={d.subject} onChange={(v) => setD({ ...d, subject: v })} placeholder={sysS} />
-        <p style={{ fontSize: 12, color: A.sub, marginTop: 6 }}>Usa `{"{order_number}"}` o `{"{number}"}` donde quieras que aparezca el número de orden.</p>
+    <SubPage inline title={meta[1]} onBack={back}>
+      <Group form pad={false}>
+        <div className="flex items-center gap-3" style={{ padding: "12px 16px" }}>
+          <span style={{ width: 44, height: 44, borderRadius: 10, background: tint(A.brand, 0.18), color: A.brand, display: "flex", alignItems: "center", justifyContent: "center" }}><MetaIcon className="w-6 h-6" /></span>
+          <span><span className="block" style={{ fontSize: 17, fontWeight: 600 }}>{meta[1]}</span><span className="block" style={{ fontSize: 12, color: A.sub }}>{PAY_T.some((t) => t[0] === id) ? "Pagos & Ventas" : "Órdenes de Trabajo"}</span></span>
+        </div>
       </Group>
-      <Group header="Título principal" footer="Aparece en grande arriba del contenido del email."><Field value={d.hero_title} onChange={(v) => setD({ ...d, hero_title: v })} placeholder={sysT} /></Group>
-      <Group header="Mensaje al cliente" footer="Bloque principal de texto. El cuerpo estructurado (datos del equipo, piezas, totales) se agrega automáticamente abajo."><Field rows={5} value={d.hero_line} onChange={(v) => setD({ ...d, hero_line: v })} placeholder={sysL} /></Group>
-      <Group header="Vista previa" footer="Borra tus cambios y vuelve al texto original del sistema.">
-        <p style={{ fontSize: 12, color: A.sub }}>Asunto</p><p style={{ fontWeight: 600, marginBottom: 10 }}>{fill(d.subject.trim() || sysS)}</p>
-        <p style={{ fontSize: 12, color: A.sub }}>Cuerpo</p><p style={{ fontSize: 18, fontWeight: 800 }}>{d.hero_title.trim() || sysT}</p><p style={{ fontSize: 14, color: "#ddd" }}>{d.hero_line.trim() || sysL}</p>
-        <button onClick={() => setConfirm(true)} disabled={!own} className="apple-press disabled:opacity-40" style={{ marginTop: 14, padding: "11px 0", borderRadius: 12, background: tint(A.danger, 0.14), color: A.danger, fontWeight: 700, width: "100%" }}>Restaurar al sistema</button>
+      <Group header="Estado" icon={Power} form pad={false}><ToggleRow first title="Plantilla activa" sub={d.isActive ? "Se enviará automáticamente cuando aplique" : "Silenciada — no se enviará aunque el evento ocurra"} on={d.isActive} onChange={(v) => setD({ ...d, isActive: v })} tintColor={A.success} /></Group>
+      <Group header="Asunto del email" icon={Mail} footer={d.subject.trim() ? null : `Sin personalizar — se usará el asunto del sistema:\n${sysS}`}>
+        <div><Field plain rows={2} value={d.subject} onChange={(v) => setD({ ...d, subject: v })} placeholder={sysS} /><p style={{ fontSize: 12, color: A.ter, marginTop: 6 }}>Usa `{"{order_number}"}` o `{"{number}"}` donde quieras que aparezca el número de orden.</p></div>
       </Group>
+      <Group header="Título principal" icon={Type} footer="Aparece en grande arriba del contenido del email."><Field plain rows={2} value={d.hero_title} onChange={(v) => setD({ ...d, hero_title: v })} placeholder={sysT} /></Group>
+      <Group header="Mensaje al cliente" icon={MessageSquareText} footer="Bloque principal de texto. El cuerpo estructurado (datos del equipo, piezas, totales) se agrega automáticamente abajo."><Field plain rows={5} value={d.hero_line} onChange={(v) => setD({ ...d, hero_line: v })} placeholder={sysL} /></Group>
+      <Group header="Vista previa" icon={Eye}>
+        <div className="flex flex-col" style={{ gap: 10 }}>
+          <div>{lbl(Mail, "Asunto")}<p style={{ fontSize: 15, fontWeight: 500 }}>{fill(d.subject.trim() || sysS)}</p></div>
+          <span aria-hidden="true" style={{ height: 0.5, background: A.sep }} />
+          <div>{lbl(AlignLeft, "Cuerpo")}<p style={{ fontSize: 20, fontWeight: 700 }}>{d.hero_title.trim() || sysT}</p><p style={{ fontSize: 17 }}>{d.hero_line.trim() || sysL}</p></div>
+        </div>
+      </Group>
+      <Group form pad={false} footer="Borra tus cambios y vuelve al texto original del sistema."><ActionRow first Icon={Undo2} label="Restaurar al sistema" color={A.danger} disabled={!own} onClick={() => setConfirm(true)} /></Group>
       <ErrorLine message={error} />
       <PrimaryBtn onClick={save} busy={busy}>Guardar cambios</PrimaryBtn>
       <AlertDialog open={confirm} title="¿Restaurar plantilla?" message="Vas a perder los cambios personalizados de esta plantilla." onClose={() => setConfirm(false)} actions={[{ label: "Cancelar" }, { label: "Restaurar al sistema", destructive: true, onPress: () => setD({ subject: "", hero_title: "", hero_line: "", isActive: true }) }]} />
@@ -125,21 +136,23 @@ export function Politicas({ tenant, tenantId, reload, back }) {
       back();
     } catch (e) { setError(`No se pudo guardar: ${e?.message || e}`); } finally { setBusy(false); }
   };
-  const block = (k, title, footer) => (
-    <Group key={k} header={title} footer={footer}>
-      <textarea value={d[k]} onChange={(e) => setD({ ...d, [k]: e.target.value })} aria-label={title} className="outline-none w-full" style={{ background: A.card2, color: "#fff", borderRadius: 12, padding: "12px 14px", fontSize: 15, minHeight: 140, resize: "vertical" }} />
-      <p style={{ fontSize: 12, marginTop: 6, color: d[k].length > 600 ? A.warning : A.sub }}>{d[k].length} caracteres</p>
+  const block = (k, title, Ic, footer) => (
+    <Group key={k} header={title} icon={Ic} footer={footer}>
+      <div>
+        <textarea value={d[k]} onChange={(e) => setD({ ...d, [k]: e.target.value })} aria-label={title} className="outline-none w-full" style={{ background: "transparent", color: "#fff", fontSize: 17, minHeight: 140, resize: "vertical", display: "block" }} />
+        <p style={{ fontSize: 12, marginTop: 6, color: d[k].length > 600 ? A.warning : "rgba(142,142,147,0.6)" }}>{d[k].length} caracteres</p>
+      </div>
     </Group>
   );
   return (
     <SubPage title="Políticas del Negocio" onBack={back}>
-      {block("repair_warranty", "Garantía de Reparaciones", "Aparece en emails de entrega/recogida y en recibos de servicio.")}
-      {block("sales_warranty", "Garantía de Ventas", "Aplica a productos vendidos — aparece en recibos de POS y emails de pago.")}
-      {block("sales_terms", "Condiciones de Venta", "Política de devoluciones y términos generales — aparece en todos los recibos.")}
-      {block("abandonment_terms", "Política de Abandono y Almacenaje", "Aparece en recepción y 'listo para recoger' (email), en el PDF de la orden y en los términos que el cliente firma.")}
-      <Group header="Acciones rápidas" pad={false}>
-        <Row first Icon={Check} color={A.vip} title="Cargar políticas sugeridas (PR)" onClick={() => setD({ ...SUGGESTED, abandonment_terms: DEFAULT_ABANDONMENT })} />
-        <Row Icon={Check} color={A.danger} title="Borrar todas las políticas" onClick={() => setD({ repair_warranty: "", sales_warranty: "", sales_terms: "", abandonment_terms: "" })} />
+      {block("repair_warranty", "Garantía de Reparaciones", ShieldCheck, "Aparece en emails de entrega/recogida y en recibos de servicio.")}
+      {block("sales_warranty", "Garantía de Ventas", BadgeCheck, "Aplica a productos vendidos — aparece en recibos de POS y emails de pago.")}
+      {block("sales_terms", "Condiciones de Venta", AlignLeft, "Política de devoluciones y términos generales — aparece en todos los recibos.")}
+      {block("abandonment_terms", "Política de Abandono y Almacenaje", Clock, "Aparece en recepción y 'listo para recoger' (email), en el PDF de la orden y en los términos que el cliente firma.")}
+      <Group header="Acciones rápidas" form pad={false}>
+        <ActionRow first Icon={Sparkles} color={A.brand} label="Cargar políticas sugeridas (PR)" onClick={() => setD({ ...SUGGESTED, abandonment_terms: DEFAULT_ABANDONMENT })} />
+        <ActionRow Icon={Trash2} color={A.danger} label="Borrar todas las políticas" onClick={() => setD({ repair_warranty: "", sales_warranty: "", sales_terms: "", abandonment_terms: "" })} />
       </Group>
       <ErrorLine message={error} />
       <PrimaryBtn onClick={save} busy={busy} color={A.vip}>Guardar Políticas</PrimaryBtn>
@@ -188,22 +201,39 @@ export function PushSettings({ tenant, tenantId, reload, back }) {
   const enable = async () => { try { setPerm(await Notification.requestPermission()); } catch { setPerm("denied"); } };
   const granted = perm === "granted";
   const hours = Array.from({ length: 24 }, (_, h) => h);
-  const sel = (v, on) => <select value={v} onChange={(e) => on(Number(e.target.value))} style={{ background: A.card2, color: "#fff", borderRadius: 10, padding: "8px 10px", colorScheme: "dark" }}>{hours.map((h) => <option key={h} value={h}>{String(h).padStart(2, "0")}:00</option>)}</select>;
+
+  const StatusIcon = granted ? CheckCircle2 : perm === "denied" ? XCircle : HelpCircle;
+  const statusColor = granted ? A.success : perm === "denied" ? A.danger : A.warning;
+  const timeSel = (label, v, on) => (
+    <label className="relative flex items-center gap-3" style={{ cursor: "pointer", fontSize: 17, minHeight: 30 }}>
+      <span className="flex-1">{label}</span>
+      <span style={{ color: A.sub }}>{String(v).padStart(2, "0")}:00</span>
+      <select value={v} onChange={(e) => on(Number(e.target.value))} aria-label={label} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, cursor: "pointer", colorScheme: "dark" }}>{hours.map((h) => <option key={h} value={h}>{String(h).padStart(2, "0")}:00</option>)}</select>
+    </label>
+  );
   return (
-    <SubPage title="Notificaciones Push" onBack={back}>
-      <Group header="Estado del sistema" footer={granted ? "Las notificaciones están activas. Los ajustes de abajo se guardan automáticamente." : perm === "denied" ? "Las denegaste antes. Actívalas en los ajustes del navegador para este sitio." : "Activa el permiso para recibir avisos en tiempo real."}>
-        <div className="flex items-center gap-3"><span style={{ width: 36, height: 36, borderRadius: 999, background: tint(granted ? A.success : A.warning, 0.16), color: granted ? A.success : A.warning, display: "flex", alignItems: "center", justifyContent: "center" }}><Bell className="w-4 h-4" /></span><span className="flex-1"><b>{granted ? "Activadas" : perm === "denied" ? "Denegadas" : "Sin configurar"}</b><span className="block" style={{ fontSize: 12, color: A.sub }}>{granted ? "Recibirás avisos en tiempo real" : perm === "denied" ? "Tendrás que activarlas en el navegador" : 'Toca "Activar notificaciones" para habilitarlas'}</span></span>{saved && <Check className="w-5 h-5" style={{ color: A.success }} />}</div>
-        {perm === "default" && typeof Notification !== "undefined" && <button onClick={enable} className="apple-press" style={{ marginTop: 12, padding: "12px 0", borderRadius: 12, background: A.brand, color: "#fff", fontWeight: 700 }}>Activar notificaciones</button>}
+    <SubPage inline title="Notificaciones Push" onBack={back}>
+      <Group header="Estado del sistema" form pad={false}>
+        <div className="flex items-center gap-3" style={{ padding: "12px 16px" }}>
+          <span style={{ width: 36, height: 36, borderRadius: 8, background: tint(statusColor, 0.18), color: statusColor, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><StatusIcon className="w-4 h-4" strokeWidth={2.4} /></span>
+          <span className="flex-1"><span className="block" style={{ fontSize: 15, fontWeight: 600 }}>{granted ? "Activadas" : perm === "denied" ? "Denegadas" : "Sin configurar"}</span><span className="block" style={{ fontSize: 12, color: A.sub }}>{granted ? "Recibirás avisos en tiempo real" : perm === "denied" ? "Tendrás que activarlas en el navegador" : 'Toca "Activar notificaciones" para habilitarlas'}</span></span>
+          {saved && <CheckCircle2 className="w-5 h-5" style={{ color: A.success }} />}
+        </div>
       </Group>
-      <Group header="Tipos de aviso" footer={granted ? "Cambios se guardan automáticamente." : "Activa el permiso de notificaciones para que estos ajustes tengan efecto."} pad={false}>
-        {PREF_ROWS.map(([k, l], i) => <ToggleRow key={k} first={!i} title={l} on={prefs[k]} onChange={(v) => setPref(k, v)} disabled={!granted} />)}
+      {typeof Notification !== "undefined" && perm === "default" ? (
+        <Group form pad={false} footer="Activa el permiso para recibir avisos en tiempo real."><ActionRow first Icon={Bell} color={A.brand} label="Activar notificaciones" onClick={enable} /></Group>
+      ) : (
+        <p style={{ fontSize: 13, color: A.sub, padding: "0 16px", marginTop: -12 }}>{granted ? "Las notificaciones están activas. Los ajustes de abajo se guardan automáticamente." : perm === "denied" ? "Las denegaste antes. Actívalas en los ajustes del navegador para este sitio." : "Activa el permiso para recibir avisos en tiempo real."}</p>
+      )}
+      <Group header="Tipos de aviso" form footer={granted ? "Cambios se guardan automáticamente." : "Activa el permiso de notificaciones para que estos ajustes tengan efecto."} pad={false}>
+        {PREF_ROWS.map(([k, l], i) => <ToggleRow key={k} first={!i} bold={false} title={l} on={prefs[k]} onChange={(v) => setPref(k, v)} disabled={!granted} />)}
       </Group>
-      <Group header="No molestar" icon={Moon} footer="En este horario (hora del taller) no se envían notificaciones. Útil para no recibir avisos de noche.">
-        <div className="flex items-center gap-3"><span className="flex-1" style={{ fontSize: 16 }}>No molestar de noche</span><Toggle on={quiet.enabled} onChange={(v) => saveQuiet({ enabled: v })} label="No molestar de noche" color={A.brand} /></div>
-        {quiet.enabled && <div className="flex items-center gap-3" style={{ marginTop: 12 }}><span>Desde</span>{sel(quiet.start_hour, (v) => saveQuiet({ start_hour: v }))}<span>Hasta</span>{sel(quiet.end_hour, (v) => saveQuiet({ end_hour: v }))}</div>}
+      <Group header="No molestar" icon={Moon} form footer="En este horario (hora del taller) no se envían notificaciones. Útil para no recibir avisos de noche.">
+        <div className="flex items-center gap-3"><span className="flex-1" style={{ fontSize: 17 }}>No molestar de noche</span><Toggle on={quiet.enabled} onChange={(v) => saveQuiet({ enabled: v })} label="No molestar de noche" color={A.brand} /></div>
+        {quiet.enabled && timeSel("Desde", quiet.start_hour, (v) => saveQuiet({ start_hour: v }))}
+        {quiet.enabled && timeSel("Hasta", quiet.end_hour, (v) => saveQuiet({ end_hour: v }))}
       </Group>
       <ErrorLine message={error} />
     </SubPage>
   );
 }
-

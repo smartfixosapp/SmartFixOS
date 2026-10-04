@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
-import { Search, X, Home, DollarSign, CalendarDays, Wrench, Mail, MessageCircle, ShieldCheck, Crown, Lock, Trash2, Loader2, SearchX, ChevronRight, ExternalLink, QrCode, Users, ClipboardCheck, Clock } from "lucide-react";
+import { Search, X, Home, Info, Hammer, FileText, Bug, DollarSign, CalendarDays, Wrench, Mail, MessageCircle, ShieldCheck, Crown, Lock, Trash2, Loader2, SearchX, ChevronRight, ExternalLink, QrCode, Users, ClipboardCheck, Clock } from "lucide-react";
 import { tint } from "@/components/pos/native/posUi";
 import { supabase } from "../../../../lib/supabase-client.js";
 import { signOut } from "@/components/auth/signOut";
@@ -93,23 +93,15 @@ function Tile({ s, admin, tenant, onOpen }) {
     <button onClick={onOpen} className="apple-press hover-lift flex flex-col text-left justify-between" style={{ background: A.card, borderRadius: 16, padding: 12, minHeight: 124 }}>
       <span style={{ width: 44, height: 44, borderRadius: 8, background: tint(s.color, 0.16), color: s.color, display: "flex", alignItems: "center", justifyContent: "center" }}><Icon className="w-5 h-5" /></span>
       <span>
-        <span className="block truncate" style={{ fontSize: 15, fontWeight: 700 }}>{titleOf(s, admin)}</span>
-        <span className="block" style={{ fontSize: 11, color: A.sub, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{s.sub(admin, tenant)}</span>
+        <span className="block truncate" style={{ fontSize: 17, fontWeight: 600 }}>{titleOf(s, admin)}</span>
+        <span className="block" style={{ fontSize: 12, color: A.sub, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{s.sub(admin, tenant)}</span>
       </span>
     </button>
   );
 }
 
-function useWideSettings() {
-  const q = "(min-width: 1024px)";
-  const [v, setV] = useState(() => typeof window !== "undefined" && window.matchMedia(q).matches);
-  useEffect(() => { const m = window.matchMedia(q); const on = () => setV(m.matches); m.addEventListener("change", on); return () => m.removeEventListener("change", on); }, []);
-  return v;
-}
-
 export default function Ajustes() {
   const navigate = useNavigate();
-  const wide = useWideSettings();
   const [params, setParams] = useSearchParams();
   const [tenantId] = useState(() => localGet("smartfix_tenant_id", ""));
   const role = localGet("smartfix_tenant_role", "");
@@ -192,25 +184,7 @@ export default function Ajustes() {
     } else if (active.id === "cuenta") view = s === "seguridad" ? <Seguridad back={back} /> : s === "diagnostico" ? <Diagnostico tenant={tenant} tenantId={tenantId} employee={self} role={role} back={back} /> : <CuentaList go={go} />;
     else if (active.id === "suscripcion") view = <Suscripcion tenant={tenant} tenantId={tenantId} back={() => go(null)} />;
     else if (active.id === "equipo") view = <EquipoList tenant={tenant} tenantId={tenantId} admin={admin} go={go} />;
-    if (!wide) return shell(view);
-    return shell(
-      <div style={{ display: "grid", gridTemplateColumns: "250px minmax(0, 1fr)", gap: 28, alignItems: "start", maxWidth: 1600, margin: "0 auto" }}>
-        <aside style={{ position: "sticky", top: "calc(var(--app-nav-h, 0px) + 16px)", background: A.card, borderRadius: 16, padding: 8 }} aria-label="Secciones de Ajustes">
-          <button onClick={() => go(null)} className="apple-press w-full flex items-center gap-2 text-left" style={{ padding: "10px 12px", borderRadius: 10, color: A.sub, fontSize: 14, fontWeight: 600 }}>Todos los ajustes</button>
-          {visible.map((sec) => {
-            const Icon = sec.Icon;
-            const on = sec.id === active.id;
-            return (
-              <button key={sec.id} onClick={() => go(sec.id)} aria-current={on ? "page" : undefined} className="apple-press w-full flex items-center gap-3 text-left" style={{ padding: "10px 12px", borderRadius: 10, background: on ? tint(sec.color, 0.18) : "transparent", color: on ? "#fff" : A.sub, fontSize: 15, fontWeight: on ? 700 : 500 }}>
-                <span style={{ width: 28, height: 28, borderRadius: 8, background: tint(sec.color, 0.16), color: sec.color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Icon className="w-4 h-4" /></span>
-                <span className="truncate">{titleOf(sec, admin)}</span>
-              </button>
-            );
-          })}
-        </aside>
-        <div className="min-w-0">{view}</div>
-      </div>
-    );
+    return shell(view);
   }
 
   if (section && !active && tenant) return <Navigate to="/Settings" replace />;
@@ -239,15 +213,15 @@ export default function Ajustes() {
         )
       ) : (
         <div className="flex flex-col" style={{ gap: 24 }}>
-          <div className="grid stagger" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 200px), 1fr))", gap: 12 }}>
+          <div className="grid stagger" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(clamp(150px, 20%, 220px), 1fr))", gap: 12 }}>
             {visible.map((s) => <Tile key={s.id} s={s} admin={admin} tenant={tenant} onOpen={() => go(s.id)} />)}
           </div>
           <Group header="Acerca de Archilla OS" pad={false}>
-            <div className="flex justify-between" style={{ padding: "13px 16px" }}><span>Versión</span><span style={{ fontFamily: "ui-monospace, Menlo, monospace", color: A.sub }}>web</span></div>
-            <div className="flex justify-between" style={{ padding: "13px 16px", borderTop: `0.5px solid ${A.sep}` }}><span>Build</span><span style={{ fontFamily: "ui-monospace, Menlo, monospace", color: A.sub }}>{BUILD}</span></div>
-            <a href="https://smartfixos.com/privacy" target="_blank" rel="noopener noreferrer" className="apple-press flex justify-between items-center" style={{ padding: "13px 16px", borderTop: `0.5px solid ${A.sep}`, color: A.brand }}>Política de Privacidad <ExternalLink className="w-4 h-4" /></a>
-            <a href="https://smartfixos.com/terms" target="_blank" rel="noopener noreferrer" className="apple-press flex justify-between items-center" style={{ padding: "13px 16px", borderTop: `0.5px solid ${A.sep}`, color: A.brand }}>Términos de Uso <ExternalLink className="w-4 h-4" /></a>
-            <button onClick={() => setReport(true)} className="apple-press flex justify-between items-center w-full text-left" style={{ padding: "13px 16px", borderTop: `0.5px solid ${A.sep}`, color: A.brand }}>Reportar problema <ChevronRight className="w-4 h-4" style={{ color: A.ter }} /></button>
+            <Row first Icon={Info} color={A.brand} title="Versión" right={<span style={{ fontSize: 17, color: A.sub }}>web</span>} />
+            <Row Icon={Hammer} color={A.warning} title="Build" right={<span style={{ fontSize: 17, color: A.sub }}>{BUILD}</span>} />
+            <Row Icon={ShieldCheck} color={A.success} title="Política de Privacidad" chevron={false} right={<ExternalLink className="w-4 h-4" style={{ color: A.ter }} />} onClick={() => window.open("https://smartfixos.com/privacy", "_blank", "noopener")} />
+            <Row Icon={FileText} color={A.info} title="Términos de Uso" chevron={false} right={<ExternalLink className="w-4 h-4" style={{ color: A.ter }} />} onClick={() => window.open("https://smartfixos.com/terms", "_blank", "noopener")} />
+            <Row Icon={Bug} color={A.sub} title="Reportar problema" onClick={() => setReport(true)} />
           </Group>
           <p style={{ fontSize: 12, color: A.sub, textAlign: "center" }}>© 2026 archistudios · Archilla OS. Todos los derechos reservados.</p>
           <div>

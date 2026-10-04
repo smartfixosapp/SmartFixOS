@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ShieldCheck, Stethoscope, Hand, LogOut, Check, Power, Clock, Lock, Loader2, RefreshCw, Crown, Sparkles, X, AlertTriangle, Send, Copy } from "lucide-react";
+import { ShieldCheck, Stethoscope, Hand, LogOut, Check, CheckCircle2, XCircle, Power, Clock, Lock, Loader2, RefreshCw, Crown, Sparkles, X, AlertTriangle, Send, Copy, Mail, SlidersHorizontal, Wrench, UserRound, Layers, MoonStar, CreditCard } from "lucide-react";
 import { Dialog, TextAction, tint } from "@/components/pos/native/posUi";
 import { supabase } from "../../../../../lib/supabase-client.js";
-import { A, SubPage, Group, Row, ToggleRow, Field, PrimaryBtn, ErrorLine } from "./ui";
+import { A, SubPage, Group, Row, ToggleRow, Field, PrimaryBtn, ErrorLine, SelectRow, ActionRow } from "./ui";
 import { localGet, localSet, planName, planKey, trialDays } from "@/lib/tenantSettings";
 import { requestAppLock } from "@/components/auth/AppLock";
 import { SignOutConfirm } from "@/components/layout/AccountMenu";
@@ -34,21 +34,22 @@ export function CuentaList({ go }) {
 export function Seguridad({ back }) {
   const [s, setS] = useState(secGet());
   const apply = (n) => { setS(n); localSet("security.idleLockSeconds", n.idle); localSet("security.backgroundLockSeconds", n.bg); localSet("security.lockOnColdLaunch", n.cold); };
-  const presets = [["Modo taller", "Sin interrupciones. PIN raro. Para cajero de tiempo completo.", { idle: 3600, bg: 1800, cold: false }], ["Modo personal", "Balance entre comodidad y seguridad. Recomendado.", { idle: 1800, bg: 900, cold: false }], ["Modo seguro", "Re-PIN frecuente. Para dispositivos compartidos o data sensible.", { idle: 300, bg: 30, cold: true }]];
-  const sel = (v, on, opts) => <select value={v} onChange={(e) => on(Number(e.target.value))} style={{ background: A.card2, color: "#fff", borderRadius: 12, padding: "12px 14px", fontSize: 16, width: "100%", colorScheme: "dark" }}>{opts.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>;
+  const presets = [["Modo taller", "Sin interrupciones. PIN raro. Para cajero de tiempo completo.", { idle: 3600, bg: 1800, cold: false }, Wrench], ["Modo personal", "Balance entre comodidad y seguridad. Recomendado.", { idle: 1800, bg: 900, cold: false }, UserRound], ["Modo seguro", "Re-PIN frecuente. Para dispositivos compartidos o data sensible.", { idle: 300, bg: 30, cold: true }, ShieldCheck]];
   return (
     <SubPage title="Seguridad y Sesión" onBack={back}>
-      <Group header="Perfil rápido" footer="Cambia los 3 ajustes de abajo en un toque. El detalle queda visible por si quieres ajustar fino." pad={false}>
-        {presets.map(([t, sub, p], i) => { const on = s.idle === p.idle && s.bg === p.bg && s.cold === p.cold; return (
-          <button key={t} onClick={() => apply(p)} className="apple-press flex items-center gap-3 text-left w-full" style={{ padding: "14px 16px", borderTop: i ? `0.5px solid ${A.sep}` : "none" }}>
-            <span style={{ width: 32, height: 32, borderRadius: 8, background: tint(on ? A.brand : A.sub, 0.14), color: on ? A.brand : A.sub, display: "flex", alignItems: "center", justifyContent: "center" }}><ShieldCheck className="w-4 h-4" /></span>
-            <span className="flex-1"><span className="block" style={{ fontSize: 16 }}>{t}</span><span className="block" style={{ fontSize: 12, color: A.sub }}>{sub}</span></span>{on && <Check className="w-5 h-5" style={{ color: A.brand }} strokeWidth={3} />}
+      <Group header="Perfil rápido" icon={SlidersHorizontal} form footer="Cambia los 3 ajustes de abajo en un toque. El detalle queda visible por si quieres ajustar fino." pad={false}>
+        {presets.map(([t, sub, p, PI], i) => { const on = s.idle === p.idle && s.bg === p.bg && s.cold === p.cold; return (
+          <button key={t} onClick={() => apply(p)} className="apple-press relative flex items-center gap-3 text-left w-full" style={{ padding: "12px 16px" }}>
+            {i > 0 && <span aria-hidden="true" style={{ position: "absolute", top: 0, left: 64, right: 0, height: 0.5, background: A.sep }} />}
+            <span style={{ width: 36, height: 36, borderRadius: 8, background: tint(on ? A.brand : A.sub, 0.18), color: on ? A.brand : A.sub, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><PI className="w-4 h-4" strokeWidth={2.4} /></span>
+            <span className="flex-1"><span className="block" style={{ fontSize: 17, fontWeight: 600 }}>{t}</span><span className="block" style={{ fontSize: 12, color: A.sub }}>{sub}</span></span>
+            {on && <CheckCircle2 className="w-[22px] h-[22px]" style={{ color: A.brand }} fill={A.brand} stroke="#1C1C1E" />}
           </button>); })}
       </Group>
-      <Group header="Inicio en frío" icon={Power} pad={false}><ToggleRow first title="Pedir PIN al abrir la app" sub="Si cierras la app y la vuelves a abrir, te pide PIN" on={s.cold} onChange={(v) => apply({ ...s, cold: v })} /></Group>
-      <Group header="Bloquear al regresar" icon={Clock} footer="Si cambias a otra pestaña o app por más de este tiempo, te pedimos PIN al volver. Cambios cortos no bloquean."><p style={{ fontSize: 14, marginBottom: 6 }}>Tiempo en segundo plano</p>{sel(s.bg, (v) => apply({ ...s, bg: v }), IDLE_OPTS)}</Group>
-      <Group header="Bloquear por inactividad" footer="Si la app está abierta sin tocarse por este tiempo, se bloquea automáticamente."><p style={{ fontSize: 14, marginBottom: 6 }}>Tiempo de inactividad</p>{sel(s.idle, (v) => apply({ ...s, idle: v }), IDLE_OPTS.filter((o) => o[0] >= 60))}</Group>
-      <div><button onClick={requestAppLock} className="apple-press w-full flex items-center justify-center gap-2" style={{ padding: "14px 0", borderRadius: 14, background: tint(A.danger, 0.14), color: A.danger, fontWeight: 700 }}><Lock className="w-4 h-4" /> Bloquear ahora</button><p style={{ fontSize: 12, color: A.sub, marginTop: 6 }}>Forza el bloqueo inmediatamente. Útil para probar tu PIN.</p></div>
+      <Group header="Inicio en frío" icon={Power} form pad={false}><ToggleRow first tintColor={A.success} title="Pedir PIN al abrir la app" sub="Si cierras la app y la vuelves a abrir, te pide PIN" on={s.cold} onChange={(v) => apply({ ...s, cold: v })} /></Group>
+      <Group header="Bloquear al regresar" icon={Layers} form footer="Si cambias a otra pestaña o app por más de este tiempo, te pedimos PIN al volver. Cambios cortos no bloquean."><SelectRow label="Tiempo en segundo plano" value={s.bg} onChange={(v) => apply({ ...s, bg: Number(v) })} options={IDLE_OPTS} /></Group>
+      <Group header="Bloquear por inactividad" icon={MoonStar} form footer="Si la app está abierta sin tocarse por este tiempo, se bloquea automáticamente."><SelectRow label="Tiempo de inactividad" value={s.idle} onChange={(v) => apply({ ...s, idle: Number(v) })} options={IDLE_OPTS.filter((o) => o[0] >= 60)} /></Group>
+      <Group form pad={false} footer="Forza el bloqueo inmediatamente. Útil para probar tu PIN."><ActionRow first Icon={Lock} color={A.danger} label="Bloquear ahora" onClick={requestAppLock} /></Group>
     </SubPage>
   );
 }
@@ -77,8 +78,8 @@ export function Diagnostico({ tenant, tenantId, employee, role, back }) {
   };
   const status = !online ? ["Sin conexión a internet", A.danger, "Revisa tu red. Los cambios se guardarán cuando vuelva la conexión."] : !rt ? ["Sincronización en tiempo real desconectada", A.warning, "Toca Reconectar sincronización."] : ["Todo funcionando", A.success, "Conexión y sincronización en orden."];
   return (
-    <SubPage title="Diagnóstico" onBack={back}>
-      <Group><div className="flex items-start gap-3"><span style={{ width: 12, height: 12, borderRadius: 999, background: status[1], marginTop: 6 }} /><span><b>{status[0]}</b><span className="block" style={{ fontSize: 13, color: A.sub }}>{status[2]}</span></span></div></Group>
+    <SubPage inline title="Diagnóstico" onBack={back}>
+      <div style={{ padding: 20, borderRadius: 16, background: tint(status[1], 0.1) }}><p className="flex items-center gap-2"><span style={{ width: 12, height: 12, borderRadius: 999, background: status[1] }} /><b style={{ fontSize: 20, fontWeight: 600 }}>{status[0]}</b></p><p style={{ fontSize: 15, color: A.sub, marginTop: 10 }}>{status[2]}</p></div>
       <Group header="Emails a clientes" pad={false}>
         <div className="flex items-center gap-2" style={{ padding: "10px 16px" }}>
           {failed.length > 0 && <button onClick={() => setOnlyFailed((v) => !v)} style={{ padding: "3px 10px", borderRadius: 999, background: onlyFailed ? A.danger : tint(A.danger, 0.16), color: onlyFailed ? "#fff" : A.danger, fontSize: 12, fontWeight: 700 }}>{failed.length} fallido{failed.length === 1 ? "" : "s"}</button>}
@@ -93,9 +94,9 @@ export function Diagnostico({ tenant, tenantId, employee, role, back }) {
         ))}
       </Group>
       <div className="flex flex-col" style={{ gap: 8 }}>
-        <button onClick={reconnect} className="apple-press" style={{ padding: "13px 0", borderRadius: 12, background: tint(A.brand, 0.12), color: A.brand, fontWeight: 700 }}>Reconectar sincronización</button>
-        <button onClick={async () => { try { await navigator.clipboard.writeText(dump); setToast("Copiado al portapapeles"); setTimeout(() => setToast(null), 2000); } catch { return; } }} className="apple-press flex items-center justify-center gap-2" style={{ padding: "13px 0", borderRadius: 12, background: A.card, fontWeight: 700 }}><Copy className="w-4 h-4" /> Copiar diagnóstico</button>
-        <a href={`mailto:archillastudios@gmail.com?subject=${encodeURIComponent("Archilla OS — Diagnóstico app vweb")}&body=${encodeURIComponent(dump)}`} className="apple-press flex items-center justify-center gap-2" style={{ padding: "13px 0", borderRadius: 12, background: A.card, fontWeight: 700 }}><Send className="w-4 h-4" /> Enviar a soporte</a>
+        <button onClick={reconnect} className="apple-press flex items-center justify-center gap-2" style={{ padding: "14px 0", borderRadius: 16, background: tint(A.brand, 0.12), color: A.brand, fontWeight: 600 }}><RefreshCw className="w-4 h-4" /> Reconectar sincronización</button>
+        <button onClick={async () => { try { await navigator.clipboard.writeText(dump); setToast("Copiado al portapapeles"); setTimeout(() => setToast(null), 2000); } catch { return; } }} className="apple-press flex items-center justify-center gap-2" style={{ padding: "14px 0", borderRadius: 16, background: "rgba(142,142,147,0.15)", fontWeight: 600 }}><Copy className="w-4 h-4" /> Copiar diagnóstico</button>
+        <a href={`mailto:archillastudios@gmail.com?subject=${encodeURIComponent("Archilla OS — Diagnóstico app vweb")}&body=${encodeURIComponent(dump)}`} className="apple-press flex items-center justify-center gap-2" style={{ padding: "14px 0", borderRadius: 16, background: "rgba(142,142,147,0.15)", fontWeight: 600 }}><Mail className="w-4 h-4" /> Enviar a soporte</a>
       </div>
       {toast && <p style={{ color: A.success, textAlign: "center", fontWeight: 600 }}>{toast}</p>}
       <Group header="Detalles técnicos">
@@ -194,18 +195,18 @@ export function Suscripcion({ tenant, tenantId, back }) {
     } catch (e) { setError(e?.message || String(e)); setBusy(false); }
   };
   return (
-    <SubPage title="Suscripción" onBack={back}>
-      <div style={{ padding: 16, borderRadius: 16, background: tint(color, 0.1), border: `1px solid ${tint(color, 0.25)}` }}><p className="flex items-center gap-2"><span style={{ width: 10, height: 10, borderRadius: 999, background: color }} /><b>Plan actual: {planName(tenant)}</b></p><p style={{ fontSize: 13, color: A.sub, marginTop: 4 }}>{sub}</p></div>
-      {status === "past_due" && <div style={{ padding: 16, borderRadius: 16, background: tint(A.danger, 0.12), border: `1px solid ${tint(A.danger, 0.3)}` }}><p className="flex items-center gap-2" style={{ fontWeight: 700, color: A.danger }}><AlertTriangle className="w-4 h-4" /> Hay un problema con tu pago</p><p style={{ fontSize: 13, color: A.sub, marginTop: 4 }}>Revisa tu método de pago desde Administrar suscripción para no perder el acceso.</p></div>}
-      <Group pad={false}>
-        <div className="flex justify-between" style={{ padding: "13px 16px" }}><span style={{ color: A.sub }}>Empleados activos</span><b>{emps === null ? "…" : `${emps} de 5`}</b></div>
-        <div className="flex justify-between" style={{ padding: "13px 16px", borderTop: `0.5px solid ${A.sep}` }}><span style={{ color: A.sub }}>Estado</span><b>{status ? status.charAt(0).toUpperCase() + status.slice(1) : "—"}</b></div>
-        {tenant?.next_billing_date && <div className="flex justify-between" style={{ padding: "13px 16px", borderTop: `0.5px solid ${A.sep}` }}><span style={{ color: A.sub }}>Próximo cobro</span><b>{new Intl.DateTimeFormat("es-PR", { dateStyle: "medium" }).format(new Date(tenant.next_billing_date))}</b></div>}
-      </Group>
-      {subscribed ? <button onClick={manage} disabled={busy} className="apple-press flex items-center justify-center gap-2" style={{ padding: "14px 0", borderRadius: 14, background: tint(A.brand, 0.12), color: A.brand, fontWeight: 700 }}>{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : null} Administrar suscripción</button>
-        : <button onClick={() => setPaywall(true)} className="apple-press flex items-center justify-center gap-2" style={{ padding: "14px 0", borderRadius: 14, background: A.brand, color: "#fff", fontWeight: 700 }}><Sparkles className="w-4 h-4" /> Ver planes</button>}
+    <SubPage inline title="Suscripción" onBack={back}>
+      <div style={{ padding: 20, borderRadius: 16, background: tint(color, 0.1) }}><p className="flex items-center gap-2"><span style={{ width: 12, height: 12, borderRadius: 999, background: color }} /><b style={{ fontSize: 20, fontWeight: 600 }}>Plan actual: {planName(tenant)}</b></p><p style={{ fontSize: 15, color: A.sub, marginTop: 10 }}>{sub}</p></div>
+      {status === "past_due" && <div style={{ padding: 20, borderRadius: 16, background: "#FF453A" }}><p className="flex items-center gap-2" style={{ fontWeight: 600, color: "#fff", fontSize: 15 }}><AlertTriangle className="w-4 h-4" /> Hay un problema con tu pago</p><p style={{ fontSize: 12, color: "#fff", marginTop: 8 }}>Revisa tu método de pago desde Administrar suscripción para no perder el acceso.</p></div>}
+      <div style={{ padding: "10px 20px", borderRadius: 16, background: "rgba(142,142,147,0.06)" }}>
+        {[["Empleados activos", emps === null ? "…" : `${emps} de 5`], ["Estado", status ? status.charAt(0).toUpperCase() + status.slice(1) : "—"], ...(tenant?.next_billing_date ? [["Próximo cobro", new Intl.DateTimeFormat("es-PR", { dateStyle: "medium" }).format(new Date(tenant.next_billing_date))]] : [])].map(([k, v], i) => (
+          <div key={k} className="flex justify-between" style={{ padding: "10px 0", borderTop: i ? "0.5px solid rgba(142,142,147,0.15)" : "none" }}><span style={{ color: A.sub, fontSize: 17 }}>{k}</span><span style={{ fontFamily: "ui-monospace, Menlo, monospace", fontSize: 15 }}>{v}</span></div>
+        ))}
+      </div>
+      {subscribed ? <button onClick={manage} disabled={busy} className="apple-press flex items-center justify-center gap-2" style={{ padding: "14px 0", borderRadius: 16, background: tint(A.brand, 0.12), color: A.brand, fontWeight: 600 }}>{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />} Administrar suscripción</button>
+        : <button onClick={() => setPaywall(true)} className="apple-press flex items-center justify-center gap-2" style={{ padding: "14px 0", borderRadius: 16, background: A.brand, color: "#fff", fontWeight: 600 }}><Sparkles className="w-4 h-4" /> Ver planes</button>}
       <ErrorLine message={error} />
-      <div style={{ textAlign: "center" }}><b>¿Preguntas sobre tu plan?</b><p style={{ fontSize: 13, color: A.sub }}>Contacta a archillastudios@gmail.com</p></div>
+      <div style={{ paddingTop: 20 }}><p style={{ fontSize: 15, fontWeight: 600 }}>¿Preguntas sobre tu plan?</p><p style={{ fontSize: 12, color: A.sub }}>Contacta a archillastudios@gmail.com</p></div>
       <PaywallDialog open={paywall} onClose={() => setPaywall(false)} />
     </SubPage>
   );

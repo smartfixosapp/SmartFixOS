@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { applyAppearance } from "@/lib/appearance";
-import { Building2, Moon, Sun, Globe, Camera, Phone, Clock, Link2, DollarSign, Trash2, Loader2, Store } from "lucide-react";
+import { Building2, Moon, Sun, Globe, Camera, Phone, Clock, Link2, DollarSign, Percent, Flag, Trash2, Loader2, Store } from "lucide-react";
 import { AlertDialog, tint } from "@/components/pos/native/posUi";
 import { supabase } from "../../../../../lib/supabase-client.js";
-import { A, SubPage, Group, Row, Field, PrimaryBtn, ErrorLine, Chips } from "./ui";
+import { A, SubPage, Group, Row, Field, PrimaryBtn, SelectRow, ErrorLine, Chips } from "./ui";
 import { updateTenant, fetchTenantRow, settingsOf, businessHoursOf, DAYS, taxPercentOf, localGet, localSet } from "@/lib/tenantSettings";
 import { safeTZ, fmt } from "@/lib/finance/tz";
 import { imageToJpegBlob } from "@/lib/comprasApi";
@@ -101,12 +101,12 @@ export function InfoNegocio({ tenant, tenantId, reload, back }) {
 
   const tryBack = () => { if (dirty) setDiscard(true); else back(); };
   const setDay = (k, patch) => set({ hours: { ...d.hours, [k]: { ...d.hours[k], ...patch } } });
-  const timeInput = (v, onChange, label) => <input type="time" value={v} onChange={(e) => onChange(e.target.value)} aria-label={label} style={{ background: A.card2, color: "#fff", borderRadius: 10, padding: "8px 10px", fontSize: 15, colorScheme: "dark" }} />;
+  const timeInput = (v, onChange, label) => <input type="time" value={v} onChange={(e) => onChange(e.target.value)} aria-label={label} style={{ background: A.card2, color: "#fff", borderRadius: 10, padding: "8px 8px", fontSize: 14, colorScheme: "dark", flex: 1, minWidth: 0, width: 0 }} />;
 
   return (
     <SubPage title="Info del Negocio" onBack={tryBack} right={<button onClick={save} disabled={busy || !dirty || !d.name.trim()} className="apple-press disabled:opacity-40" style={{ padding: "8px 16px", borderRadius: 999, background: A.brand, color: "#fff", fontWeight: 700 }}>Guardar</button>}>
       <Group header="Identidad Visual" icon={Camera} footer="Logo recomendado: PNG/JPG, 500×200 px aprox. Se recorta automáticamente si es más grande.">
-        <div className="flex items-center gap-3" style={{ marginBottom: 14 }}>
+        <div className="flex items-center gap-3">
           <span style={{ width: 88, height: 64, borderRadius: 8, background: A.card2, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>{d.logo ? <img src={d.logo} alt="Logo" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} /> : <Store className="w-6 h-6" style={{ color: A.sub }} />}</span>
           <span className="flex-1"><span className="block" style={{ fontWeight: 600 }}>Logo de la Tienda</span>
             <button onClick={() => fileRef.current?.click()} disabled={uploading} className="apple-press inline-flex items-center gap-1" style={{ marginTop: 4, padding: "5px 14px", borderRadius: 999, background: tint(A.brand, 0.16), color: A.brand, fontWeight: 700, fontSize: 13 }}>{uploading ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Subiendo...</> : "Cambiar"}</button></span>
@@ -114,21 +114,17 @@ export function InfoNegocio({ tenant, tenantId, reload, back }) {
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; pickLogo(f); }} />
         </div>
         {upErr && <ErrorLine message={upErr} />}
-        <div className="flex flex-col" style={{ gap: 12 }}>
-          <Field label="Nombre de la Tienda *" value={d.name} onChange={(v) => set({ name: v })} placeholder="911 SmartFix" />
-          <Field label="Slogan / Tagline" value={d.slogan} onChange={(v) => set({ slogan: v })} placeholder="Tu taller de confianza" />
-          <p style={{ fontSize: 12, color: A.sub }}>Aparece en recibos, emails y el dashboard</p>
-        </div>
+        <Field label="Nombre de la Tienda *" value={d.name} onChange={(v) => set({ name: v })} placeholder="911 SmartFix" />
+        <Field label="Slogan / Tagline" value={d.slogan} onChange={(v) => set({ slogan: v })} placeholder="Tu taller de confianza" />
+        <p style={{ fontSize: 12, color: A.ter }}>Aparece en recibos, emails y el dashboard</p>
       </Group>
       <Group header="Contacto" icon={Phone}>
-        <div className="flex flex-col" style={{ gap: 12 }}>
-          <Field label="Teléfono Principal" value={d.phone} onChange={(v) => set({ phone: v })} placeholder="(787) 344-4995" inputMode="tel" />
-          <Field label="Email del Negocio" value={d.email} onChange={(v) => set({ email: v })} placeholder="contacto@taller.com" type="email" />
-          <Field label="Dirección Física" value={d.address} onChange={(v) => set({ address: v })} placeholder="Calle Principal #123, San Juan, PR" />
-        </div>
+        <Field label="Teléfono Principal" value={d.phone} onChange={(v) => set({ phone: v })} placeholder="(787) 344-4995" inputMode="tel" />
+        <Field label="Email del Negocio" value={d.email} onChange={(v) => set({ email: v })} placeholder="contacto@taller.com" type="email" />
+        <Field label="Dirección Física" value={d.address} onChange={(v) => set({ address: v })} placeholder="Calle Principal #123, San Juan, PR" />
       </Group>
-      <Group header="Horario de la tienda" icon={Clock} footer="Horas de apertura del taller (se muestran en recibos). El horario de cada empleado se maneja aparte en Empleados y Horarios." pad={false}>
-        <div className="grid" style={{ gap: 10, padding: 12, gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))" }}>
+      <Group header="Horario de la tienda" icon={Clock} form footer="Horas de apertura del taller (se muestran en recibos). El horario de cada empleado se maneja aparte en Empleados y Horarios." pad={false}>
+        <div className="grid" style={{ gap: 10, padding: 12, gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))" }}>
           {DAYS.map(([k, label]) => { const h = d.hours[k]; return (
             <div key={k} style={{ padding: 12, borderRadius: 12, background: h.closed ? A.card2 : tint(A.brand, 0.06), border: `1px solid ${h.closed ? "transparent" : tint(A.brand, 0.22)}` }}>
               <div className="flex items-center"><b className="flex-1">{label}</b>
@@ -138,13 +134,11 @@ export function InfoNegocio({ tenant, tenantId, reload, back }) {
         </div>
       </Group>
       <Group header="Redes Sociales" icon={Link2} footer="Se usan como botones en plantillas de email y recibos">
-        <div className="flex flex-col" style={{ gap: 12 }}>{SOCIAL.map(([k, l, ph]) => <Field key={k} label={l} value={d.social[k] || ""} onChange={(v) => set({ social: { ...d.social, [k]: v } })} placeholder={ph} />)}</div>
+        {SOCIAL.map(([k, l, ph]) => <Field key={k} label={l} value={d.social[k] || ""} onChange={(v) => set({ social: { ...d.social, [k]: v } })} placeholder={ph} />)}
       </Group>
       <Group header="Dinero del local" icon={DollarSign} footer="La moneda se usa en recibos y POS. El IVU se aplica automáticamente a cada venta — pon 0 si tu taller no cobra impuesto.">
-        <div className="flex flex-col" style={{ gap: 12 }}>
-          <label className="flex flex-col" style={{ gap: 6 }}><span style={{ fontSize: 14, fontWeight: 600 }}>Moneda</span><select value={d.currency} onChange={(e) => set({ currency: e.target.value })} style={{ background: A.card2, color: "#fff", borderRadius: 12, padding: "12px 14px", fontSize: 16, colorScheme: "dark" }}>{CURRENCIES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></label>
-          <div className="flex items-center gap-2"><span className="flex-1" style={{ fontSize: 16 }}>IVU / Impuesto</span><input value={d.tax} onChange={(e) => { const r = e.target.value.replace(",", "."); if (/^\d*\.?\d{0,2}$/.test(r)) set({ tax: r }); }} inputMode="decimal" placeholder="11.5" aria-label="IVU" className="outline-none text-right" style={{ width: 90, background: A.card2, color: "#fff", borderRadius: 10, padding: "10px 12px", fontSize: 16 }} /><span style={{ color: A.sub }}>%</span></div>
-        </div>
+        <SelectRow label="Moneda" value={d.currency} onChange={(v) => set({ currency: v })} options={CURRENCIES} />
+        <div className="flex items-center gap-2"><span className="flex-1 flex items-center gap-2" style={{ fontSize: 17 }}><Percent className="w-[18px] h-[18px]" style={{ color: A.sub }} />IVU / Impuesto</span><input value={d.tax} onChange={(e) => { const r = e.target.value.replace(",", "."); if (/^\d*\.?\d{0,2}$/.test(r)) set({ tax: r }); }} inputMode="decimal" placeholder="11.5" aria-label="IVU" className="outline-none text-right" style={{ width: 90, background: "transparent", color: "#fff", fontSize: 17 }} /><span style={{ color: A.sub, fontSize: 17 }}>%</span></div>
       </Group>
       <ErrorLine message={error} />
       <PrimaryBtn onClick={save} busy={busy} disabled={!d.name.trim()}>Guardar Info del Negocio</PrimaryBtn>
@@ -157,7 +151,7 @@ export function Apariencia({ back }) {
   const [mode, setMode] = useState(localGet("appearance.preferredMode", "dark"));
   const toggle = () => { const n = mode === "dark" ? "light" : "dark"; setMode(n); localSet("appearance.preferredMode", n); applyAppearance(n); };
   return (
-    <SubPage title="Apariencia" onBack={back}>
+    <SubPage inline title="Apariencia" onBack={back}>
       <div className="flex flex-col items-center" style={{ gap: 18, padding: "50px 0" }}>
         <p style={{ color: A.sub }}>Toca para cambiar</p>
         <button onClick={toggle} className="apple-press relative" aria-label="Cambiar modo" style={{ width: 240, height: 92, borderRadius: 999, background: mode === "dark" ? "#1C1C1E" : "#E5E5EA", border: `1px solid ${A.sep}` }}>
@@ -184,7 +178,6 @@ export function Region({ tenant, tenantId, reload, back }) {
     setBusy(true); setError(null);
     try { await updateTenant({ tenantId, columns: { country, timezone: zone } }); await reload(); back(); } catch (e) { setError(`No se pudo guardar: ${e?.message || e}`); } finally { setBusy(false); }
   };
-  const sel = (v, set, opts) => <select value={v} onChange={(e) => set(e.target.value)} style={{ background: A.card2, color: "#fff", borderRadius: 12, padding: "12px 14px", fontSize: 16, width: "100%", colorScheme: "dark" }}>{opts.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>;
   return (
     <SubPage title="Región" onBack={back}>
       <Group header="Idioma" icon={Globe} footer="La app se reinicia para aplicar el idioma en todas las pantallas.">
@@ -192,13 +185,15 @@ export function Region({ tenant, tenantId, reload, back }) {
         <p style={{ fontSize: 12, color: A.sub, marginTop: 8 }}>English llegará a la web pronto. La app del iPhone y el iPad ya está traducida.</p>
         {lang !== current && <button onClick={() => { localSet("app.preferredLanguage", lang); window.location.reload(); }} className="apple-press" style={{ marginTop: 12, padding: "12px 0", borderRadius: 12, background: A.brand, color: "#fff", fontWeight: 700 }}>{lang === "es" ? "Aplicar Español y reiniciar" : "Apply English and restart"}</button>}
       </Group>
-      <Group header="País" footer="Determina el formato de números de teléfono y direcciones en los recibos.">{sel(country, setCountry, COUNTRIES)}</Group>
+      <Group header="País" icon={Flag} footer="Determina el formato de números de teléfono y direcciones en los recibos.">
+        <SelectRow label="País" value={country} onChange={setCountry} options={COUNTRIES} />
+      </Group>
       <Group header="Zona Horaria" icon={Clock} footer="Afecta fechas, horas y reportes. Usa la zona horaria física del taller (no la del dueño si vive en otro lugar).">
-        {sel(zone, setZone, ZONES)}
-        <p style={{ marginTop: 10, fontSize: 14 }}><span style={{ color: A.sub }}>Hora actual del taller: </span><b>{fmt(now, safeTZ(zone), { dateStyle: "medium", timeStyle: "medium" })}</b></p>
+        <SelectRow label="Zona Horaria" value={zone} onChange={setZone} options={ZONES} />
+        <div className="flex items-center justify-between gap-3" style={{ fontSize: 17 }}><span className="flex items-center gap-2" style={{ color: A.sub }}><Clock className="w-[18px] h-[18px]" />Hora actual del taller:</span><b style={{ fontWeight: 500 }}>{fmt(now, safeTZ(zone), { dateStyle: "short", timeStyle: "short" })}</b></div>
       </Group>
       <ErrorLine message={error} />
-      <PrimaryBtn onClick={save} busy={busy}>Guardar Idioma y Región</PrimaryBtn>
+      <PrimaryBtn onClick={save} busy={busy} color="#BF5AF2">Guardar Idioma y Región</PrimaryBtn>
     </SubPage>
   );
 }

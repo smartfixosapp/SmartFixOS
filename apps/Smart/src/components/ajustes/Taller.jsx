@@ -1,9 +1,9 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Store, Wrench, LayoutGrid, Package, Flag, MapPin, Tag, HardDrive, Check, Loader2, Download, Upload, Percent } from "lucide-react";
+import { Store, Wrench, LayoutGrid, Package, Flag, MapPin, Tag, HardDrive, Check, CheckCircle2, Loader2, Download, Upload, Percent, ShoppingBag, Columns2, Users, Building2, BadgeCheck, Info, CircleDollarSign } from "lucide-react";
 import { AlertDialog, tint } from "@/components/pos/native/posUi";
 import { supabase } from "../../../../../lib/supabase-client.js";
-import { A, SubPage, Group, Row, ToggleRow, PrimaryBtn, ErrorLine } from "./ui";
+import { A, SubPage, Group, Row, Toggle, ToggleRow, PrimaryBtn, ErrorLine } from "./ui";
 import { updateTenant, hiddenStatusesOf, localGet, localSet, fetchTenantRow, isPlanProOrAbove } from "@/lib/tenantSettings";
 import { ORDER_STATUS } from "@/lib/orderStatus";
 import { cacheBusinessMode } from "@/lib/businessMode";
@@ -30,8 +30,8 @@ export function TallerList({ tenant, go }) {
         <Row Icon={Package} color={A.warning} title="Inventario" sub="Stock y precios" onClick={() => navigate("/Inventory")} />
         <Row Icon={Percent} color="#FF375F" title="Ofertas" sub="Descuentos por equipo, pieza o categoría" onClick={() => go("taller", "ofertas")} />
         <Row Icon={Flag} color="#63E6BE" title="Estados de la orden" sub={`${on} de ${TOTAL} encendidos`} onClick={() => go("taller", "estados")} />
-        <ToggleRow Icon={MapPin} color="#FF9F0A" title="Visita técnica" sub={visit ? "Visible en nueva orden" : "Oculta en nueva orden"} on={visit} onChange={(v) => { setVisit(v); localSet("wizard.showVisitaTecnica", v); }} />
-        <ToggleRow Icon={Tag} color="#A2845E" title="Etiquetas de equipo" sub={labels ? "Imprime etiqueta al crear una orden" : "No se imprime etiqueta"} on={labels} onChange={(v) => { setLabels(v); localSet("print.labelsEnabled", v); }} />
+        <ToggleRow bold={false} Icon={MapPin} color="#FF9F0A" title="Visita técnica" sub={visit ? "Visible en nueva orden" : "Oculta en nueva orden"} on={visit} onChange={(v) => { setVisit(v); localSet("wizard.showVisitaTecnica", v); }} />
+        <ToggleRow bold={false} Icon={Tag} color="#A2845E" title="Etiquetas de equipo" sub={labels ? "Imprime etiqueta al crear una orden" : "No se imprime etiqueta"} on={labels} onChange={(v) => { setLabels(v); localSet("print.labelsEnabled", v); }} />
         {isPlanProOrAbove(tenant) && <Row Icon={HardDrive} color={A.info} title="Datos del Taller" sub="Exportar clientes, órdenes, inventario" onClick={() => go("taller", "datos")} />}
       </Group>
     </SubPage>
@@ -52,16 +52,17 @@ export function TipoNegocio({ tenant, tenantId, reload, back }) {
     setBusy(true); setError(null);
     try { await updateTenant({ tenantId, columns: { business_mode: mode } }); cacheBusinessMode(mode); await reload(); if (mode === "retail") navigate("/POS"); else back(); } catch (e) { setError(`No se pudo guardar: ${e?.message || e}`); } finally { setBusy(false); }
   };
+  const ICONS = { repair: Wrench, retail: ShoppingBag, both: Columns2 };
   return (
-    <SubPage title="Tipo de negocio" onBack={back} right={<button onClick={save} disabled={busy || mode === orig} className="apple-press disabled:opacity-40" style={{ padding: "8px 16px", borderRadius: 999, background: A.brand, color: "#fff", fontWeight: 700 }}>Guardar</button>}>
-      <Group header="Tipo de negocio" footer="En modo Tienda se ocultan las funciones de reparación (órdenes, técnicos, garantías) y el POS pasa a ser la pantalla principal." pad={false}>
-        {Object.entries(MODES).map(([k, [t, sub]], i) => (
-          <button key={k} onClick={() => setMode(k)} className="apple-press flex items-center gap-3 text-left w-full" style={{ padding: "14px 16px", borderTop: i ? `0.5px solid ${A.sep}` : "none" }}>
-            <span style={{ width: 32, height: 32, borderRadius: 8, background: tint(mode === k ? A.brand : A.sub, 0.14), color: mode === k ? A.brand : A.sub, display: "flex", alignItems: "center", justifyContent: "center" }}>{k === "repair" ? <Wrench className="w-4 h-4" /> : <Store className="w-4 h-4" />}</span>
-            <span className="flex-1"><span className="block" style={{ fontSize: 16 }}>{t}</span><span className="block" style={{ fontSize: 12, color: A.sub }}>{sub}</span></span>
-            {mode === k && <Check className="w-5 h-5" style={{ color: A.brand }} strokeWidth={3} />}
-          </button>
-        ))}
+    <SubPage inline title="Tipo de negocio" onBack={back} right={busy ? <Loader2 className="w-5 h-5 animate-spin" style={{ color: A.sub }} /> : <button onClick={save} disabled={mode === orig} className="apple-press disabled:opacity-40" style={{ padding: "8px 8px", color: A.brand, fontWeight: 600, fontSize: 17 }}>Guardar</button>}>
+      <Group header="Tipo de negocio" form footer="En modo Tienda se ocultan las funciones de reparación (órdenes, técnicos, garantías) y el POS pasa a ser la pantalla principal." pad={false}>
+        {Object.entries(MODES).map(([k, [t, sub]], i) => { const MI = ICONS[k]; return (
+          <button key={k} onClick={() => setMode(k)} className="apple-press relative flex items-center gap-3 text-left w-full" style={{ padding: "14px 16px" }}>
+            {i > 0 && <span aria-hidden="true" style={{ position: "absolute", top: 0, left: 16, right: 0, height: 0.5, background: A.sep }} />}
+            <span style={{ width: 32, display: "flex", justifyContent: "center", color: mode === k ? A.brand : A.sub }}><MI className="w-[22px] h-[22px]" /></span>
+            <span className="flex-1"><span className="block" style={{ fontSize: 17, fontWeight: 600 }}>{t}</span><span className="block" style={{ fontSize: 12, color: A.sub }}>{sub}</span></span>
+            {mode === k && <CheckCircle2 className="w-[22px] h-[22px]" style={{ color: A.brand }} fill={A.brand} stroke="#1C1C1E" />}
+          </button>); })}
       </Group>
       <ErrorLine message={error} />
     </SubPage>
@@ -95,17 +96,18 @@ export function EstadosOrden({ tenant, tenantId, reload, back }) {
     }).finally(() => setBusy(false));
   };
   const section = (title, ids, footer) => (
-    <Group header={title} footer={footer} pad={false}>
+    <Group header={title} form footer={footer} pad={false}>
       {ids.map((id, i) => { const s = ORDER_STATUS[id]; const Icon = s.Icon; const on = !hidden.includes(id); return (
-        <div key={id} className="flex items-center gap-3" style={{ padding: "11px 16px", borderTop: i ? `0.5px solid ${A.sep}` : "none" }}>
-          <span style={{ width: 34, height: 34, borderRadius: 9, background: tint(s.color, 0.18), color: s.color, display: "flex", alignItems: "center", justifyContent: "center" }}><Icon className="w-4 h-4" /></span>
-          <span className="flex-1" style={{ fontSize: 16 }}>{s.label}</span>
-          <button onClick={() => toggle(id)} role="switch" aria-checked={on} aria-label={s.label} style={{ width: 51, height: 31, borderRadius: 999, background: on ? A.brand : "#3A3A3C", position: "relative" }}><span style={{ position: "absolute", top: 2, left: on ? 22 : 2, width: 27, height: 27, borderRadius: 999, background: "#fff", transition: "left 0.2s" }} /></button>
+        <div key={id} className="relative flex items-center gap-3" style={{ padding: "11px 16px" }}>
+          {i > 0 && <span aria-hidden="true" style={{ position: "absolute", top: 0, left: 62, right: 0, height: 0.5, background: A.sep }} />}
+          <span style={{ width: 34, height: 34, borderRadius: 8, background: tint(s.color, 0.18), color: s.color, display: "flex", alignItems: "center", justifyContent: "center" }}><Icon className="w-4 h-4" strokeWidth={2.4} /></span>
+          <span className="flex-1" style={{ fontSize: 17 }}>{s.label}</span>
+          <Toggle on={on} onChange={() => toggle(id)} label={s.label} />
         </div>); })}
     </Group>
   );
   return (
-    <SubPage title="Estados de la orden" onBack={back} right={busy ? <Loader2 className="w-5 h-5 animate-spin" style={{ color: A.sub }} /> : null}>
+    <SubPage inline title="Estados de la orden" onBack={back} right={busy ? <Loader2 className="w-5 h-5 animate-spin" style={{ color: A.sub }} /> : null}>
       <ErrorLine message={error} />
       {section("Flujo principal", FLOW, "Apaga los estados que no usas — dejan de mostrarse como pastilla en Órdenes aunque tengan trabajos activos. Aplica para todo el taller.")}
       {section("Casos especiales", SPECIAL)}
@@ -204,26 +206,29 @@ export function DatosTaller({ tenant, tenantId, reload, back }) {
     } catch (e) { setError(e?.message || String(e)); } finally { setBusy(false); }
   };
 
-  const tog = (k, title, sub, first) => <ToggleRow first={first} Icon={Check} color={A.info} title={title} sub={sub} on={sel[k]} onChange={(v) => set(k, v)} />;
+  const tog = (k, title, sub, Ic, first) => <ToggleRow first={first} Icon={Ic} color={A.brand} tintColor={A.success} title={title} sub={sub} on={sel[k]} onChange={(v) => set(k, v)} />;
   return (
     <SubPage title="Datos del Taller" onBack={back}>
-      <Group header="Exportar datos" footer="Descarga los datos seleccionados para respaldarlos o migrarlos a otro sistema." pad={false}>
-        {tog("customers", "Clientes", "Nombre, contacto, dirección, historial", true)}{tog("orders", "Órdenes", "Órdenes de trabajo con fotos y detalles")}{tog("products", "Productos e inventario", "Piezas, accesorios, servicios y stock")}{tog("transactions", "Transacciones financieras", "Pagos, gastos, depósitos, nómina")}
-        <div className="flex gap-3" style={{ padding: "12px 16px", borderTop: `0.5px solid ${A.sep}` }}>
-          <button onClick={() => setSel({ customers: true, orders: true, products: true, transactions: true })} style={{ color: A.brand, fontWeight: 600 }}>Seleccionar todo</button>
-          <button onClick={() => setSel({ customers: false, orders: false, products: false, transactions: false })} style={{ color: A.danger, fontWeight: 600 }}>Limpiar</button>
+      <Group header="Exportar datos" icon={Upload} form footer="Descarga los datos seleccionados para respaldarlos o migrarlos a otro sistema." pad={false}>
+        {tog("customers", "Clientes", "Nombre, contacto, dirección, historial", Users, true)}{tog("orders", "Órdenes", "Órdenes de trabajo con fotos y detalles", Wrench)}{tog("products", "Productos e inventario", "Piezas, accesorios, servicios y stock", Package)}{tog("transactions", "Transacciones financieras", "Pagos, gastos, depósitos, nómina", CircleDollarSign)}
+        <div className="relative flex items-center justify-between" style={{ padding: "12px 16px" }}>
+          <span aria-hidden="true" style={{ position: "absolute", top: 0, left: 16, right: 0, height: 0.5, background: A.sep }} />
+          <button onClick={() => setSel({ customers: true, orders: true, products: true, transactions: true })} style={{ color: A.brand, fontWeight: 600, fontSize: 12 }}>Seleccionar todo</button>
+          <button onClick={() => setSel({ customers: false, orders: false, products: false, transactions: false })} style={{ color: A.danger, fontWeight: 600, fontSize: 12 }}>Limpiar</button>
         </div>
       </Group>
-      <ErrorLine message={error} />
-      <PrimaryBtn onClick={exportData} busy={busy} disabled={!any} color="#0A84FF" busyLabel="Exportando..."><Download className="w-5 h-5" /> Exportar</PrimaryBtn>
-      <p style={{ fontSize: 12, color: A.sub, marginTop: -8 }}>Se descarga un archivo con los datos seleccionados. Puedes guardarlo en Archivos, enviarlo por AirDrop o adjuntarlo a un email.</p>
-      <Group header="Importar" footer="Restaura la configuración del taller desde un backup. Para importar clientes u órdenes de otro taller, usa el mismo archivo de exportación." pad={false}>
-        {msg && <p style={{ padding: "12px 16px", color: A.success, fontSize: 14 }}>{msg}</p>}
+      <div className="flex flex-col" style={{ gap: 10 }}>
+        <ErrorLine message={error} />
+        <PrimaryBtn onClick={exportData} busy={busy} disabled={!any} color="#0A84FF" busyLabel="Exportando..." icon={false}><Upload className="w-5 h-5" /> Exportar</PrimaryBtn>
+        <p style={{ fontSize: 13, color: A.sub, padding: "0 16px" }}>Se descarga un archivo con los datos seleccionados. Puedes guardarlo en Archivos, enviarlo por AirDrop o adjuntarlo a un email.</p>
+      </div>
+      <Group header="Importar" icon={Download} form footer="Restaura la configuración del taller desde un backup. Para importar clientes u órdenes de otro taller, usa el mismo archivo de exportación." pad={false}>
+        {msg && <p className="flex items-center gap-2" style={{ padding: "12px 16px", fontSize: 15 }}><CheckCircle2 className="w-[18px] h-[18px]" style={{ color: A.success }} />{msg}</p>}
         <input ref={fileRef} type="file" accept="application/json,.json" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) readFile(f); }} />
-        <Row first Icon={Upload} color={A.warning} title="Importar backup" sub="Clientes, órdenes, inventario, configuración" onClick={() => fileRef.current?.click()} />
+        <Row first={!msg} Icon={Download} color={A.vip} title="Importar backup" sub="Clientes, órdenes, inventario, configuración" onClick={() => fileRef.current?.click()} />
       </Group>
-      <Group header="Qué incluye el backup">
-        {["Clientes y órdenes del taller", "Inventario y catálogo de productos", "Configuración del negocio", "Compatible con el importador de Archilla OS"].map((t) => <p key={t} className="flex items-center gap-2" style={{ fontSize: 14, padding: "3px 0" }}><Check className="w-4 h-4" style={{ color: A.success }} /> {t}</p>)}
+      <Group header="Qué incluye el backup" icon={Info} form pad={false}>
+        {[["Clientes y órdenes del taller", Users], ["Inventario y catálogo de productos", Package], ["Configuración del negocio", Building2], ["Compatible con el importador de Archilla OS", BadgeCheck]].map(([t, BI], i) => <p key={t} className="relative flex items-center gap-3" style={{ fontSize: 15, padding: "13px 16px" }}>{i > 0 && <span aria-hidden="true" style={{ position: "absolute", top: 0, left: 16, right: 0, height: 0.5, background: A.sep }} />}<BI className="w-[18px] h-[18px]" style={{ color: A.sub, width: 22 }} /> {t}</p>)}
       </Group>
       <AlertDialog open={!!confirm} title="¿Restaurar configuración?" message="Vamos a sobrescribir la configuración actual del taller con el backup. Esta acción no se puede deshacer fácilmente — confirma que es el archivo correcto." onClose={() => setConfirm(null)} actions={[{ label: "Cancelar" }, { label: "Restaurar", destructive: true, onPress: restore }]} />
     </SubPage>
