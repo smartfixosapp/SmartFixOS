@@ -19,7 +19,7 @@ export function currentMonthTransactions(tenantId, tz) {
 }
 
 export async function loadLedger(tenantId, selectedMonth, tz) {
-  const from = addMonths(monthStart(selectedMonth, tz), -2, tz);
+  const from = addMonths(monthStart(selectedMonth, tz), -6, tz);
   const to = addMonths(monthStart(selectedMonth, tz), 1, tz);
   const [tx, po, ot] = await Promise.all([
     transactionsBetween(tenantId, from, to),

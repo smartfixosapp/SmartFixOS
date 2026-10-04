@@ -43,11 +43,25 @@ export function applyFilters(txs, employeeFilter, methodFilter) {
   });
 }
 
+export const isRefundTx = (tx) => tx.type === "refund";
+
+function countSales(revenueRows) {
+  const keys = new Set();
+  let singles = 0;
+  revenueRows.forEach((t) => {
+    if (String(t.description || "").includes("pago dividido")) keys.add(`${t.recorded_by || ""}|${String(t.created_at || "").slice(0, 19)}`);
+    else singles += 1;
+  });
+  return singles + keys.size;
+}
+
 export function pnlTotals(txs) {
-  const revenue = sumAmt(txs.filter(isRev));
+  const revenueRows = txs.filter(isRev);
+  const refunds = txs.filter(isRefundTx).reduce((s, t) => s + Math.abs(num(t.amount)), 0);
+  const revenue = sumAmt(revenueRows) - refunds;
   const expenses = sumAmt(txs.filter(isOpExpense));
   const payroll = sumAmt(txs.filter(isPayroll));
-  const saleCount = txs.filter(isRev).length;
+  const saleCount = countSales(revenueRows);
   return { revenue, expenses, payroll, net: revenue - expenses - payroll, saleCount, avgTicket: saleCount ? revenue / saleCount : 0 };
 }
 
@@ -156,7 +170,7 @@ function decodeIVU(raw) {
 
 export async function loadReport({ tenantId, range, isCustom, month, tz }) {
   const span = range.end.getTime() - range.start.getTime();
-  const prevStart = new Date(range.start.getTime() - span);
+  const prevStart = isCustom ? new Date(range.start.getTime() - span) : addMonths(range.start, -1, tz);
   const p = zonedParts(monthStart(month, tz), tz);
   const ivuTask = isCustom
     ? Promise.resolve(null)

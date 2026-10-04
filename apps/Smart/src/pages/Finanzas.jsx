@@ -183,7 +183,7 @@ export default function Finanzas() {
   const pendingPOsTotal = pendingPOs.reduce((s, p) => s + num(p.total_amount), 0);
   const pendingPayrollLines = payroll.error ? [] : payroll.lines.filter((l) => l.balance > 0.01);
   const pendingPayrollTotal = pendingPayrollLines.reduce((s, l) => s + l.balance, 0);
-  const totalCuentasPorPagar = fixedPendingTotal + pendingPOsTotal + pendingOneTime + pendingIVU + pendingPayrollTotal;
+  const totalCuentasPorPagar = fixedPendingTotal + pendingPOsTotal + pendingIVU + pendingPayrollTotal;
   const totalPorPagar = fixedPendingTotal + pendingOneTime + pendingPOsTotal;
   const unperiodedWarning = (() => {
     const names = payroll.lines.filter((l) => l.balance > 0.01 && l.hasUnperiodedPayments).map((l) => `${l.employee.full_name} ${new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(l.unperiodedPaid)}`);
