@@ -9,6 +9,7 @@
  * dueño en Login.jsx) — este es el primer paso de identidad para poder
  * construir gestión de empleados encima.
  */
+import { flagPinChange } from "@/components/auth/ChangePinGate";
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -60,6 +61,7 @@ export default function EmployeeLogin() {
       });
       if (signInError) throw signInError;
 
+      if (employee?.pin_is_temp === true && employee?.id) flagPinChange(employee.id);
       navigate("/Orders", { replace: true, state: { employee, tenant: body.tenant } });
     } catch (err) {
       setError(err?.message || "Código o PIN incorrecto. Pídele el código del taller al dueño.");

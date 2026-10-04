@@ -195,7 +195,7 @@ export default function Ajustes() {
     if (!wide) return shell(view);
     return shell(
       <div style={{ display: "grid", gridTemplateColumns: "250px minmax(0, 1fr)", gap: 28, alignItems: "start", maxWidth: 1600, margin: "0 auto" }}>
-        <aside style={{ position: "sticky", top: 16, background: A.card, borderRadius: 16, padding: 8 }} aria-label="Secciones de Ajustes">
+        <aside style={{ position: "sticky", top: "calc(var(--app-nav-h, 0px) + 16px)", background: A.card, borderRadius: 16, padding: 8 }} aria-label="Secciones de Ajustes">
           <button onClick={() => go(null)} className="apple-press w-full flex items-center gap-2 text-left" style={{ padding: "10px 12px", borderRadius: 10, color: A.sub, fontSize: 14, fontWeight: 600 }}>Todos los ajustes</button>
           {visible.map((sec) => {
             const Icon = sec.Icon;

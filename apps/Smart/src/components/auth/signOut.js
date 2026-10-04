@@ -14,6 +14,7 @@ export function clearTenantScope() {
     const tid = localStorage.getItem("smartfix_tenant_id");
     if (tid) { localStorage.removeItem(`archilla_app_locked_${tid}`); localStorage.removeItem(`archilla_last_active_${tid}`); localStorage.removeItem(`archilla_user_active_${tid}`); }
     LOCAL_KEYS.forEach((k) => localStorage.removeItem(k));
+    localStorage.removeItem("archilla_pin_change_needed");
     SESSION_KEYS.forEach((k) => sessionStorage.removeItem(k));
   } catch {
     return;

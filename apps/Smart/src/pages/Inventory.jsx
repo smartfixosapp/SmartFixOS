@@ -1258,7 +1258,8 @@ export default function Inventory() {
   }, [items, mainCategory, deviceCategory, partTypeFilter, viewTab, q, sortKey]);
 
   const [drill, setDrill] = useState({ brand: null, family: null, model: null, all: false });
-  useEffect(() => { setDrill({ brand: null, family: null, model: null, all: false }); }, [mainCategory, viewTab, q, deviceCategory, partTypeFilter]);
+  useEffect(() => { setDrill({ brand: null, family: null, model: null, all: false }); setSelectMode(false); setBulkIds([]); }, [mainCategory, viewTab, q, deviceCategory, partTypeFilter]);
+  useEffect(() => { setPage(1); }, [drill]);
   const drillOn = !q && viewTab === "products" && ["piezas", "accesorios", "servicios"].includes(mainCategory);
   const drillInfo = useMemo(() => {
     if (!drillOn) return { rows: null, items: filtered, level: null };
@@ -1924,7 +1925,7 @@ export default function Inventory() {
         {filtered.length > 0 && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 px-1">
             <p className="text-sm text-white/50 font-medium">
-              Mostrando <span className="text-white font-bold">{pageItems.length}</span> de <span className="text-white font-bold">{filtered.length}</span> productos
+              Mostrando <span className="text-white font-bold">{pageItems.length}</span> de <span className="text-white font-bold">{scopedItems.length}</span> productos
             </p>
             <div className="flex items-center gap-3">
               <Button size="icon" variant="ghost" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}

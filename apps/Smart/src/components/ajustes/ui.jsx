@@ -11,14 +11,14 @@ export function SubPage({ title, onBack, right, children, width = 1400 }) {
         <h1 className="flex-1" style={{ fontSize: 30, fontWeight: 800, letterSpacing: "-0.02em" }}>{title}</h1>
         {right}
       </div>
-      <div style={{ display: "grid", gap: 20, paddingBottom: 60, alignItems: "start", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 520px), 1fr))" }}>{children}</div>
+      <div className="sp-grid" style={{ display: "grid", gap: 20, paddingBottom: 60, alignItems: "start", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 520px), 1fr))" }}>{children}</div>
     </div>
   );
 }
 
 export function Group({ header, footer, footerColor, icon: Icon, children, pad = true }) {
   return (
-    <div className="flex flex-col" style={{ gap: 8 }}>
+    <div className="flex flex-col" data-group="1" style={{ gap: 8 }}>
       {header && <p className="flex items-center gap-2" style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", color: A.sub, textTransform: "uppercase", padding: "0 4px" }}>{Icon && <Icon className="w-3.5 h-3.5" />}{header}</p>}
       <div style={{ background: A.card, borderRadius: 16, padding: pad ? 16 : 0, overflow: "hidden" }} className="flex flex-col">{children}</div>
       {footer && <p style={{ fontSize: 12, color: footerColor || A.sub, padding: "0 4px", whiteSpace: "pre-line" }}>{footer}</p>}
