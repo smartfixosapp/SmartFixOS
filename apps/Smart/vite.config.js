@@ -88,6 +88,8 @@ export default defineConfig({
           if (id.includes('/node_modules/jspdf/')         ||
               id.includes('/node_modules/jspdf-autotable/')) return 'vendor-pdf';
           if (id.includes('/node_modules/recharts/'))     return 'vendor-charts';
+          if (id.includes('/node_modules/@zxing/'))       return 'vendor-scan';
+          if (id.includes('/node_modules/html2canvas/') || id.includes('/node_modules/jsbarcode/')) return 'vendor-tools';
           if (id.includes('/node_modules/@hello-pangea/dnd/')) return 'vendor-dnd';
 
           // ── Mid-size libs estables, sin deps circulares con React ──
