@@ -36,7 +36,7 @@ function OrderTile({ order, companyName, onClick, onMenu }) {
       onPointerUp={cancelPress}
       onPointerLeave={cancelPress}
       onPointerCancel={cancelPress}
-      className="apple-press tile-in"
+      className="apple-press hover-lift"
       style={{
         position: "relative", textAlign: "left", height: 214, padding: 10, borderRadius: 14, cursor: "pointer",
         background: "#1C1C1E", border: `1px solid ${tint(info.color, 0.28)}`, display: "flex", flexDirection: "column", gap: 6,
@@ -174,7 +174,7 @@ export default function OrdersKanban({ orders, onCardClick, companyById = {}, on
                 {group.subtitle && <span style={{ fontSize: 11, color: "rgba(235,235,245,0.3)" }}>{group.subtitle}</span>}
               </div>
             )}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 10 }}>
+            <div className="stagger" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 10 }}>
               {group.orders.map((order) => (
                 <OrderTile
                   key={order.id}

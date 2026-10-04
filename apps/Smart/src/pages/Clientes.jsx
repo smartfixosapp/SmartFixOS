@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { SkeletonRows } from "@/components/ui/Skeleton";
 import { useNavigate } from "react-router-dom";
 import { Search, X, ArrowUpDown, Megaphone, UserPlus, Users, Crown, Phone, MessageSquare, Mail, ArrowUpRight, Wrench, ShoppingCart, Pencil, Trash2, Star, Check, AlertTriangle, Loader2, ScanSearch, ChevronDown, Building2, History, DollarSign, TrendingUp } from "lucide-react";
 import { AlertDialog, Toggle, tint } from "@/components/pos/native/posUi";
@@ -294,7 +295,7 @@ export default function Clientes() {
     <div className="flex flex-col" style={{ gap: 12 }}>
       {!wide && searchBox}
       {!wide && filterHeader}
-      {loading ? <div className="flex justify-center" style={{ padding: 40 }}><Loader2 className="w-6 h-6 animate-spin" style={{ color: SUB }} /></div> : filtered.length === 0 ? (
+      {loading ? <SkeletonRows count={8} height={64} /> : filtered.length === 0 ? (
         <div className="flex flex-col items-center text-center" style={{ padding: "40px 12px", gap: 6 }}><Users className="w-9 h-9" style={{ color: "rgba(235,235,245,0.3)" }} /><p style={{ fontSize: 16, fontWeight: 600 }}>{empty[0]}</p><p style={{ fontSize: 13, color: SUB }}>{empty[1]}</p></div>
       ) : (
         <div style={{ borderRadius: 16, background: CARD, overflow: "hidden" }}>

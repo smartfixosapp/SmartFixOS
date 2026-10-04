@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { X, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import { backdropMotion, panelMotion } from "@/lib/motion";
+import { backdropMotion, panelMotion, MOTION, dur } from "@/lib/motion";
 import { useEscapeLayer } from "@/components/orderDetail/ui";
 
 export const P = {
@@ -117,12 +117,13 @@ export function PromptDialog({ open, title, message, placeholder, initial = "", 
 
 export function AlertDialog({ open, title, message, actions, onClose }) {
   useEscapeLayer(open, onClose);
-  if (!open || typeof document === "undefined") return null;
+  if (typeof document === "undefined") return null;
   const stacked = actions.length > 2;
   return createPortal(
-    <div className="apple-type fixed inset-0 z-[350] flex items-center justify-center" style={{ padding: 16 }} role="alertdialog" aria-modal="true">
+    <AnimatePresence>
+    {open && <motion.div key="alert" {...backdropMotion} className="apple-type fixed inset-0 z-[350] flex items-center justify-center" style={{ padding: 16 }} role="alertdialog" aria-modal="true">
       <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.55)" }} onClick={onClose} />
-      <div className="relative w-full" style={{ maxWidth: 300, background: "#2C2C2E", borderRadius: 16, color: P.text, overflow: "hidden" }}>
+      <motion.div initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }} transition={{ duration: dur(MOTION.base), ease: MOTION.enter }} className="relative w-full" style={{ maxWidth: 300, background: "#2C2C2E", borderRadius: 16, color: P.text, overflow: "hidden" }}>
         <div className="text-center" style={{ padding: "18px 16px 14px" }}>
           <p style={{ fontSize: 17, fontWeight: 600 }}>{title}</p>
           {message && <p style={{ fontSize: 13, marginTop: 4, color: "rgba(255,255,255,0.85)", whiteSpace: "pre-line" }}>{message}</p>}
@@ -139,8 +140,9 @@ export function AlertDialog({ open, title, message, actions, onClose }) {
             </button>
           ))}
         </div>
-      </div>
-    </div>,
+      </motion.div>
+    </motion.div>}
+    </AnimatePresence>,
     document.body
   );
 }
@@ -157,14 +159,21 @@ export function ErrorBanner({ message, onDismiss }) {
 }
 
 export function Toast({ toast }) {
-  if (!toast || typeof document === "undefined") return null;
+  const last = useRef(null);
+  if (toast) last.current = toast;
+  const t = toast || last.current;
+  if (typeof document === "undefined") return null;
   return createPortal(
-    <div className="apple-type fixed left-0 right-0 flex justify-center pointer-events-none" style={{ bottom: 28, zIndex: 400 }}>
-      <div className="flex items-center gap-2" style={{ padding: "10px 16px", borderRadius: 999, background: "rgba(44,44,46,0.92)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", color: P.text, fontSize: 14, fontWeight: 600, boxShadow: "0 8px 30px rgba(0,0,0,0.4)" }}>
-        {toast.isError ? <XCircle className="w-4 h-4" style={{ color: P.danger }} /> : <CheckCircle2 className="w-4 h-4" style={{ color: P.success }} />}
-        {toast.message}
-      </div>
-    </div>,
+    <AnimatePresence>
+      {toast && t && (
+        <motion.div key="toast" initial={{ opacity: 0, y: 24, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: 0.98 }} transition={{ duration: dur(MOTION.base), ease: MOTION.enter }} className="apple-type fixed left-0 right-0 flex justify-center pointer-events-none" style={{ bottom: 28, zIndex: 400 }}>
+          <div className="flex items-center gap-2" style={{ padding: "10px 16px", borderRadius: 999, background: "rgba(44,44,46,0.92)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", color: P.text, fontSize: 14, fontWeight: 600, boxShadow: "0 8px 30px rgba(0,0,0,0.4)" }}>
+            {t.isError ? <XCircle className="w-4 h-4" style={{ color: P.danger }} /> : <CheckCircle2 className="w-4 h-4" style={{ color: P.success }} />}
+            {t.message}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>,
     document.body
   );
 }

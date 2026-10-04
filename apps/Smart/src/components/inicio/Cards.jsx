@@ -1,4 +1,5 @@
 import { ArrowRight, Check, CopyPlus, FileSearch, AlertTriangle, ChevronRight, LockOpen, Lock, Clock, BadgeCheck, Sparkles, PlusCircle, Zap, ShieldCheck, Lock as LockFill, CircleAlert, Clock3, X } from "lucide-react";
+import CountUp from "@/components/ui/CountUp";
 import { tint } from "@/components/pos/native/posUi";
 import { FP } from "@/lib/finance/ledger";
 import { money } from "@/components/finanzas/ui";
@@ -21,7 +22,7 @@ export function HeroRevenue({ revenue, expenses, net, goal, onClick }) {
       <div className="flex items-center gap-5">
         <div className="flex-1 min-w-0 flex flex-col" style={{ gap: 4 }}>
           <span style={{ fontSize: 15, fontWeight: 600, color: "#8E8E93" }}>Ventas de hoy</span>
-          <span className="truncate" style={{ fontSize: 34, fontWeight: 800, fontVariantNumeric: "tabular-nums" }}>{money(revenue)}</span>
+          <span className="truncate" style={{ fontSize: 34, fontWeight: 800, fontVariantNumeric: "tabular-nums" }}><CountUp value={revenue} format={money} /></span>
           {hasGoal ? <span style={{ fontSize: 12, fontWeight: 600, color: ring }}>{reached ? "Meta alcanzada" : `Meta ${money(goal)}`}</span> : <span style={{ fontSize: 12, color: "#8E8E93" }}>Toca para ver Finanzas</span>}
         </div>
         <span className="relative flex-shrink-0" style={{ width: 60, height: 60 }}>

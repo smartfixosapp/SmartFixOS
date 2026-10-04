@@ -13,6 +13,8 @@ import { loadB2bCompanyMap } from "@/lib/invoicesApi";
 import { sendStatusEmail, isMailableStatus } from "@/lib/orderEmails";
 import { NoteForChangeSheet, QueueWarningSheet } from "@/components/orderDetail/Sheets";
 import { DEVICE_BUCKETS, deviceBucket } from "@/lib/deviceBucket";
+import CountUp from "@/components/ui/CountUp";
+import { SkeletonCards } from "@/components/ui/Skeleton";
 import { ConsolidatedInvoiceDialog, InvoiceHistoryDialog } from "@/components/invoices/InvoiceDialogs";
 import { isMonthlyLimitReached, subscribeOrders } from "@/lib/inicioApi";
 import { safeTZ } from "@/lib/finance/tz";
@@ -263,18 +265,18 @@ export default function Orders() {
 
       <div className="app-container">
         {loading ? (
-          <div className="text-center py-16" style={{ color: "rgba(255,255,255,0.4)" }}>Cargando órdenes…</div>
+          <SkeletonCards count={6} height={150} min={220} />
         ) : isHome ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 12, paddingBottom: 40 }}>
-            <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 1fr))" }}>
+            <div className="stagger" style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 1fr))" }}>
               {DEVICE_BUCKETS.filter((b) => (bucketCounts[b.id] || 0) > 0).map((b) => {
                 const { Icon, color } = BUCKET_STYLE[b.id];
                 const n = bucketCounts[b.id] || 0;
                 return (
-                  <button key={b.id} onClick={() => setBucket(b.id)} className="apple-press tile-in" style={{ textAlign: "left", minHeight: 150, padding: 14, borderRadius: 20, background: "#1C1C1E", border: `1px solid ${color}2E`, display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 10 }}>
+                  <button key={b.id} onClick={() => setBucket(b.id)} className="apple-press hover-lift" style={{ textAlign: "left", minHeight: 150, padding: 14, borderRadius: 20, background: "#1C1C1E", border: `1px solid ${color}2E`, display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 10 }}>
                     <span style={{ width: 44, height: 44, borderRadius: 12, background: `${color}29`, color, display: "flex", alignItems: "center", justifyContent: "center" }}><Icon className="w-6 h-6" /></span>
                     <span>
-                      <span style={{ display: "block", fontSize: 38, fontWeight: 800, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{n}</span>
+                      <span style={{ display: "block", fontSize: 38, fontWeight: 800, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}><CountUp value={n} /></span>
                       <span style={{ display: "block", fontSize: 17, fontWeight: 600, marginTop: 4 }}>{b.label}</span>
                       <span style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#8E8E93" }}>{n === 1 ? "1 pendiente" : `${n} pendientes`}</span>
                     </span>

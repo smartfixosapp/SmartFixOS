@@ -239,7 +239,7 @@ export default function Dashboard() {
 
   return (
     <div className="apple-type min-h-dvh" style={{ background: "#000", color: "#fff", paddingBottom: 120 }}>
-      <div className="mx-auto flex flex-col" style={{ maxWidth: 1600, padding: "16px 16px 0", gap: 24 }}>
+      <div className="mx-auto flex flex-col stagger" style={{ maxWidth: 1600, padding: "16px 16px 0", gap: 24 }}>
         <h1 style={{ margin: 0, fontSize: 34, fontWeight: 800, letterSpacing: "-0.02em" }}>Inicio</h1>
         <InicioHeader employee={employee} tenant={tenant} tz={tz} wide={wide} tenantId={tenantId} />
         {draft && !wizard && (

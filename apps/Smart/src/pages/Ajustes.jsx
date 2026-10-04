@@ -90,7 +90,7 @@ function EquipoList({ tenant, tenantId, admin, go }) {
 function Tile({ s, admin, tenant, onOpen }) {
   const Icon = s.Icon;
   return (
-    <button onClick={onOpen} className="apple-press flex flex-col text-left justify-between" style={{ background: A.card, borderRadius: 16, padding: 12, minHeight: 124 }}>
+    <button onClick={onOpen} className="apple-press hover-lift flex flex-col text-left justify-between" style={{ background: A.card, borderRadius: 16, padding: 12, minHeight: 124 }}>
       <span style={{ width: 44, height: 44, borderRadius: 8, background: tint(s.color, 0.16), color: s.color, display: "flex", alignItems: "center", justifyContent: "center" }}><Icon className="w-5 h-5" /></span>
       <span>
         <span className="block truncate" style={{ fontSize: 15, fontWeight: 700 }}>{titleOf(s, admin)}</span>
@@ -239,7 +239,7 @@ export default function Ajustes() {
         )
       ) : (
         <div className="flex flex-col" style={{ gap: 24 }}>
-          <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 200px), 1fr))", gap: 12 }}>
+          <div className="grid stagger" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 200px), 1fr))", gap: 12 }}>
             {visible.map((s) => <Tile key={s.id} s={s} admin={admin} tenant={tenant} onOpen={() => go(s.id)} />)}
           </div>
           <Group header="Acerca de Archilla OS" pad={false}>
