@@ -1,6 +1,7 @@
 import { supabase } from "../../../../lib/supabase-client.js";
 import { recordSaleAndTransactions } from "@/components/financial/recordSale";
 import { fetchRegister, fetchOpenRegister } from "@/lib/cashRegisterApi";
+import { invokeEdge } from "@/lib/edgeFn";
 import { itemToPayload, isFullDevice, r2 } from "@/lib/posLogic";
 
 const nowISO = () => new Date().toISOString();
@@ -303,7 +304,7 @@ export async function listUnpaidOrders(tenantId, limit = 200) {
 
 async function ownerPinCall(body) {
   try {
-    const { data, error } = await supabase.functions.invoke("owner-pin", { body });
+    const { data, error } = await invokeEdge("owner-pin", body);
     if (error) return null;
     return data || null;
   } catch {

@@ -228,11 +228,13 @@ export default function StatusModule({
   const guideShown = guide && !["intake", "diagnosing", "por_reparar", "in_progress", "ready_for_pickup", "delivered", "warranty", "scheduled"].includes(order.status) ? guide : null;
   const guidePills = guide ? guide.pills : [];
 
-  const links = !closed && (
+  const links = (!closed || guidePills.length > 0) && (
     <div className="flex flex-wrap items-center" style={{ gap: "2px 18px", marginTop: 8 }}>
-      <button onClick={onOpenPicker} disabled={saving} className="apple-press disabled:opacity-50" style={{ padding: "6px 0", fontSize: 13, fontWeight: 600, color: C.sub }}>
-        Cambiar estado
-      </button>
+      {!closed && (
+        <button onClick={onOpenPicker} disabled={saving} className="apple-press disabled:opacity-50" style={{ padding: "6px 0", fontSize: 13, fontWeight: 600, color: C.sub }}>
+          Cambiar estado
+        </button>
+      )}
       {guidePills.map((p) => (
         <button key={p.key} onClick={() => onStagePill(p.key)} disabled={saving} className="apple-press disabled:opacity-50"
           style={{ padding: "6px 0", fontSize: 13, fontWeight: 600, color: p.color === C.sub ? C.sub : p.color }}>

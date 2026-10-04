@@ -1,5 +1,6 @@
 import { supabase } from "../../../../lib/supabase-client.js";
 import { sendRawEmail } from "@/lib/orderEmails";
+import { invokeEdge } from "@/lib/edgeFn";
 
 export const DENOMINATIONS = [
   { id: "100", value: 100, label: "$100", isCoin: false },
@@ -172,7 +173,7 @@ export async function sendOwnerPush(tenantId, title, body) {
   const payload = { tenant_id: tenantId, title, body };
   if (actor) payload.actor_user_id = actor;
   try {
-    await supabase.functions.invoke("send-owner-push", { body: payload });
+    await invokeEdge("send-owner-push", payload);
   } catch {
     return;
   }

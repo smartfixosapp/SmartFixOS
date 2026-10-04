@@ -7,7 +7,7 @@ export default function MoneyCard({ order, onCharge }) {
   const total = orderTotal(order);
   const paid = Number(order.amount_paid) || 0;
   const balance = remainingBalance(order);
-  const settled = !!order.paid || (total > 0 && balance <= 0.009);
+  const settled = total > 0 && balance <= 0.009;
   const pct = total > 0 ? Math.max(0, Math.min(100, Math.round((paid / total) * 100))) : 0;
   const owes = balance > 0.009;
 

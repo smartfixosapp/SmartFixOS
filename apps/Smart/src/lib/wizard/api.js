@@ -1,6 +1,7 @@
 import { supabase } from "../../../../../lib/supabase-client.js";
 import { sendStatusEmail } from "@/lib/orderEmails";
 import { addInternalNote } from "@/lib/orderDetailApi";
+import { invokeEdge } from "@/lib/edgeFn";
 import { newLine, addToOpenDraft } from "@/lib/comprasApi";
 import {
   naturalCompare, newUUID, nowISONoFrac, cartTotals, willDeductStock, isServiceItem, IVU, LIQUID_ADVISORY, sanitizeEmail, isValidEmail,
@@ -277,9 +278,7 @@ export async function analyzeDamagePhoto(file, deviceHint) {
     reader.onerror = () => reject(new Error("No se pudo leer la foto"));
     reader.readAsDataURL(blob);
   });
-  const { data, error } = await supabase.functions.invoke("archi-vision", {
-    body: { image_base64: dataUrl.slice(dataUrl.indexOf(",") + 1), mime_type: "image/jpeg", device_hint: deviceHint || "" },
-  });
+  const { data, error } = await invokeEdge("archi-vision", { image_base64: dataUrl.slice(dataUrl.indexOf(",") + 1), mime_type: "image/jpeg", device_hint: deviceHint || "" });
   if (error) throw error;
   if (!data?.diagnosis) throw new Error("Sin diagnóstico");
   return { diagnosis: String(data.diagnosis), category: String(data.category || ""), confidence: String(data.confidence || "") };

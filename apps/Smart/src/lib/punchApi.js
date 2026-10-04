@@ -1,5 +1,6 @@
 import { supabase } from "../../../../lib/supabase-client.js";
 import { sendOwnerPush } from "@/lib/cashRegisterApi";
+import { invokeEdge } from "@/lib/edgeFn";
 import { safeTZ, zonedParts, zonedDate, startOfDay, fmt } from "@/lib/finance/tz";
 import { periodContaining } from "@/lib/finance/payroll";
 
@@ -342,7 +343,7 @@ export function registerPinFailure(tid) {
 export async function verifyOwnerPinStrict(tenantId, pin) {
   let res;
   try {
-    res = await supabase.functions.invoke("owner-pin", { body: { action: "verify", tenant_id: tenantId, pin } });
+    res = await invokeEdge("owner-pin", { action: "verify", tenant_id: tenantId, pin });
   } catch (e) {
     throw new PunchError("network", { kind: "network", cause: e });
   }

@@ -58,7 +58,7 @@ export default function HeaderCard({ order, previousCount, onOpenHistory, onChar
   const hasPhone = !!String(order.customer_phone || "").trim();
   const approval = order.customer_approval_status;
   const w = warrantyInfo(order);
-  const paid = !!order.paid || balance <= 0.009;
+  const paid = balance <= 0.009;
 
   const statusPill = (
     <span style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 999, fontSize: 13, fontWeight: 700, color: st.color, background: tint(st.color, 0.12), border: `1px solid ${tint(st.color, 0.3)}`, whiteSpace: "nowrap" }}>
