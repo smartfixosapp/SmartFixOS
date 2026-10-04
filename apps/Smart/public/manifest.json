@@ -4,13 +4,18 @@
   "description": "Sistema de gestión integral para talleres de reparación",
   "start_url": "/Dashboard",
   "display": "standalone",
-  "display_override": ["standalone"],
+  "display_override": [
+    "standalone"
+  ],
   "orientation": "any",
   "background_color": "#000000",
   "theme_color": "#000000",
   "lang": "es",
   "scope": "/",
-  "categories": ["business", "productivity"],
+  "categories": [
+    "business",
+    "productivity"
+  ],
   "icons": [
     {
       "src": "/icons/icon-152.png",
@@ -47,6 +52,18 @@
       "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "shortcuts": [
@@ -55,23 +72,64 @@
       "short_name": "Orden",
       "description": "Crear una nueva orden de reparación",
       "url": "/Orders?new=1",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "POS / Caja",
       "short_name": "POS",
       "description": "Abrir el punto de venta",
       "url": "/POS",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "Dashboard",
       "short_name": "Dashboard",
       "description": "Ver el dashboard principal",
       "url": "/Dashboard",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ],
-  "screenshots": [],
-  "prefer_related_applications": false
+  "screenshots": [
+    {
+      "src": "/screenshots/03-inicio.webp",
+      "sizes": "1320x2868",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Inicio"
+    },
+    {
+      "src": "/screenshots/06-ordenes-list.webp",
+      "sizes": "1320x2868",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Órdenes"
+    },
+    {
+      "src": "/screenshots/07-pos-catalogo.webp",
+      "sizes": "1320x2868",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Punto de venta"
+    }
+  ],
+  "prefer_related_applications": false,
+  "id": "/",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
 }
