@@ -15,6 +15,7 @@ import { NoteForChangeSheet, QueueWarningSheet } from "@/components/orderDetail/
 import OrdersFilterMenu from "@/components/orders/OrdersFilterMenu";
 import PartsToOrderDialog from "@/components/compras/PartsToOrder";
 import { orderKind, createdAt, deviceTypeLabel } from "@/lib/ordersBoard";
+import { DEVICE_BUCKETS, deviceBucket } from "@/lib/deviceBucket";
 import { ConsolidatedInvoiceDialog, InvoiceHistoryDialog } from "@/components/invoices/InvoiceDialogs";
 import { isMonthlyLimitReached, subscribeOrders } from "@/lib/inicioApi";
 import { safeTZ } from "@/lib/finance/tz";
@@ -44,6 +45,8 @@ export default function Orders() {
   const [tenantId, setTenantId] = useState("");
   const [companyById, setCompanyById] = useState({});
   const [kind, setKind] = useState(null);
+  const [bucket, setBucket] = useState(() => { try { return localStorage.getItem("orders_bucket") || "all"; } catch { return "all"; } });
+  const pickBucket = (id) => { setBucket(id); try { localStorage.setItem("orders_bucket", id); } catch { return; } };
   const [deviceType, setDeviceType] = useState(null);
   const [b2bOnly, setB2bOnly] = useState(false);
   const [showDates, setShowDates] = useState(false);
@@ -157,6 +160,12 @@ export default function Orders() {
     if (statusFilter !== "all" && hiddenStatuses.includes(String(statusFilter))) setStatusFilter("all");
   }, [hiddenStatuses, statusFilter]);
 
+  const bucketCounts = useMemo(() => {
+    const c = {};
+    orders.forEach((o) => { if (!isOrderClosed(o)) { const b = deviceBucket(o); c[b] = (c[b] || 0) + 1; } });
+    return c;
+  }, [orders]);
+
   const kindCounts = useMemo(() => {
     const c = { repairs: 0, unlocks: 0, recharges: 0 };
     orders.forEach((o) => { c[orderKind(o)] += 1; });
@@ -177,11 +186,11 @@ export default function Orders() {
     return { from, to };
   }, [dateFrom, dateTo]);
 
-  const hasFilters = statusFilter !== "all" || !!kind || !!deviceType || b2bOnly || !!dateFrom || !!dateTo || !!search.trim();
-  const menuActive = !!kind || !!deviceType || b2bOnly || !!dateFrom || !!dateTo || showDates;
+  const hasFilters = bucket !== "all" || statusFilter !== "all" || !!kind || !!deviceType || b2bOnly || !!dateFrom || !!dateTo || !!search.trim();
+  const menuActive = bucket !== "all" || !!kind || !!deviceType || b2bOnly || !!dateFrom || !!dateTo || showDates;
 
   const clearFilters = () => {
-    setSearch(""); setStatusFilter("all"); setKind(null); setDeviceType(null); setB2bOnly(false);
+    setSearch(""); pickBucket("all"); setStatusFilter("all"); setKind(null); setDeviceType(null); setB2bOnly(false);
     setDateFrom(""); setDateTo(""); setShowDates(false);
   };
 
@@ -191,6 +200,7 @@ export default function Orders() {
       if (statusFilter !== "all" && o.status !== statusFilter) return false;
       if (statusFilter === "all" && !q && isOrderClosed(o)) return false;
       if (b2bOnly && !(o.customer_id && companyById[o.customer_id])) return false;
+      if (!q && bucket !== "all" && deviceBucket(o) !== bucket) return false;
       if (!q && kind && orderKind(o) !== kind) return false;
       if (!q && deviceType && deviceTypeLabel(o) !== deviceType) return false;
       if (!q && (dateRange.from || dateRange.to)) {
@@ -211,7 +221,7 @@ export default function Orders() {
         (digits.length >= 3 && String(o.customer_phone || "").replace(/\D/g, "").includes(digits))
       );
     });
-  }, [orders, search, statusFilter, kind, deviceType, b2bOnly, companyById, dateRange]);
+  }, [orders, search, statusFilter, bucket, kind, deviceType, b2bOnly, companyById, dateRange]);
 
   const applyQuickStatus = useCallback(async (orderId, newStatus) => {
     const live = ordersRef.current.find((o) => o.id === orderId);
@@ -296,6 +306,18 @@ export default function Orders() {
             style={{ borderRadius: 999, paddingLeft: 40, paddingRight: 16, background: "rgba(255,255,255,0.06)", color: "#fff", border: "none", outline: "none", fontSize: 14 }}
           />
         </div>
+      </div>
+
+      <div className="app-container pb-3" style={{ display: "flex", gap: 8, overflowX: "auto" }}>
+        {[{ id: "all", label: "Todos" }, ...DEVICE_BUCKETS].map((b) => {
+          const on = bucket === b.id;
+          const n = b.id === "all" ? Object.values(bucketCounts).reduce((x, y) => x + y, 0) : bucketCounts[b.id] || 0;
+          return (
+            <button key={b.id} onClick={() => pickBucket(b.id)} className="apple-press" style={{ padding: "8px 14px", borderRadius: 999, fontSize: 14, fontWeight: on ? 700 : 500, whiteSpace: "nowrap", border: "none", cursor: "pointer", display: "flex", gap: 6, alignItems: "baseline", background: on ? "#fff" : "rgba(118,118,128,0.24)", color: on ? "#000" : "#fff", opacity: n === 0 && !on ? 0.5 : 1 }}>
+              {b.label} <span style={{ fontSize: 12, fontWeight: 700 }}>{n}</span>
+            </button>
+          );
+        })}
       </div>
 
       <div className="app-container pb-3" style={{ display: "flex", gap: 8, overflowX: "auto" }}>
