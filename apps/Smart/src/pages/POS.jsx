@@ -11,6 +11,7 @@ import SalesHistoryDialog from "@/components/pos/native/SalesHistory";
 import OrderPayDialog from "@/components/pos/native/OrderPay";
 import { OpenCashSheet, CloseCashSheet } from "@/components/cash/CashSheets";
 import { fetchTenant, resolveCurrentEmployee } from "@/lib/orderDetailApi";
+import { SkeletonCards } from "@/components/ui/Skeleton";
 import ScannerDialog from "@/components/pos/native/ScannerDialog";
 import PunchGateSheet from "@/components/punch/PunchGateSheet";
 import { fetchOpenEntry, matchIdsFor, currentAuthUid, isFromEarlierDay, requiresAutomaticClose } from "@/lib/punchApi";
@@ -595,7 +596,7 @@ export default function POS() {
       {!isDesktop && !searchText && <QuickRow kind="recents" products={recentProducts} quantityFor={quantityFor} onAdd={addToCart} />}
       {loadError && <p style={{ fontSize: 13, color: P.danger }}>{loadError}</p>}
       {loading ? (
-        <div className="flex justify-center" style={{ padding: 60 }}><Loader2 className="w-7 h-7 animate-spin" style={{ color: P.sub }} /></div>
+        <SkeletonCards count={8} height={170} min={150} />
       ) : filtered.length === 0 ? emptyState : (
         <div className="grid" style={{ gap: 10, gridTemplateColumns: `repeat(auto-fill, minmax(${isWideDesktop ? 180 : 150}px, 1fr))`, paddingTop: 8 }}>
           {filtered.map(cardFor)}
