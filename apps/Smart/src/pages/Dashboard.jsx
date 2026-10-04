@@ -177,7 +177,7 @@ export default function Dashboard() {
 
   const goal = num(tenant?.settings?.daily_revenue_goal);
   useEffect(() => {
-    if (!(goal > 0) || !(today.revenue >= goal) || !tenant) return;
+    if (!adminLevel || !(goal > 0) || !(today.revenue >= goal) || !tenant) return;
     const p = zonedParts(new Date(), tz);
     const key = `dailyGoalNotifSent_${p.y}-${String(p.m).padStart(2, "0")}-${String(p.d).padStart(2, "0")}`;
     try {
@@ -187,7 +187,7 @@ export default function Dashboard() {
       return;
     }
     setGoalHit({ goal, revenue: today.revenue });
-  }, [goal, today.revenue, tenant, tz]);
+  }, [goal, today.revenue, tenant, tz, adminLevel]);
 
   const requestNewOrder = (prefill = null, resume = false) => {
     if (isMonthlyLimitReached(tenant, orders, tz)) { setLimitAlert(true); return; }
@@ -252,10 +252,10 @@ export default function Dashboard() {
         )}
         {trial && <TrialBanner info={trial} onClick={() => setSheet("paywall")} />}
         <PrimerosPasosCard tenant={tenant} tenantId={tenantId} actions={primerosActions} />
-        {hoyCard}
-        {wide && hero}
+        {!wide && hoyCard}
+        {wide && adminLevel && hero}
         {wide && <ActionTiles wide onNewOrder={() => requestNewOrder()} onQuotes={() => setSheet("quotes")} />}
-        {watchdog && <Watchdog net={today.net} />}
+        {adminLevel && watchdog && <Watchdog net={today.net} />}
         {(left.punch || left.cash) && (
           <LeftOpenYesterday punchAt={left.punch} cashAt={left.cash} cashExpected={register ? num(register.opening_balance) : null} tz={tz}
             onPunch={() => setSheet("punch")} onCash={() => requestCloseCash()} />
@@ -266,16 +266,15 @@ export default function Dashboard() {
             {partSearch}
             {shiftControls}
             {warrantyCard}
-            {offersCard}
-            {visitsCard}
+            {offers.length > 0 && offersCard}
           </>
         ) : (
           <>
-            {hero}
+            {adminLevel && hero}
             <ActionTiles wide={false} onNewOrder={() => requestNewOrder()} />
             {partSearch}
             {shiftControls}
-            {offersCard}
+            {offers.length > 0 && offersCard}
             {warrantyCard}
             {ordersLoaded && orders.length === 0 && <WelcomeCard onNewOrder={() => requestNewOrder()} />}
             {visitsCard}

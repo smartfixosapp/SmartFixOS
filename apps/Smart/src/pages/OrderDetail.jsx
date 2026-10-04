@@ -845,7 +845,7 @@ export default function OrderDetail() {
   );
 
   const bannerEl = banner && (
-    <div className="flex items-center gap-3" style={{ padding: "12px 14px", borderRadius: 14, background: tint(banner.type === "error" ? C.red : C.green, 0.12), color: banner.type === "error" ? C.red : C.green }}>
+    <div className="flex items-center gap-3" style={{ position: "sticky", top: 12, zIndex: 50, backdropFilter: "blur(14px)", padding: "12px 14px", borderRadius: 14, background: tint(banner.type === "error" ? C.red : C.green, 0.22), color: banner.type === "error" ? C.red : C.green }}>
       {banner.type === "error" ? <AlertTriangle className="w-4 h-4 shrink-0" /> : <Check className="w-4 h-4 shrink-0" />}
       <span className="flex-1" style={{ fontSize: 14, whiteSpace: "pre-line" }}>{banner.text}</span>
       <button onClick={() => setBanner(null)} aria-label="Cerrar" className="apple-press"><X className="w-4 h-4" /></button>

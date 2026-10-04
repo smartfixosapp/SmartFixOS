@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { CheckCircle2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../../../../lib/supabase-client.js";
 import { NavBar } from "../components/site/sections/NavBar";
 import { Hero } from "../components/site/sections/Hero";
 import { Reemplaza5 } from "../components/site/sections/Reemplaza5";
@@ -56,6 +58,12 @@ function HashHandoffNotice() {
 }
 
 export default function Landing() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const standalone = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(display-mode: standalone)").matches;
+    if (!standalone) return;
+    supabase.auth.getSession().then(({ data }) => { if (data?.session) navigate("/Dashboard", { replace: true }); }, () => {});
+  }, [navigate]);
   return (
     <div className="min-h-dvh scroll-smooth antialiased" style={{ background: "var(--ar-bg)", color: "var(--ar-text)" }}>
       <HashHandoffNotice />

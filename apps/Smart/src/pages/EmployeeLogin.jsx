@@ -60,7 +60,7 @@ export default function EmployeeLogin() {
       });
       if (signInError) throw signInError;
 
-      navigate("/EmpleadoHome", { replace: true, state: { employee, tenant: body.tenant } });
+      navigate("/Orders", { replace: true, state: { employee, tenant: body.tenant } });
     } catch (err) {
       setError(err?.message || "Código o PIN incorrecto. Pídele el código del taller al dueño.");
     } finally {

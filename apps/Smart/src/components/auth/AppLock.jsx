@@ -158,7 +158,7 @@ function LockScreen({ tenantId, onUnlock }) {
       }
       const email = String(body?.auth?.email || "").toLowerCase();
       const roles = [...(Array.isArray(body?.employee?.roles) ? body.employee.roles : []), body?.employee?.role].filter(Boolean).map((r) => String(r).toLowerCase());
-      const dest = roles.some((r) => ADMIN_ROLES.includes(r)) ? "/Dashboard" : "/EmpleadoHome";
+      const dest = roles.some((r) => ADMIN_ROLES.includes(r)) ? "/Dashboard" : "/Orders";
       if (email && email === String(who.email || "").toLowerCase()) {
         resetPinLockout(tenantId);
         onUnlock();

@@ -34,7 +34,6 @@ const GACC             = lazyWithRetry(() => import("./gacc"));
 const GACCLogin        = lazyWithRetry(() => import("./gacc/GACCLogin"));
 const Login            = lazyWithRetry(() => import("./Login"));
 const EmployeeLogin    = lazyWithRetry(() => import("./EmployeeLogin"));
-const EmployeeHome     = lazyWithRetry(() => import("./EmployeeHome"));
 const EmployeesList    = lazyWithRetry(() => import("./EmployeesList"));
 const Financial        = lazyWithRetry(() => import("./Finanzas"));
 const Dashboard        = lazyWithRetry(() => import("./Dashboard"));
@@ -47,6 +46,12 @@ const Compras          = lazyWithRetry(() => import("./Compras"));
 const Equipo           = lazyWithRetry(() => import("./Equipo"));
 const Customers        = lazyWithRetry(() => import("./Clientes"));
 const OrderDetail      = lazyWithRetry(() => import("./OrderDetail"));
+
+function FinancialGate() {
+  const role = (() => { try { return String(localStorage.getItem("smartfix_tenant_role") || "").toLowerCase(); } catch { return ""; } })();
+  if (["owner", "admin", "manager", "contable", "super_admin"].includes(role)) return <Financial />;
+  return <Navigate to="/Equipo?tab=turno" replace />;
+}
 
 function OrderDetailRoute() {
   const { orderId } = useParams();
@@ -81,19 +86,19 @@ function PagesContent() {
         <Route path="/GACCLogin"         element={<GACCLogin />} />
         <Route path="/Login"             element={<Login />} />
         <Route path="/EmpleadoLogin"     element={<EmployeeLogin />} />
-        <Route path="/EmpleadoHome"      element={<EmployeeHome />} />
+        <Route path="/EmpleadoHome"      element={<Navigate to="/Orders" replace />} />
         <Route path="/Empleados"         element={<EmployeesList />} />
-        <Route path="/Financial"         element={<RequireAuth roles={["admin", "super_admin", "owner", "contable"]}><Layout><Financial /></Layout></RequireAuth>} />
-        <Route path="/Dashboard"         element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><Dashboard /></Layout></RequireAuth>} />
-        <Route path="/Orders"            element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><Orders /></Layout></RequireAuth>} />
-        <Route path="/Orders/:orderId"   element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><OrderDetailRoute /></Layout></RequireAuth>} />
-        <Route path="/POS"               element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><POS /></Layout></RequireAuth>} />
+        <Route path="/Financial"         element={<RequireAuth><Layout><FinancialGate /></Layout></RequireAuth>} />
+        <Route path="/Dashboard"         element={<RequireAuth><Layout><Dashboard /></Layout></RequireAuth>} />
+        <Route path="/Orders"            element={<RequireAuth><Layout><Orders /></Layout></RequireAuth>} />
+        <Route path="/Orders/:orderId"   element={<RequireAuth><Layout><OrderDetailRoute /></Layout></RequireAuth>} />
+        <Route path="/POS"               element={<RequireAuth><Layout><POS /></Layout></RequireAuth>} />
         <Route path="/Settings"          element={<RequireAuth><Layout><SettingsPage /></Layout></RequireAuth>} />
         <Route path="/SettingsLegacy"    element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><LegacySettingsPage /></Layout></RequireAuth>} />
         <Route path="/Inventory"         element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><Inventory /></Layout></RequireAuth>} />
         <Route path="/Compras"           element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><Compras /></Layout></RequireAuth>} />
         <Route path="/Equipo"            element={<RequireAuth><Layout><Equipo /></Layout></RequireAuth>} />
-        <Route path="/Customers"         element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><Customers /></Layout></RequireAuth>} />
+        <Route path="/Customers"         element={<RequireAuth><Layout><Customers /></Layout></RequireAuth>} />
         <Route path="/PinAccess"         element={<Navigate to="/Dashboard" replace />} />
         <Route path="/Welcome"           element={<Navigate to="/Dashboard" replace />} />
         <Route path="*"                  element={<Navigate to="/" replace />} />
