@@ -188,7 +188,8 @@ export function Region({ tenant, tenantId, reload, back }) {
   return (
     <SubPage title="Región" onBack={back}>
       <Group header="Idioma" icon={Globe} footer="La app se reinicia para aplicar el idioma en todas las pantallas.">
-        <Chips value={lang} onChange={setLang} options={[["es", "Español"], ["en", "English"]]} />
+        <Chips value={lang} onChange={setLang} options={[["es", "Español"]]} />
+        <p style={{ fontSize: 12, color: A.sub, marginTop: 8 }}>English llegará a la web pronto. La app del iPhone y el iPad ya está traducida.</p>
         {lang !== current && <button onClick={() => { localSet("app.preferredLanguage", lang); window.location.reload(); }} className="apple-press" style={{ marginTop: 12, padding: "12px 0", borderRadius: 12, background: A.brand, color: "#fff", fontWeight: 700 }}>{lang === "es" ? "Aplicar Español y reiniciar" : "Apply English and restart"}</button>}
       </Group>
       <Group header="País" footer="Determina el formato de números de teléfono y direcciones en los recibos.">{sel(country, setCountry, COUNTRIES)}</Group>

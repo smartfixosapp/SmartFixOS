@@ -1147,7 +1147,7 @@ export default function Inventory() {
     const page = 1000;
     const out = [];
     for (let skip = 0; skip < 20000; skip += page) {
-      const rows = await base44.entities.Product.filter({ active: true }, "name", page, skip);
+      const rows = await base44.entities.Product.filter({ active: true }, "id", page, skip);
       out.push(...(rows || []));
       if (!rows || rows.length < page) break;
     }
