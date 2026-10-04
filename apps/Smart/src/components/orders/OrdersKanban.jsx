@@ -36,7 +36,7 @@ function OrderTile({ order, companyName, onClick, onMenu }) {
       onPointerUp={cancelPress}
       onPointerLeave={cancelPress}
       onPointerCancel={cancelPress}
-      className="apple-press"
+      className="apple-press tile-in"
       style={{
         position: "relative", textAlign: "left", height: 214, padding: 10, borderRadius: 14, cursor: "pointer",
         background: "#1C1C1E", border: `1px solid ${tint(info.color, 0.28)}`, display: "flex", flexDirection: "column", gap: 6,

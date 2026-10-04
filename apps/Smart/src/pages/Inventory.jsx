@@ -148,7 +148,8 @@ function isLowStockItem(item) {
   return stock <= 0 || (min > 0 && stock <= min);
 }
 
-function InventoryCard({ item, onEdit, onDelete, onOffer, onQuickAdjust, onStep }) {
+function InventoryCard({ item, onEdit, onDelete, onOffer, onQuickAdjust, onStep, onDuplicate, onWhatsApp }) {
+  const [menuOpen, setMenuOpen] = useState(false);
   const kind = itemKind(item);
   const { color, Icon } = KIND_STYLE[kind];
   const isService = kind === "servicios";
@@ -201,6 +202,28 @@ function InventoryCard({ item, onEdit, onDelete, onOffer, onQuickAdjust, onStep 
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
+          </div>
+          <div className="relative">
+            <button
+              onClick={e => { e.stopPropagation(); setMenuOpen((v) => !v); }}
+              className="apple-press w-7 h-7 rounded-full flex items-center justify-center"
+              style={{ background: "rgba(255,255,255,0.08)", color: "#fff" }}
+              aria-label="Más acciones"
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+            >
+              <MoreHorizontal className="w-3.5 h-3.5" />
+            </button>
+            {menuOpen && (
+              <>
+                <div className="fixed inset-0" style={{ zIndex: 60 }} onClick={e => { e.stopPropagation(); setMenuOpen(false); }} />
+                <div role="menu" className="absolute right-0" style={{ top: 32, zIndex: 61, width: 200, borderRadius: 14, background: "#3A3A3C", overflow: "hidden", boxShadow: "0 12px 32px rgba(0,0,0,0.5)" }}>
+                  {[["Duplicar", () => onDuplicate(item)], ["Compartir por WhatsApp", () => onWhatsApp(item)], ["Configurar oferta", () => onOffer(item)]].map(([label, fn]) => (
+                    <button key={label} role="menuitem" onClick={e => { e.stopPropagation(); setMenuOpen(false); fn(); }} className="w-full text-left" style={{ padding: "11px 14px", fontSize: 15, color: "#fff" }}>{label}</button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
           {!isService && (
             <button
@@ -1777,6 +1800,8 @@ export default function Inventory() {
                   onOffer={it => handleSelectProduct(it, true)}
                   onQuickAdjust={it => setQuickAdjustItem(it)}
                   onStep={handleStep}
+                  onDuplicate={it => { const { id, sku, barcode, ...rest } = it; setEditing({ ...rest, name: `${it.name} (copia)` }); setShowItemDialog(true); }}
+                  onWhatsApp={it => { const price = Number(it.price || 0).toFixed(2); window.open(`https://wa.me/?text=${encodeURIComponent(`${it.name} - $${price}`)}`, "_blank", "noopener"); }}
                 />
               ))}
             </div>
