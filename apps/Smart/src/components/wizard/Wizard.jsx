@@ -19,6 +19,7 @@ import StepPhotos from "./StepPhotos";
 import StepDetails from "./StepDetails";
 import { StepEstimate, StepSignature, StepConfirm } from "./StepFinish";
 import { RechargePage, UnlockPage, WarrantySearchDialog, ModeSelection } from "./SinglePage";
+import { tenantTaxPercent } from "@/lib/taxRate";
 
 const STEP_ICON = { 1: UserRound, 2: Smartphone, 3: MessageSquareWarning, 4: Camera, 5: ListChecks, 7: CircleDollarSign, 9: PenLine, 10: CheckCheck };
 
@@ -45,9 +46,11 @@ function WizardInner({ onClose, onCreated, prefill, resume, tenantProp, employee
   let tenantId = "";
   try { tenantId = localStorage.getItem("smartfix_tenant_id") || ""; } catch { tenantId = ""; }
   const draft = useMemo(() => (resume ? loadDraft() : null), [resume]);
-  const w = useWizard({ prefill, draft });
-  const { s, set } = w;
   const [tenant, setTenant] = useState(tenantProp || null);
+  const taxRate = tenantTaxPercent(tenant) / 100;
+  const w = useWizard({ prefill, draft, taxRate });
+  const { s, set } = w;
+  useEffect(() => { set({ taxRate }); }, [taxRate]);
   const [employee, setEmployee] = useState(employeeProp || null);
   const [cat, setCat] = useState(null);
   const [index, setIndex] = useState([]);

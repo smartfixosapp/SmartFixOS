@@ -375,13 +375,13 @@ export default function OrderDetail() {
     const bal = remainingBalance(o);
     if (bal > 0) {
       afterPayDeliverRef.current = true;
-      setPayFlow({ name: "quickPay" });
+      requireRegister(() => setPayFlow({ name: "quickPay" }));
       return;
     }
     setDeliveryWarranty(o.warranty_days ?? null);
     if (repairEvidence(o).length) setSheet({ name: "confirmDelivery", flowId: Date.now() });
     else setSheet({ name: "photoGate", mode: "deliveryProof" });
-  }, []);
+  }, [requireRegister]);
 
   const confirmDelivery = useCallback(async ({ attachPhotos, askReview }) => {
     const o = orderRef.current;
@@ -1094,6 +1094,12 @@ export default function OrderDetail() {
           const lc = numOrUndef(f.labor_cost);
           if (ce !== undefined) fields.cost_estimate = ce;
           if (lc !== undefined) fields.labor_cost = lc;
+          if (ce !== undefined || lc !== undefined) {
+            const total = orderTotal({ cost_estimate: ce !== undefined ? ce : order.cost_estimate, labor_cost: lc !== undefined ? lc : order.labor_cost });
+            const balance = Math.max(0, total - (Number(order.amount_paid) || 0));
+            fields.balance_due = balance;
+            fields.paid = total > 0 && balance <= 0.004;
+          }
           const before = displayDevice(order);
           const after = displayDevice(fields);
           try {

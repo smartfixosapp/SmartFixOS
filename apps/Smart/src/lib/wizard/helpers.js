@@ -192,13 +192,13 @@ export function lineSubtotal(line) {
   return line.unitPrice * line.quantity;
 }
 
-export function lineTax(line) {
-  return line.product?.taxable === false ? 0 : lineSubtotal(line) * IVU;
+export function lineTax(line, rate = IVU) {
+  return line.product?.taxable === false ? 0 : lineSubtotal(line) * rate;
 }
 
-export function cartTotals(lines) {
+export function cartTotals(lines, rate = IVU) {
   const subtotal = lines.reduce((s, l) => s + lineSubtotal(l), 0);
-  const tax = lines.reduce((s, l) => s + lineTax(l), 0);
+  const tax = lines.reduce((s, l) => s + lineTax(l, rate), 0);
   return { subtotal, tax, total: subtotal + tax };
 }
 

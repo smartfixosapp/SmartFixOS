@@ -37,7 +37,7 @@ export async function buildPayrollReceiptPDF({ tenant, employeeName, role, hours
     y += 44;
   };
   pair("EMPLEADO", employeeName, "ROL", role || "");
-  pair("HORAS TRABAJADAS", `${(Number(hours) || 0).toFixed(1)} h`, "TARIFA POR HORA", money(rate));
+  if (hours !== null && hours !== undefined) pair("HORAS TRABAJADAS", `${(Number(hours) || 0).toFixed(1)} h`, "TARIFA POR HORA", money(rate));
   pair("METODO DE PAGO", PAY_METHOD_LABEL[method] || method, "FECHA", new Intl.DateTimeFormat("es-PR", { dateStyle: "medium" }).format(date || new Date()));
   if (periodLabel) pair("PERIODO", periodLabel);
   y += 6;

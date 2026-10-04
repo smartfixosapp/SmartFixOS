@@ -75,13 +75,14 @@ export function TemplateMenu({ schedule, onChange }) {
   );
 }
 
-export function SendScheduleDialog({ open, onClose, tenant, tenantId, employee, schedule }) {
+export function SendScheduleDialog({ open, onClose, onSent, tenant, tenantId, employee, schedule }) {
   const [ics, setIcs] = useState(null);
   const [busyEmail, setBusyEmail] = useState(false);
   const [sent, setSent] = useState(null);
   const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
   const shop = String(tenant?.name || "").trim() || "Archilla OS";
+  useEffect(() => { if (sent) onSent?.(); }, [sent]);
   useEffect(() => {
     if (!open || !employee) return;
     setIcs(null); setSent(null); setError(null); setCopied(false);

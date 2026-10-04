@@ -116,7 +116,7 @@ export function ReceiveDialog({ open, po, tenantId, tenant, employeeName, onClos
       const msg = res.stocked > 0 || res.expense > 0 || res.notified > 0
         ? `${res.stocked} producto${res.stocked === 1 ? "" : "s"} a stock · gasto ${money(res.expense)} · ${res.notified} orden${res.notified === 1 ? "" : "es"} notificada${res.notified === 1 ? "" : "s"}`
         : "Recepción registrada";
-      onDone(res.po, msg);
+      onDone(res.po, res.failed > 0 ? `${msg} · ${res.failed} línea${res.failed === 1 ? "" : "s"} no se pudo ingresar, reintenta` : msg);
       onClose();
     } catch (e) {
       setError(`Error al recibir: ${e?.message || e}`);

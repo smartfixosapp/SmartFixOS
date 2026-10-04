@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
-import { CHECKLIST_ITEMS, TOTAL_STEPS, shouldSkipStep, activeSteps, cartTotals } from "@/lib/wizard/helpers";
+import { CHECKLIST_ITEMS, TOTAL_STEPS, shouldSkipStep, activeSteps, cartTotals, IVU } from "@/lib/wizard/helpers";
 import { resolveDeviceOffer, offerDeviceCtx, applyOfferToLine } from "@/lib/wizard/offers";
+import { discountEnded } from "@/lib/discounts";
 
 export const DRAFT_KEY = "wizard.draft.v1";
 const LAST_MODE_KEY = "wizard.lastOrderMode";
@@ -219,7 +220,8 @@ export function useWizard(init) {
 
   const steps = useMemo(() => activeSteps(s.mode), [s.mode]);
   const logicalStep = steps.indexOf(s.step) + 1;
-  const totals = useMemo(() => cartTotals(s.cart), [s.cart]);
+  const taxRate = Number.isFinite(Number(init?.taxRate)) ? Number(init.taxRate) : IVU;
+  const totals = useMemo(() => cartTotals(s.cart, taxRate), [s.cart, taxRate]);
 
   return {
     s, set, ref, canAdvance, goTo, jumpForward, goBack, addItem, reapplyOffers, setQuantity, setCart, saveDraft, steps, logicalStep, totals,
@@ -230,5 +232,5 @@ export function useWizard(init) {
 function effectiveOf(p) {
   const price = Number(p?.price) || 0;
   const pct = Number(p?.discount_percentage) || 0;
-  return p?.discount_active === true && pct > 0 ? price * (1 - pct / 100) : price;
+  return p?.discount_active === true && pct > 0 && !discountEnded(p?.discount_end_date) ? price * (1 - pct / 100) : price;
 }

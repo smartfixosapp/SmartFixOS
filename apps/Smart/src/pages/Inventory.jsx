@@ -1378,19 +1378,23 @@ export default function Inventory() {
       const oldStock = oldItem?.stock ?? null;
 
       if (payload.id) {
+        const updatePayload = { ...normalizedPayload };
+        const fresh = await dataClient.entities.Product.get(payload.id).catch(() => null);
+        if (oldItem && Number(payload.stock || 0) === Number(oldItem.stock || 0)) delete updatePayload.stock;
+        if (fresh?.barcode && !updatePayload.barcode) delete updatePayload.barcode;
         try {
-          await dataClient.entities.Product.update(payload.id, normalizedPayload);
+          await dataClient.entities.Product.update(payload.id, updatePayload);
         } catch (primaryError) {
           console.warn("[Inventory] Product.update failed, trying direct supabase fallback:", primaryError);
           const { error } = await supabase
             .from("product")
-            .update(normalizedPayload)
+            .update(updatePayload)
             .eq("id", payload.id);
 
           if (error) throw error;
         }
 
-        const newStock = Number(payload.stock || 0);
+        const newStock = Number("stock" in updatePayload ? payload.stock : (fresh?.stock ?? payload.stock) || 0);
         const minStock = Number(payload.min_stock || 5);
 
         if (newStock <= minStock && (oldStock === null || oldStock > minStock)) {

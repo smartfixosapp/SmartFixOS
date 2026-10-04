@@ -1,6 +1,6 @@
 import { supabase } from "../../../../lib/supabase-client.js";
 import { sendRawEmail } from "@/lib/orderEmails";
-import { safeTZ, startOfDay, zonedParts, zonedDate } from "@/lib/finance/tz";
+import { safeTZ, zonedParts, zonedDate } from "@/lib/finance/tz";
 import { fetchEmployees, loadPayroll, payrollLines, lastClosedWeek, employeeRate } from "@/lib/finance/payroll";
 import { matchIdsFor, fetchOpenEntry } from "@/lib/punchApi";
 
@@ -67,18 +67,16 @@ export async function fetchEmployee(tenantId, id) {
   return data?.[0] || null;
 }
 
-export async function liveState(tenantId, tz) {
-  const zone = safeTZ(tz);
-  const start = startOfDay(new Date(), zone);
+export async function liveState(tenantId) {
   const [entriesRes, ordersRes] = await Promise.all([
-    supabase.from("time_entry").select("employee_id,clock_in,clock_out").eq("tenant_id", tenantId).gte("clock_in", start.toISOString()).lt("clock_in", new Date(Date.now() + 60000).toISOString()).limit(1000),
-    supabase.from("order").select("assigned_to,status").eq("tenant_id", tenantId).eq("is_deleted", false).limit(1000),
+    supabase.from("time_entry").select("employee_id,clock_in,clock_out").eq("tenant_id", tenantId).is("clock_out", null).lt("clock_in", new Date(Date.now() + 60000).toISOString()).limit(1000),
+    supabase.from("order").select("assigned_to,status").eq("tenant_id", tenantId).eq("is_deleted", false).not("assigned_to", "is", null).not("status", "in", "(delivered,cancelled,warranty,abandoned)").limit(2000),
   ]);
   const working = {};
   (entriesRes.data || []).forEach((e) => { if (!e.clock_out && e.employee_id) working[e.employee_id] = e.clock_in; });
   const counts = {};
   (ordersRes.data || []).forEach((o) => {
-    if (!o.assigned_to || o.status === "delivered" || o.status === "cancelled") return;
+    if (!o.assigned_to) return;
     counts[o.assigned_to] = (counts[o.assigned_to] || 0) + 1;
   });
   return { working, counts };
@@ -158,10 +156,10 @@ export async function deactivationPreflight(emp, tenant) {
   const out = { openEntry: null, unpaidHours: 0, balance: 0, hasPayroll: false, openOrders: 0, commission: 0 };
   const [open, orders] = await Promise.all([
     fetchOpenEntry(emp.tenant_id, ids).catch(() => null),
-    supabase.from("order").select("status").eq("tenant_id", emp.tenant_id).eq("is_deleted", false).in("assigned_to", ids).limit(500),
+    supabase.from("order").select("status").eq("tenant_id", emp.tenant_id).eq("is_deleted", false).in("assigned_to", ids).not("status", "in", "(delivered,cancelled,warranty,abandoned)").limit(500),
   ]);
   out.openEntry = open;
-  out.openOrders = (orders.data || []).filter((o) => o.status !== "delivered" && o.status !== "cancelled").length;
+  out.openOrders = (orders.data || []).length;
   try {
     const period = lastClosedWeek(tz);
     const lines = payrollLines(await loadPayroll(emp.tenant_id, period), period);
@@ -230,7 +228,7 @@ export async function copyText(text) {
 
 export async function shareText(text) {
   if (typeof navigator !== "undefined" && navigator.share) {
-    try { await navigator.share({ text }); return true; } catch { return false; }
+    try { await navigator.share({ text }); return true; } catch (e) { return e?.name === "AbortError"; }
   }
   return copyText(text);
 }

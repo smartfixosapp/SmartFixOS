@@ -129,6 +129,10 @@ export async function createCustomerRow(tenantId, input) {
 
 export async function updateCustomerRow(id, tenantId, input) {
   const payload = buildPayload(input, tenantId);
+  ["phone", "email", "notes", "risk_note", "birthday"].forEach((k) => { if (!(k in payload)) payload[k] = null; });
+  payload.is_b2b = !!input.isB2b;
+  if (!input.isB2b) { payload.company_name = null; payload.tax_id = null; payload.billing_email = null; }
+  else if (!("company_name" in payload)) payload.company_name = null;
   const { data, error } = await supabase.from("customer").update(payload).eq("id", id).select("*");
   if (error) throw error;
   return data?.[0] || null;

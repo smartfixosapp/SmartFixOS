@@ -54,6 +54,7 @@ export function AddPunchDialog({ open, employee, self, tenant, tenantId, onClose
     if (busy || forbidden || !cin) return;
     if (cin > new Date()) { setError("La entrada no puede estar en el futuro."); return; }
     if (cout && cout <= cin) { setError("La salida debe ser después de la entrada."); return; }
+    if (cout && cout > new Date()) { setError("La salida no puede estar en el futuro."); return; }
     setBusy(true); setError(null);
     try {
       const clash = await overlappingEntry({ tenantId, matchIds: matchIdsFor(employee, null), clockIn: cin, clockOut: cout, tz });
@@ -121,6 +122,7 @@ export function EditHoursDialog({ open, entry: initial, self, tenant, tenantId, 
     if (!reason.trim()) { setError("Escribe el motivo del ajuste."); return; }
     if (hasOut && !cout) { setError("Escribe una hora de salida válida."); return; }
     if (cout && cout <= cin) { setError("La salida debe ser después de la entrada."); return; }
+    if (cout && cout > new Date()) { setError("La salida no puede estar en el futuro."); return; }
     setBusy(true); setError(null);
     try {
       const owner = (employees || []).find((x) => x.id === entry.employee_id || x.auth_user_id === entry.employee_id);

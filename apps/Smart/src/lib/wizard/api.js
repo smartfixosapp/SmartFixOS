@@ -471,8 +471,9 @@ export async function createOrder({ s, tenantId, tenant, createdByName, onPhase,
       ...(l.originalPrice !== undefined && l.originalPrice - l.unitPrice > 0.001 ? { original_price: l.originalPrice, offer_id: l.offerId || null, offer_label: l.offerLabel || null } : {}),
     }));
     if (estimate === 0) {
-      payload.cost_estimate = cartTotals(s.cart).total;
-      payload.tax_rate = IVU;
+      const rate = Number.isFinite(Number(s.taxRate)) ? Number(s.taxRate) : IVU;
+      payload.cost_estimate = cartTotals(s.cart, rate).total;
+      payload.tax_rate = rate;
     }
   }
   const sec = {};

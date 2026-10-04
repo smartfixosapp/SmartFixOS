@@ -43,6 +43,15 @@ export function PunchPinScreen({ tenantId, title, onCancel, onVerified }) {
     if (lockUntil && new Date() < lockUntil) setError("Demasiados intentos. Espera un momento.");
   }, []);
 
+  useEffect(() => {
+    if (!lockUntil) return undefined;
+    const ms = lockUntil.getTime() - Date.now();
+    const release = () => { resetPinLockout(tenantId); setLockUntil(null); setError(null); };
+    if (ms <= 0) { release(); return undefined; }
+    const t = setTimeout(release, ms + 50);
+    return () => clearTimeout(t);
+  }, [lockUntil, tenantId]);
+
   const fail = (message) => {
     const r = registerPinFailure(tenantId);
     entryRef.current?.clear();

@@ -1,6 +1,6 @@
 import { lineItems, lineQty, num, cleanNotes, longDate, r2 } from "@/lib/comprasApi";
 
-const pdfSafe = (s) => String(s ?? "").normalize("NFC").replace(/[^\x20-\xff]/g, (c) => ({ "→": "->", "–": "-", "—": "-", "×": "x" }[c] || "?"));
+const pdfSafe = (s) => String(s ?? "").normalize("NFC").replace(/[^\x20-\xff\n]/g, (c) => ({ "→": "->", "–": "-", "—": "-", "×": "x" }[c] || "?"));
 const money = (v) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Number(v) || 0);
 
 export async function buildPurchaseOrderPDF({ po, supplier, tenant }) {

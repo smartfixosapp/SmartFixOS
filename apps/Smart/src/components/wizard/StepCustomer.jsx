@@ -237,6 +237,8 @@ export async function runNewCustomerAdvance({ mode, tenantId, s, set, jumpForwar
     }
     setBusy(false);
   };
+  const fullName = [String(s.nc?.name || "").trim(), String(s.nc?.lastName || "").trim()].filter(Boolean).join(" ");
+  if (mode === "start" && s.customer?.id && s.customer.name === fullName && String(s.customer.phone || "") === String(s.nc?.phone || "")) { jumpForward(); return; }
   if (mode === "useExisting") { jumpForward(); return; }
   if (mode === "createAnyway") { await create(); return; }
   setBusy(true);

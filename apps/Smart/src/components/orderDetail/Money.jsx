@@ -278,7 +278,8 @@ export function DepositsSheet({ open, onClose, order, tenant, onAdd, onEdit, onD
 
   if (!order) return null;
   const total = orderTotal(order);
-  const totalPaid = deposits.reduce((s, d) => s + Number(d.amount || 0), 0);
+  const refundedTotal = refunds.reduce((s, r) => s + Math.abs(Number(r.amount || 0)), 0);
+  const totalPaid = Math.max(0, deposits.reduce((s, d) => s + Number(d.amount || 0), 0) - refundedTotal);
   const remaining = Math.max(0, total - totalPaid);
   const typed = parseAmount(amount);
   const charge = remaining > 0 ? Math.min(typed, remaining) : typed;

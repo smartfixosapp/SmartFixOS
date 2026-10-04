@@ -217,7 +217,7 @@ function EmployeePanel({ emp: initial, tenant, tenantId, self, onBack, onSaved }
         </div>
       )}
 
-      <SendScheduleDialog open={sendOpen} employee={emp} schedule={schedule} tenant={tenant} tenantId={tenantId} onClose={() => { setSendOpen(false); setSent(true); }} />
+      <SendScheduleDialog open={sendOpen} employee={emp} schedule={schedule} tenant={tenant} tenantId={tenantId} onClose={() => setSendOpen(false)} onSent={() => setSent(true)} />
       <AddPunchDialog open={addOpen} employee={emp} self={self} tenant={tenant} tenantId={tenantId} onClose={() => setAddOpen(false)} onSaved={() => refresh()} />
       <EditHoursDialog open={!!editEntry} entry={editEntry} self={self} tenant={tenant} tenantId={tenantId} employees={[emp]} onClose={() => setEditEntry(null)} onDone={() => refresh()} />
       <PayEmployeeDialog open={payOpen} employee={emp} tenant={tenant} tenantId={tenantId} onClose={() => { setPayOpen(false); refresh(); }} onPaid={() => refresh()} />

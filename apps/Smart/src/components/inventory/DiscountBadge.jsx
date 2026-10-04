@@ -1,6 +1,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Tag, Zap } from 'lucide-react';
+import { discountEnded } from "@/lib/discounts";
 
 export default function DiscountBadge({ product, showLabel = true }) {
   if (!product.discount_active || !product.discount_percentage) {
@@ -9,8 +10,7 @@ export default function DiscountBadge({ product, showLabel = true }) {
 
   // Verificar si el descuento expiró
   if (product.discount_end_date) {
-    const endDate = new Date(product.discount_end_date);
-    if (endDate < new Date()) {
+    if (discountEnded(product.discount_end_date)) {
       return null;
     }
   }
@@ -38,8 +38,7 @@ export function calculateDiscountedPrice(product) {
 
   // Verificar expiración
   if (product.discount_end_date) {
-    const endDate = new Date(product.discount_end_date);
-    if (endDate < new Date()) {
+    if (discountEnded(product.discount_end_date)) {
       return product.price;
     }
   }
@@ -51,7 +50,7 @@ export function calculateDiscountedPrice(product) {
 export function formatPriceWithDiscount(product) {
   const hasActiveDiscount = product.discount_active &&
     product.discount_percentage > 0 &&
-    (!product.discount_end_date || new Date(product.discount_end_date) >= new Date());
+    (!product.discount_end_date || !discountEnded(product.discount_end_date));
 
   if (!hasActiveDiscount) {
     return {

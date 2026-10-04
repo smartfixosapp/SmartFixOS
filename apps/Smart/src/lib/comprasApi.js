@@ -466,6 +466,7 @@ export async function receivePO({ tenantId, poId, received, location, by, tenant
   const lines = lineItems(fresh).map((l) => ({ ...l }));
   const gaveta = String(location || "").trim().toUpperCase();
   const applied = lines.map((l) => ({ line: l, qty: Math.min(linePending(l), Math.max(0, num(received?.[l.id]))) }));
+  if (!applied.some((a) => a.qty > 0 && !isTool(a.line))) throw new Error("Indica al menos una cantidad recibida.");
   const failed = new Set();
   let stocked = 0;
   for (const { line, qty } of applied) {
@@ -484,14 +485,13 @@ export async function receivePO({ tenantId, poId, received, location, by, tenant
       continue;
     }
     const { data: prod, error: selErr } = await supabase.from("product").select("id,stock,cost").eq("id", line.inventory_item_id).maybeSingle();
-    if (selErr) throw selErr;
-    if (!prod) { failed.add(line.id); continue; }
+    if (selErr || !prod) { failed.add(line.id); continue; }
     const before = num(prod.stock);
     const after = hasWO ? before : before + qty;
     const patch = { stock: after };
     if (num(line.unit_cost) > 0 && Math.abs(num(line.unit_cost) - num(prod.cost)) > 0.001) patch.cost = num(line.unit_cost);
     const { error } = await supabase.from("product").update(patch).eq("id", prod.id);
-    if (error) throw error;
+    if (error) { failed.add(line.id); continue; }
     if (!hasWO) stocked += 1;
     supabase.from("inventory_movement").insert({ tenant_id: tenantId, product_id: prod.id, movement_type: "purchase", quantity: qty, previous_stock: before, new_stock: after, unit_cost: num(line.unit_cost), total_amount: r2(qty * num(line.unit_cost)), reference_type: "purchase_order", reference_id: fresh.id, reference_number: fresh.po_number, performed_by: by || "Web" }).then(() => {}, () => {});
   }
@@ -531,7 +531,7 @@ export async function receivePO({ tenantId, poId, received, location, by, tenant
     }
   }
   if (allDone) await supabase.from("part_link").update({ status: "received" }).eq("purchase_order_id", fresh.id);
-  return { po: updated, stocked, expense, notified };
+  return { po: updated, stocked, expense, notified, failed: failed.size };
 }
 
 export async function receiveAllPending(tenantId, po, by, tenant) {
@@ -619,6 +619,7 @@ export async function closeDraft({ tenantId, po, shipping, tax, method, confirma
   const data = rows?.[0];
   if (!data) throw new Error("Este pedido ya no es un borrador. Recarga la lista.");
   await syncItemsToLinkedWorkOrders(items);
+  await supabase.from("part_link").update({ status: "ordered" }).eq("purchase_order_id", po.id);
   let expenseFailed = false;
   if (total > 0) {
     try { await recordExpense({ tenantId, po: data, supplierName: current.supplier_name, amount: total, method, by, settled: method !== "credit" }); } catch { expenseFailed = true; }
@@ -697,11 +698,13 @@ export async function reorderPartLink(tenantId, l) {
   if (l.order_number) row.order_number = l.order_number;
   if (l.title) row.title = l.title;
   if (l.price !== null && l.price !== undefined) row.price = l.price;
+  if (l.cost !== null && l.cost !== undefined) row.cost = l.cost;
   const { error } = await supabase.from("part_link").insert(row);
   if (error) throw error;
 }
 
 export async function orderPartNow({ tenantId, link, by }) {
+  if (link.purchase_order_id || link.status === "ordered" || link.status === "received") throw new Error("Esta pieza ya tiene un pedido.");
   const poNumber = await nextPoNumber(tenantId);
   const store = STORES[storeOf(link.url, link.store)].label;
   const cost = link.cost !== null && link.cost !== undefined ? num(link.cost) : link.price !== null && link.price !== undefined ? num(link.price) : 0;
