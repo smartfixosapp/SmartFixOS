@@ -8,7 +8,7 @@ import {
 } from "@/lib/finance/payroll";
 import { rolesOf, roleLabels, employeeRate } from "@/lib/teamApi";
 import { PAY_METHOD_LABEL, PAY_METHOD_COLOR, buildPayrollReceiptPDF, receiptFileName } from "@/lib/payrollReceipt";
-import { downloadBlob } from "@/lib/invoicesApi";
+import { sharePdfBlob } from "@/lib/invoicesApi";
 import { dayShort } from "./Ponches";
 import { shortTime, entryIn } from "@/lib/punchApi";
 
@@ -44,7 +44,7 @@ export function ReceiptDialog({ open, info, tenant, onClose }) {
   if (!info) return null;
   const share = async () => {
     setBusy(true);
-    try { downloadBlob(await buildPayrollReceiptPDF({ tenant, ...info }), receiptFileName(info.employeeName)); } finally { setBusy(false); }
+    try { await sharePdfBlob(await buildPayrollReceiptPDF({ tenant, ...info }), receiptFileName(info.employeeName), { title: `Comprobante de ${info.employeeName}` }); } finally { setBusy(false); }
   };
   return (
     <Dialog open={open} onClose={onClose} title="Comprobante" width={420} leading={<span />} trailing={<TextAction bold onClick={onClose}>Listo</TextAction>}>

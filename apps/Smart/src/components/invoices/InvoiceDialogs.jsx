@@ -4,7 +4,7 @@ import { Dialog, TextAction, PromptDialog, Toggle, tint } from "@/components/pos
 import { statusInfo } from "@/lib/orderStatus";
 import {
   TERMS, termsLabel, dueDateFor, fmtDate, fmtMoney, companyName, orderTotal, orderSubtotal, loadCompanies, loadInvoiceableOrders, createInvoice, listInvoices, attachPDF, voidInvoice,
-  uploadInvoicePDF, buildInvoicePDF, sendInvoiceEmail, regenerateVoidedPDF, regenerateInvoicePDF, downloadBlob, taxRateOf, recipientEmail, isVoided, isOverdue, num,
+  uploadInvoicePDF, buildInvoicePDF, sendInvoiceEmail, regenerateVoidedPDF, regenerateInvoicePDF, sharePdfBlob, taxRateOf, recipientEmail, isVoided, isOverdue, num,
 } from "@/lib/invoicesApi";
 
 const CARD = "#2C2C2E";
@@ -138,14 +138,14 @@ export function ConsolidatedInvoiceDialog({ open, onClose, tenant, tenantId, emp
     setSelected((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   };
 
-  const download = () => { if (pdfBlob && lastInvoice) downloadBlob(pdfBlob, `${lastInvoice.invoice_number}.pdf`); };
+  const download = () => { if (pdfBlob && lastInvoice) sharePdfBlob(pdfBlob, `${lastInvoice.invoice_number}.pdf`, { title: `Factura ${lastInvoice.invoice_number}` }); };
 
   const generate = async () => {
     if (generatingRef.current || lastInvoice || !company || !chosen.length || !tenant) return;
     generatingRef.current = true;
     setGenerating(true);
     setMsg(null);
-    const finish = () => { generatingRef.current = false; finish(); };
+    const finish = () => { generatingRef.current = false; setGenerating(false); };
     const issuedAt = new Date();
     const dueDate = dueDateFor(terms, issuedAt);
     const snapshot = { company, orders: chosen, subtotal, taxRate, taxAmount, total, notes, language, terms };
@@ -209,7 +209,7 @@ export function ConsolidatedInvoiceDialog({ open, onClose, tenant, tenantId, emp
       <div className="flex flex-col" style={{ gap: 10 }}>
         <p className="flex items-center justify-center gap-2" style={{ fontSize: 15, fontWeight: 700, color: GREEN }}><Check className="w-4 h-4" /> Factura {lastInvoice.invoice_number} creada</p>
         <div className="flex" style={{ gap: 8 }}>
-          {pdfBlob && <button onClick={download} className="apple-press flex-1 flex items-center justify-center gap-2" style={{ padding: "12px 0", borderRadius: 12, background: "#3A3A3C", fontWeight: 600 }}><Download className="w-4 h-4" /> Descargar PDF</button>}
+          {pdfBlob && <button onClick={download} className="apple-press flex-1 flex items-center justify-center gap-2" style={{ padding: "12px 0", borderRadius: 12, background: "#3A3A3C", fontWeight: 600 }}><Download className="w-4 h-4" /> Compartir PDF</button>}
           <button onClick={onClose} disabled={generating} className="apple-press flex-1 disabled:opacity-50" style={{ padding: "12px 0", borderRadius: 12, background: BRAND, color: "#fff", fontWeight: 700 }}>Listo</button>
         </div>
       </div>
@@ -354,7 +354,7 @@ export function InvoiceHistoryDialog({ open, onClose, tenant, tenantId }) {
     try {
       if (isVoided(inv)) {
         const blob = await regenerateVoidedPDF({ invoice: inv, tenant });
-        downloadBlob(blob, `${inv.invoice_number}.pdf`);
+        await sharePdfBlob(blob, `${inv.invoice_number}.pdf`, { title: `Factura ${inv.invoice_number}` });
         return;
       }
       if (!inv.pdf_url) {
@@ -366,7 +366,7 @@ export function InvoiceHistoryDialog({ open, onClose, tenant, tenantId }) {
         } catch {
           setMsg({ text: "PDF regenerado, pero no se pudo guardar para reimprimir.", error: true });
         }
-        downloadBlob(rebuilt, `${inv.invoice_number}.pdf`);
+        await sharePdfBlob(rebuilt, `${inv.invoice_number}.pdf`, { title: `Factura ${inv.invoice_number}` });
         return;
       }
       let blob = null;
@@ -376,7 +376,7 @@ export function InvoiceHistoryDialog({ open, onClose, tenant, tenantId }) {
       } catch {
         blob = null;
       }
-      if (blob) downloadBlob(blob, `${inv.invoice_number}.pdf`);
+      if (blob) await sharePdfBlob(blob, `${inv.invoice_number}.pdf`, { title: `Factura ${inv.invoice_number}` });
       else window.open(inv.pdf_url, "_blank", "noopener");
     } catch {
       setMsg({ text: isVoided(inv) ? "No se pudo regenerar el PDF anulado." : "No se pudo bajar el PDF.", error: true });
