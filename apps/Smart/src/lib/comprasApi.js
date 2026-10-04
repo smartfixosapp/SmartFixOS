@@ -157,7 +157,7 @@ export function summaryStats(pos, today = prDay()) {
 }
 
 export async function fetchPOs(tenantId) {
-  const { data, error } = await supabase.from("purchase_order").select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(100);
+  const { data, error } = await supabase.from("purchase_order").select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(500);
   if (error) throw error;
   return data || [];
 }
@@ -311,7 +311,32 @@ export async function recordExpense({ tenantId, po, supplierName, amount, method
   return false;
 }
 
-export async function syncItemsToLinkedWorkOrders(items, { sourcePartLinkId } = {}) {
+function recalcOrderFields(data, current) {
+  let taxRate = num(data.tax_rate);
+  if (taxRate > 1) taxRate /= 100;
+  const isDiscount = (x) => x?.type === "discount";
+  const subtotal = current.filter((x) => !isDiscount(x)).reduce((s, x) => s + num(x.total), 0) + num(data.labor_cost);
+  const discounts = current.filter(isDiscount).reduce((s, x) => s + Math.abs(num(x.total)), 0);
+  const cost = Math.max(0, r2(subtotal + subtotal * taxRate - discounts));
+  const balance = Math.max(0, r2(cost - num(data.amount_paid)));
+  return { order_items: current, cost_estimate: cost, balance_due: balance, updated_date: new Date().toISOString().replace(/\.\d{3}Z$/, "Z") };
+}
+
+export async function removeLinkedEntry(woId, sourceKey) {
+  if (!woId || !sourceKey) return;
+  try {
+    const { data } = await supabase.from("order").select("id,order_items,cost_estimate,labor_cost,amount_paid,tax_rate").eq("id", woId).maybeSingle();
+    if (!data) return;
+    const items = Array.isArray(data.order_items) ? data.order_items : [];
+    const current = items.filter((x) => x?.source_part_link_id !== sourceKey);
+    if (current.length === items.length) return;
+    await supabase.from("order").update(recalcOrderFields(data, current)).eq("id", woId);
+  } catch {
+    return;
+  }
+}
+
+export async function syncItemsToLinkedWorkOrders(items, { sourcePartLinkId, lineKey } = {}) {
   const groups = {};
   items.forEach((l) => { if (l.linked_work_order_id) (groups[l.linked_work_order_id] = groups[l.linked_work_order_id] || []).push(l); });
   const ids = Object.keys(groups);
@@ -324,20 +349,14 @@ export async function syncItemsToLinkedWorkOrders(items, { sourcePartLinkId } = 
         const qty = Math.max(1, Math.trunc(num(l.quantity)));
         const price = num(l.unit_price) > 0 ? num(l.unit_price) : num(l.unit_cost);
         const entry = { id: l.inventory_item_id || uuid(), type: l.inventory_item_id ? "part" : "manual", name: l.product_name, quantity: qty, price, total: r2(qty * price) };
-        if (sourcePartLinkId) {
-          entry.source_part_link_id = sourcePartLinkId;
-          current = current.filter((x) => x?.source_part_link_id !== sourcePartLinkId);
+        const key = sourcePartLinkId || (lineKey ? lineKey(l) : null);
+        if (key) {
+          entry.source_part_link_id = key;
+          current = current.filter((x) => x?.source_part_link_id !== key);
         }
         current.push(entry);
       });
-      let taxRate = num(data.tax_rate);
-      if (taxRate > 1) taxRate /= 100;
-      const isDiscount = (x) => x?.type === "discount";
-      const subtotal = current.filter((x) => !isDiscount(x)).reduce((s, x) => s + num(x.total), 0) + num(data.labor_cost);
-      const discounts = current.filter(isDiscount).reduce((s, x) => s + Math.abs(num(x.total)), 0);
-      const cost = Math.max(0, r2(subtotal + subtotal * taxRate - discounts));
-      const balance = Math.max(0, r2(cost - num(data.amount_paid)));
-      await supabase.from("order").update({ order_items: current, cost_estimate: cost, balance_due: balance, updated_date: new Date().toISOString().replace(/\.\d{3}Z$/, "Z") }).eq("id", woId);
+      await supabase.from("order").update(recalcOrderFields(data, current)).eq("id", woId);
     } catch {
       return;
     }
@@ -365,7 +384,7 @@ export async function createPurchaseOrder({ tenantId, supplier, manualName, line
   Object.keys(row).forEach((k) => { if (row[k] === null || row[k] === undefined) delete row[k]; });
   const { data: po, error } = await supabase.from("purchase_order").insert(row).select("*").single();
   if (error) throw error;
-  await syncItemsToLinkedWorkOrders(items);
+  await syncItemsToLinkedWorkOrders(items, { lineKey: (l) => `po-line:${l.id}` });
   let expenseFailed = false;
   if (subtotal > 0) {
     const delayed = method === "check" || method === "credit";
@@ -446,6 +465,7 @@ export async function linkLineToOrder({ tenantId, po, lineId, order, by }) {
   if (idx < 0) throw new Error("No se encontró la línea");
   const line = items[idx];
   const wasLinked = !!line.linked_work_order_id;
+  const prevOrderId = line.linked_work_order_id || null;
   if (order) { line.linked_work_order_id = order.id; line.linked_work_order_number = order.order_number; } else { delete line.linked_work_order_id; delete line.linked_work_order_number; }
   const nowLinked = !!line.linked_work_order_id;
   const { data, error } = await supabase.from("purchase_order").update({ line_items: items, updated_at: new Date().toISOString() }).eq("id", po.id).select("*").single();
@@ -455,7 +475,9 @@ export async function linkLineToOrder({ tenantId, po, lineId, order, by }) {
     if (!wasLinked && nowLinked) await adjustStock(tenantId, line.inventory_item_id, -rec, `Asignada a la orden ${line.linked_work_order_number}`, by);
     else await adjustStock(tenantId, line.inventory_item_id, rec, "Desvinculada de orden de trabajo", by);
   }
-  if (nowLinked) await syncItemsToLinkedWorkOrders([line]);
+  const poLineKey = (l) => `po-line:${l.id}`;
+  if (prevOrderId && prevOrderId !== line.linked_work_order_id) await removeLinkedEntry(prevOrderId, poLineKey(line));
+  if (nowLinked) await syncItemsToLinkedWorkOrders([line], { lineKey: poLineKey });
   return data;
 }
 
@@ -618,7 +640,7 @@ export async function closeDraft({ tenantId, po, shipping, tax, method, confirma
   if (error) throw error;
   const data = rows?.[0];
   if (!data) throw new Error("Este pedido ya no es un borrador. Recarga la lista.");
-  await syncItemsToLinkedWorkOrders(items);
+  await syncItemsToLinkedWorkOrders(items, { lineKey: (l) => `po-line:${l.id}` });
   await supabase.from("part_link").update({ status: "ordered" }).eq("purchase_order_id", po.id);
   let expenseFailed = false;
   if (total > 0) {
