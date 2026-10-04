@@ -3,7 +3,7 @@ import { tint } from "@/components/pos/native/posUi";
 
 export const A = { bg: "#000", card: "#1C1C1E", card2: "#2C2C2E", sub: "#8E8E93", ter: "rgba(235,235,245,0.3)", sep: "rgba(84,84,88,0.6)", brand: "#F2662E", success: "#4DC780", warning: "#FFA640", danger: "#FF7373", info: "#66B3FF", vip: "#FFC733", teal: "#40C8E0" };
 
-export function SubPage({ title, onBack, right, children, width = 700 }) {
+export function SubPage({ title, onBack, right, children, width = 1400 }) {
   return (
     <div className="mx-auto" style={{ maxWidth: width, width: "100%" }}>
       <div className="flex items-center gap-3" style={{ padding: "4px 0 14px" }}>
@@ -11,7 +11,7 @@ export function SubPage({ title, onBack, right, children, width = 700 }) {
         <h1 className="flex-1" style={{ fontSize: 30, fontWeight: 800, letterSpacing: "-0.02em" }}>{title}</h1>
         {right}
       </div>
-      <div className="flex flex-col" style={{ gap: 20, paddingBottom: 60 }}>{children}</div>
+      <div style={{ display: "grid", gap: 20, paddingBottom: 60, alignItems: "start", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 520px), 1fr))" }}>{children}</div>
     </div>
   );
 }

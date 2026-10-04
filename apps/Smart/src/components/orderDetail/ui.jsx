@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { backdropMotion, panelMotion } from "@/lib/motion";
 
 export const C = {
   bg: "#000",
@@ -110,11 +112,13 @@ export function useEscapeLayer(open, onEscape) {
 
 export function Sheet({ open, onClose, title, children, footer, width = 480, dismissable = true, zIndex }) {
   useEscapeLayer(open, () => { if (dismissable) onClose?.(); });
-  if (!open || typeof document === "undefined") return null;
+  if (typeof document === "undefined") return null;
   return createPortal(
-    <div className="apple-type fixed inset-0 z-[300] flex items-end sm:items-center justify-center" style={zIndex ? { zIndex } : undefined} role="dialog" aria-modal="true">
+    <AnimatePresence>
+    {open && <motion.div key="sheet" {...backdropMotion} className="apple-type fixed inset-0 z-[300] flex items-end sm:items-center justify-center" style={zIndex ? { zIndex } : undefined} role="dialog" aria-modal="true">
       <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.6)" }} onClick={() => dismissable && onClose?.()} />
-      <div
+      <motion.div
+        {...panelMotion}
         className="relative w-full flex flex-col"
         style={{ maxWidth: width, maxHeight: "90dvh", background: C.card, borderRadius: 24, color: C.text, overflow: "hidden" }}
       >
@@ -130,8 +134,9 @@ export function Sheet({ open, onClose, title, children, footer, width = 480, dis
         )}
         <div className="overflow-y-auto" style={{ padding: "4px 18px 18px" }}>{children}</div>
         {footer && <div style={{ padding: "12px 18px 18px", borderTop: `0.5px solid ${C.sep}` }}>{footer}</div>}
-      </div>
-    </div>,
+      </motion.div>
+    </motion.div>}
+    </AnimatePresence>,
     document.body
   );
 }

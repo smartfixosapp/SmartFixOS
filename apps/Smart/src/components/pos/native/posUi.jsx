@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { X, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { backdropMotion, panelMotion } from "@/lib/motion";
 import { useEscapeLayer } from "@/components/orderDetail/ui";
 
 export const P = {
@@ -31,11 +33,12 @@ export function tint(hex, a) {
 
 export function Dialog({ open, onClose, title, children, footer, width = 520, dismissable = true, height, leading, trailing, bodyPadding = "4px 18px 18px" }) {
   useEscapeLayer(open, () => { if (dismissable) onClose?.(); });
-  if (!open || typeof document === "undefined") return null;
+  if (typeof document === "undefined") return null;
   return createPortal(
-    <div className="apple-type fixed inset-0 z-[330] flex items-end sm:items-center justify-center" role="dialog" aria-modal="true">
+    <AnimatePresence>
+    {open && <motion.div key="dialog" {...backdropMotion} className="apple-type fixed inset-0 z-[330] flex items-end sm:items-center justify-center" role="dialog" aria-modal="true">
       <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.62)" }} onClick={() => dismissable && onClose?.()} />
-      <div className="relative w-full flex flex-col" style={{ maxWidth: width, height: height || "auto", maxHeight: "94dvh", background: P.card, borderRadius: 24, color: P.text, overflow: "hidden" }}>
+      <motion.div {...panelMotion} className="relative w-full flex flex-col" style={{ maxWidth: width, height: height || "auto", maxHeight: "94dvh", background: P.card, borderRadius: 24, color: P.text, overflow: "hidden" }}>
         {(title !== undefined || leading || trailing) && (
           <div className="flex items-center justify-between gap-3" style={{ padding: "14px 16px 10px", minHeight: 52 }}>
             <div style={{ minWidth: 80 }}>{leading}</div>
@@ -51,8 +54,9 @@ export function Dialog({ open, onClose, title, children, footer, width = 520, di
         )}
         <div className="flex-1 overflow-y-auto" style={{ padding: bodyPadding }}>{children}</div>
         {footer && <div style={{ padding: "12px 18px 18px", borderTop: `0.5px solid ${P.sep}` }}>{footer}</div>}
-      </div>
-    </div>,
+      </motion.div>
+    </motion.div>}
+    </AnimatePresence>,
     document.body
   );
 }
