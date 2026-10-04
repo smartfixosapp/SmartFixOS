@@ -5,6 +5,7 @@ import { statusInfo } from "@/lib/orderStatus";
 import { dwellInfo, latestNote, daysUntilPromised, deviceKind, orderAmount, groupForBoard, groupFlat, quickActionsFor } from "@/lib/ordersBoard";
 import { KIND_ICON, DWELL_COLOR, SERVICE_LABEL, PRIORITY, Pill, AssignmentChip } from "@/components/orders/orderBits";
 import { displayDevice, money, tint, relativeTime } from "@/components/orderDetail/ui";
+import { anchorInView } from "@/lib/viewport";
 
 function OrderTile({ order, companyName, onClick, onMenu }) {
   const info = statusInfo(order.status);
@@ -119,8 +120,7 @@ function QuickMenu({ menu, order, onClose, onPick }) {
   }, [menu, onClose]);
   useEffect(() => { if (menu && !visible) onClose(); }, [menu, visible, onClose]);
   if (!visible) return null;
-  const left = Math.min(menu.x, window.innerWidth - 200);
-  const top = Math.min(menu.y, window.innerHeight - 20 - statuses.length * 46);
+  const { left, top } = anchorInView(menu.x, menu.y, 190, statuses.length * 46 + 8);
   return createPortal(
     <div onPointerDown={onClose} style={{ position: "fixed", inset: 0, zIndex: 3000 }}>
       <div onPointerDown={(e) => e.stopPropagation()} style={{ position: "fixed", left, top, width: 190, borderRadius: 14, background: "rgba(44,44,46,0.96)", backdropFilter: "blur(20px)", boxShadow: "0 12px 40px rgba(0,0,0,0.5)", padding: 4 }}>

@@ -5,6 +5,7 @@ import { ORDER_STATUS, statusInfo } from "@/lib/orderStatus";
 import { photoThumbURL } from "@/lib/orderEmails";
 import { photoThumbCandidate } from "@/lib/orderDetailApi";
 import { C, tint, Sheet, Btn, SectionHeader, Card } from "./ui";
+import { anchorInView } from "@/lib/viewport";
 
 function SmartImg({ url, style, alt = "" }) {
   return (
@@ -450,7 +451,7 @@ export function PhotoStrip({ order, onOpen, onDeleteAll, onDeleteOne }) {
       </Card>
       {menu && createPortal(
         <div className="fixed inset-0" style={{ zIndex: 3000 }} onPointerDown={() => setMenu(null)}>
-          <div onPointerDown={(e) => e.stopPropagation()} style={{ position: "fixed", left: Math.min(menu.x, window.innerWidth - 230), top: Math.min(menu.y, window.innerHeight - 160), width: 220, borderRadius: 14, background: "rgba(44,44,46,0.97)", boxShadow: "0 12px 40px rgba(0,0,0,0.5)", padding: 4 }}>
+          <div onPointerDown={(e) => e.stopPropagation()} style={{ position: "fixed", ...anchorInView(menu.x, menu.y, 220, 160), width: 220, borderRadius: 14, background: "rgba(44,44,46,0.97)", boxShadow: "0 12px 40px rgba(0,0,0,0.5)", padding: 4 }}>
             {[
               ["Compartir con el cliente", "#fff", () => setShareUrls([menu.url])],
               onDeleteOne && ["Eliminar esta foto", C.red, () => onDeleteOne(menu.url)],

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { SlidersHorizontal, Check, Building2, Calendar } from "lucide-react";
 import { ORDER_KINDS } from "@/lib/ordersBoard";
+import { anchorInView } from "@/lib/viewport";
 
 const BRAND = "#F2662E";
 
@@ -41,8 +42,8 @@ export default function OrdersFilterMenu({
     setOpen((v) => !v);
   };
 
-  const left = rect ? Math.max(12, Math.min(rect.left, window.innerWidth - 272)) : 12;
-  const top = rect ? rect.bottom + 8 : 60;
+  const anchor = rect ? anchorInView(rect.left, rect.bottom + 8, 260, 420, 12) : { left: 12, top: 60 };
+  const { left, top } = anchor;
 
   return (
     <>

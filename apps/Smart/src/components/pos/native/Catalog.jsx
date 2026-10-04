@@ -6,6 +6,7 @@ import {
   LayoutGrid, Boxes, Smartphone, History, BarChart3, Lock, LockOpen, ChevronRight as Chev, UserPlus, Crown, Building2, CircleX,
 } from "lucide-react";
 import { P, tint } from "./posUi";
+import { anchorInView } from "@/lib/viewport";
 import { usd, effectivePrice, hasSavings, productThumb, TIPO_FILTERS, customerDisplayName, initials, isVIP } from "@/lib/posLogic";
 
 function partType(name) {
@@ -33,11 +34,10 @@ function ContextMenu({ menu, onClose }) {
     return () => { window.removeEventListener("scroll", close, true); window.removeEventListener("resize", close); };
   }, [menu, onClose]);
   if (!menu || typeof document === "undefined") return null;
-  const x = Math.min(menu.x, window.innerWidth - 250);
-  const y = Math.min(menu.y, window.innerHeight - menu.items.length * 44 - 20);
+  const { left, top } = anchorInView(menu.x, menu.y, 240, menu.items.length * 44 + 12);
   return createPortal(
     <div className="fixed inset-0 z-[340]" onClick={onClose} onContextMenu={(e) => { e.preventDefault(); onClose(); }}>
-      <div className="apple-type absolute" style={{ left: Math.max(8, x), top: Math.max(8, y), width: 240, background: "rgba(44,44,46,0.97)", backdropFilter: "blur(20px)", borderRadius: 14, overflow: "hidden", boxShadow: "0 12px 40px rgba(0,0,0,0.5)" }} onClick={(e) => e.stopPropagation()}>
+      <div className="apple-type absolute" style={{ left, top, width: 240, background: "rgba(44,44,46,0.97)", backdropFilter: "blur(20px)", borderRadius: 14, overflow: "hidden", boxShadow: "0 12px 40px rgba(0,0,0,0.5)" }} onClick={(e) => e.stopPropagation()}>
         {menu.items.map((it, i) => it.divider ? (
           <div key={`d${i}`} style={{ height: 6, background: "rgba(0,0,0,0.25)" }} />
         ) : (
