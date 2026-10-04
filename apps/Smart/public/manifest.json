@@ -4,7 +4,7 @@
   "description": "Sistema de gestión integral para talleres de reparación",
   "start_url": "/Dashboard",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone"],
+  "display_override": ["standalone"],
   "orientation": "any",
   "background_color": "#000000",
   "theme_color": "#000000",
