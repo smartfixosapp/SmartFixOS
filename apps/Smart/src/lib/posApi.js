@@ -2,6 +2,7 @@ import { supabase } from "../../../../lib/supabase-client.js";
 import { recordSaleAndTransactions } from "@/components/financial/recordSale";
 import { fetchRegister, fetchOpenRegister } from "@/lib/cashRegisterApi";
 import { invokeEdge } from "@/lib/edgeFn";
+import { adjustStockAtomic } from "@/lib/stockAdjust";
 import { itemToPayload, isFullDevice, isServiceItem, r2 } from "@/lib/posLogic";
 
 const nowISO = () => new Date().toISOString();
@@ -138,27 +139,22 @@ export async function addLoyaltyPoints(customerId, tenantId, delta) {
 }
 
 async function adjustProductStock(product, delta, reason, byName, tenantId) {
-  const current = Number(product.stock) || 0;
-  const next = Math.max(0, current + delta);
-  const { error } = await supabase.from("product").update({ stock: next }).eq("id", product.id);
-  if (error) throw error;
+  const res = await adjustStockAtomic({ id: product.id, delta });
+  if (!res.ok) throw res.error;
+  const { before, after } = res;
   supabase.from("transaction").insert({
     tenant_id: tenantId,
     type: "stock_adjustment",
     category: delta > 0 ? "stock_in" : "stock_out",
-    amount: Math.abs(next - current),
+    amount: Math.abs(after - before),
     description: `[${product.name}] ${reason}`,
     recorded_by: byName,
   }).then(() => {}, () => {});
-  return next;
+  return { before, after };
 }
 
 async function adjustVariantStock(variantId, delta) {
-  const { data } = await supabase.from("product_variant").select("id,stock").eq("id", variantId).limit(1);
-  const v = data?.[0];
-  if (!v) return;
-  const next = Math.max(0, (Number(v.stock) || 0) + delta);
-  await supabase.from("product_variant").update({ stock: next }).eq("id", variantId);
+  await adjustStockAtomic({ table: "product_variant", id: variantId, delta });
 }
 
 export async function deductStockForSale({ items, products, tenantId, employeeName }) {
@@ -172,10 +168,9 @@ export async function deductStockForSale({ items, products, tenantId, employeeNa
     if (!it.productId) continue;
     const product = products.find((p) => p.id === it.productId);
     if (!product || !((Number(product.stock) || 0) > 0)) continue;
-    const before = Number(product.stock) || 0;
     try {
-      const next = await adjustProductStock(product, -it.quantity, "Venta POS", label, tenantId);
-      deltas[product.id] = before - next;
+      const { before, after: next } = await adjustProductStock(product, -it.quantity, "Venta POS", label, tenantId);
+      deltas[product.id] = (deltas[product.id] || 0) + (before - next);
       if (isFullDevice(product) && next <= 0) await supabase.from("product").update({ active: false }).eq("id", product.id);
     } catch {
       continue;

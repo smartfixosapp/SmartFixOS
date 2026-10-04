@@ -1,5 +1,6 @@
 import { supabase } from "../../../../lib/supabase-client.js";
 import { normalizeTaxPercent } from "@/lib/taxRate";
+import { adjustStockAtomic } from "@/lib/stockAdjust";
 import { partMatchContext, scorePart, fuzzyPartMatches, searchProducts, isServiceItem, isFullDeviceItem } from "@/lib/wizard/helpers";
 import {
   num, r2, uuid, fetchSuppliers, fetchOpenDraft, addToOpenDraft, dissolveStaleDrafts, orderPartNow, newLine, lineItems,
@@ -51,10 +52,10 @@ export async function stockDiff({ tenantId, before, after, orderNumber, by }) {
     if (!delta) continue;
     const { data: prod } = await supabase.from("product").select("id,name,type,stock").eq("id", id).maybeSingle();
     if (!prod || prod.type === "service" || prod.stock === null || prod.stock === undefined) continue;
-    const old = num(prod.stock);
-    const next = Math.max(0, old - delta);
-    const { error } = await supabase.from("product").update({ stock: next }).eq("id", id);
-    if (error) continue;
+    const res = await adjustStockAtomic({ id, delta: -delta });
+    if (!res.ok) continue;
+    const old = res.before;
+    const next = res.after;
     supabase.from("transaction").insert({ tenant_id: tenantId, type: "stock_adjustment", category: delta < 0 ? "stock_in" : "stock_out", amount: Math.abs(next - old), description: `[${prod.name}] Piezas en orden ${orderNumber}`, recorded_by: by || "Web" }).then(() => {}, () => {});
   }
 }

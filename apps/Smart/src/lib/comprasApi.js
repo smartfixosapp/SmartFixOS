@@ -1,6 +1,7 @@
 import { supabase } from "../../../../lib/supabase-client.js";
 import { catalogTopMatches } from "@/lib/wizard/helpers";
 import { changeStatusRpc } from "@/lib/orderDetailApi";
+import { adjustStockAtomic } from "@/lib/stockAdjust";
 import { sendStatusEmail } from "@/lib/orderEmails";
 
 export const PR_TZ = "America/Puerto_Rico";
@@ -287,10 +288,9 @@ export function newLine(init = {}) {
 export async function adjustStock(tenantId, productId, delta, reason, by) {
   const { data: prod, error } = await supabase.from("product").select("id,name,stock").eq("id", productId).maybeSingle();
   if (error || !prod) return false;
-  const before = num(prod.stock);
-  const after = Math.max(0, before + delta);
-  const { error: e2 } = await supabase.from("product").update({ stock: after }).eq("id", productId);
-  if (e2) throw e2;
+  const res = await adjustStockAtomic({ id: productId, delta });
+  if (!res.ok) throw res.error;
+  const { before, after } = res;
   await supabase.from("transaction").insert({
     tenant_id: tenantId, type: "stock_adjustment", category: delta >= 0 ? "stock_in" : "stock_out", amount: Math.abs(after - before), description: `[${prod.name}] ${reason}`, recorded_by: by || "Web",
   });
@@ -486,12 +486,12 @@ export async function receivePO({ tenantId, poId, received, location, by, tenant
     }
     const { data: prod, error: selErr } = await supabase.from("product").select("id,stock,cost").eq("id", line.inventory_item_id).maybeSingle();
     if (selErr || !prod) { failed.add(line.id); continue; }
-    const before = num(prod.stock);
-    const after = hasWO ? before : before + qty;
-    const patch = { stock: after };
+    const patch = {};
     if (num(line.unit_cost) > 0 && Math.abs(num(line.unit_cost) - num(prod.cost)) > 0.001) patch.cost = num(line.unit_cost);
-    const { error } = await supabase.from("product").update(patch).eq("id", prod.id);
-    if (error) { failed.add(line.id); continue; }
+    const res = await adjustStockAtomic({ id: prod.id, delta: hasWO ? 0 : qty, floor: false, extra: patch });
+    if (!res.ok) { failed.add(line.id); continue; }
+    const before = res.before;
+    const after = res.after;
     if (!hasWO) stocked += 1;
     supabase.from("inventory_movement").insert({ tenant_id: tenantId, product_id: prod.id, movement_type: "purchase", quantity: qty, previous_stock: before, new_stock: after, unit_cost: num(line.unit_cost), total_amount: r2(qty * num(line.unit_cost)), reference_type: "purchase_order", reference_id: fresh.id, reference_number: fresh.po_number, performed_by: by || "Web" }).then(() => {}, () => {});
   }
