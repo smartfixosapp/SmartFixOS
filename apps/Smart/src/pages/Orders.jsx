@@ -56,8 +56,13 @@ export default function Orders() {
   const loadOrders = useCallback(async () => {
     const seq = ++loadSeq.current;
     try {
-      const rows = await dataClient.entities.Order.filter({ is_deleted: false }, "-updated_date", 500);
-      if (seq === loadSeq.current) setOrders(rows || []);
+      const [recent, open] = await Promise.all([
+        dataClient.entities.Order.filter({ is_deleted: false }, "-updated_date", 500),
+        dataClient.entities.Order.filter({ is_deleted: false, status: { $nin: ["delivered", "warranty", "abandoned"] } }, "-updated_date", 2000).catch(() => []),
+      ]);
+      const seen = new Set((recent || []).map((o) => o.id));
+      const merged = [...(recent || []), ...(open || []).filter((o) => !seen.has(o.id))];
+      if (seq === loadSeq.current) setOrders(merged);
     } catch (err) {
       console.error("Orders load error:", err);
     } finally {
