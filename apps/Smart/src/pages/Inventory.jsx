@@ -1852,7 +1852,7 @@ export default function Inventory() {
           />
         )}
 
-        <ProductDetailDialog open={!!detailItem} item={detailItem} suppliers={suppliers} onClose={() => setDetailItem(null)} onEdit={(it) => { setDetailItem(null); setEditing(it); setShowItemDialog(true); }} />
+        <ProductDetailDialog open={!!detailItem} item={detailItem} suppliers={suppliers} onChanged={() => loadInventory()} onClose={() => setDetailItem(null)} onEdit={(it) => { setDetailItem(null); setEditing(it); setShowItemDialog(true); }} />
         <RestockDialog open={showRestock} onClose={() => setShowRestock(false)} products={items} tenantId={localStorage.getItem("smartfix_tenant_id") || ""} employeeName={localStorage.getItem("smartfix_employee_name") || "Web"} />
 
         {showReports && (

@@ -3,6 +3,7 @@ import { Loader2, Package, Phone, Mail, MessageCircle, Pencil } from "lucide-rea
 import { Dialog, TextAction, tint } from "@/components/pos/native/posUi";
 import { supabase } from "../../../../../lib/supabase-client.js";
 import { usd } from "@/lib/posLogic";
+import BarcodeLabelDialog from "./BarcodeLabelDialog";
 
 const CARD = "#2C2C2E";
 const SUB = "#8E8E93";
@@ -27,8 +28,9 @@ function Block({ title, children }) {
   );
 }
 
-export default function ProductDetailDialog({ open, item, suppliers, onClose, onEdit }) {
+export default function ProductDetailDialog({ open, item, suppliers, onClose, onEdit, onChanged }) {
   const [moves, setMoves] = useState(null);
+  const [labelOpen, setLabelOpen] = useState(false);
 
   useEffect(() => {
     if (!open || !item) return undefined;
@@ -54,6 +56,7 @@ export default function ProductDetailDialog({ open, item, suppliers, onClose, on
   const digits = String(supplier?.phone || "").replace(/[^\d]/g, "");
 
   return (
+    <>
     <Dialog open={open} onClose={onClose} title="Producto" width={620} height="90dvh" leading={<TextAction onClick={onClose}>Cerrar</TextAction>} trailing={<TextAction bold onClick={() => onEdit(item)}><span className="inline-flex items-center gap-1"><Pencil className="w-4 h-4" /> Editar</span></TextAction>}>
       <div className="flex flex-col" style={{ gap: 16, paddingTop: 6 }}>
         <div className="flex items-center gap-4">
@@ -82,6 +85,9 @@ export default function ProductDetailDialog({ open, item, suppliers, onClose, on
             <Row label="Mínimo" value={min > 0 ? min : null} />
             <Row label="Valor en inventario" value={cost > 0 ? usd(cost * stock) : null} />
           </Block>
+        )}
+        {!service && (
+          <button onClick={() => setLabelOpen(true)} className="apple-press" style={{ height: 46, borderRadius: 14, background: CARD, color: "#F2662E", fontWeight: 700, fontSize: 15 }}>Etiqueta de código de barras</button>
         )}
         <Block title="Detalles">
           <Row label="Categoría" value={item.category} />
@@ -124,5 +130,7 @@ export default function ProductDetailDialog({ open, item, suppliers, onClose, on
         )}
       </div>
     </Dialog>
+      <BarcodeLabelDialog open={labelOpen} item={item} onClose={() => setLabelOpen(false)} onSaved={() => onChanged?.()} />
+    </>
   );
 }
