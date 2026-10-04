@@ -100,8 +100,16 @@ function Tile({ s, admin, tenant, onOpen }) {
   );
 }
 
+function useWideSettings() {
+  const q = "(min-width: 1024px)";
+  const [v, setV] = useState(() => typeof window !== "undefined" && window.matchMedia(q).matches);
+  useEffect(() => { const m = window.matchMedia(q); const on = () => setV(m.matches); m.addEventListener("change", on); return () => m.removeEventListener("change", on); }, []);
+  return v;
+}
+
 export default function Ajustes() {
   const navigate = useNavigate();
+  const wide = useWideSettings();
   const [params, setParams] = useSearchParams();
   const [tenantId] = useState(() => localGet("smartfix_tenant_id", ""));
   const role = localGet("smartfix_tenant_role", "");
@@ -184,7 +192,25 @@ export default function Ajustes() {
     } else if (active.id === "cuenta") view = s === "seguridad" ? <Seguridad back={back} /> : s === "diagnostico" ? <Diagnostico tenant={tenant} tenantId={tenantId} employee={self} role={role} back={back} /> : <CuentaList go={go} />;
     else if (active.id === "suscripcion") view = <Suscripcion tenant={tenant} tenantId={tenantId} back={() => go(null)} />;
     else if (active.id === "equipo") view = <EquipoList tenant={tenant} tenantId={tenantId} admin={admin} go={go} />;
-    return shell(view);
+    if (!wide) return shell(view);
+    return shell(
+      <div style={{ display: "grid", gridTemplateColumns: "250px minmax(0, 1fr)", gap: 28, alignItems: "start", maxWidth: 1600, margin: "0 auto" }}>
+        <aside style={{ position: "sticky", top: 16, background: A.card, borderRadius: 16, padding: 8 }} aria-label="Secciones de Ajustes">
+          <button onClick={() => go(null)} className="apple-press w-full flex items-center gap-2 text-left" style={{ padding: "10px 12px", borderRadius: 10, color: A.sub, fontSize: 14, fontWeight: 600 }}>Todos los ajustes</button>
+          {visible.map((sec) => {
+            const Icon = sec.Icon;
+            const on = sec.id === active.id;
+            return (
+              <button key={sec.id} onClick={() => go(sec.id)} aria-current={on ? "page" : undefined} className="apple-press w-full flex items-center gap-3 text-left" style={{ padding: "10px 12px", borderRadius: 10, background: on ? tint(sec.color, 0.18) : "transparent", color: on ? "#fff" : A.sub, fontSize: 15, fontWeight: on ? 700 : 500 }}>
+                <span style={{ width: 28, height: 28, borderRadius: 8, background: tint(sec.color, 0.16), color: sec.color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Icon className="w-4 h-4" /></span>
+                <span className="truncate">{titleOf(sec, admin)}</span>
+              </button>
+            );
+          })}
+        </aside>
+        <div className="min-w-0">{view}</div>
+      </div>
+    );
   }
 
   if (section && !active && tenant) return <Navigate to="/Settings" replace />;
