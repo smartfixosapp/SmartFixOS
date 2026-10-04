@@ -126,7 +126,7 @@ export function ConsolidatedInvoiceDialog({ open, onClose, tenant, tenantId, emp
 
   const chosen = useMemo(() => orders.filter((o) => selected.has(o.id)), [orders, selected]);
   const total = r2(chosen.reduce((s, o) => s + orderTotal(o), 0));
-  const subtotal = r2(chosen.reduce((s, o) => s + orderSubtotal(o, taxRate), 0));
+  const subtotal = r2(chosen.reduce((s, o) => s + r2(orderSubtotal(o, taxRate)), 0));
   const taxAmount = r2(total - subtotal);
   const issuePreview = new Date();
   const duePreview = dueDateFor(terms, issuePreview);

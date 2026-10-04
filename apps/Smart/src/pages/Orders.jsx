@@ -52,6 +52,7 @@ export default function Orders() {
 
   useEffect(() => { try { sessionStorage.setItem("orders_view", JSON.stringify({ search, statusFilter, bucket })); } catch { return; } }, [search, statusFilter, bucket]);
 
+  const searchExtras = useRef(new Map());
   const lastLoad = useRef(0);
   const trailing = useRef(null);
   const loadOrdersRef = useRef(() => {});
@@ -71,6 +72,8 @@ export default function Orders() {
       ]);
       const seen = new Set((recent || []).map((o) => o.id));
       const merged = [...(recent || []), ...(open || []).filter((o) => !seen.has(o.id))];
+      const mergedIds = new Set(merged.map((o) => o.id));
+      searchExtras.current.forEach((o, id) => { if (!mergedIds.has(id)) merged.push(o); });
       if (seq === loadSeq.current) setOrders(merged);
     } catch (err) {
       console.error("Orders load error:", err);
@@ -80,6 +83,29 @@ export default function Orders() {
   }, []);
 
   useEffect(() => { ordersRef.current = orders; }, [orders]);
+
+  useEffect(() => {
+    const q = search.trim();
+    if (q.length < 3) { searchExtras.current = new Map(); return undefined; }
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      const like = { $ilike: `%${q}%` };
+      dataClient.entities.Order.filter(
+        { is_deleted: false, $or: [{ order_number: like }, { customer_name: like }, { customer_phone: like }, { customer_email: like }, { device_model: like }, { device_serial: like }] },
+        "-updated_date",
+        80,
+      ).then((rows) => {
+        if (cancelled || !rows?.length) return;
+        searchExtras.current = new Map(rows.map((o) => [o.id, o]));
+        setOrders((list) => {
+          const have = new Set(list.map((o) => o.id));
+          const extra = rows.filter((o) => !have.has(o.id));
+          return extra.length ? [...list, ...extra] : list;
+        });
+      }).catch(() => {});
+    }, 350);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [search]);
   useEffect(() => { loadOrdersRef.current = loadOrders; }, [loadOrders]);
   useEffect(() => () => clearTimeout(trailing.current), []);
 

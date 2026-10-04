@@ -101,10 +101,14 @@ export async function addItems({ order, tenantId, pending, by }) {
   });
   let taxRate = num(fresh.tax_rate);
   if (taxRate > 1) taxRate /= 100;
+  if (fresh.tax_rate === null || fresh.tax_rate === undefined || fresh.tax_rate === "") {
+    const { data: tn } = await supabase.from("tenant").select("settings").eq("id", tenantId).maybeSingle();
+    taxRate = normalizeTaxPercent(tn?.settings?.tax_rate) / 100;
+  }
   const subtotal = items.filter((x) => !isDiscount(x)).reduce((s, x) => s + num(x.total), 0) + num(fresh.labor_cost);
   const discounts = items.filter(isDiscount).reduce((s, x) => s + Math.abs(num(x.total)), 0);
   const total = Math.max(0, r2(subtotal * (1 + taxRate) - discounts));
-  const { error: upErr } = await supabase.from("order").update({ order_items: items, cost_estimate: total, balance_due: Math.max(0, r2(total - num(fresh.amount_paid))), updated_date: nowISO() }).eq("id", order.id);
+  const { error: upErr } = await supabase.from("order").update({ order_items: items, cost_estimate: total, tax_rate: taxRate, balance_due: Math.max(0, r2(total - num(fresh.amount_paid))), paid: total > 0 && total - num(fresh.amount_paid) <= 0.004, updated_date: nowISO() }).eq("id", order.id);
   if (upErr) throw upErr;
   if (manualCost > 0) {
     const row = { tenant_id: tenantId, type: "expense", category: "parts", amount: r2(manualCost), description: `Piezas manuales · Orden ${order.order_number}`, payment_method: "cash", recorded_by: by || "Web", order_id: order.id, is_settled: true };

@@ -371,6 +371,7 @@ export default function POS() {
     if (!cart.length) throw new Error("El carrito está vacío");
     if (!payments.length) throw new Error("Sin métodos de pago");
     const total = totals.total;
+    const saleCart = taxEnabled ? cart : cart.map((i) => ({ ...i, taxRate: 0 }));
     const totalReceived = r2(payments.reduce((s, p) => s + p.amount, 0));
     let changeDue = 0;
     if (split) {
@@ -384,7 +385,7 @@ export default function POS() {
     }
     const primary = payments.reduce((a, b) => (b.amount > a.amount ? b : a), payments[0]);
     const snapshot = {
-      items: cart,
+      items: saleCart,
       subtotal: totals.subtotal,
       taxAmount: totals.taxAmount,
       discount: totals.totalDiscount,
@@ -407,7 +408,7 @@ export default function POS() {
     const employeeName = employee?.full_name || "";
     const cartSnapshot = cart;
     const { saleId } = await recordPosSale({
-      tenantId, register, cart, totals, payments, customLabel: split ? null : customLabel, changeDue, employeeName,
+      tenantId, register, cart: saleCart, totals, payments, customLabel: split ? null : customLabel, changeDue, employeeName,
       customerId: customer?.id || null, notes: notes.trim() ? notes : null,
     });
     snapshot.saleId = saleId;

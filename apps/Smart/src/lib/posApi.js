@@ -2,7 +2,7 @@ import { supabase } from "../../../../lib/supabase-client.js";
 import { recordSaleAndTransactions } from "@/components/financial/recordSale";
 import { fetchRegister, fetchOpenRegister } from "@/lib/cashRegisterApi";
 import { invokeEdge } from "@/lib/edgeFn";
-import { itemToPayload, isFullDevice, r2 } from "@/lib/posLogic";
+import { itemToPayload, isFullDevice, isServiceItem, r2 } from "@/lib/posLogic";
 
 const nowISO = () => new Date().toISOString();
 
@@ -189,8 +189,10 @@ export async function restoreStockForSale({ items, products, tenantId, employeeN
     }
     if (!it.productId) continue;
     const product = products.find((p) => p.id === it.productId);
-    if (!product) continue;
-    const giveBack = deltas && deltas[product.id] !== undefined ? deltas[product.id] : it.quantity;
+    if (!product || isServiceItem(product) || product.stock === null || product.stock === undefined) continue;
+    const hasDeltas = deltas && Object.keys(deltas).length > 0;
+    if (hasDeltas && deltas[product.id] === undefined) continue;
+    const giveBack = hasDeltas ? deltas[product.id] : it.quantity;
     if (!(giveBack > 0)) continue;
     await adjustProductStock(product, giveBack, "Venta anulada", label, tenantId).catch(() => {});
   }
@@ -230,19 +232,28 @@ export async function voidFromHistory({ sale, tenantId, authorizedByPin, employe
   const actor = String(employeeName || "").trim() || who;
   await voidSaleRow({ saleId: sale.id, reason: `Venta anulada por ${actor} (${who})`, byName: actor, byId: employeeId });
   const pm = String(sale.payment_method || "").toLowerCase();
-  await insertRefundTransaction({
+  const refund = () => insertRefundTransaction({
     tenantId,
     amount: Number(sale.total) || 0,
-    paymentMethod: ["cash", "card", "ath_movil"].includes(pm) ? pm : "cash",
+    paymentMethod: pm || "cash",
     description: `Venta ${sale.sale_number || sale.id} anulada`,
     recordedBy: employeeName,
-  }).catch(() => {});
+  });
+  try {
+    await refund();
+  } catch {
+    try {
+      await refund();
+    } catch {
+      throw new Error("La venta quedó anulada pero no se pudo registrar la devolución en Finanzas. Regístrala a mano.");
+    }
+  }
   const items = Array.isArray(sale.items) ? sale.items : [];
   for (const it of items) {
     if (!it?.product_id) continue;
-    const { data } = await supabase.from("product").select("id,name,stock").eq("id", it.product_id).limit(1);
+    const { data } = await supabase.from("product").select("id,name,stock,type,tipo_principal,part_type,category").eq("id", it.product_id).limit(1);
     const product = data?.[0];
-    if (!product) continue;
+    if (!product || isServiceItem(product) || product.stock === null || product.stock === undefined) continue;
     await adjustProductStock(product, Number(it.quantity) || 0, `Venta ${sale.sale_number || sale.id} anulada`, String(employeeName || "").trim() || "POS", tenantId).catch(() => {});
   }
 }

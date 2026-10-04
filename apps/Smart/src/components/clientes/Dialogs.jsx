@@ -130,6 +130,7 @@ export function CampaignDialog({ open, onClose, tenantId, tenant, customers }) {
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [lastMap, setLastMap] = useState(null);
+  const [ctxError, setCtxError] = useState(false);
   const [progress, setProgress] = useState(null);
   const [sending, setSending] = useState(false);
   const abortRef = useRef(null);
@@ -137,7 +138,8 @@ export function CampaignDialog({ open, onClose, tenantId, tenant, customers }) {
     if (!open) return;
     setLastMap(null);
     setProgress(null);
-    campaignContext(tenantId).then(setLastMap, () => setLastMap({}));
+    setCtxError(false);
+    campaignContext(tenantId).then(setLastMap, () => { setLastMap(null); setCtxError(true); });
   }, [open, tenantId]);
   const recipients = useMemo(() => (lastMap ? segmentRecipients(customers, segment, lastMap) : []), [customers, segment, lastMap]);
   const canSend = !sending && lastMap && recipients.length > 0 && subject.trim() && body.trim();
@@ -164,7 +166,7 @@ export function CampaignDialog({ open, onClose, tenantId, tenant, customers }) {
               </button>
             ); })}
           </div>
-          <p style={{ fontSize: 13, padding: "6px 4px 0", color: lastMap && recipients.length === 0 ? "#FFA640" : "#4DC780" }}>{lastMap ? `${recipients.length} clientes con email en este segmento` : "Calculando actividad…"}</p>
+          <p style={{ fontSize: 13, padding: "6px 4px 0", color: ctxError || (lastMap && recipients.length === 0) ? "#FFA640" : "#4DC780" }}>{ctxError ? "No se pudo cargar la actividad de los clientes. Cierra y vuelve a abrir." : lastMap ? `${recipients.length} clientes con email en este segmento` : "Calculando actividad…"}</p>
         </div>
         <div>
           <p style={{ fontSize: 12, color: SUB, textTransform: "uppercase", padding: "0 4px 6px" }}>Mensaje</p>

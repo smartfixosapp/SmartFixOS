@@ -173,7 +173,8 @@ export function greeting(customer, shop) {
 }
 
 export async function campaignContext(tenantId) {
-  const { data } = await supabase.from("order").select("customer_id,created_at").eq("tenant_id", tenantId).eq("is_deleted", false).order("created_at", { ascending: false }).limit(5000);
+  const { data, error } = await supabase.from("order").select("customer_id,created_at").eq("tenant_id", tenantId).eq("is_deleted", false).order("created_at", { ascending: false }).limit(5000);
+  if (error) throw error;
   const last = {};
   (data || []).forEach((r) => { if (r.customer_id && r.created_at && !last[r.customer_id]) last[r.customer_id] = new Date(r.created_at); });
   return last;
@@ -193,7 +194,7 @@ export function segmentRecipients(customers, segment, lastMap) {
   return withEmail.filter((c) => {
     if (segment === "vip") return tierOf(c).toLowerCase().includes("vip") || num(c.total_spent) >= 500;
     if (segment === "b2b") return c.is_b2b === true;
-    if (segment === "inactive") { const l = lastMap[c.id]; return !l || l < cutoff; }
+    if (segment === "inactive") { const l = lastMap[c.id]; return l ? l < cutoff : num(c.total_orders) > 0; }
     if (segment === "new") return isNewThisMonth(c);
     return true;
   });
