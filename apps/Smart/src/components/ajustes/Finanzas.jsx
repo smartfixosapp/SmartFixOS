@@ -4,7 +4,7 @@ import { Target, Repeat, CalendarClock, Percent, CreditCard, FileText, Banknote,
 import { useNavigate } from "react-router-dom";
 import { Dialog, TextAction, tint } from "@/components/pos/native/posUi";
 import { A, SubPage, Group, Row, ToggleRow, Field, PrimaryBtn, ErrorLine } from "./ui";
-import { updateTenant, fetchTenantRow, settingsOf, paymentMethodsOf, posReciboOf, recurringOf, taxPercentOf } from "@/lib/tenantSettings";
+import { updateTenant, fetchTenantRow, settingsOf, paymentMethodsOf, posReciboOf, recurringOf, taxPercentOf, isPlanTeamOrAbove } from "@/lib/tenantSettings";
 import { imageToJpegBlob } from "@/lib/comprasApi";
 
 const uuid = () => (typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`).toUpperCase();
@@ -23,7 +23,7 @@ export function FinanzasList({ tenant, go }) {
       <Group header="Dinero del taller" pad={false}>
         <Row first Icon={Target} color="#FF6482" title="Plan financiero" sub="Gastos, nómina y meta → mínimo diario" onClick={() => navigate("/Financial")} />
         <Row Icon={Repeat} color={A.danger} title="Gastos Fijos" sub={items.length ? `${items.length} gastos · ${usd0(items.reduce((s, i) => s + i.amount, 0))}/mes` : "Sin configurar"} onClick={() => go("finanzas", "gastos-fijos")} />
-        <Row Icon={CalendarClock} color={A.vip} title="Nómina y Horario" sub="Pago, horas y calendario" onClick={() => navigate("/Equipo?tab=nomina")} />
+        <Row Icon={CalendarClock} color={A.vip} title="Nómina y Horario" sub="Pago, horas y calendario" locked={!isPlanTeamOrAbove(tenant)} onClick={() => navigate("/Equipo?tab=nomina")} />
         <Row Icon={Percent} color={A.warning} title="Impuesto (IVU)" sub={`${taxPercentOf(tenant).toFixed(1)}% — se edita en Info del Negocio`} onClick={() => go("mi-negocio", "info")} />
         <Row Icon={CreditCard} color={A.success} title="Métodos de Pago" sub={methods || "Ninguno habilitado"} onClick={() => go("finanzas", "metodos-pago")} />
         <Row Icon={FileText} color={A.warning} title="POS & Recibo" sub={channels || "Ningún canal habilitado"} onClick={() => go("finanzas", "pos-recibo")} />

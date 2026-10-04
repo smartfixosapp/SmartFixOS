@@ -202,7 +202,7 @@ export default function Compras() {
   return (
     <div className="apple-type min-h-dvh" style={{ background: "#000", color: "#fff" }} onClick={() => setFilterMenu(false)}>
       {desktop ? (
-        <div className="flex" style={{ height: "100dvh" }}>
+        <div className="flex" style={{ height: "calc(100dvh - var(--app-nav-h, 0px))" }}>
           <div className="overflow-y-auto" style={{ width: 420, flexShrink: 0, padding: "24px 16px 40px", borderRight: `0.5px solid ${W.sep}` }}>{list}</div>
           <div className="flex-1 overflow-y-auto" style={{ maxWidth: 820 }}>{detail}</div>
         </div>

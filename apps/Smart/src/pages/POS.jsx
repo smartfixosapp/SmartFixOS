@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { MoreHorizontal, PauseCircle, Wrench, Search, PlusCircle, RefreshCw, History, ScanBarcode, Loader2, Package, Smartphone, ShoppingCart, X, Camera } from "lucide-react";
+import { MoreHorizontal, PauseCircle, Wrench, Search, PlusCircle, RefreshCw, History, ScanBarcode, Loader2, Package, Smartphone, ShoppingCart, X, Camera, Lock } from "lucide-react";
 import { P, tint, Toast, AlertDialog, Dialog, TextAction } from "@/components/pos/native/posUi";
 import { ProductCard, ContextMenu, Showcase, TipoChips, CategoryChips, QuickRow, SearchBar, CashClosedBanner, ContextStrip, SessionStrip } from "@/components/pos/native/Catalog";
 import { CartPane, CartAdjustments, cartOfferFor } from "@/components/pos/native/Cart";
@@ -56,15 +56,14 @@ function writeJSON(key, value) {
   }
 }
 
-function useIsDesktop() {
-  const q = "(min-width: 1024px)";
+function useMedia(q) {
   const [v, setV] = useState(() => typeof window !== "undefined" && window.matchMedia(q).matches);
   useEffect(() => {
     const m = window.matchMedia(q);
     const on = () => setV(m.matches);
     m.addEventListener("change", on);
     return () => m.removeEventListener("change", on);
-  }, []);
+  }, [q]);
   return v;
 }
 
@@ -138,7 +137,8 @@ function ScannerDialog({ open, onClose, onCode }) {
 export default function POS() {
   const navigate = useNavigate();
   const location = useLocation();
-  const isDesktop = useIsDesktop();
+  const isDesktop = useMedia("(min-width: 768px)");
+  const isWideDesktop = useMedia("(min-width: 1024px)");
   const tenantId = storedTenantId();
 
   const [tenant, setTenant] = useState(null);
@@ -561,11 +561,12 @@ export default function POS() {
     const items = [];
     if (cart.length) items.push({ label: "Poner carrito en pausa", Icon: PauseCircle, onPress: holdCart }, { divider: true });
     items.push({ label: "Cobrar a orden existente", Icon: Wrench, onPress: () => setDialog("orderPay") });
-    items.push({ label: "Buscar orden", Icon: Search, onPress: () => navigate("/Orders") });
+    items.push({ label: "Buscar orden", Icon: Search, onPress: () => navigate("/Orders", { state: { focusSearch: true } }) });
     items.push({ label: "Añadir item manual", Icon: PlusCircle, onPress: () => setDialog("manual") });
     items.push({ label: "Recargar catálogo", Icon: RefreshCw, onPress: load });
     items.push({ divider: true });
     items.push({ label: "Historial de transacciones", Icon: History, onPress: () => setDialog("history") });
+    if (register) items.push({ label: "Cerrar caja", Icon: Lock, onPress: onCashPill });
     setMenu({ x: r.right - 240, y: r.bottom + 6, items });
   };
 
@@ -616,18 +617,18 @@ export default function POS() {
   const catalog = (
     <div className="flex flex-col" style={{ gap: 12 }}>
       {!register && !loading && <CashClosedBanner onOpen={() => setDialog("openCash")} />}
-      <ContextStrip register={register} customer={customer} onCashPill={onCashPill} onCustomer={() => setDialog("customer")} onClearCustomer={() => setCustomer(null)} />
-      <SessionStrip stats={session} />
+      {!isDesktop && <ContextStrip register={register} customer={customer} onCashPill={onCashPill} onCustomer={() => setDialog("customer")} onClearCustomer={() => setCustomer(null)} />}
+      {!isDesktop && <SessionStrip stats={session} />}
       <SearchBar value={searchText} onChange={onSearchChange} onSubmit={() => handleScannedCode(searchText, true)} onScan={() => setDialog("scanner")} inputRef={searchRef} />
       <TipoChips tipo={tipo} onChange={(t) => { setTipo(t); setCategory(null); }} />
       <CategoryChips categories={categories} selected={category} onChange={setCategory} />
-      {!searchText && <QuickRow kind="favorites" products={pinnedProducts} quantityFor={quantityFor} onAdd={addToCart} />}
-      {!searchText && <QuickRow kind="recents" products={recentProducts} quantityFor={quantityFor} onAdd={addToCart} />}
+      {!isDesktop && !searchText && <QuickRow kind="favorites" products={pinnedProducts} quantityFor={quantityFor} onAdd={addToCart} />}
+      {!isDesktop && !searchText && <QuickRow kind="recents" products={recentProducts} quantityFor={quantityFor} onAdd={addToCart} />}
       {loadError && <p style={{ fontSize: 13, color: P.danger }}>{loadError}</p>}
       {loading ? (
         <div className="flex justify-center" style={{ padding: 60 }}><Loader2 className="w-7 h-7 animate-spin" style={{ color: P.sub }} /></div>
       ) : filtered.length === 0 ? emptyState : (
-        <div className="grid" style={{ gap: 10, gridTemplateColumns: `repeat(auto-fill, minmax(${isDesktop ? 180 : 150}px, 1fr))`, paddingTop: 8 }}>
+        <div className="grid" style={{ gap: 10, gridTemplateColumns: `repeat(auto-fill, minmax(${isWideDesktop ? 180 : 150}px, 1fr))`, paddingTop: 8 }}>
           {filtered.map(cardFor)}
         </div>
       )}
@@ -655,14 +656,14 @@ export default function POS() {
   );
 
   return (
-    <div className="apple-type" style={{ background: P.bg, color: P.text, minHeight: "100dvh" }}>
+    <div className="apple-type" style={{ background: P.bg, color: P.text, minHeight: "calc(100dvh - var(--app-nav-h, 0px))" }}>
       {isDesktop ? (
-        <div className="flex" style={{ height: "calc(100dvh - 88px)" }}>
+        <div className="flex" style={{ height: "calc(100dvh - var(--app-nav-h, 0px))" }}>
           <div className="flex-1 min-w-0 overflow-y-auto" style={{ padding: "0 20px 24px" }}>
             {header}
             {catalog}
           </div>
-          <div style={{ width: 380, borderLeft: `0.5px solid ${P.sep}`, flexShrink: 0 }}>{cartPane}</div>
+          <div style={{ width: "clamp(320px, 38vw, 380px)", borderLeft: `0.5px solid ${P.sep}`, flexShrink: 0 }}>{cartPane}</div>
         </div>
       ) : (
         <div style={{ padding: "0 16px 190px" }}>

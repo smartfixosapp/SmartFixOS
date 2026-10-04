@@ -2,7 +2,7 @@
   "name": "Archilla OS",
   "short_name": "Archilla OS",
   "description": "Sistema de gestión integral para talleres de reparación",
-  "start_url": "/PinAccess",
+  "start_url": "/Dashboard",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone"],
   "orientation": "any",

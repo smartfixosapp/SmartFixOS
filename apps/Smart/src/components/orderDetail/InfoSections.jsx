@@ -15,16 +15,10 @@ function Stars({ rating }) {
   );
 }
 
-export default function InfoSections({ order, onOpenHistory, onTech, onQuickService, onPromisedDate }) {
-  const items = Array.isArray(order.order_items) ? order.order_items : [];
-  const balance = remainingBalance(order);
-  const reported = order.device_security?.imei_check_result === "reported";
-  const showQuick = order.status === "intake" || order.status === "diagnosing";
-  const hasPromised = !!order.promised_date && !isTerminal(order.status);
+export function RatingCard({ order }) {
   const rating = parseInt(order.review_rating, 10);
-
   return (
-    <div className="flex flex-col gap-5">
+    <>
       {Number.isFinite(rating) && rating > 0 && (
         <div>
           <SectionHeader>Calificación del cliente</SectionHeader>
@@ -35,16 +29,14 @@ export default function InfoSections({ order, onOpenHistory, onTech, onQuickServ
         </div>
       )}
 
-      <div>
-        <SectionHeader>Cliente</SectionHeader>
-        <Card style={{ padding: "0 16px" }}>
-          <Row label="Nombre" value={order.customer_name || "—"} onClick={onOpenHistory} />
-          <Row label="Telefono" value={order.customer_phone || "—"} onClick={order.customer_phone ? () => { window.location.href = `tel:${String(order.customer_phone).replace(/[^\d+]/g, "")}`; } : undefined} />
-          <Row label="Email" value={order.customer_email || "—"} />
-          <Row label="Técnico" value={order.assigned_to_name || "Sin asignar"} valueColor={order.assigned_to_name ? C.text : C.amber} onClick={onTech} />
-        </Card>
-      </div>
+    </>
+  );
+}
 
+export function QuickServiceCard({ order, onQuickService }) {
+  const showQuick = order.status === "intake" || order.status === "diagnosing";
+  return (
+    <>
       {showQuick && (
         <div>
           <SectionHeader>Tipo de orden</SectionHeader>
@@ -67,12 +59,23 @@ export default function InfoSections({ order, onOpenHistory, onTech, onQuickServ
         </div>
       )}
 
+    </>
+  );
+}
+
+export function DeviceCard({ order, onPromisedDate, compact = false }) {
+  const reported = order.device_security?.imei_check_result === "reported";
+  const hasPromised = !!order.promised_date && !isTerminal(order.status);
+  const serial = order.device_serial || order.device_security?.device_imei;
+  const hasContent = !compact || !!order.device_color || !!serial || reported || !hasPromised;
+  if (!hasContent) return null;
+  return (
       <div>
         <SectionHeader>Dispositivo</SectionHeader>
         <Card style={{ padding: "0 16px" }}>
-          {order.device_type && <Row label="Tipo" value={order.device_type} />}
-          {order.device_brand && <Row label="Marca" value={order.device_brand} />}
-          {(order.device_model || order.device_family) && <Row label="Modelo" value={order.device_model || order.device_family} />}
+          {!compact && order.device_type && <Row label="Tipo" value={order.device_type} />}
+          {!compact && order.device_brand && <Row label="Marca" value={order.device_brand} />}
+          {!compact && (order.device_model || order.device_family) && <Row label="Modelo" value={order.device_model || order.device_family} />}
           {order.device_color && <Row label="Color" value={order.device_color} />}
           {(order.device_serial || order.device_security?.device_imei) && <Row label="Serial/IMEI" value={order.device_serial || order.device_security?.device_imei} />}
           {reported && (
@@ -83,7 +86,28 @@ export default function InfoSections({ order, onOpenHistory, onTech, onQuickServ
           {!hasPromised && <Row label="Listo para" value="Sin fecha" valueColor={C.sub} onClick={onPromisedDate} />}
         </Card>
       </div>
+  );
+}
 
+export default function InfoSections({ order, onOpenHistory, onTech, onQuickService, onPromisedDate }) {
+  const items = Array.isArray(order.order_items) ? order.order_items : [];
+  const balance = remainingBalance(order);
+
+  return (
+    <div className="flex flex-col gap-5">
+      <RatingCard order={order} />
+      <div>
+        <SectionHeader>Cliente</SectionHeader>
+        <Card style={{ padding: "0 16px" }}>
+          <Row label="Nombre" value={order.customer_name || "—"} onClick={onOpenHistory} />
+          <Row label="Telefono" value={order.customer_phone || "—"} onClick={order.customer_phone ? () => { window.location.href = `tel:${String(order.customer_phone).replace(/[^\d+]/g, "")}`; } : undefined} />
+          <Row label="Email" value={order.customer_email || "—"} />
+          <Row label="Técnico" value={order.assigned_to_name || "Sin asignar"} valueColor={order.assigned_to_name ? C.text : C.amber} onClick={onTech} />
+        </Card>
+      </div>
+
+      <QuickServiceCard order={order} onQuickService={onQuickService} />
+      <DeviceCard order={order} onPromisedDate={onPromisedDate} />
       {order.initial_problem && (
         <div>
           <SectionHeader>Problema Reportado</SectionHeader>

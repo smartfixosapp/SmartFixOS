@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, X, ArrowUpDown, Megaphone, UserPlus, Users, Crown, Phone, MessageSquare, Mail, ArrowUpRight, Wrench, ShoppingCart, Pencil, Trash2, Star, Check, AlertTriangle, Loader2, ScanSearch } from "lucide-react";
+import { Search, X, ArrowUpDown, Megaphone, UserPlus, Users, Crown, Phone, MessageSquare, Mail, ArrowUpRight, Wrench, ShoppingCart, Pencil, Trash2, Star, Check, AlertTriangle, Loader2, ScanSearch, ChevronDown, Building2, History, DollarSign, TrendingUp } from "lucide-react";
 import { AlertDialog, Toggle, tint } from "@/components/pos/native/posUi";
 import { ManagerPinDialog } from "@/components/pos/native/Receipt";
 import { money } from "@/components/finanzas/ui";
@@ -19,6 +19,8 @@ const SUB = "#8E8E93";
 const BRAND = "#F2662E";
 const AVATAR = ["#0A84FF", "#BF5AF2", "#30D158", "#FF9F0A", "#FF375F", "#40C8E0"];
 
+const BUCKET_ICON = { all: Users, vip: Crown, b2b: Building2, new: UserPlus, risk: AlertTriangle, inactive: History };
+
 const initialsOf = (name) => String(name || "").trim().split(/\s+/).slice(0, 2).map((w) => w[0] || "").join("").toUpperCase() || "?";
 const colorFor = (name) => { let h = 0; for (const ch of String(name || "")) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return AVATAR[h % AVATAR.length]; };
 
@@ -34,7 +36,11 @@ function Avatar({ customer, size = 44 }) {
   return (
     <span className="relative flex-shrink-0" style={{ width: size, height: size }}>
       <span style={{ width: size, height: size, borderRadius: 999, background: tint(c, 0.2), color: c, display: "flex", alignItems: "center", justifyContent: "center", fontSize: size * 0.36, fontWeight: 700 }}>{initialsOf(customer.name)}</span>
-      {isVip(customer) && <Crown className="absolute" style={{ top: -4, right: -4, width: size * 0.3, height: size * 0.3, color: "#FFC733" }} />}
+      {isVip(customer) && (
+        <span className="absolute flex items-center justify-center" style={{ top: -4, right: -4, width: size * 0.4, height: size * 0.4, borderRadius: 999, background: "#1C1C1E" }}>
+          <Crown style={{ width: size * 0.26, height: size * 0.26, color: "#FFC733" }} />
+        </span>
+      )}
     </span>
   );
 }
@@ -105,7 +111,7 @@ function CustomerDetail({ customer, tenantId, tenant, employee, onChanged, onDel
     customer.phone && [MessageSquare, "#1ABA66", "WhatsApp", `https://wa.me/${digits}?text=${msg}`],
     customer.email && [Mail, "#FFC733", customer.email, `mailto:${customer.email}`],
   ].filter(Boolean);
-  const tile = (label, value, color) => <div className="flex-1 flex flex-col" style={{ gap: 2, padding: 12, borderRadius: 12, background: "#2C2C2E" }}><span style={{ fontSize: 10, fontWeight: 700, color: SUB }}>{label}</span><span className="truncate" style={{ fontSize: 17, fontWeight: 800, color }}>{value}</span></div>;
+  const tile = (Icon, label, value, color) => <div className="flex-1 flex flex-col" style={{ gap: 2, padding: 12, borderRadius: 12, background: "#2C2C2E" }}><span className="flex items-center" style={{ gap: 4, fontSize: 10, fontWeight: 700, color: SUB }}><Icon style={{ width: 11, height: 11, color }} />{label}</span><span className="truncate" style={{ fontSize: 17, fontWeight: 800, color }}>{value}</span></div>;
   const tier = tierOf(customer);
 
   return (
@@ -131,7 +137,7 @@ function CustomerDetail({ customer, tenantId, tenant, employee, onChanged, onDel
         {head("Membresía")}
         {card(<div className="flex items-center gap-3" style={{ padding: "12px 14px" }}>
           <span className="flex-1"><span className="block" style={{ fontSize: 16 }}>Membresía activa</span><span className="block" style={{ fontSize: 12, color: SUB }}>Recibe 5% de descuento automático en el POS.</span></span>
-          <Toggle on={isMember} onChange={requestMember} disabled={!customer.id || updating} label="Membresía activa" />
+          <Toggle on={isMember} onChange={requestMember} disabled={!customer.id || updating} label="Membresía activa" compact />
         </div>)}
         {memberError && <p style={{ fontSize: 12, color: "#FF453A", padding: "6px 4px 0" }}>{memberError}</p>}
       </div>
@@ -139,7 +145,7 @@ function CustomerDetail({ customer, tenantId, tenant, employee, onChanged, onDel
       <div>
         {head("Resumen financiero")}
         {card(<div style={{ padding: 12 }}>
-          <div className="flex" style={{ gap: 8 }}>{tile("GASTADO", spent > 0 ? money(spent) : "—", "#4DC780")}{tile("ÓRDENES", count > 0 ? String(count) : "—", BRAND)}{tile("PROMEDIO", spent > 0 && count > 0 ? money(spent / count) : "—", "#66B3FF")}</div>
+          <div className="flex" style={{ gap: 8 }}>{tile(DollarSign, "GASTADO", spent > 0 ? money(spent) : "—", "#4DC780")}{tile(Wrench, "ÓRDENES", count > 0 ? String(count) : "—", BRAND)}{tile(TrendingUp, "PROMEDIO", spent > 0 && count > 0 ? money(spent / count) : "—", "#66B3FF")}</div>
           <div className="flex items-center" style={{ padding: "12px 2px 0" }}><Star className="w-4 h-4" style={{ color: "#FFA640", marginRight: 8 }} /><span className="flex-1" style={{ fontSize: 15 }}>Puntos</span><span style={{ fontSize: 15, fontWeight: 700 }}>{num(customer.loyalty_points)}</span></div>
           {tier.toLowerCase() !== "regular" && <div className="flex items-center" style={{ padding: "10px 2px 0" }}><span className="flex-1" style={{ fontSize: 15 }}>Nivel</span><span style={{ fontSize: 15, fontWeight: 700, color: "#FFC733" }}>{tier.charAt(0).toUpperCase() + tier.slice(1)}</span></div>}
           {!wide && <button onClick={() => setHistoryOpen(true)} className="w-full flex items-center" style={{ padding: "12px 2px 0", color: BRAND, fontSize: 14, fontWeight: 600 }}>Ver historial completo</button>}
@@ -247,35 +253,47 @@ export default function Clientes() {
     return [e[0], e[1] || `Los clientes registrados en ${monthName.charAt(0).toUpperCase() + monthName.slice(1)} aparecen aquí.`];
   })();
 
-  const stat = (label, value, color) => <div className="flex-1 flex flex-col" style={{ gap: 2, padding: 12, borderRadius: 12, background: CARD }}><span style={{ fontSize: 10, fontWeight: 800, color: SUB, letterSpacing: "0.04em" }}>{label}</span><span style={{ fontSize: 26, fontWeight: 800, color }}>{value}</span></div>;
+  const stat = (Icon, label, value, color) => <div className="flex-1 flex flex-col" style={{ gap: 2, padding: 12, borderRadius: 12, background: CARD }}><span className="flex items-center" style={{ gap: 4, fontSize: 10, fontWeight: 800, color: SUB, letterSpacing: "0.04em" }}><Icon style={{ width: 11, height: 11, color }} />{label}</span><span style={{ fontSize: 26, fontWeight: 800, color }}>{value}</span></div>;
   const afterCreate = (order) => { setCreated(order); setTimeout(() => setCreated((c) => (c && c.id === order?.id ? null : c)), 4000); };
+
+  const searchBox = (
+    <label className="flex items-center gap-2" style={{ height: 44, padding: "0 14px", borderRadius: 999, background: "rgba(255,255,255,0.06)", width: wide ? 300 : undefined }}>
+      <Search className="w-4 h-4" style={{ color: SUB }} />
+      <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar cliente..." aria-label="Buscar cliente" className="flex-1 min-w-0 bg-transparent outline-none" style={{ color: "#fff", fontSize: 15 }} />
+      {search && <button onClick={() => setSearch("")} aria-label="Limpiar" style={{ color: SUB }}><X className="w-4 h-4" /></button>}
+    </label>
+  );
+
+  const BucketIcon = BUCKET_ICON[bucket] || Users;
+  const filterHeader = !debounced && (
+    <div className="flex flex-col" style={{ gap: 12 }}>
+      <div className="flex" style={{ gap: 8 }}>{stat(Users, "TOTAL", customers.length, "#66B3FF")}{stat(Crown, "VIP", counts.vip || 0, "#FFC733")}{stat(UserPlus, "NUEVOS MES", counts.new || 0, "#4DC780")}</div>
+      <div className="grid grid-cols-2" style={{ padding: 2, gap: 2, borderRadius: 9, background: "rgba(118,118,128,0.24)" }}>
+        {[["Clientes", !isB2BMode, "all"], ["Empresas", isB2BMode, "b2b"]].map(([l, on, k]) => <button key={l} onClick={() => setBucket(k)} style={{ padding: "7px 0", borderRadius: 7, fontSize: 14, fontWeight: 600, background: on ? BRAND : "transparent", color: "#fff" }}>{l}</button>)}
+      </div>
+      <div className="relative">
+        <button onClick={() => setMenuOpen((v) => !v)} aria-haspopup="menu" aria-expanded={menuOpen} className="apple-press inline-flex items-center gap-2" style={{ padding: "7px 14px", borderRadius: 999, background: tint(activeBucket[2], 0.14), color: activeBucket[2], fontSize: 14, fontWeight: 700 }}>
+          <BucketIcon className="w-4 h-4" />{activeBucket[1]}<ChevronDown className="w-3.5 h-3.5" />
+        </button>
+        {menuOpen && (
+          <>
+            <div className="fixed inset-0" style={{ zIndex: 60 }} onClick={() => setMenuOpen(false)} />
+            <div role="menu" className="absolute" style={{ top: 40, left: 0, zIndex: 61, width: 230, borderRadius: 14, background: "#3A3A3C", overflow: "hidden", boxShadow: "0 12px 32px rgba(0,0,0,0.5)" }}>
+              {BUCKETS.map(([k, l, c]) => {
+                const I = BUCKET_ICON[k] || Users;
+                return <button key={k} role="menuitem" onClick={() => { setBucket(k); setMenuOpen(false); }} className="w-full flex items-center gap-2 text-left" style={{ padding: "11px 14px", fontSize: 15, color: c }}><I className="w-4 h-4" />{l} ({counts[k] || 0}){bucket === k && <Check className="w-4 h-4 ml-auto" />}</button>;
+              })}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
 
   const list = (
     <div className="flex flex-col" style={{ gap: 12 }}>
-      <label className="flex items-center gap-2" style={{ height: 44, padding: "0 14px", borderRadius: 999, background: "rgba(255,255,255,0.06)" }}>
-        <Search className="w-4 h-4" style={{ color: SUB }} />
-        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar cliente..." aria-label="Buscar cliente" className="flex-1 bg-transparent outline-none" style={{ color: "#fff", fontSize: 15 }} />
-        {search && <button onClick={() => setSearch("")} aria-label="Limpiar" style={{ color: SUB }}><X className="w-4 h-4" /></button>}
-      </label>
-      {!debounced && (
-        <>
-          <div className="flex" style={{ gap: 8 }}>{stat("TOTAL", customers.length, "#66B3FF")}{stat("VIP", counts.vip || 0, "#FFC733")}{stat("NUEVOS MES", counts.new || 0, "#4DC780")}</div>
-          <div className="grid grid-cols-2" style={{ padding: 2, gap: 2, borderRadius: 9, background: "rgba(118,118,128,0.24)" }}>
-            {[["Clientes", !isB2BMode, "all"], ["Empresas", isB2BMode, "b2b"]].map(([l, on, k]) => <button key={l} onClick={() => setBucket(k)} style={{ padding: "7px 0", borderRadius: 7, fontSize: 14, fontWeight: 600, background: on ? BRAND : "transparent", color: "#fff" }}>{l}</button>)}
-          </div>
-          <div className="relative">
-            <button onClick={() => setMenuOpen((v) => !v)} aria-haspopup="menu" aria-expanded={menuOpen} className="apple-press flex items-center gap-2" style={{ padding: "7px 14px", borderRadius: 999, background: tint(activeBucket[2], 0.14), color: activeBucket[2], fontSize: 14, fontWeight: 700 }}>{activeBucket[1]} ({counts[bucket] || 0})</button>
-            {menuOpen && (
-              <>
-                <div className="fixed inset-0" style={{ zIndex: 60 }} onClick={() => setMenuOpen(false)} />
-                <div role="menu" className="absolute" style={{ top: 40, left: 0, zIndex: 61, width: 220, borderRadius: 14, background: "#3A3A3C", overflow: "hidden", boxShadow: "0 12px 32px rgba(0,0,0,0.5)" }}>
-                  {BUCKETS.map(([k, l, c]) => <button key={k} role="menuitem" onClick={() => { setBucket(k); setMenuOpen(false); }} className="w-full flex items-center gap-2 text-left" style={{ padding: "11px 14px", fontSize: 15, color: c }}>{l} ({counts[k] || 0}){bucket === k && <Check className="w-4 h-4 ml-auto" />}</button>)}
-                </div>
-              </>
-            )}
-          </div>
-        </>
-      )}
+      {!wide && searchBox}
+      {!wide && filterHeader}
       {loading ? <div className="flex justify-center" style={{ padding: 40 }}><Loader2 className="w-6 h-6 animate-spin" style={{ color: SUB }} /></div> : filtered.length === 0 ? (
         <div className="flex flex-col items-center text-center" style={{ padding: "40px 12px", gap: 6 }}><Users className="w-9 h-9" style={{ color: "rgba(235,235,245,0.3)" }} /><p style={{ fontSize: 16, fontWeight: 600 }}>{empty[0]}</p><p style={{ fontSize: 13, color: SUB }}>{empty[1]}</p></div>
       ) : (
@@ -310,42 +328,65 @@ export default function Clientes() {
     <div className="flex flex-col items-center text-center" style={{ padding: "80px 16px", gap: 6 }}><Users className="w-10 h-10" style={{ color: "rgba(235,235,245,0.3)" }} /><p style={{ fontSize: 17, fontWeight: 600 }}>Selecciona un cliente</p><p style={{ fontSize: 13, color: SUB }}>Toca un cliente de la lista para ver su ficha.</p></div>
   );
 
+  const iconBtn = { width: 38, height: 38, borderRadius: 999, background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 };
+  const titleRow = (
+    <div className="flex items-center gap-2" style={{ marginBottom: 14 }}>
+      <h1 className="flex-1" style={{ fontSize: 34, fontWeight: 800 }}>Clientes</h1>
+      {wide && searchBox}
+      <div className="relative">
+        <button onClick={() => setSortOpen((v) => !v)} aria-label="Ordenar" aria-haspopup="menu" className="apple-press" style={iconBtn}><ArrowUpDown className="w-4 h-4" /></button>
+        {sortOpen && (
+          <>
+            <div className="fixed inset-0" style={{ zIndex: 60 }} onClick={() => setSortOpen(false)} />
+            <div role="menu" className="absolute" style={{ top: 44, right: 0, zIndex: 61, width: 240, borderRadius: 14, background: "#3A3A3C", overflow: "hidden", boxShadow: "0 12px 32px rgba(0,0,0,0.5)" }}>
+              {[[false, "Nombre"], [true, "Gasto total (Top clientes)"]].map(([v, l]) => <button key={l} role="menuitem" onClick={() => { setByValue(v); setSortOpen(false); }} className="w-full flex items-center text-left" style={{ padding: "11px 14px", fontSize: 15 }}>{l}{byValue === v && <Check className="w-4 h-4 ml-auto" />}</button>)}
+            </div>
+          </>
+        )}
+      </div>
+      <button onClick={() => navigate("/Orders", { state: { focusSearch: true } })} aria-label="Buscar orden" className="apple-press" style={iconBtn}><ScanSearch className="w-4 h-4" /></button>
+      <button onClick={() => setCampaign(true)} aria-label="Campaña de email" className="apple-press" style={iconBtn}><Megaphone className="w-4 h-4" /></button>
+      <button onClick={() => setNewOpen(true)} aria-label="Nuevo cliente" className="apple-press" style={{ ...iconBtn, background: BRAND, color: "#fff" }}><UserPlus className="w-4 h-4" /></button>
+    </div>
+  );
+
+  const overlays = (
+    <>
+      <CustomerEditDialog open={newOpen} onClose={() => setNewOpen(false)} tenantId={tenantId} customer={null} onSaved={(row) => { load(); if (row?.id) { if (wide) setSelectedId(row.id); } }} />
+      <CampaignDialog open={campaign} onClose={() => setCampaign(false)} tenantId={tenantId} tenant={tenant} customers={customers} />
+      {wizard && <NewOrderWizard open prefill={wizard} tenant={tenant} employee={employee} onClose={() => setWizard(null)} onCreated={(o) => { afterCreate(o); load(); }} />}
+      <OrderCreatedToast order={created} onView={() => { const id = created?.id; setCreated(null); if (id) navigate(`/Orders/${id}`); }} />
+    </>
+  );
+
+  if (wide) {
+    return (
+      <div className="apple-type flex flex-col" style={{ background: "#000", color: "#fff", height: "calc(100dvh - var(--app-nav-h, 0px))" }}>
+        <div className="mx-auto w-full" style={{ maxWidth: 1400, padding: "24px 16px 0" }}>
+          {titleRow}
+          {filterHeader && <div style={{ paddingBottom: 14, borderBottom: "0.5px solid rgba(84,84,88,0.6)" }}>{filterHeader}</div>}
+        </div>
+        <div className="mx-auto w-full grid" style={{ maxWidth: 1400, flex: 1, minHeight: 0, padding: "16px 16px 0", gridTemplateColumns: "380px 1fr", gap: 24 }}>
+          <div style={{ overflowY: "auto", minHeight: 0, paddingBottom: 24 }}>{list}</div>
+          <div style={{ overflowY: "auto", minHeight: 0, paddingBottom: 24 }}>{detail}</div>
+        </div>
+        {overlays}
+      </div>
+    );
+  }
+
   return (
     <div className="apple-type min-h-dvh" style={{ background: "#000", color: "#fff", paddingBottom: 100 }}>
       <div className="mx-auto" style={{ maxWidth: 1400, padding: "24px 16px 0" }}>
-        <div className="flex items-center gap-2" style={{ marginBottom: 14 }}>
-          <h1 className="flex-1" style={{ fontSize: 34, fontWeight: 800 }}>Clientes</h1>
-          <div className="relative">
-            <button onClick={() => setSortOpen((v) => !v)} aria-label="Ordenar" aria-haspopup="menu" className="apple-press" style={{ width: 38, height: 38, borderRadius: 999, background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}><ArrowUpDown className="w-4 h-4" /></button>
-            {sortOpen && (
-              <>
-                <div className="fixed inset-0" style={{ zIndex: 60 }} onClick={() => setSortOpen(false)} />
-                <div role="menu" className="absolute" style={{ top: 44, right: 0, zIndex: 61, width: 240, borderRadius: 14, background: "#3A3A3C", overflow: "hidden", boxShadow: "0 12px 32px rgba(0,0,0,0.5)" }}>
-                  {[[false, "Nombre"], [true, "Gasto total (Top clientes)"]].map(([v, l]) => <button key={l} role="menuitem" onClick={() => { setByValue(v); setSortOpen(false); }} className="w-full flex items-center text-left" style={{ padding: "11px 14px", fontSize: 15 }}>{l}{byValue === v && <Check className="w-4 h-4 ml-auto" />}</button>)}
-                </div>
-              </>
-            )}
-          </div>
-          <button onClick={() => navigate("/Orders")} aria-label="Buscar orden" className="apple-press" style={{ width: 38, height: 38, borderRadius: 999, background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}><ScanSearch className="w-4 h-4" /></button>
-          <button onClick={() => setCampaign(true)} aria-label="Campaña de email" className="apple-press" style={{ width: 38, height: 38, borderRadius: 999, background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}><Megaphone className="w-4 h-4" /></button>
-          <button onClick={() => setNewOpen(true)} aria-label="Nuevo cliente" className="apple-press" style={{ width: 38, height: 38, borderRadius: 999, background: BRAND, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}><UserPlus className="w-4 h-4" /></button>
-        </div>
-        {wide ? (
-          <div className="grid" style={{ gridTemplateColumns: "380px 1fr", gap: 24, alignItems: "start" }}>
-            <div>{list}</div>
-            <div style={{ position: "sticky", top: 16 }}>{detail}</div>
-          </div>
-        ) : detailId && selected ? (
+        {titleRow}
+        {detailId && selected ? (
           <div>
             <button onClick={() => setDetailId(null)} style={{ color: BRAND, fontWeight: 600, marginBottom: 10 }}>‹ Clientes</button>
             {detail}
           </div>
         ) : list}
       </div>
-      <CustomerEditDialog open={newOpen} onClose={() => setNewOpen(false)} tenantId={tenantId} customer={null} onSaved={(row) => { load(); if (row?.id) { if (wide) setSelectedId(row.id); } }} />
-      <CampaignDialog open={campaign} onClose={() => setCampaign(false)} tenantId={tenantId} tenant={tenant} customers={customers} />
-      {wizard && <NewOrderWizard open prefill={wizard} tenant={tenant} employee={employee} onClose={() => setWizard(null)} onCreated={(o) => { afterCreate(o); load(); }} />}
-      <OrderCreatedToast order={created} onView={() => { const id = created?.id; setCreated(null); if (id) navigate(`/Orders/${id}`); }} />
+      {overlays}
     </div>
   );
 }

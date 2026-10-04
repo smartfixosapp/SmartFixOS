@@ -1,5 +1,4 @@
 "use client";
-import { useTheme } from "next-themes"
 import { Toaster as Sonner } from "sonner"
 
 /**
@@ -19,27 +18,27 @@ import { Toaster as Sonner } from "sonner"
 const Toaster = ({
   ...props
 }) => {
-  const { theme = "system" } = useTheme()
-
   return (
     (<Sonner
-      theme={theme}
-      position="bottom-center"
-      duration={2200}
+      theme="dark"
+      position="top-center"
+      duration={2600}
       visibleToasts={3}
-      offset={16}
-      mobileOffset={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 88px)" }}
+      offset={80}
+      mobileOffset={{ top: "calc(env(safe-area-inset-top, 0px) + 12px)" }}
       closeButton={false}
       className="toaster group"
       toastOptions={{
-        classNames: {
-          toast:
-            "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",
-          description: "group-[.toast]:text-muted-foreground",
-          actionButton:
-            "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
-          cancelButton:
-            "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
+        style: {
+          borderRadius: 999,
+          background: "rgba(44,44,46,0.94)",
+          color: "#fff",
+          border: "0.5px solid rgba(255,255,255,0.14)",
+          backdropFilter: "blur(20px)",
+          padding: "12px 22px",
+          fontSize: 14,
+          fontWeight: 600,
+          boxShadow: "0 10px 30px rgba(0,0,0,0.45)",
         },
       }}
       {...props} />)

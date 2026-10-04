@@ -24,16 +24,14 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 import SuppliersDialog from "../components/inventory/SuppliersDialog";
-import PurchaseOrderDialog from "../components/inventory/PurchaseOrderDialog";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
-import PurchaseOrderDetailDialog from "../components/inventory/PurchaseOrderDetailDialog";
 import NotificationService from "../components/notifications/NotificationService";
 import DiscountBadge, { formatPriceWithDiscount } from "../components/inventory/DiscountBadge";
 import SetDiscountDialog from "../components/inventory/SetDiscountDialog";
 import ManageCategoriesDialog from "../components/inventory/ManageCategoriesDialog";
-import QuickOrderDialog from "../components/inventory/QuickOrderDialog";
 import InventoryReports from "../components/inventory/InventoryReports";
 import { catalogCache } from "@/components/utils/dataCache";
+import { AlertDialog } from "@/components/pos/native/posUi";
 import { loadSuppliersSafe } from "@/components/utils/suppliers";
 import { supabase } from "../../../../lib/supabase-client.js";
 // IA removida del inventario — solo vive en Finanzas → Órdenes de Compra.
@@ -1003,6 +1001,7 @@ export default function Inventory() {
   const { checkLimit, upgradeTo } = usePlanLimits();
   const [items, setItems] = useState([]);
   const [poList, setPoList] = useState([]);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [suppliers, setSuppliers] = useState([]);
   const [workOrders, setWorkOrders] = useState([]);
   const [deviceCategories, setDeviceCategories] = useState([]);
@@ -1014,15 +1013,8 @@ export default function Inventory() {
   const [showItemDialog, setShowItemDialog] = useState(false);
   const [editing, setEditing] = useState(null);
   const [showSuppliers, setShowSuppliers] = useState(false);
-  const [showPODialog, setShowPODialog] = useState(false);
-  const [showPOMenu, setShowPOMenu] = useState(false);
-  const [showPOList, setShowPOList] = useState(false);
-  const [editingPO, setEditingPO] = useState(null);
-  const [showPODetail, setShowPODetail] = useState(false);
-  const [viewingPO, setViewingPO] = useState(null);
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [showDiscountDialog, setShowDiscountDialog] = useState(false);
-  const [showQuickOrder, setShowQuickOrder] = useState(false);
   const [viewTab, setViewTab] = useState("products");
   const [page, setPage] = useState(1);
   const [mainCategory, setMainCategory] = useState("todos");
@@ -1066,11 +1058,22 @@ export default function Inventory() {
     };
   }, [showMoreMenu]);
 
+  const loadActiveProducts = async () => {
+    const page = 1000;
+    const out = [];
+    for (let skip = 0; skip < 20000; skip += page) {
+      const rows = await base44.entities.Product.filter({ active: true }, "name", page, skip);
+      out.push(...(rows || []));
+      if (!rows || rows.length < page) break;
+    }
+    return out;
+  };
+
   // OPTIMIZACIÓN: Carga de datos con manejo robusto de errores y caché
   const loadInventory = async () => {
     try {
       const [pRes, poRes, supRes, woRes, catRes, ptRes, accRes] = await Promise.allSettled([
-      dataClient.entities.Product?.list?.("-created_date", 500).catch(() => []),
+      loadActiveProducts().catch(() => []),
       dataClient.entities.PurchaseOrder?.list?.("-created_date", 100).catch(() => []),
       loadSuppliersSafe().catch(() => []),
       dataClient.entities.Order?.filter?.({ deleted: false }, "-created_date", 100).catch(() => []),
@@ -1437,30 +1440,25 @@ export default function Inventory() {
     }
   };
 
-  const handleDeleteItem = async (item) => {
-    if (!confirm(`¿Eliminar "${item.name}"?`)) return;
-    try {
-      // Verificar si el producto existe antes de eliminar
-      const exists = items.find((x) => x.id === item.id);
-      if (!exists) {
-        toast.error("El producto ya no existe");
-        await loadInventory();
-        return;
-      }
+  const handleDeleteItem = (item) => setDeleteTarget(item);
 
-      await dataClient.entities.Product.delete(item.id);
+  const confirmDeleteItem = async () => {
+    const item = deleteTarget;
+    setDeleteTarget(null);
+    if (!item) return;
+    try {
+      await dataClient.entities.Product.update(item.id, { active: false });
       setItems((prev) => prev.filter((x) => x.id !== item.id));
-      toast.success("Eliminado");
+      recentCreatedRef.current = recentCreatedRef.current.filter((entry) => entry?.item?.id !== item.id);
+      writeRecentCreatedProducts(recentCreatedRef.current);
+      ["pos-active-products", "pos-active-services"].forEach((key) => {
+        const cached = catalogCache.get(key);
+        if (Array.isArray(cached)) catalogCache.set(key, cached.filter((p) => p.id !== item.id));
+      });
+      toast.success("Producto eliminado");
     } catch (err) {
       console.error("Error deleting:", err);
-
-      // Manejar error específico de "not found"
-      if (err.message?.includes("not found") || err.message?.includes("Not found")) {
-        toast.error("El producto ya fue eliminado");
-        await loadInventory();
-      } else {
-        toast.error("No se pudo eliminar");
-      }
+      toast.error("No se pudo eliminar");
     }
   };
 
@@ -1550,8 +1548,6 @@ export default function Inventory() {
                     { label: 'Historial de movimientos', Icon: History, action: () => { setShowHistorial(true); setShowMoreMenu(false); } },
                     { label: 'Gestionar categorías', Icon: Settings, action: () => { setShowManageCategories(true); setShowMoreMenu(false); } },
                     { label: 'Reportes', Icon: TrendingUp, action: () => { setShowReports(true); setShowMoreMenu(false); } },
-                    null,
-                    { label: 'Orden especial', Icon: Zap, action: () => { setShowQuickOrder(true); setShowMoreMenu(false); }, accent: '#F2662E' },
                   ].map((item, i) =>
                     item === null ? (
                       <div key={i} className="h-[0.5px] mx-3" style={{ backgroundColor: "rgba(255,255,255,0.1)" }} />
@@ -1830,95 +1826,8 @@ export default function Inventory() {
           <InventoryReports open={showReports} onClose={() => setShowReports(false)} />
         )}
 
-        {showPOMenu && (
-          <Dialog open={showPOMenu} onOpenChange={setShowPOMenu}>
-            <DialogContent className="bg-[#1C1C1E] border border-white/10 max-w-md text-white">
-              <DialogHeader>
-                <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
-                  <FileText className="w-6 h-6 text-orange-400" />
-                  Órdenes de Compra
-                </DialogTitle>
-              </DialogHeader>
-              <div className="space-y-3 py-4">
-                <button type="button" onClick={() => { setShowPOMenu(false); setShowPOList(true); }}
-                  className="w-full flex items-center gap-4 p-6 rounded-xl bg-white/5 border border-white/10 hover:border-[#F2662E]/50 transition-all">
-                  <div className="w-12 h-12 rounded-xl bg-[#F2662E] flex items-center justify-center">
-                    <FileText className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="text-left flex-1">
-                    <p className="text-lg font-bold text-white">Ver Órdenes</p>
-                    <p className="text-sm text-white/60">Historial de órdenes de compra</p>
-                  </div>
-                </button>
-                <button type="button" onClick={() => { setShowPOMenu(false); setShowPODialog(true); }}
-                  className="w-full flex items-center gap-4 p-6 rounded-xl bg-white/5 border border-white/10 hover:border-[#F2662E]/50 transition-all">
-                  <div className="w-12 h-12 rounded-xl bg-[#30D158] flex items-center justify-center">
-                    <Plus className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="text-left flex-1">
-                    <p className="text-lg font-bold text-white">Nueva Orden</p>
-                    <p className="text-sm text-white/60">Crear orden de compra</p>
-                  </div>
-                </button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
-
-        {showPOList && (
-          <Dialog open={showPOList} onOpenChange={setShowPOList}>
-            <DialogContent className="bg-[#1C1C1E] border border-white/10 max-w-4xl text-white">
-              <DialogHeader>
-                <DialogTitle className="text-xl font-bold text-white">Historial de Órdenes de Compra</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-3 max-h-[60vh] overflow-y-auto">
-                {poList.length === 0 ? (
-                  <p className="text-white/40 text-sm text-center py-8">Aún no hay órdenes de compra.</p>
-                ) : poList.map(po => (
-                  <div key={po.id} className="flex items-center justify-between gap-3 rounded-lg border border-white/10 px-4 py-3 hover:border-white/10">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="text-sm font-semibold text-white">{po.po_number}</p>
-                        <Badge className={`text-xs ${po.status === "received" ? "bg-green-600/20 text-green-300 border-green-600/30" : po.status === "ordered" ? "bg-blue-600/20 text-blue-300 border-blue-600/30" : "bg-gray-600/20 text-gray-300 border-gray-600/30"}`}>
-                          {po.status === "draft" ? "Borrador" : po.status === "ordered" ? "Ordenado" : po.status === "received" ? "Recibido" : "Cancelado"}
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-white/40">{po.supplier_name || "Suplidor no definido"} · ${Number(po.total_amount || 0).toFixed(2)} · {(po.items || po.line_items || []).length} productos</p>
-                    </div>
-                    <Button type="button" size="sm" onClick={() => { setViewingPO(po); setShowPOList(false); setShowPODetail(true); }} className="bg-[#F2662E] hover:bg-[#e0551f] h-8 text-xs">
-                      Ver/Editar
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
-
         {showSuppliers && (
           <SuppliersDialog open={showSuppliers} onClose={async () => { setShowSuppliers(false); const supRes = await loadSuppliersSafe(); setSuppliers(supRes || []); }} />
-        )}
-
-        {showPODialog && (
-          <PurchaseOrderDialog
-            open={showPODialog}
-            onClose={async (reload) => { setShowPODialog(false); setEditingPO(null); if (reload) await loadInventory(); }}
-            purchaseOrder={editingPO}
-            suppliers={suppliers}
-            products={items}
-            workOrders={workOrders}
-          />
-        )}
-
-        {showPODetail && (
-          <PurchaseOrderDetailDialog
-            open={showPODetail}
-            onClose={async (reload) => { setShowPODetail(false); setViewingPO(null); if (reload) await loadInventory(); }}
-            purchaseOrder={viewingPO}
-            suppliers={suppliers}
-            products={items}
-            workOrders={workOrders}
-          />
         )}
 
         {showDiscountDialog && (
@@ -1929,15 +1838,6 @@ export default function Inventory() {
           <ManageCategoriesDialog open={showManageCategories} onClose={() => setShowManageCategories(false)} onUpdate={loadInventory} />
         )}
 
-        {showQuickOrder && (
-          <QuickOrderDialog
-            open={showQuickOrder}
-            onClose={(reload) => { setShowQuickOrder(false); if (reload) loadInventory(); }}
-            workOrders={workOrders}
-            suppliers={suppliers}
-          />
-        )}
-
         {/* ── Ajuste Rápido de Stock ─────────────────────────────── */}
         {quickAdjustItem && (
           <QuickStockAdjust
@@ -1946,6 +1846,14 @@ export default function Inventory() {
             onSave={handleQuickAdjust}
           />
         )}
+
+        <AlertDialog
+          open={!!deleteTarget}
+          title="Eliminar producto"
+          message="Se ocultará del inventario y del POS. Las órdenes y ventas pasadas mantienen el producto."
+          onClose={() => setDeleteTarget(null)}
+          actions={[{ label: "Eliminar", destructive: true, onPress: confirmDeleteItem }, { label: "Cancelar", bold: true }]}
+        />
 
         {/* ── Historial de Movimientos ───────────────────────────── */}
         <HistorialMovimientosDialog

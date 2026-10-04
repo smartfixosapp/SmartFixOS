@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, MoreHorizontal, ChevronLeft, Pencil, FileDown, RotateCcw, PackageCheck, XCircle, Check, Wrench, ExternalLink } from "lucide-react";
+import { Loader2, MoreHorizontal, ChevronLeft, Pencil, Share2, RotateCcw, PackageCheck, XCircle, Check, Wrench, ExternalLink } from "lucide-react";
 import { Dialog, TextAction, AlertDialog, tint } from "@/components/pos/native/posUi";
 import { Banner, Caption, Input, TextArea, W, money } from "@/components/wizard/ui";
 import { supabase } from "../../../../../lib/supabase-client.js";
@@ -8,7 +8,7 @@ import {
   saveTracking, linkLineToOrder, receivePO, cancelPO, savePOEdit, closeDraft, prDay,
 } from "@/lib/comprasApi";
 import { buildPurchaseOrderPDF } from "@/lib/poPdf";
-import { downloadBlob } from "@/lib/invoicesApi";
+import { sharePdfBlob } from "@/lib/invoicesApi";
 import { OrderPicker } from "./POWizard";
 
 const BRAND = "#F2662E";
@@ -267,7 +267,8 @@ export default function PODetailPanel({ po, tenant, tenantId, employeeName, onUp
     try {
       let supplier = null;
       if (po.supplier_id) { const { data } = await supabase.from("supplier").select("*").eq("id", po.supplier_id).maybeSingle(); supplier = data; }
-      downloadBlob(await buildPurchaseOrderPDF({ po, supplier, tenant }), `${po.po_number}.pdf`);
+      const blob = await buildPurchaseOrderPDF({ po, supplier, tenant });
+      await sharePdfBlob(blob, `${po.po_number}.pdf`, { title: `Orden de compra ${po.po_number}`, text: supplier?.name || po.supplier_name || "" });
     } catch {
       setToast({ text: "No se pudo generar el PDF.", error: true });
     }
@@ -302,7 +303,7 @@ export default function PODetailPanel({ po, tenant, tenantId, employeeName, onUp
           {menu && (
             <div className="absolute right-0" style={{ top: 42, zIndex: 40, minWidth: 210, background: "#2C2C2E", borderRadius: 14, overflow: "hidden", boxShadow: "0 10px 30px rgba(0,0,0,0.5)" }} onClick={(e) => e.stopPropagation()}>
               {po.status !== "cancelled" && menuItem("Editar orden", Pencil, () => setDlg({ kind: "edit", po }))}
-              {menuItem("Compartir PDF", FileDown, sharePdf)}
+              {menuItem("Compartir PDF", Share2, sharePdf)}
               {items.length > 0 && menuItem("Volver a pedir", RotateCcw, () => onReorder(po))}
               {isDraft && menuItem("Cerrar pedido", PackageCheck, () => setDlg({ kind: "close", po }))}
               {canReceive && menuItem("Recibir orden", PackageCheck, () => setDlg({ kind: "receive", po }))}

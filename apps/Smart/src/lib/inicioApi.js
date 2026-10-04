@@ -63,6 +63,15 @@ export function subscribeDashboard(tenantId, onChange) {
   return () => { clearTimeout(timer); supabase.removeChannel(channel); };
 }
 
+export function subscribeOrders(tenantId, onChange) {
+  let timer = null;
+  const fire = () => { clearTimeout(timer); timer = setTimeout(onChange, 600); };
+  const channel = supabase.channel(`orders-${tenantId}-${Math.random().toString(36).slice(2)}`)
+    .on("postgres_changes", { event: "*", schema: "public", table: "order", filter: `tenant_id=eq.${tenantId}` }, fire)
+    .subscribe();
+  return () => { clearTimeout(timer); supabase.removeChannel(channel); };
+}
+
 const DAY = 86400000;
 const refDate = (o) => new Date(o.updated_date || o.created_date || Date.now());
 const warrantyDays = (o) => (o.warranty_days === null || o.warranty_days === undefined || o.warranty_days === "" ? 30 : Math.trunc(num(o.warranty_days)));

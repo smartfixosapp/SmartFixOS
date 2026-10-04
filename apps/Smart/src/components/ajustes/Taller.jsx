@@ -1,10 +1,10 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Store, Wrench, LayoutGrid, Package, Flag, MapPin, Tag, HardDrive, Check, Loader2, Download, Upload } from "lucide-react";
+import { Store, Wrench, LayoutGrid, Package, Flag, MapPin, Tag, HardDrive, Check, Loader2, Download, Upload, Percent } from "lucide-react";
 import { AlertDialog, tint } from "@/components/pos/native/posUi";
 import { supabase } from "../../../../../lib/supabase-client.js";
 import { A, SubPage, Group, Row, ToggleRow, PrimaryBtn, ErrorLine } from "./ui";
-import { updateTenant, hiddenStatusesOf, localGet, localSet, fetchTenantRow } from "@/lib/tenantSettings";
+import { updateTenant, hiddenStatusesOf, localGet, localSet, fetchTenantRow, isPlanProOrAbove } from "@/lib/tenantSettings";
 import { ORDER_STATUS } from "@/lib/orderStatus";
 import { cacheBusinessMode } from "@/lib/businessMode";
 
@@ -27,10 +27,11 @@ export function TallerList({ tenant, go }) {
         <Row first Icon={Store} color={A.brand} title="Tipo de negocio" sub={modeSummary(tenant?.business_mode)} onClick={() => go("taller", "tipo-negocio")} />
         <Row Icon={LayoutGrid} color={A.brand} title="Catálogo de Dispositivos" sub="Categorías y modelos" onClick={() => navigate("/Inventory")} />
         <Row Icon={Package} color={A.warning} title="Inventario" sub="Stock y precios" onClick={() => navigate("/Inventory")} />
+        <Row Icon={Percent} color="#FF375F" title="Ofertas" sub="Descuentos por equipo, pieza o categoría" onClick={() => go("taller", "ofertas")} />
         <Row Icon={Flag} color="#63E6BE" title="Estados de la orden" sub={`${on} de ${TOTAL} encendidos`} onClick={() => go("taller", "estados")} />
         <ToggleRow Icon={MapPin} color="#FF9F0A" title="Visita técnica" sub={visit ? "Visible en nueva orden" : "Oculta en nueva orden"} on={visit} onChange={(v) => { setVisit(v); localSet("wizard.showVisitaTecnica", v); }} />
         <ToggleRow Icon={Tag} color="#A2845E" title="Etiquetas de equipo" sub={labels ? "Imprime etiqueta al crear una orden" : "No se imprime etiqueta"} on={labels} onChange={(v) => { setLabels(v); localSet("print.labelsEnabled", v); }} />
-        <Row Icon={HardDrive} color={A.info} title="Datos del Taller" sub="Exportar clientes, órdenes, inventario" onClick={() => go("taller", "datos")} />
+        {isPlanProOrAbove(tenant) && <Row Icon={HardDrive} color={A.info} title="Datos del Taller" sub="Exportar clientes, órdenes, inventario" onClick={() => go("taller", "datos")} />}
       </Group>
     </SubPage>
   );

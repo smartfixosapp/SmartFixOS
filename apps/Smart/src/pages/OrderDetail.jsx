@@ -19,7 +19,7 @@ import {
 import { C, tint, Card, Sheet, ConfirmSheet, money, displayDevice, phoneDigits, firstName } from "@/components/orderDetail/ui";
 import HeaderCard from "@/components/orderDetail/HeaderCard";
 import StatusModule from "@/components/orderDetail/StatusModule";
-import InfoSections from "@/components/orderDetail/InfoSections";
+import InfoSections, { RatingCard, QuickServiceCard, DeviceCard } from "@/components/orderDetail/InfoSections";
 import Timeline from "@/components/orderDetail/Timeline";
 import { PhotosCaptureSheet, PhotoGateSheet, PhotoStrip, PhotoViewer } from "@/components/orderDetail/Photos";
 import {
@@ -42,7 +42,7 @@ import { CloseDraftDialog } from "@/components/compras/PODetail";
 import { findOpenRegister, recordOrderPayment, addDeposit, editDeposit, deleteDeposit, recordOrderRefund } from "@/lib/orderMoneyApi";
 
 function useIsDesktop() {
-  const q = "(min-width: 1024px)";
+  const q = "(min-width: 768px)";
   const [v, setV] = useState(() => typeof window !== "undefined" && window.matchMedia(q).matches);
   useEffect(() => {
     const m = window.matchMedia(q);
@@ -769,13 +769,16 @@ export default function OrderDetail() {
     try { await printLabel(orderRef.current, tenant); setSheet(null); } catch (e) { toast(`No se pudo imprimir la etiqueta: ${e?.message || e}`, "error"); } finally { setDocBusy(null); }
   };
 
-  const partsBoard = (
+  const partsModule = (
+    <PartsModule order={order} tenant={tenant} tenantId={tenantId} employeeName={by} onReload={reload} onExtrasChanged={() => setCostTick((n) => n + 1)} onOpenPO={(id) => navigate(`/Compras?po=${id}`)} onCloseDraft={(po) => setSheet({ name: "closeDraft", po })} />
+  );
+  const costTasks = (
     <>
-      <PartsModule order={order} tenant={tenant} tenantId={tenantId} employeeName={by} onReload={reload} onExtrasChanged={() => setCostTick((n) => n + 1)} onOpenPO={(id) => navigate(`/Compras?po=${id}`)} onCloseDraft={(po) => setSheet({ name: "closeDraft", po })} />
       <JobCostCard order={order} tenantId={tenantId} tick={costTick} onOpenPO={(id) => navigate(`/Compras?po=${id}`)} />
       <OrderTasksCard order={order} tenantId={tenantId} employeeName={by} />
     </>
   );
+  const partsBoard = (<>{partsModule}{costTasks}</>);
 
   const liquidBanner = order.liquid_damage ? (
     <div className="flex items-start gap-3" style={{ padding: 14, borderRadius: 14, background: tint(C.blue, 0.12), color: C.blue }}>
@@ -864,9 +867,12 @@ export default function OrderDetail() {
               {header}
               {visitCard}
               {module}
-              {partsBoard}
               {liquidBanner}
-              {info}
+              <QuickServiceCard order={order} onQuickService={async (v) => { await attempt("No se pudo guardar", () => setQuickService(order.id, v)); reload(); }} />
+              {partsModule}
+              <DeviceCard order={order} compact onPromisedDate={() => setSheet({ name: "promised" })} />
+              {costTasks}
+              <RatingCard order={order} />
               {photos}
               {timeline}
             </>

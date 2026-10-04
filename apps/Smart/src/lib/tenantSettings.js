@@ -113,8 +113,8 @@ export function planSummary(tenant) {
 }
 
 export const isAdminRole = (role) => ["owner", "admin", "manager", "contable", "super_admin"].includes(String(role || "").toLowerCase());
-export const isPlanProOrAbove = () => true;
-export const isPlanTeamOrAbove = () => true;
+export const isPlanProOrAbove = (tenant) => { const p = planKey(tenant); return !p || ["pro", "enterprise", "founders_lifetime", "beta"].includes(p); };
+export const isPlanTeamOrAbove = (tenant) => { const p = planKey(tenant); return !p || ["trial", "team", "pro", "enterprise", "founders_lifetime", "beta"].includes(p); };
 
 export const localGet = (k, d = null) => { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch { return d; } };
 export const localSet = (k, v) => { try { localStorage.setItem(k, String(v)); } catch { return; } };

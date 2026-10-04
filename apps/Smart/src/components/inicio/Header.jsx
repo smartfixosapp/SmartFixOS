@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings, Clock, Users, LogOut, Loader2 } from "lucide-react";
+import { Settings, Clock, Users, Lock, Loader2 } from "lucide-react";
 import { Dialog, TextAction, AlertDialog } from "@/components/pos/native/posUi";
 import { ownerPinExists } from "@/lib/posApi";
-import { SignOutConfirm } from "@/components/layout/AccountMenu";
 import { FP } from "@/lib/finance/ledger";
 import { fmt } from "@/lib/finance/tz";
 import { loadMiTurno } from "@/lib/inicioApi";
 import { currentAuthUid } from "@/lib/punchApi";
 import { requestAppLock } from "@/components/auth/AppLock";
+import { signOut } from "@/components/auth/signOut";
 
 export const firstName = (name) => String(name || "").trim().split(/\s+/)[0] || "";
 export const avatarInitials = (name) => {
@@ -78,10 +78,9 @@ export function MiTurnoDialog({ open, onClose, tenantId, employee, tz }) {
   );
 }
 
-function AvatarMenu({ employeeName, logoUrl, onMiTurno, onSwitchUser }) {
+function AvatarMenu({ employeeName, logoUrl, onMiTurno, onSwitchUser, onLock }) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const [confirm, setConfirm] = useState(false);
   const [logoOk, setLogoOk] = useState(true);
   const ref = useRef(null);
   useEffect(() => {
@@ -110,10 +109,9 @@ function AvatarMenu({ employeeName, logoUrl, onMiTurno, onSwitchUser }) {
           {item(Settings, "Ajustes", () => navigate("/Settings"))}
           {item(Users, "Cambiar de usuario", onSwitchUser)}
           <div style={{ height: 0.5, background: "rgba(255,255,255,0.1)" }} />
-          {item(LogOut, "Cerrar sesión", () => setConfirm(true), "#FF6961")}
+          {item(Lock, "Cerrar sesión", onLock, "#FF6961")}
         </div>
       )}
-      <SignOutConfirm open={confirm} onClose={() => setConfirm(false)} />
     </div>
   );
 }
@@ -122,15 +120,18 @@ export default function InicioHeader({ employee, tenant, tz, wide, tenantId }) {
   const navigate = useNavigate();
   const [miTurno, setMiTurno] = useState(false);
   const [pinNeeded, setPinNeeded] = useState(false);
-  const switchUser = async () => {
+  const [signOutNeeded, setSignOutNeeded] = useState(false);
+  const lockApp = async (onNoPin) => {
     let role = "";
     try { role = localStorage.getItem("smartfix_tenant_role") || ""; } catch { role = ""; }
     if (role === "owner") {
       const exists = await ownerPinExists(tenantId).catch(() => false);
-      if (!exists) { setPinNeeded(true); return; }
+      if (!exists) { onNoPin(); return; }
     }
     requestAppLock();
   };
+  const switchUser = () => lockApp(() => setPinNeeded(true));
+  const closeSession = () => lockApp(() => setSignOutNeeded(true));
   const name = String(employee?.full_name || "").trim();
   const first = firstName(name);
   return (
@@ -144,8 +145,9 @@ export default function InicioHeader({ employee, tenant, tz, wide, tenantId }) {
           <Settings className="w-5 h-5" />
         </button>
       )}
-      <AvatarMenu employeeName={name} logoUrl={tenant?.logo_url} onMiTurno={() => setMiTurno(true)} onSwitchUser={switchUser} />
+      <AvatarMenu employeeName={name} logoUrl={tenant?.logo_url} onMiTurno={() => setMiTurno(true)} onSwitchUser={switchUser} onLock={closeSession} />
       <AlertDialog open={pinNeeded} title="Primero crea tu PIN de dueño" message="Crea tu PIN de dueño en la app Archilla OS (Ajustes, Seguridad) para poder cambiar de usuario." onClose={() => setPinNeeded(false)} actions={[{ label: "Entendido", bold: true }]} />
+      <AlertDialog open={signOutNeeded} title="¿Cerrar la sesión?" message="Sin un PIN de dueño no se puede bloquear la app, así que se cerrará la sesión por completo. Crea tu PIN en Ajustes, Seguridad para poder bloquear en el futuro." onClose={() => setSignOutNeeded(false)} actions={[{ label: "Cerrar sesión", destructive: true, onPress: signOut }, { label: "Cancelar", bold: true }]} />
       <MiTurnoDialog open={miTurno} onClose={() => setMiTurno(false)} tenantId={tenantId} employee={employee} tz={tz} />
     </div>
   );

@@ -102,6 +102,13 @@ export async function loadCompanies(tenantId) {
     .sort((a, b) => companyName(a).localeCompare(companyName(b), undefined, { sensitivity: "base" }));
 }
 
+export async function loadB2bCompanyMap(tenantId) {
+  const { data } = await supabase.from("customer").select("id, name, company_name").eq("tenant_id", tenantId).eq("is_b2b", true).limit(1000);
+  const map = {};
+  (data || []).forEach((c) => { map[c.id] = companyName(c); });
+  return map;
+}
+
 export async function hasB2bCustomers(tenantId) {
   const { data } = await supabase.from("customer").select("id").eq("tenant_id", tenantId).eq("is_b2b", true).limit(1);
   return (data || []).length > 0;
@@ -430,6 +437,20 @@ export function downloadBlob(blob, filename) {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+export async function sharePdfBlob(blob, filename, { title, text } = {}) {
+  const file = new File([blob], filename, { type: "application/pdf" });
+  if (typeof navigator !== "undefined" && navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title, text });
+      return "shared";
+    } catch (e) {
+      if (e?.name === "AbortError") return "cancelled";
+    }
+  }
+  downloadBlob(blob, filename);
+  return "downloaded";
 }
 
 export function taxRateOf(tenant) {

@@ -15,7 +15,7 @@ export default function Layout({ children }) {
   return (
     <TenantProvider>
       <PanelProvider>
-        <div className="hidden md:block" style={{ background: "#000" }}>
+        <div className="hidden md:block" style={{ position: "sticky", top: 0, zIndex: 40, background: "#000", boxShadow: "0 0.5px 0 rgba(84,84,88,0.45)" }}>
           <ModernTopNav />
         </div>
         {children}

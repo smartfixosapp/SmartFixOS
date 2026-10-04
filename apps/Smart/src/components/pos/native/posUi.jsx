@@ -169,10 +169,10 @@ export function SectionHeader({ children }) {
   return <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", color: P.sub, textTransform: "uppercase", marginBottom: 8 }}>{children}</p>;
 }
 
-export function Toggle({ on, onChange, label, icon }) {
+export function Toggle({ on, onChange, label, icon, disabled = false, compact = false }) {
   return (
-    <button type="button" onClick={() => onChange(!on)} className="w-full flex items-center justify-between" style={{ padding: "6px 0" }}>
-      <span className="flex items-center gap-2" style={{ fontSize: 15, color: P.text }}>{icon}{label}</span>
+    <button type="button" role="switch" aria-checked={!!on} aria-label={compact ? label : undefined} disabled={disabled} onClick={() => onChange(!on)} className={compact ? "flex items-center flex-shrink-0 disabled:opacity-50" : "w-full flex items-center justify-between disabled:opacity-50"} style={{ padding: compact ? 0 : "6px 0" }}>
+      {!compact && <span className="flex items-center gap-2" style={{ fontSize: 15, color: P.text }}>{icon}{label}</span>}
       <span style={{ width: 51, height: 31, borderRadius: 999, background: on ? P.cash : P.card3, position: "relative", transition: "background 0.2s", flexShrink: 0 }}>
         <span style={{ position: "absolute", top: 2, left: on ? 22 : 2, width: 27, height: 27, borderRadius: 999, background: "#fff", transition: "left 0.2s", boxShadow: "0 2px 4px rgba(0,0,0,0.3)" }} />
       </span>

@@ -2,6 +2,7 @@ import './App.css'
 import React from "react"
 import Pages from "@/pages/index.jsx"
 import { Toaster } from "@/components/ui/toaster"
+import { Toaster as SonnerToaster } from "@/components/ui/sonner"
 import { QueryClient, QueryClientProvider, onlineManager } from "@tanstack/react-query"
 import { useEffect, useState, useCallback, useRef } from "react"
 import { isNative } from "@/lib/capacitor"
@@ -206,6 +207,7 @@ function App() {
         <NetworkStatusBanner />
         <Pages />
         <Toaster />
+        <SonnerToaster />
         {/* Splash animado sobre todo el contenido — se monta/desmonta con fade */}
         <AnimatePresence>
           {showSplash && <SplashLoader key="splash" />}

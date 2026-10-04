@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { X, Search, Loader2, Inbox, Users, ChevronRight, Check, AlertTriangle, UsersRound, Crown, Building2, Clock, UserPlus } from "lucide-react";
-import { Dialog, TextAction, Toggle, tint } from "@/components/pos/native/posUi";
-import { statusInfo } from "@/lib/orderStatus";
+import { X, Search, Loader2, Inbox, Users, Check, AlertTriangle, UsersRound, Crown, Building2, Clock, UserPlus } from "lucide-react";
+import { Dialog, TextAction, Toggle } from "@/components/pos/native/posUi";
+import NativeOrderRow from "@/components/orders/NativeOrderRow";
 import { money } from "@/components/finanzas/ui";
 import {
   displayName, num, emptyInput, inputFromCustomer, inputValid, createCustomerRow, updateCustomerRow, CustomerInputError, searchCustomersForPicker, recentOrdersFor,
@@ -13,19 +13,7 @@ const SUB = "#8E8E93";
 const BRAND = "#F2662E";
 
 export function OrderRow({ order, onClick }) {
-  const info = statusInfo(order.status);
-  const device = [order.device_brand, order.device_family, order.device_model].filter(Boolean).join(" ");
-  const total = order.cost_estimate ?? order.labor_cost ?? 0;
-  return (
-    <button onClick={onClick} className="apple-press w-full flex items-center gap-3 text-left" style={{ padding: "10px 14px" }}>
-      <span className="flex-1 min-w-0">
-        <span className="flex items-center gap-2"><span style={{ fontSize: 13, fontWeight: 700 }}>{order.order_number || "—"}</span><span style={{ padding: "1px 7px", borderRadius: 999, background: tint(info.color, 0.18), color: info.color, fontSize: 10, fontWeight: 700 }}>{info.label}</span></span>
-        <span className="block truncate" style={{ fontSize: 12, color: SUB }}>{device || "—"}</span>
-      </span>
-      <span style={{ fontSize: 14, fontWeight: 700 }}>{money(num(total))}</span>
-      <ChevronRight className="w-4 h-4" style={{ color: "rgba(235,235,245,0.3)" }} />
-    </button>
-  );
+  return <NativeOrderRow order={order} onClick={onClick} />;
 }
 
 export function HistoryDialog({ open, onClose, tenantId, customer, onOpenOrder }) {
@@ -112,7 +100,7 @@ export function CustomerEditDialog({ open, onClose, tenantId, customer, onSaved 
           {box(row(<div className="grid grid-cols-2" style={{ padding: 2, gap: 2, borderRadius: 9, background: "rgba(118,118,128,0.24)" }}>{[["es", "Español"], ["en", "English"]].map(([k, l]) => <button key={k} onClick={() => set({ language: k })} style={{ padding: "7px 0", borderRadius: 7, fontSize: 14, fontWeight: 600, background: input.language === k ? "#636366" : "transparent" }}>{l}</button>)}</div>), "Sus correos de la orden (listo para recoger, esperando piezas, etc.) saldrán en este idioma.")}
           {box(row(<textarea value={input.notes} onChange={(e) => set({ notes: e.target.value })} placeholder="Notas opcionales" rows={3} className="w-full bg-transparent outline-none" style={{ color: "#fff", fontSize: 16, resize: "vertical" }} />))}
           {box(<>
-            {row(<div className="flex items-center"><span className="flex-1" style={{ fontSize: 16 }}>Cumpleaños</span><Toggle on={input.birthdayOn} onChange={(v) => set({ birthdayOn: v, birthday: v && !input.birthday ? new Date().toISOString().slice(0, 10) : input.birthday })} label="Cumpleaños" /></div>)}
+            {row(<div className="flex items-center"><span className="flex-1" style={{ fontSize: 16 }}>Cumpleaños</span><Toggle on={input.birthdayOn} onChange={(v) => set({ birthdayOn: v, birthday: v && !input.birthday ? new Date().toISOString().slice(0, 10) : input.birthday })} label="Cumpleaños" compact /></div>)}
             {input.birthdayOn && row(<label className="flex items-center"><span className="flex-1" style={{ fontSize: 16 }}>Fecha</span><input type="date" value={input.birthday} onChange={(e) => set({ birthday: e.target.value })} className="bg-transparent outline-none" style={{ color: "#fff", colorScheme: "dark" }} /></label>, true)}
           </>, "Te avisamos el día de su cumpleaños para que le mandes un saludo o descuento.")}
           {!isEdit && box(row(
@@ -122,11 +110,11 @@ export function CustomerEditDialog({ open, onClose, tenantId, customer, onSaved 
             </div>
           ), "Si un cliente lo refirió, le acreditamos 50 puntos de lealtad al guardar.")}
           {box(<>
-            {row(<div className="flex items-center gap-2"><AlertTriangle className="w-4 h-4" style={{ color: "#FF7373" }} /><span className="flex-1" style={{ fontSize: 16 }}>Cliente riesgoso (lista negra)</span><Toggle on={input.riskFlag} onChange={(v) => set({ riskFlag: v })} label="Cliente riesgoso" /></div>)}
+            {row(<div className="flex items-center gap-2"><AlertTriangle className="w-4 h-4" style={{ color: "#FF7373" }} /><span className="flex-1" style={{ fontSize: 16 }}>Cliente riesgoso (lista negra)</span><Toggle on={input.riskFlag} onChange={(v) => set({ riskFlag: v })} label="Cliente riesgoso" compact /></div>)}
             {input.riskFlag && row(<textarea value={input.riskNote} onChange={(e) => set({ riskNote: e.target.value })} placeholder="Motivo (ej. no recogió WO-29, chargeback)" rows={2} className="w-full bg-transparent outline-none" style={{ color: "#fff", fontSize: 16, resize: "vertical" }} />, true)}
           </>, "Al abrir una orden nueva con este cliente, el sistema te avisará y sugerirá exigir prepago.")}
           {box(<>
-            {row(<div className="flex items-center"><span className="flex-1" style={{ fontSize: 16 }}>Cliente empresarial (B2B)</span><Toggle on={input.isB2b} onChange={(v) => set({ isB2b: v })} label="Cliente empresarial" /></div>)}
+            {row(<div className="flex items-center"><span className="flex-1" style={{ fontSize: 16 }}>Cliente empresarial (B2B)</span><Toggle on={input.isB2b} onChange={(v) => set({ isB2b: v })} label="Cliente empresarial" compact /></div>)}
             {input.isB2b && row(<div className="flex flex-col" style={{ gap: 10 }}>{field("Nombre de empresa", "companyName")}{field("Tax ID / RUC", "taxId")}{field("Email de facturación", "billingEmail", { type: "email" })}</div>, true)}
           </>)}
           {error && <p style={{ fontSize: 13, color: "#FF453A" }}>{error}</p>}

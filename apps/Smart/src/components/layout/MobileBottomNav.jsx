@@ -2,82 +2,24 @@ import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
-  LayoutGrid,
-  Wallet,
-  ClipboardList,
-  TrendingUp,
+  Home,
+  ShoppingCart,
+  Wrench,
+  Package,
   Settings
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useBusinessMode } from "@/lib/businessMode";
 import { usePanelState } from "@/components/utils/panelContext";
-import { motion, AnimatePresence } from "framer-motion";
 import { triggerHaptic } from "@/lib/capacitor";
-import { supabase } from "../../../../../lib/supabase-client.js";
 
 const tabHistory = {
   home:      ["/Dashboard"],
   orders:    ["/Orders"],
+  inventory: ["/Inventory"],
   pos:       ["/POS"],
-  financial: ["/Financial"],
   settings:  ["/Settings"],
 };
-
-// ── Badge counts hook ──────────────────────────────────────────────────────
-function useBadgeCounts() {
-  const [pendingOrders, setPendingOrders] = useState(0);
-  const timerRef = useRef(null);
-
-  const load = async () => {
-    try {
-      const tenantId = localStorage.getItem("smartfix_tenant_id");
-      if (!tenantId) return;
-      const { count } = await supabase
-        .from("order")
-        .select("id", { count: "exact", head: true })
-        .eq("tenant_id", tenantId)
-        .in("status", ["pending", "in_progress", "waiting_parts"]);
-      setPendingOrders(count || 0);
-    } catch { /* silencioso */ }
-  };
-
-  useEffect(() => {
-    load();
-    timerRef.current = setInterval(() => {
-      if (document.visibilityState === "visible") load();
-    }, 5 * 60 * 1000);
-    return () => clearInterval(timerRef.current);
-  }, []);
-
-  useEffect(() => {
-    const handler = () => { if (document.visibilityState === "visible") load(); };
-    document.addEventListener("visibilitychange", handler);
-    return () => document.removeEventListener("visibilitychange", handler);
-  }, []);
-
-  return { pendingOrders };
-}
-
-// ── Badge (iOS red pill) ────────────────────────────────────────────────────
-function Badge({ count }) {
-  if (!count || count <= 0) return null;
-  return (
-    <motion.span
-      initial={{ scale: 0 }}
-      animate={{ scale: 1 }}
-      exit={{ scale: 0 }}
-      transition={{ type: "spring", stiffness: 500, damping: 28 }}
-      className={cn(
-        "absolute -top-1 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full",
-        "bg-red-500 text-white text-[10px] font-bold tabular-nums flex items-center justify-center",
-        "shadow-sm ring-[1.5px] ring-black/30",
-        count > 99 ? "min-w-[24px]" : ""
-      )}
-    >
-      {count > 99 ? "99+" : count}
-    </motion.span>
-  );
-}
 
 export default function MobileBottomNav() {
   const businessMode = useBusinessMode();
@@ -87,7 +29,6 @@ export default function MobileBottomNav() {
   const { hasPanelsOpen: panelsOpen } = usePanelState();
   const hasPanelsOpen             = panelsOpen || /^\/Orders\/[^/]+/.test(location.pathname);
   const lastPathRef               = useRef(location.pathname);
-  const { pendingOrders }         = useBadgeCounts();
 
   // ── Visual Viewport API ─────────────────────────────────────────────────
   useEffect(() => {
@@ -126,18 +67,19 @@ export default function MobileBottomNav() {
     if (p === "/" || p === "/Dashboard") tab = "home";
     else if (p.includes("POS"))         tab = "pos";
     else if (p.includes("Orders"))      tab = "orders";
-    else if (p.includes("Financial"))   tab = "financial";
+    else if (p.includes("Inventory"))   tab = businessMode === "retail" ? "inventory" : "settings";
     else if (p.includes("Settings"))    tab = "settings";
     setActiveTab(tab);
     if (p !== lastPathRef.current) {
       const history = tabHistory[tab];
-      if (history && !history.includes(p)) history[history.length - 1] = p;
+      const skip = tab === "settings" && p.includes("Inventory");
+      if (history && !skip && !history.includes(p)) history[history.length - 1] = p;
       lastPathRef.current = p;
     }
-  }, [location.pathname]);
+  }, [location.pathname, businessMode]);
 
   const handleTabClick = (tab) => {
-    triggerHaptic(tab.isCenter ? "medium" : "light");
+    triggerHaptic("light");
     if (tab.id === activeTab || location.pathname === tab.path) {
       navigate(tab.path);
       tabHistory[tab.id] = [tab.path];
@@ -148,11 +90,12 @@ export default function MobileBottomNav() {
   };
 
   const tabs = [
-    ...(businessMode === "retail" ? [] : [{ id: "orders",    label: "Órdenes",  icon: ClipboardList, path: "/Orders",    badge: pendingOrders }]),
-    { id: "pos",       label: "POS",      icon: Wallet,        path: "/POS" },
-    { id: "home",      label: "Inicio",   icon: LayoutGrid,    path: "/Dashboard",  isCenter: true },
-    { id: "financial", label: "Finanzas", icon: TrendingUp,    path: "/Financial" },
-    { id: "settings",  label: "Ajustes",  icon: Settings,      path: "/Settings" },
+    businessMode === "retail"
+      ? { id: "inventory", label: "Inventario", icon: Package, path: "/Inventory" }
+      : { id: "orders", label: "Órdenes", icon: Wrench, path: "/Orders" },
+    { id: "pos", label: "POS", icon: ShoppingCart, path: "/POS" },
+    { id: "home", label: "Inicio", icon: Home, path: "/Dashboard" },
+    { id: "settings", label: "Ajustes", icon: Settings, path: "/Settings" },
   ];
 
   const spacer = (
@@ -197,7 +140,6 @@ export default function MobileBottomNav() {
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           const Icon     = tab.icon;
-          const badgeCount = tab.badge || 0;
 
           return (
             <button
@@ -222,9 +164,6 @@ export default function MobileBottomNav() {
                   }}
                   strokeWidth={isActive ? 2.2 : 1.6}
                 />
-                <AnimatePresence>
-                  {badgeCount > 0 && <Badge count={badgeCount} />}
-                </AnimatePresence>
               </div>
 
               {/* Label */}

@@ -144,7 +144,7 @@ export default function StepDevice({ w, tenantId, cat, index, chips, onCatalogCh
   const pickMatch = (m) => { set({ category: m.category, brand: m.brand, family: m.family, model: m.model, customModelText: "", stoppedEarly: false }); setQuery(""); onPicked?.(); };
 
   const level = !s.category ? "category" : !s.brand ? "brand" : !s.family ? "family" : "model";
-  const complete = !!(s.category && s.brand && (s.stoppedEarly || s.model || s.customModelText));
+  const complete = !!(s.category && s.brand && (s.stoppedEarly || s.model || s.customModelText || (s.family && models.length === 0)));
   const reset = (from) => {
     onCancelAdvance?.();
     const order = ["category", "brand", "family", "model"];

@@ -94,6 +94,8 @@ function PagesContent() {
         <Route path="/Compras"           element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><Compras /></Layout></RequireAuth>} />
         <Route path="/Equipo"            element={<RequireAuth><Layout><Equipo /></Layout></RequireAuth>} />
         <Route path="/Customers"         element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><Customers /></Layout></RequireAuth>} />
+        <Route path="/PinAccess"         element={<Navigate to="/Dashboard" replace />} />
+        <Route path="/Welcome"           element={<Navigate to="/Dashboard" replace />} />
         <Route path="*"                  element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>

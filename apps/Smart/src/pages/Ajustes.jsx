@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
-import { Search, X, Home, DollarSign, CalendarDays, Wrench, Tag, Mail, MessageCircle, ShieldCheck, Crown, Lock, Trash2, Loader2, SearchX, ChevronRight, ExternalLink, QrCode, Users, ClipboardCheck, Clock } from "lucide-react";
+import { Search, X, Home, DollarSign, CalendarDays, Wrench, Mail, MessageCircle, ShieldCheck, Crown, Lock, Trash2, Loader2, SearchX, ChevronRight, ExternalLink, QrCode, Users, ClipboardCheck, Clock } from "lucide-react";
 import { tint } from "@/components/pos/native/posUi";
 import { supabase } from "../../../../lib/supabase-client.js";
 import { signOut } from "@/components/auth/signOut";
 import { requestAppLock } from "@/components/auth/AppLock";
-import { fetchTenantRow, isAdminRole, hasInternalChat, planSummary, localGet } from "@/lib/tenantSettings";
+import { fetchTenantRow, isAdminRole, hasInternalChat, planSummary, localGet, isPlanProOrAbove, isPlanTeamOrAbove } from "@/lib/tenantSettings";
 import { resolveCurrentEmployee } from "@/lib/orderDetailApi";
 import { rolesOf, isAdminLevel, shiftTaskSummary } from "@/lib/teamApi";
 import { workshopCode } from "@/lib/punchApi";
@@ -25,8 +25,7 @@ const SECTIONS = [
   { id: "mi-negocio", title: "Mi Negocio", sub: () => "Info, apariencia y región", Icon: Home, color: A.brand, admin: true, keywords: ["Info del Negocio", "Apariencia", "Región", "Idioma", "Logo", "Dirección", "Teléfono"] },
   { id: "finanzas", title: "Finanzas", sub: () => "Plan, gastos, nómina e IVU", Icon: DollarSign, color: A.success, admin: true, keywords: ["Plan financiero", "Meta diaria", "Gastos Fijos", "Nómina", "Impuesto IVU", "Métodos de Pago", "ATH Móvil", "POS y Recibo", "Recibo"] },
   { id: "equipo", title: (admin) => (admin ? "Equipo" : "Mi Turno"), sub: (admin) => (admin ? "Horario, tareas y empleados" : "Mi horario y recordatorios"), Icon: CalendarDays, color: A.vip, keywords: ["Mi horario", "Recordatorios", "Código del taller", "Empleados", "Tareas de Turno", "Ponche"] },
-  { id: "taller", title: "Taller", sub: () => "Catálogo, inventario y etiquetas", Icon: Wrench, color: A.warning, admin: true, keywords: ["Tipo de negocio", "Catálogo de Dispositivos", "Inventario", "Stock", "Precios", "Estados de la orden", "Visita técnica", "Etiquetas de equipo", "Datos del Taller", "Exportar"] },
-  { id: "ofertas", title: "Ofertas", sub: () => "Descuentos por equipo y vigencia", Icon: Tag, color: "#FF6482", admin: true, keywords: ["Descuentos", "Promociones", "Oferta por equipo", "Vigencia", "Vence", "Permanente"] },
+  { id: "taller", title: "Taller", sub: () => "Catálogo, inventario y etiquetas", Icon: Wrench, color: A.warning, admin: true, keywords: ["Tipo de negocio", "Catálogo de Dispositivos", "Inventario", "Stock", "Precios", "Estados de la orden", "Visita técnica", "Etiquetas de equipo", "Ofertas", "Descuentos", "Promociones", "Oferta por equipo", "Vigencia", "Vence", "Permanente", "Datos del Taller", "Exportar"] },
   { id: "comunicacion", title: "Comunicación", sub: () => "Emails, políticas y push", Icon: Mail, color: A.info, admin: true, keywords: ["Plantillas de Email", "Políticas del Negocio", "Garantía", "Notificaciones push", "Alertas"] },
   { id: "mensajes", title: "Mensajes", sub: () => "Chat con tu equipo", Icon: MessageCircle, color: A.teal, chat: true, keywords: ["Chat del equipo", "Mensajes internos"] },
   { id: "cuenta", title: "Cuenta", sub: () => "Seguridad y diagnóstico", Icon: ShieldCheck, color: A.danger, keywords: ["Seguridad y Sesión", "PIN", "Cerrar sesión", "Diagnóstico", "Guía de inicio", "Borrar cuenta", "Bloquear app"] },
@@ -79,7 +78,7 @@ function EquipoList({ tenant, tenantId, admin, go }) {
       {admin && (
         <Group header="Equipo" pad={false}>
           <Row first Icon={QrCode} color={A.brand} title="Código del taller" sub="Compártelo con tus empleados para que accedan desde su propio dispositivo" right={<span style={{ fontFamily: "ui-monospace, Menlo, monospace", fontWeight: 800, fontSize: 14 }}>{code}</span>} onClick={() => setCodeOpen(true)} />
-          <Row Icon={Users} color={A.info} title="Empleados" sub="Equipo, roles, PIN, acceso" onClick={() => navigate("/Equipo?tab=empleados")} />
+          <Row Icon={Users} color={A.info} title="Empleados" sub="Equipo, roles, PIN, acceso" locked={!isPlanTeamOrAbove(tenant)} onClick={() => navigate("/Equipo?tab=empleados")} />
           <Row Icon={ClipboardCheck} color={A.warning} title="Tareas de Turno" sub={tenant ? shiftTaskSummary(tenant) : "Sin configurar"} onClick={() => navigate("/Equipo?tab=tareas")} />
         </Group>
       )}
@@ -158,6 +157,7 @@ export default function Ajustes() {
   }, [query, visible, admin, tenant]);
 
   if (!tenantId) return <Navigate to="/Login" replace />;
+  if (section === "ofertas") return <Navigate to="/Settings?section=taller&screen=ofertas" replace />;
   if (section && !known && section !== "mensajes") {
     if (!admin) return <Navigate to="/Settings" replace />;
     const qs = params.toString();
@@ -177,12 +177,11 @@ export default function Ajustes() {
     let view = null;
     if (active.id === "mi-negocio") view = s === "info" ? <InfoNegocio {...common} /> : s === "apariencia" ? <Apariencia back={back} /> : s === "region" ? <Region {...common} /> : <MiNegocioList tenant={tenant} go={go} />;
     else if (active.id === "finanzas") view = s === "metodos-pago" ? <MetodosPago {...common} /> : s === "pos-recibo" ? <PosRecibo {...common} /> : s === "gastos-fijos" ? <GastosFijos {...common} /> : <FinanzasList tenant={tenant} go={go} />;
-    else if (active.id === "taller") view = s === "tipo-negocio" ? <TipoNegocio {...common} /> : s === "estados" ? <EstadosOrden {...common} /> : s === "datos" ? <DatosTaller {...common} /> : <TallerList tenant={tenant} go={go} />;
+    else if (active.id === "taller") view = s === "tipo-negocio" ? <TipoNegocio {...common} /> : s === "estados" ? <EstadosOrden {...common} /> : s === "ofertas" ? <OfertasAjustes tenantId={tenantId} back={back} /> : s === "datos" && isPlanProOrAbove(tenant) ? <DatosTaller {...common} /> : <TallerList tenant={tenant} go={go} />;
     else if (active.id === "comunicacion") {
       const listBack = () => go("comunicacion", "plantillas");
       view = s === "plantillas" ? <PlantillasLista tenant={tenant} go={go} back={back} /> : s.startsWith("plantilla:") ? <EditorPlantilla id={s.slice(10)} tenant={tenant} tenantId={tenantId} reload={reload} back={listBack} /> : s === "politicas" ? <Politicas {...common} /> : s === "push" ? <PushSettings {...common} /> : <ComunicacionList tenant={tenant} go={go} />;
     } else if (active.id === "cuenta") view = s === "seguridad" ? <Seguridad back={back} /> : s === "diagnostico" ? <Diagnostico tenant={tenant} tenantId={tenantId} employee={self} role={role} back={back} /> : <CuentaList go={go} />;
-    else if (active.id === "ofertas") view = <OfertasAjustes tenantId={tenantId} back={() => go(null)} />;
     else if (active.id === "suscripcion") view = <Suscripcion tenant={tenant} tenantId={tenantId} back={() => go(null)} />;
     else if (active.id === "equipo") view = <EquipoList tenant={tenant} tenantId={tenantId} admin={admin} go={go} />;
     return shell(view);

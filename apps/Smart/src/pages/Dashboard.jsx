@@ -6,7 +6,6 @@ import { OpenCashSheet, CloseCashSheet } from "@/components/cash/CashSheets";
 import { fetchTenant, resolveCurrentEmployee } from "@/lib/orderDetailApi";
 import { fetchOpenRegister, canCloseCashRegister, isAdminOrOwner } from "@/lib/cashRegisterApi";
 import { safeTZ, zonedParts } from "@/lib/finance/tz";
-import { money } from "@/components/finanzas/ui";
 import { FP } from "@/lib/finance/ledger";
 import {
   fetchDashboardOrders, fetchTodayTotals, subscribeDashboard, activeWarrantyOrders, isMonthlyLimitReached, trialInfo, leftOpenYesterday,
@@ -22,6 +21,9 @@ import HoyBriefing, { shouldAutoBriefing } from "@/components/inicio/Hoy";
 import { ActiveOffersCard, OffersDialog } from "@/components/inicio/Offers";
 import { PrimerosPasosCard, WelcomeOnboarding, PaywallDialog, welcomeSeen } from "@/components/inicio/Onboarding";
 import PunchKiosk from "@/components/punch/PunchKiosk";
+import { EditPunchesDialog } from "@/components/equipo/Ponches";
+import GoalCelebration from "@/components/ui/GoalCelebration";
+import { fetchEmployees } from "@/lib/teamApi";
 import NewOrderWizard from "@/components/wizard/Wizard";
 import { loadDraft, discardDraft, draftSummary } from "@/components/wizard/state";
 import { fetchTenant as fetchTenantFresh } from "@/lib/orderDetailApi";
@@ -78,6 +80,7 @@ export default function Dashboard() {
   const [limitAlert, setLimitAlert] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [goalHit, setGoalHit] = useState(null);
+  const [team, setTeam] = useState([]);
   const closeCashDone = useRef(null);
   const adminLevel = isAdminOrOwner(employee);
 
@@ -154,6 +157,7 @@ export default function Dashboard() {
     fetchAppointments(tenantId, tz).then(setAppointments).catch(() => {});
   }, [tenantId, tz]);
 
+  useEffect(() => { if (sheet === "punchAudit" && tenantId) fetchEmployees(tenantId).then(setTeam).catch(() => {}); }, [sheet, tenantId]);
   useEffect(() => { loadMain(); }, [loadMain]);
   useEffect(() => { loadShift(); }, [loadShift]);
   useEffect(() => { loadOverview(); }, [loadOverview]);
@@ -182,8 +186,7 @@ export default function Dashboard() {
     } catch {
       return;
     }
-    setGoalHit(`Llegaste a ${money(goal)} hoy en ${tenant.name || "tu taller"}. ¡Excelente trabajo!`);
-    setTimeout(() => setGoalHit(null), 5000);
+    setGoalHit({ goal, revenue: today.revenue });
   }, [goal, today.revenue, tenant, tz]);
 
   const requestNewOrder = (prefill = null, resume = false) => {
@@ -257,7 +260,7 @@ export default function Dashboard() {
           <LeftOpenYesterday punchAt={left.punch} cashAt={left.cash} cashExpected={register ? num(register.opening_balance) : null} tz={tz}
             onPunch={() => setSheet("punch")} onCash={() => requestCloseCash()} />
         )}
-        {adminLevel && overview.length > 0 && <EnTurnoAhora entries={overview} onClick={() => setSheet("punch")} />}
+        {adminLevel && overview.length > 0 && <EnTurnoAhora entries={overview} onClick={() => setSheet("punchAudit")} />}
         {wide ? (
           <>
             {partSearch}
@@ -294,6 +297,7 @@ export default function Dashboard() {
       <CloseCashSheet open={cashSheet === "close"} onClose={() => setCashSheet(null)} register={register} tenantId={tenantId} tenant={tenant} employee={employee}
         onClosed={() => { setRegister(null); setCashSheet(null); const cb = closeCashDone.current; closeCashDone.current = null; cb?.(); loadMain(); }}
         onAlreadyClosed={() => { setRegister(null); setCashSheet(null); }} />
+      <EditPunchesDialog open={sheet === "punchAudit"} onClose={() => { setSheet(null); loadOverview(); loadShift(); }} tenant={tenant} tenantId={tenantId} self={employee} employees={team} />
       <PunchKiosk open={sheet === "punch"} onClose={() => { setSheet(null); loadShift(); loadOverview(); }} tenantId={tenantId} tenant={tenant} sessionEmployee={employee}
         cashOpen={!!register} onOpenCloseCash={(done) => requestCloseCash(done)} onChanged={() => { loadShift(); loadOverview(); }} />
       <HoyBriefing open={sheet === "hoy"} onClose={() => setSheet(null)} tenant={tenant} tenantId={tenantId} tz={tz} employee={employee} orders={orders} products={products}
@@ -308,12 +312,7 @@ export default function Dashboard() {
       )}
       <OrderCreatedToast order={created} onView={() => { const id = created?.id; setCreated(null); if (id) openOrder(id); }} />
       {toast && <div className="fixed left-1/2" style={{ zIndex: 480, bottom: 110, transform: "translateX(-50%)", padding: "10px 16px", borderRadius: 999, background: toast.bad ? FP.danger : "#2C2C2E", color: "#fff", fontSize: 14, fontWeight: 600, maxWidth: "calc(100vw - 32px)" }}>{toast.msg}</div>}
-      {goalHit && (
-        <div className="fixed left-1/2 flex flex-col items-center text-center" style={{ zIndex: 260, top: 20, transform: "translateX(-50%)", padding: "14px 20px", borderRadius: 18, background: FP.success, color: "#fff", maxWidth: "calc(100vw - 32px)" }}>
-          <span style={{ fontSize: 17, fontWeight: 800 }}>¡Meta alcanzada!</span>
-          <span style={{ fontSize: 14 }}>{goalHit}</span>
-        </div>
-      )}
+      {goalHit && <GoalCelebration goal={goalHit.goal} revenue={goalHit.revenue} onDone={() => setGoalHit(null)} />}
     </div>
   );
 }
