@@ -1,26 +1,31 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Search, Plus, Building2, Box } from "lucide-react";
+import { Search, Plus, Building2, Smartphone, Laptop, Tablet, Gamepad2, LockOpen, Wrench, List, Archive, ChevronRight, ChevronLeft, ChevronsUpDown } from "lucide-react";
 import { toast } from "sonner";
 import NewOrderWizard from "@/components/wizard/Wizard";
 import { OrderCreatedToast } from "@/components/inicio/Cards";
 import { dataClient } from "@/components/api/dataClient";
-import { statusInfo, PICKER_GROUPS, isOrderClosed } from "@/lib/orderStatus";
+import { statusInfo, isOrderClosed } from "@/lib/orderStatus";
 import OrdersKanban from "@/components/orders/OrdersKanban";
 import { AlertDialog } from "@/components/pos/native/posUi";
 import { fetchTenant, resolveCurrentEmployee, changeStatusRpc, changedByLabel, addInternalNote, fetchOrder, findOlderUndiagnosed } from "@/lib/orderDetailApi";
 import { loadB2bCompanyMap } from "@/lib/invoicesApi";
 import { sendStatusEmail, isMailableStatus } from "@/lib/orderEmails";
 import { NoteForChangeSheet, QueueWarningSheet } from "@/components/orderDetail/Sheets";
-import OrdersFilterMenu from "@/components/orders/OrdersFilterMenu";
-import PartsToOrderDialog from "@/components/compras/PartsToOrder";
-import { orderKind, createdAt, deviceTypeLabel } from "@/lib/ordersBoard";
 import { DEVICE_BUCKETS, deviceBucket } from "@/lib/deviceBucket";
 import { ConsolidatedInvoiceDialog, InvoiceHistoryDialog } from "@/components/invoices/InvoiceDialogs";
 import { isMonthlyLimitReached, subscribeOrders } from "@/lib/inicioApi";
 import { safeTZ } from "@/lib/finance/tz";
-import { hiddenStatusesOf } from "@/lib/tenantSettings";
 import { useBusinessMode } from "@/lib/businessMode";
+
+const BUCKET_STYLE = {
+  phones: { Icon: Smartphone, color: "#0A84FF" },
+  computers: { Icon: Laptop, color: "#BF5AF2" },
+  tablets: { Icon: Tablet, color: "#40C8E0" },
+  consoles: { Icon: Gamepad2, color: "#FF375F" },
+  unlocks: { Icon: LockOpen, color: "#FF9F0A" },
+  other: { Icon: Wrench, color: "#8E8E93" },
+};
 
 export default function Orders() {
   const navigate = useNavigate();
@@ -35,6 +40,8 @@ export default function Orders() {
   const stored = (() => { try { return JSON.parse(sessionStorage.getItem("orders_view") || "{}") || {}; } catch { return {}; } })();
   const [search, setSearch] = useState(stored.search || "");
   const [statusFilter, setStatusFilter] = useState(stored.statusFilter || "all");
+  const [bucket, setBucket] = useState(stored.bucket || null);
+  const [historyMenu, setHistoryMenu] = useState(false);
   const [wizard, setWizard] = useState(false);
   const [created, setCreated] = useState(null);
   const [tenant, setTenant] = useState(null);
@@ -45,19 +52,10 @@ export default function Orders() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [tenantId, setTenantId] = useState("");
   const [companyById, setCompanyById] = useState({});
-  const [kind, setKind] = useState(null);
-  const [bucket, setBucket] = useState(() => { try { return localStorage.getItem("orders_bucket") || "all"; } catch { return "all"; } });
-  const pickBucket = (id) => { setBucket(id); try { localStorage.setItem("orders_bucket", id); } catch { return; } };
-  const [deviceType, setDeviceType] = useState(null);
-  const [b2bOnly, setB2bOnly] = useState(false);
-  const [showDates, setShowDates] = useState(false);
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
-  const [partsOpen, setPartsOpen] = useState(false);
   const [noteFor, setNoteFor] = useState(null);
   const [queueWarn, setQueueWarn] = useState(null);
 
-  useEffect(() => { try { sessionStorage.setItem("orders_view", JSON.stringify({ search, statusFilter })); } catch { return; } }, [search, statusFilter]);
+  useEffect(() => { try { sessionStorage.setItem("orders_view", JSON.stringify({ search, statusFilter, bucket })); } catch { return; } }, [search, statusFilter, bucket]);
 
   const loadOrders = useCallback(async () => {
     const seq = ++loadSeq.current;
@@ -144,73 +142,29 @@ export default function Orders() {
     navigate(`/Orders/${order.id}`, { state: queueMessage ? { queueMessage } : undefined });
   };
 
-  const hiddenStatuses = useMemo(() => hiddenStatusesOf(tenant), [tenant]);
-
-  const statusCounts = useMemo(() => {
-    const map = new Map();
-    orders.forEach((o) => {
-      const st = o.status;
-      map.set(st, (map.get(st) || 0) + 1);
-    });
-    const listed = PICKER_GROUPS.flatMap((g) => g.statuses);
-    const extra = Array.from(map.keys()).filter((id) => !listed.includes(id));
-    return [...listed, ...extra]
-      .filter((id) => !hiddenStatuses.includes(String(id)))
-      .map((id) => ({ id, count: map.get(id) || 0, config: statusInfo(id) }));
-  }, [orders, hiddenStatuses]);
-
-  useEffect(() => {
-    if (statusFilter !== "all" && hiddenStatuses.includes(String(statusFilter))) setStatusFilter("all");
-  }, [hiddenStatuses, statusFilter]);
-
   const bucketCounts = useMemo(() => {
     const c = {};
     orders.forEach((o) => { if (!isOrderClosed(o)) { const b = deviceBucket(o); c[b] = (c[b] || 0) + 1; } });
     return c;
   }, [orders]);
 
-  const kindCounts = useMemo(() => {
-    const c = { repairs: 0, unlocks: 0, recharges: 0 };
-    orders.forEach((o) => { c[orderKind(o)] += 1; });
+  const statusTotals = useMemo(() => {
+    const c = {};
+    orders.forEach((o) => { c[o.status] = (c[o.status] || 0) + 1; });
     return c;
   }, [orders]);
 
-  const deviceTypes = useMemo(() => {
-    const set = new Set();
-    orders.forEach((o) => { const t = deviceTypeLabel(o); if (t && !t.toLowerCase().startsWith("bloqueado:")) set.add(t); });
-    return Array.from(set).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
-  }, [orders]);
+  const openTotal = Object.values(bucketCounts).reduce((x, y) => x + y, 0);
+  const isHome = bucket === null && statusFilter === "all" && !search.trim();
 
-  const b2bCount = useMemo(() => orders.filter((o) => o.customer_id && companyById[o.customer_id]).length, [orders, companyById]);
-
-  const dateRange = useMemo(() => {
-    const from = dateFrom ? new Date(`${dateFrom}T00:00:00`).getTime() : null;
-    const to = dateTo ? new Date(`${dateTo}T23:59:59.999`).getTime() : null;
-    return { from, to };
-  }, [dateFrom, dateTo]);
-
-  const hasFilters = bucket !== "all" || statusFilter !== "all" || !!kind || !!deviceType || b2bOnly || !!dateFrom || !!dateTo || !!search.trim();
-  const menuActive = bucket !== "all" || !!kind || !!deviceType || b2bOnly || !!dateFrom || !!dateTo || showDates;
-
-  const clearFilters = () => {
-    setSearch(""); pickBucket("all"); setStatusFilter("all"); setKind(null); setDeviceType(null); setB2bOnly(false);
-    setDateFrom(""); setDateTo(""); setShowDates(false);
-  };
+  const goHome = () => { setBucket(null); setStatusFilter("all"); setSearch(""); setHistoryMenu(false); };
 
   const filteredOrders = useMemo(() => {
     const q = search.trim().toLowerCase();
     return orders.filter((o) => {
       if (statusFilter !== "all" && o.status !== statusFilter) return false;
       if (statusFilter === "all" && !q && isOrderClosed(o)) return false;
-      if (b2bOnly && !(o.customer_id && companyById[o.customer_id])) return false;
-      if (!q && bucket !== "all" && deviceBucket(o) !== bucket) return false;
-      if (!q && kind && orderKind(o) !== kind) return false;
-      if (!q && deviceType && deviceTypeLabel(o) !== deviceType) return false;
-      if (!q && (dateRange.from || dateRange.to)) {
-        const t = createdAt(o);
-        if (dateRange.from && t < dateRange.from) return false;
-        if (dateRange.to && t > dateRange.to) return false;
-      }
+      if (!q && bucket && bucket !== "all" && deviceBucket(o) !== bucket) return false;
       if (!q) return true;
       const digits = q.replace(/\D/g, "");
       return (
@@ -224,7 +178,7 @@ export default function Orders() {
         (digits.length >= 3 && String(o.customer_phone || "").replace(/\D/g, "").includes(digits))
       );
     });
-  }, [orders, search, statusFilter, bucket, kind, deviceType, b2bOnly, companyById, dateRange]);
+  }, [orders, search, statusFilter, bucket]);
 
   const applyQuickStatus = useCallback(async (orderId, newStatus) => {
     const live = ordersRef.current.find((o) => o.id === orderId);
@@ -260,31 +214,15 @@ export default function Orders() {
   }, [applyQuickStatus]);
 
   const iconBtn = { display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: 999, background: "rgba(255,255,255,0.08)", color: "#fff", flexShrink: 0 };
+  const bucketLabel = bucket && bucket !== "all" ? DEVICE_BUCKETS.find((b) => b.id === bucket)?.label : null;
+  const headerTitle = statusFilter !== "all" ? statusInfo(statusFilter).label : bucketLabel || "Todas";
+  const headerColor = statusFilter !== "all" ? statusInfo(statusFilter).color : bucket && bucket !== "all" ? BUCKET_STYLE[bucket].color : "#fff";
 
   return (
     <div className="apple-type min-h-dvh" style={{ background: "#000", color: "#fff" }}>
       <div className="app-container pt-6 pb-3">
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <OrdersFilterMenu
-            active={menuActive}
-            b2bAvailable={b2b}
-            b2bCount={b2bCount}
-            b2bOnly={b2bOnly}
-            onB2b={setB2bOnly}
-            kind={kind}
-            kindCounts={kindCounts}
-            onKind={setKind}
-            deviceType={deviceType}
-            deviceTypes={deviceTypes}
-            onDeviceType={setDeviceType}
-            showDates={showDates}
-            onToggleDates={() => { if (showDates) { setDateFrom(""); setDateTo(""); } setShowDates((v) => !v); }}
-            onClear={clearFilters}
-          />
           <h1 className="apple-text-title1 font-bold" style={{ color: "#fff", flex: 1 }}>Órdenes</h1>
-          <button onClick={() => setPartsOpen(true)} aria-label="Piezas por ordenar" title="Piezas por ordenar" className="apple-press" style={iconBtn}>
-            <Box className="w-4 h-4" />
-          </button>
           {b2b && tenant && (
             <button onClick={() => setInvoiceOpen(true)} aria-label="Factura B2B" title="Factura B2B" className="apple-press" style={iconBtn}>
               <Building2 className="w-4 h-4" />
@@ -311,78 +249,76 @@ export default function Orders() {
         </div>
       </div>
 
-      <div className="app-container pb-3" style={{ display: "flex", gap: 8, overflowX: "auto" }}>
-        {[{ id: "all", label: "Todos" }, ...DEVICE_BUCKETS].map((b) => {
-          const on = bucket === b.id;
-          const n = b.id === "all" ? Object.values(bucketCounts).reduce((x, y) => x + y, 0) : bucketCounts[b.id] || 0;
-          return (
-            <button key={b.id} onClick={() => pickBucket(b.id)} className="apple-press" style={{ padding: "8px 14px", borderRadius: 999, fontSize: 14, fontWeight: on ? 700 : 500, whiteSpace: "nowrap", border: "none", cursor: "pointer", display: "flex", gap: 6, alignItems: "baseline", background: on ? "#fff" : "rgba(118,118,128,0.24)", color: on ? "#000" : "#fff", opacity: n === 0 && !on ? 0.5 : 1 }}>
-              {b.label} <span style={{ fontSize: 12, fontWeight: 700 }}>{n}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="app-container pb-3" style={{ display: "flex", gap: 8, overflowX: "auto" }}>
-        <button
-          onClick={() => setStatusFilter("all")}
-          className="apple-press"
-          style={{
-            padding: "8px 14px", borderRadius: 999, fontSize: 14, fontWeight: statusFilter === "all" ? 600 : 400, whiteSpace: "nowrap", border: "none", cursor: "pointer", display: "flex", gap: 6, alignItems: "baseline",
-            background: statusFilter === "all" ? "#F2662E" : "rgba(118,118,128,0.24)",
-            color: "#fff",
-          }}
-        >
-          Todas <span style={{ fontSize: 12, fontWeight: 600 }}>{orders.length}</span>
-        </button>
-        {statusCounts.map(({ id, count, config }) => {
-          const selected = statusFilter === id;
-          return (
-            <button
-              key={id}
-              onClick={() => setStatusFilter(selected ? "all" : id)}
-              className="apple-press"
-              style={{
-                padding: "8px 14px", borderRadius: 999, fontSize: 14, fontWeight: selected ? 600 : 400, whiteSpace: "nowrap", border: "none", cursor: "pointer", display: "flex", gap: 6, alignItems: "baseline",
-                background: selected ? config.color : "rgba(118,118,128,0.24)",
-                color: "#fff",
-              }}
-            >
-              {config.label} <span style={{ fontSize: 12, fontWeight: 600 }}>{count}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {showDates && (
-        <div className="app-container pb-3" style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-          <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#8E8E93" }}>
-            Desde
-            <input type="date" value={dateFrom} max={dateTo || undefined} onChange={(e) => setDateFrom(e.target.value)} style={{ height: 36, padding: "0 10px", borderRadius: 10, background: "rgba(255,255,255,0.08)", color: "#fff", border: "none", outline: "none", colorScheme: "dark" }} />
-          </label>
-          <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#8E8E93" }}>
-            Hasta
-            <input type="date" value={dateTo} min={dateFrom || undefined} onChange={(e) => setDateTo(e.target.value)} style={{ height: 36, padding: "0 10px", borderRadius: 10, background: "rgba(255,255,255,0.08)", color: "#fff", border: "none", outline: "none", colorScheme: "dark" }} />
-          </label>
-        </div>
-      )}
-
       <div className="app-container">
         {loading ? (
           <div className="text-center py-16" style={{ color: "rgba(255,255,255,0.4)" }}>Cargando órdenes…</div>
-        ) : filteredOrders.length === 0 ? (
-          <div className="text-center py-16" style={{ color: "rgba(255,255,255,0.4)", display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
-            <span className="apple-text-subheadline">
-              {orders.length === 0 ? "Aún no hay órdenes. Crea la primera." : hasFilters ? "Ninguna orden coincide con los filtros" : "No hay órdenes activas"}
-            </span>
-            {hasFilters ? (
-              <button onClick={clearFilters} className="apple-press" style={{ height: 40, padding: "0 18px", borderRadius: 999, background: "rgba(255,255,255,0.08)", color: "#fff", fontSize: 14, fontWeight: 600 }}>Limpiar filtros</button>
-            ) : orders.length === 0 ? (
-              <button onClick={requestNewOrder} className="apple-press" style={{ height: 40, padding: "0 18px", borderRadius: 999, background: "#F2662E", color: "#fff", fontSize: 14, fontWeight: 700 }}>Nueva orden</button>
-            ) : null}
+        ) : isHome ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, paddingBottom: 40 }}>
+            <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 1fr))" }}>
+              {DEVICE_BUCKETS.filter((b) => (bucketCounts[b.id] || 0) > 0).map((b) => {
+                const { Icon, color } = BUCKET_STYLE[b.id];
+                const n = bucketCounts[b.id] || 0;
+                return (
+                  <button key={b.id} onClick={() => setBucket(b.id)} className="apple-press tile-in" style={{ textAlign: "left", minHeight: 150, padding: 14, borderRadius: 20, background: "#1C1C1E", border: `1px solid ${color}2E`, display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 10 }}>
+                    <span style={{ width: 44, height: 44, borderRadius: 12, background: `${color}29`, color, display: "flex", alignItems: "center", justifyContent: "center" }}><Icon className="w-6 h-6" /></span>
+                    <span>
+                      <span style={{ display: "block", fontSize: 38, fontWeight: 800, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{n}</span>
+                      <span style={{ display: "block", fontSize: 17, fontWeight: 600, marginTop: 4 }}>{b.label}</span>
+                      <span style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#8E8E93" }}>{n === 1 ? "1 pendiente" : `${n} pendientes`}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            {openTotal === 0 && <p className="text-center" style={{ color: "#8E8E93", fontSize: 14 }}>{orders.length === 0 ? "Aún no hay órdenes. Crea la primera." : "No hay órdenes pendientes."}</p>}
+            <button onClick={() => setBucket("all")} className="apple-press flex items-center gap-3 text-left" style={{ padding: 16, borderRadius: 16, background: "#1C1C1E" }}>
+              <List className="w-5 h-5" />
+              <span className="flex-1" style={{ fontSize: 16, fontWeight: 600 }}>Todas las órdenes</span>
+              <span style={{ color: "#8E8E93", fontVariantNumeric: "tabular-nums" }}>{openTotal}</span>
+              <ChevronRight className="w-4 h-4" style={{ color: "rgba(235,235,245,0.3)" }} />
+            </button>
+            <div style={{ position: "relative" }}>
+              <button onClick={() => setHistoryMenu((v) => !v)} aria-haspopup="menu" aria-expanded={historyMenu} className="apple-press w-full flex items-center gap-3 text-left" style={{ padding: 16, borderRadius: 16, background: "#1C1C1E", color: "#F2662E" }}>
+                <Archive className="w-5 h-5" />
+                <span className="flex-1" style={{ fontSize: 16, fontWeight: 600 }}>Historial y cerradas</span>
+                <ChevronsUpDown className="w-4 h-4" style={{ color: "rgba(235,235,245,0.3)" }} />
+              </button>
+              {historyMenu && (
+                <>
+                  <div className="fixed inset-0" style={{ zIndex: 60 }} onClick={() => setHistoryMenu(false)} />
+                  <div role="menu" style={{ position: "absolute", top: 60, left: 0, right: 0, zIndex: 61, borderRadius: 16, background: "#3A3A3C", overflow: "hidden", boxShadow: "0 12px 32px rgba(0,0,0,0.5)" }}>
+                    {["delivered", "warranty", "cancelled", "not_repairable", "abandoned"].map((st) => {
+                      const info = statusInfo(st);
+                      return (
+                        <button key={st} role="menuitem" onClick={() => { setStatusFilter(st); setHistoryMenu(false); }} className="w-full flex items-center gap-3 text-left" style={{ padding: "13px 16px", fontSize: 15 }}>
+                          <span style={{ width: 8, height: 8, borderRadius: 999, background: info.color }} />
+                          <span className="flex-1">{info.label}</span>
+                          <span style={{ color: "#8E8E93" }}>{statusTotals[st] || 0}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         ) : (
-          <OrdersKanban orders={filteredOrders} onCardClick={openOrder} companyById={companyById} onQuickStatus={quickStatus} flat={!!search.trim()} hiddenStatuses={hiddenStatuses} />
+          <>
+            {!search.trim() && (
+              <div className="flex items-center justify-between" style={{ padding: "4px 2px 14px" }}>
+                <button onClick={goHome} className="apple-press flex items-center gap-1" style={{ color: "#F2662E", fontSize: 15, fontWeight: 600 }}><ChevronLeft className="w-4 h-4" /> Categorías</button>
+                <span style={{ fontSize: 17, fontWeight: 700, color: headerColor }}>{headerTitle}</span>
+              </div>
+            )}
+            {filteredOrders.length === 0 ? (
+              <div className="text-center py-16" style={{ color: "rgba(255,255,255,0.4)", display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
+                <span className="apple-text-subheadline">{search.trim() ? "Ninguna orden coincide con la búsqueda" : "No hay órdenes aquí"}</span>
+                <button onClick={goHome} className="apple-press" style={{ height: 40, padding: "0 18px", borderRadius: 999, background: "rgba(255,255,255,0.08)", color: "#fff", fontSize: 14, fontWeight: 600 }}>Volver a categorías</button>
+              </div>
+            ) : (
+              <OrdersKanban orders={filteredOrders} onCardClick={openOrder} companyById={companyById} onQuickStatus={quickStatus} flat={!!search.trim()} />
+            )}
+          </>
         )}
       </div>
       {wizard && (
@@ -391,7 +327,6 @@ export default function Orders() {
       )}
       {invoiceOpen && <ConsolidatedInvoiceDialog open onClose={() => setInvoiceOpen(false)} tenant={tenant} tenantId={tenantId} employeeName={employeeName} onOpenHistory={() => setHistoryOpen(true)} />}
       {historyOpen && <InvoiceHistoryDialog open onClose={() => setHistoryOpen(false)} tenant={tenant} tenantId={tenantId} />}
-      <PartsToOrderDialog open={partsOpen} tenantId={tenantId} employeeName={employeeName} onClose={() => setPartsOpen(false)} onChanged={loadOrders} />
       <NoteForChangeSheet
         open={!!noteFor}
         status={noteFor?.status}
