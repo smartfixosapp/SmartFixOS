@@ -46,7 +46,7 @@ function VisitAddress({ w }) {
 
 function BottomActions({ label, busy, canCreate, missing, onCreate, onCreateOnly }) {
   return (
-    <div className="flex flex-col" style={{ gap: 8 }}>
+    <div className="flex flex-col" style={{ gap: 8, position: "sticky", bottom: 0, zIndex: 5, padding: "12px 0 8px", background: "linear-gradient(180deg, rgba(0,0,0,0), #000 28%)" }}>
       {!canCreate && missing.length > 0 && <p style={{ fontSize: 12, color: W.sub }}>Falta: {missing.join(", ")}</p>}
       <button onClick={onCreate} disabled={!canCreate || busy} className="apple-press flex items-center justify-center gap-2 disabled:opacity-40" style={{ height: 54, borderRadius: 16, background: IOS.green, color: "#fff", fontSize: 17, fontWeight: 700 }}>{busy ? <><Loader2 className="w-5 h-5 animate-spin" /> Creando…</> : label}</button>
       <button onClick={onCreateOnly} disabled={!canCreate || busy} className="disabled:opacity-40" style={{ fontSize: 14, color: IOS.orange, padding: 6 }}>Solo registrar (cobrar después)</button>
