@@ -149,7 +149,7 @@ function isLowStockItem(item) {
   return stock <= 0 || (min > 0 && stock <= min);
 }
 
-function InventoryCard({ item, onEdit, onDelete, onOffer, onQuickAdjust, onStep, onDuplicate, onWhatsApp }) {
+function InventoryCard({ item, onEdit, onDelete, onOffer, onQuickAdjust, onStep, onDuplicate, onWhatsApp, selectMode, picked, onToggle }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const kind = itemKind(item);
   const { color, Icon } = KIND_STYLE[kind];
@@ -174,10 +174,15 @@ function InventoryCard({ item, onEdit, onDelete, onOffer, onQuickAdjust, onStep,
 
   return (
     <div
-      onClick={() => onEdit(item)}
+      onClick={() => (selectMode ? onToggle(item) : onEdit(item))}
       className="apple-type apple-press group relative cursor-pointer"
-      style={{ background: "#1C1C1E", borderRadius: 16, padding: 14, display: "flex", flexDirection: "column", gap: 10 }}
+      style={{ background: "#1C1C1E", borderRadius: 16, padding: 14, display: "flex", flexDirection: "column", gap: 10, outline: picked ? "2px solid #F2662E" : "none" }}
     >
+      {selectMode && (
+        <span className="absolute flex items-center justify-center" style={{ top: 10, right: 10, zIndex: 2, width: 22, height: 22, borderRadius: 999, background: picked ? "#F2662E" : "rgba(0,0,0,0.5)", border: "1.5px solid #fff", color: "#fff" }}>
+          {picked && <CheckSquare className="w-3 h-3" />}
+        </span>
+      )}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
         <span
           style={{ width: 36, height: 36, borderRadius: 10, background: `${color}26`, color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
@@ -1047,6 +1052,23 @@ export default function Inventory() {
   const [showReports, setShowReports] = useState(false);
   const [showRestock, setShowRestock] = useState(false);
   const [detailItem, setDetailItem] = useState(null);
+  const [selectMode, setSelectMode] = useState(false);
+  const [bulkIds, setBulkIds] = useState([]);
+  const [bulkConfirm, setBulkConfirm] = useState(false);
+  const toggleBulk = (it) => setBulkIds((prev) => (prev.includes(it.id) ? prev.filter((x) => x !== it.id) : [...prev, it.id]));
+  const exitSelect = () => { setSelectMode(false); setBulkIds([]); };
+  const bulkArchive = async () => {
+    setBulkConfirm(false);
+    const ids = bulkIds;
+    let failed = 0;
+    for (const id of ids) {
+      try { await dataClient.entities.Product.update(id, { active: false }); } catch { failed += 1; }
+    }
+    setItems((prev) => prev.filter((x) => !ids.includes(x.id)));
+    ["pos-active-products", "pos-active-services"].forEach((key) => { const c = catalogCache.get(key); if (Array.isArray(c)) catalogCache.set(key, c.filter((p) => !ids.includes(p.id))); });
+    exitSelect();
+    if (failed) { toast.error(`No se pudieron eliminar ${failed}`); loadInventory(); } else toast.success(ids.length === 1 ? "Producto eliminado" : `${ids.length} productos eliminados`);
+  };
   const [showManageCategories, setShowManageCategories] = useState(false);
   const [viewMode, setViewMode] = useState("products"); // products | categories
   // ── Ajuste Rápido de Stock ────────────────────────────────────────────
@@ -1199,8 +1221,31 @@ export default function Inventory() {
     return sorted;
   }, [items, mainCategory, deviceCategory, partTypeFilter, viewTab, q, sortKey]);
 
-  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const pageItems = filtered.slice((page - 1) * pageSize, page * pageSize);
+  const [drill, setDrill] = useState({ brand: null, family: null, model: null, all: false });
+  useEffect(() => { setDrill({ brand: null, family: null, model: null, all: false }); }, [mainCategory, viewTab, q, deviceCategory, partTypeFilter]);
+  const drillOn = !q && viewTab === "products" && ["piezas", "accesorios", "servicios"].includes(mainCategory);
+  const drillInfo = useMemo(() => {
+    if (!drillOn) return { rows: null, items: filtered, level: null };
+    const nm = (v) => String(v || "").trim();
+    let list = filtered;
+    let level = "device_brand";
+    if (drill.brand) {
+      list = list.filter((it) => nm(it.device_brand) === drill.brand);
+      level = "device_family";
+      if (drill.family) {
+        list = list.filter((it) => nm(it.device_family) === drill.family);
+        level = "device_model";
+        if (drill.model) { list = list.filter((it) => nm(it.device_model) === drill.model); level = null; }
+      }
+    }
+    const counts = new Map();
+    if (level && !drill.all) list.forEach((it) => { const k = nm(it[level]); if (k) counts.set(k, (counts.get(k) || 0) + 1); });
+    const rows = [...counts.entries()].sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true })).map(([label, count]) => ({ label, count }));
+    return { rows: rows.length ? rows : null, items: list, level };
+  }, [filtered, drillOn, drill]);
+  const scopedItems = drillInfo.items;
+  const pageCount = Math.max(1, Math.ceil(scopedItems.length / pageSize));
+  const pageItems = scopedItems.slice((page - 1) * pageSize, page * pageSize);
 
   const handleSelectProduct = (item, openModal = false) => {
     if (openModal) {
@@ -1772,13 +1817,39 @@ export default function Inventory() {
                 {label}
               </button>
             ))}
+            <div className="h-5 w-px bg-white/10 mx-0.5" />
+            {selectMode ? (
+              <>
+                <button onClick={() => bulkIds.length && setBulkConfirm(true)} disabled={!bulkIds.length} className="px-3 py-1.5 rounded-xl text-xs font-bold bg-red-500/20 text-red-400 disabled:opacity-40">{`Eliminar (${bulkIds.length})`}</button>
+                <button onClick={exitSelect} className="px-3 py-1.5 rounded-xl text-xs font-bold text-white/60">Cancelar</button>
+              </>
+            ) : (
+              <button onClick={() => setSelectMode(true)} className="px-3 py-1.5 rounded-xl text-xs font-bold text-white/60 hover:text-white">Seleccionar</button>
+            )}
           </div>
         )}
 
 
         {/* ── Product grid ──────────────────────────────────────── */}
         <div className="min-h-[300px]">
-          {pageItems.length === 0 ? (
+          {drillOn && (drill.brand || drill.all) && (
+            <div className="flex items-center gap-2 flex-wrap" style={{ marginBottom: 12 }}>
+              <button onClick={() => setDrill((d) => (d.all ? { brand: d.brand, family: d.family, model: d.model, all: false } : d.model ? { brand: d.brand, family: d.family, model: null, all: false } : d.family ? { brand: d.brand, family: null, model: null, all: false } : { brand: null, family: null, model: null, all: false }))} className="apple-press" style={{ padding: "6px 14px", borderRadius: 999, background: "#2C2C2E", color: "#fff", fontSize: 13, fontWeight: 700 }}>‹ Atrás</button>
+              <span style={{ fontSize: 14, fontWeight: 700 }}>{[drill.brand, drill.family, drill.model].filter(Boolean).join(" › ") || "Todos"}</span>
+            </div>
+          )}
+          {drillOn && drillInfo.rows ? (
+            <div style={{ borderRadius: 16, background: "#1C1C1E", overflow: "hidden" }}>
+              {drillInfo.rows.map((r, i) => (
+                <button key={r.label} onClick={() => setDrill((d) => (drillInfo.level === "device_brand" ? { ...d, brand: r.label } : drillInfo.level === "device_family" ? { ...d, family: r.label } : { ...d, model: r.label }))} className="apple-press w-full flex items-center gap-3 text-left" style={{ padding: "13px 16px", borderTop: i ? "0.5px solid rgba(84,84,88,0.6)" : "none" }}>
+                  <span className="flex-1" style={{ fontSize: 16, fontWeight: 600 }}>{r.label}</span>
+                  <span style={{ fontSize: 14, color: "#8E8E93" }}>{r.count}</span>
+                  <ChevronRight className="w-4 h-4" style={{ color: "rgba(235,235,245,0.3)" }} />
+                </button>
+              ))}
+              <button onClick={() => setDrill((d) => ({ ...d, all: true }))} className="apple-press w-full text-left" style={{ padding: "13px 16px", borderTop: "0.5px solid rgba(84,84,88,0.6)", color: "#F2662E", fontSize: 15, fontWeight: 600 }}>{`Ver todos (${scopedItems.length})`}</button>
+            </div>
+          ) : pageItems.length === 0 ? (
             <div className="text-center py-20">
               <Box className="w-14 h-14 text-white/40 mx-auto mb-4" />
               <p className="text-white/50 font-bold text-sm sm:text-base text-center px-4">
@@ -1802,6 +1873,9 @@ export default function Inventory() {
                   onOffer={it => handleSelectProduct(it, true)}
                   onQuickAdjust={it => setQuickAdjustItem(it)}
                   onStep={handleStep}
+                  selectMode={selectMode}
+                  picked={bulkIds.includes(item.id)}
+                  onToggle={toggleBulk}
                   onDuplicate={it => { const { id, sku, barcode, ...rest } = it; setEditing({ ...rest, name: `${it.name} (copia)` }); setShowItemDialog(true); }}
                   onWhatsApp={it => { const price = Number(it.price || 0).toFixed(2); window.open(`https://wa.me/?text=${encodeURIComponent(`${it.name} - $${price}`)}`, "_blank", "noopener"); }}
                 />
@@ -1880,6 +1954,13 @@ export default function Inventory() {
           />
         )}
 
+        <AlertDialog
+          open={bulkConfirm}
+          title="Eliminar productos"
+          message="Se ocultarán del inventario y del POS. Las órdenes y ventas pasadas mantienen los productos."
+          onClose={() => setBulkConfirm(false)}
+          actions={[{ label: "Eliminar", destructive: true, onPress: bulkArchive }, { label: "Cancelar", bold: true }]}
+        />
         <AlertDialog
           open={!!deleteTarget}
           title="Eliminar producto"
