@@ -304,7 +304,7 @@ export default function PODetailPanel({ po, tenant, tenantId, employeeName, onUp
             <div className="absolute right-0" style={{ top: 42, zIndex: 40, minWidth: 210, background: "#2C2C2E", borderRadius: 14, overflow: "hidden", boxShadow: "0 10px 30px rgba(0,0,0,0.5)" }} onClick={(e) => e.stopPropagation()}>
               {po.status !== "cancelled" && menuItem("Editar orden", Pencil, () => setDlg({ kind: "edit", po }))}
               {menuItem("Compartir PDF", Share2, sharePdf)}
-              {items.length > 0 && menuItem("Volver a pedir", RotateCcw, () => onReorder(po))}
+              {items.length > 0 && onReorder && menuItem("Volver a pedir", RotateCcw, () => onReorder(po))}
               {isDraft && menuItem("Cerrar pedido", PackageCheck, () => setDlg({ kind: "close", po }))}
               {canReceive && menuItem("Recibir orden", PackageCheck, () => setDlg({ kind: "receive", po }))}
               {po.status !== "cancelled" && menuItem("Cancelar orden", XCircle, () => setDlg({ kind: "cancel", po }), RED)}

@@ -269,6 +269,22 @@ export async function resizeJpeg(file, maxDim, quality) {
   return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("No se pudo procesar la imagen"))), "image/jpeg", quality));
 }
 
+export async function analyzeDamagePhoto(file, deviceHint) {
+  const blob = await resizeJpeg(file, 1800, 0.6);
+  const dataUrl = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("No se pudo leer la foto"));
+    reader.readAsDataURL(blob);
+  });
+  const { data, error } = await supabase.functions.invoke("archi-vision", {
+    body: { image_base64: dataUrl.slice(dataUrl.indexOf(",") + 1), mime_type: "image/jpeg", device_hint: deviceHint || "" },
+  });
+  if (error) throw error;
+  if (!data?.diagnosis) throw new Error("Sin diagnóstico");
+  return { diagnosis: String(data.diagnosis), category: String(data.category || ""), confidence: String(data.confidence || "") };
+}
+
 const thumbPath = (p) => { const i = p.lastIndexOf("."); return i < 0 ? `${p}_thumb` : `${p.slice(0, i)}_thumb${p.slice(i)}`; };
 
 async function uploadJpegWithThumb(bucketName, path, file) {

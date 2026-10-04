@@ -7,6 +7,7 @@ import { A, SubPage, Group, Row, ToggleRow, PrimaryBtn, ErrorLine } from "./ui";
 import { updateTenant, hiddenStatusesOf, localGet, localSet, fetchTenantRow, isPlanProOrAbove } from "@/lib/tenantSettings";
 import { ORDER_STATUS } from "@/lib/orderStatus";
 import { cacheBusinessMode } from "@/lib/businessMode";
+import DeviceCatalogManager from "@/components/settings/DeviceCatalogManager";
 
 const MODES = { repair: ["Reparación", "Taller de reparación: órdenes, técnicos, garantías y POS."], retail: ["Tienda", "Solo venta: covers, accesorios y celulares. POS e inventario, sin reparación."], both: ["Ambos", "Reparación y tienda juntas. Todas las funciones disponibles."] };
 const modeSummary = (m) => (m === "retail" ? "Tienda — solo venta" : m === "both" ? "Reparación + Tienda" : "Reparación");
@@ -25,7 +26,7 @@ export function TallerList({ tenant, go }) {
     <SubPage title="Taller" onBack={() => go(null)}>
       <Group header="Operación" pad={false}>
         <Row first Icon={Store} color={A.brand} title="Tipo de negocio" sub={modeSummary(tenant?.business_mode)} onClick={() => go("taller", "tipo-negocio")} />
-        <Row Icon={LayoutGrid} color={A.brand} title="Catálogo de Dispositivos" sub="Categorías y modelos" onClick={() => navigate("/Inventory")} />
+        <Row Icon={LayoutGrid} color={A.brand} title="Catálogo de Dispositivos" sub="Categorías y modelos" onClick={() => go("taller", "catalogo")} />
         <Row Icon={Package} color={A.warning} title="Inventario" sub="Stock y precios" onClick={() => navigate("/Inventory")} />
         <Row Icon={Percent} color="#FF375F" title="Ofertas" sub="Descuentos por equipo, pieza o categoría" onClick={() => go("taller", "ofertas")} />
         <Row Icon={Flag} color="#63E6BE" title="Estados de la orden" sub={`${on} de ${TOTAL} encendidos`} onClick={() => go("taller", "estados")} />
@@ -33,6 +34,14 @@ export function TallerList({ tenant, go }) {
         <ToggleRow Icon={Tag} color="#A2845E" title="Etiquetas de equipo" sub={labels ? "Imprime etiqueta al crear una orden" : "No se imprime etiqueta"} on={labels} onChange={(v) => { setLabels(v); localSet("print.labelsEnabled", v); }} />
         {isPlanProOrAbove(tenant) && <Row Icon={HardDrive} color={A.info} title="Datos del Taller" sub="Exportar clientes, órdenes, inventario" onClick={() => go("taller", "datos")} />}
       </Group>
+    </SubPage>
+  );
+}
+
+export function CatalogoDispositivos({ back }) {
+  return (
+    <SubPage title="Catálogo de Dispositivos" onBack={back}>
+      <DeviceCatalogManager />
     </SubPage>
   );
 }

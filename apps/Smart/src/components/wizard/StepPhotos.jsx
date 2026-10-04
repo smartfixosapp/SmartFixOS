@@ -1,7 +1,7 @@
-import { useRef } from "react";
-import { Images, Camera, X, Trash2 } from "lucide-react";
+import { useRef, useState } from "react";
+import { Images, Camera, X, Trash2, Sparkles, Loader2 } from "lucide-react";
 import { tint } from "@/components/pos/native/posUi";
-import { warmUpload } from "@/lib/wizard/api";
+import { warmUpload, analyzeDamagePhoto } from "@/lib/wizard/api";
 import { IOS, PHOTO_EXCEPTIONS } from "@/lib/wizard/helpers";
 import { Caption, W } from "./ui";
 
@@ -28,6 +28,26 @@ export default function StepPhotos({ w, tenantId }) {
   const cameraRef = useRef(null);
   const add = usePhotoAdder({ tenantId, w });
   const full = s.photos.length >= MAX_PHOTOS;
+  const [analyzing, setAnalyzing] = useState(false);
+  const [vision, setVision] = useState(null);
+  const [visionError, setVisionError] = useState(false);
+  const analyze = async () => {
+    const first = s.photos[0];
+    if (!first?.file || analyzing) return;
+    setAnalyzing(true);
+    setVisionError(false);
+    try {
+      setVision(await analyzeDamagePhoto(first.file, [s.brand?.name, s.family?.name].filter(Boolean).join(" ")));
+    } catch {
+      setVisionError(true);
+    }
+    setAnalyzing(false);
+  };
+  const addToProblem = () => {
+    const d = vision?.diagnosis;
+    if (!d) return;
+    set((p) => ({ problem: !p.problem ? d : p.problem.includes(d) ? p.problem : `${p.problem}\n${d}` }));
+  };
   const remove = (id) => set((p) => ({ photos: p.photos.filter((x) => x.id !== id) }));
   const btn = (Icon, label, ref) => (
     <button onClick={() => ref.current?.click()} disabled={full} className="apple-press flex-1 flex items-center justify-center gap-2 disabled:opacity-40" style={{ height: 56, borderRadius: 16, background: W.card, fontSize: 16, fontWeight: 600 }}><Icon className="w-5 h-5" style={{ color: IOS.indigo }} /> {label}</button>
@@ -54,6 +74,20 @@ export default function StepPhotos({ w, tenantId }) {
                 <button onClick={() => remove(p.id)} aria-label="Quitar foto" className="absolute" style={{ top: 8, right: 8, width: 28, height: 28, borderRadius: 999, background: "rgba(0,0,0,0.6)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}><X className="w-4 h-4" /></button>
               </div>
             ))}
+          </div>
+          <div className="flex flex-col" style={{ gap: 10 }}>
+            <button onClick={analyze} disabled={analyzing} className="apple-press w-full flex items-center justify-center gap-2 disabled:opacity-60" style={{ height: 46, borderRadius: 10, background: IOS.indigo, color: "#fff", fontSize: 15, fontWeight: 600 }}>
+              {analyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+              {analyzing ? "Analizando foto…" : "Analizar daño con Archi"}
+            </button>
+            {vision && (
+              <div className="flex flex-col" style={{ gap: 6, padding: 12, borderRadius: 10, background: tint(IOS.indigo, 0.08) }}>
+                <span className="flex items-center gap-1.5" style={{ fontSize: 12, fontWeight: 700, color: IOS.indigo }}><Sparkles className="w-3.5 h-3.5" /> Archi ve: {vision.confidence}</span>
+                <span style={{ fontSize: 14 }}>{vision.diagnosis}</span>
+                <button onClick={addToProblem} className="self-start" style={{ fontSize: 12, fontWeight: 600, color: IOS.indigo }}>Agregar a la descripción</button>
+              </div>
+            )}
+            {visionError && <p style={{ fontSize: 12, color: W.sub }}>No se pudo analizar la foto. Intenta de nuevo.</p>}
           </div>
         </>
       ) : (

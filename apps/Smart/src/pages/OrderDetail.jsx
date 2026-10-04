@@ -5,7 +5,7 @@ import { statusInfo } from "@/lib/orderStatus";
 import { hiddenStatusesOf } from "@/lib/tenantSettings";
 import {
   fetchOrder, fetchTenant, changeStatusRpc, patchOrder, logActivity, addInternalNote, addCustomerAdvisories,
-  hasLinkedPurchaseLines, normalizeRoles, deleteInternalNote, softDeleteOrder, assignTechnician, fetchTechnicians, findUndiagnosedForTech,
+  normalizeRoles, deleteInternalNote, softDeleteOrder, assignTechnician, fetchTechnicians, findUndiagnosedForTech,
   findOlderUndiagnosed, countPreviousOrders, fetchCustomerOrders, fetchOrderEmails, setQuickService,
   resolveApprovalInPerson, setNotRepairableResolved, confirmPropertyClaim, deferPropertyClaim,
   resolveCurrentEmployee, subscribeToOrder, changedByLabel, uploadOrderPhotos, deleteOrderPhoto,
@@ -17,6 +17,9 @@ import {
   tenantEmailFromName, orderTotal, sendPaymentReceipt, sendRefundReceipt,
 } from "@/lib/orderEmails";
 import { C, tint, Card, Sheet, ConfirmSheet, money, displayDevice, phoneDigits, firstName } from "@/components/orderDetail/ui";
+import { buildCancelPlan, applyCancelPlan, doneMessage } from "@/lib/orderCancellation";
+import CancelPartsSheet from "@/components/orderDetail/CancelPartsSheet";
+import POSheet from "@/components/orderDetail/POSheet";
 import HeaderCard from "@/components/orderDetail/HeaderCard";
 import StatusModule from "@/components/orderDetail/StatusModule";
 import InfoSections, { RatingCard, QuickServiceCard, DeviceCard } from "@/components/orderDetail/InfoSections";
@@ -59,11 +62,6 @@ function storedTenantId() {
   } catch {
     return "";
   }
-}
-
-function hasCancellationParts(order) {
-  const items = Array.isArray(order?.order_items) ? order.order_items : [];
-  return items.some((i) => i && i.type !== "discount" && i.type !== "service" && i.type !== "labor");
 }
 
 export default function OrderDetail() {
@@ -284,7 +282,7 @@ export default function OrderDetail() {
         return false;
       }
       const fresh = await reload();
-      startEmailFlow(fresh || { ...o, status: newStatus }, newStatus, prev, { ...opts, prevResolvedAt });
+      startEmailFlow(fresh || { ...o, status: newStatus }, newStatus, opts.noUndo ? null : prev, { ...opts, prevResolvedAt });
       if (opts.afterSuccess) await opts.afterSuccess(fresh);
       return true;
     } finally {
@@ -397,26 +395,21 @@ export default function OrderDetail() {
     if (raw === "delivered") { deliver(); return; }
     if (raw === "cancelled") {
       if (busyRef.current) return;
-      let blocked = hasCancellationParts(o);
-      if (!blocked) {
-        busyRef.current = true;
-        setSaving(true);
-        try {
-          blocked = await hasLinkedPurchaseLines(o.tenant_id, o.id);
-        } catch {
-          toast("No se pudieron revisar las piezas de la orden. Intenta de nuevo.", "error");
-          return;
-        } finally {
-          busyRef.current = false;
-          setSaving(false);
-        }
-      }
-      if (blocked) {
-        toast("Esta orden tiene piezas. Cancélala desde la app para acomodar el inventario; la web todavía no maneja las piezas al cancelar.", "error");
+      busyRef.current = true;
+      setSaving(true);
+      let plan;
+      try {
+        plan = await buildCancelPlan({ orderId: o.id, orderNumber: o.order_number, tenantId: o.tenant_id });
+      } catch {
+        toast("No se pudieron revisar las piezas de la orden. Intenta de nuevo.", "error");
         return;
+      } finally {
+        busyRef.current = false;
+        setSaving(false);
       }
-      if (orderRef.current?.status === "cancelled") {
-        if (orderRef.current.not_repairable_resolved_at) {
+      if (plan.alreadyCancelled) {
+        if (plan.hasPendingWork) { setSheet({ name: "cancelParts", plan }); return; }
+        if (orderRef.current?.not_repairable_resolved_at) {
           if (await attempt("No se pudo reabrir la orden", () => patchOrder(orderRef.current.id, { not_repairable_resolved_at: null }))) toast("Orden reabierta");
           await reload();
           return;
@@ -424,11 +417,35 @@ export default function OrderDetail() {
         toast("La orden ya está cancelada y no quedan piezas pendientes.");
         return;
       }
-      await changeStatus("cancelled");
+      if (plan.isEmpty) { await changeStatus("cancelled"); return; }
+      setSheet({ name: "cancelParts", plan });
       return;
     }
     await changeStatus(raw, { afterSuccess: () => setSheet({ name: "noteForChange", status: raw }) });
-  }, [advance, deliver, changeStatus, toast]);
+  }, [advance, deliver, changeStatus, toast, attempt, reload]);
+
+  const confirmCancelParts = useCallback(async (plan) => {
+    if (busyRef.current) return;
+    setSheet((sh) => (sh?.name === "cancelParts" ? { ...sh, busy: true } : sh));
+    let cancelled = plan.alreadyCancelled;
+    if (!cancelled) cancelled = await changeStatus("cancelled", { noUndo: true, bypassQueue: true });
+    const fresh = await fetchOrder(plan.orderId).catch(() => null);
+    if (!cancelled) cancelled = fresh?.status === "cancelled";
+    if (!cancelled || (fresh && fresh.status !== "cancelled")) { setSheet(null); if (fresh) await reload(); return; }
+    busyRef.current = true;
+    setSaving(true);
+    let failures;
+    try {
+      failures = await applyCancelPlan(plan, { tenantId: plan.tenantId || orderRef.current?.tenant_id, employeeName: by });
+    } finally {
+      busyRef.current = false;
+      setSaving(false);
+    }
+    setSheet(null);
+    await reload();
+    if (failures.length) toast(`La orden se canceló, pero falta arreglar esto a mano:\n${failures.join("\n")}`, "error");
+    else toast(doneMessage(plan));
+  }, [changeStatus, reload, by, toast]);
 
   const stagePill = useCallback(async (key) => {
     const o = orderRef.current;
@@ -770,11 +787,11 @@ export default function OrderDetail() {
   };
 
   const partsModule = (
-    <PartsModule order={order} tenant={tenant} tenantId={tenantId} employeeName={by} onReload={reload} onExtrasChanged={() => setCostTick((n) => n + 1)} onOpenPO={(id) => navigate(`/Compras?po=${id}`)} onCloseDraft={(po) => setSheet({ name: "closeDraft", po })} />
+    <PartsModule order={order} tenant={tenant} tenantId={tenantId} employeeName={by} onReload={reload} onExtrasChanged={() => setCostTick((n) => n + 1)} onOpenPO={(id) => setSheet({ name: "po", poId: id })} onCloseDraft={(po) => setSheet({ name: "closeDraft", po })} />
   );
   const costTasks = (
     <>
-      <JobCostCard order={order} tenantId={tenantId} tick={costTick} onOpenPO={(id) => navigate(`/Compras?po=${id}`)} />
+      <JobCostCard order={order} tenantId={tenantId} tick={costTick} onOpenPO={(id) => setSheet({ name: "po", poId: id })} />
       <OrderTasksCard order={order} tenantId={tenantId} employeeName={by} />
     </>
   );
@@ -804,6 +821,15 @@ export default function OrderDetail() {
       order={order}
       onOpen={(items, index) => setViewer({ items, index })}
       onDeleteAll={() => setSheet({ name: "deleteAllPhotos" })}
+      onDeleteOne={async (url) => {
+        try {
+          await deleteOrderPhoto(order.id, url);
+          toast("Foto eliminada");
+          reload();
+        } catch (e) {
+          toast(`No se pudo eliminar: ${e?.message || e}`, "error");
+        }
+      }}
     />
   );
 
@@ -821,7 +847,7 @@ export default function OrderDetail() {
   const bannerEl = banner && (
     <div className="flex items-center gap-3" style={{ padding: "12px 14px", borderRadius: 14, background: tint(banner.type === "error" ? C.red : C.green, 0.12), color: banner.type === "error" ? C.red : C.green }}>
       {banner.type === "error" ? <AlertTriangle className="w-4 h-4 shrink-0" /> : <Check className="w-4 h-4 shrink-0" />}
-      <span className="flex-1" style={{ fontSize: 14 }}>{banner.text}</span>
+      <span className="flex-1" style={{ fontSize: 14, whiteSpace: "pre-line" }}>{banner.text}</span>
       <button onClick={() => setBanner(null)} aria-label="Cerrar" className="apple-press"><X className="w-4 h-4" /></button>
     </div>
   );
@@ -905,6 +931,8 @@ export default function OrderDetail() {
       <DocumentShareSheet open={!!docShare} kind={docShare?.kind} order={order} blob={docShare?.blob} onClose={() => setDocShare(null)} />
       <ScheduleVisitSheet open={sheet?.name === "schedule"} order={order} tenant={tenant} by={by} onClose={() => setSheet(null)} onSaved={() => { toast(order.appointment_at ? "Cita actualizada" : "Cita agendada"); reload(); }} />
       <CloseDraftDialog open={sheet?.name === "closeDraft"} po={sheet?.po} tenantId={tenantId} employeeName={by} onClose={() => setSheet(null)} onDone={(p, msg) => { toast(msg); reload(); }} />
+      <POSheet open={sheet?.name === "po"} poId={sheet?.poId} tenant={tenant} tenantId={tenantId} employeeName={by} onClose={() => { setSheet(null); reload(); setCostTick((n) => n + 1); }} onChanged={() => { reload(); setCostTick((n) => n + 1); }} />
+      <CancelPartsSheet open={sheet?.name === "cancelParts"} plan={sheet?.plan} busy={!!sheet?.busy} onClose={() => setSheet(null)} onConfirm={confirmCancelParts} />
       <StatusPickerSheet open={sheet?.name === "picker"} onClose={() => setSheet(null)} current={order.status} onPick={pickStatus} hidden={hiddenStatusesOf(tenant)} />
       <NoteForChangeSheet
         open={sheet?.name === "noteForChange"}
@@ -1008,6 +1036,7 @@ export default function OrderDetail() {
             customer_phone: f.customer_phone.trim(),
             customer_email: f.customer_email.trim(),
             initial_problem: f.initial_problem,
+            device_type: String(f.device_type || "").trim() || order.device_type || null,
             device_brand: f.device_brand.trim(),
             device_family: f.device_family.trim(),
             device_model: f.device_model.trim(),
@@ -1245,6 +1274,13 @@ export default function OrderDetail() {
         <PhotoViewer
           items={viewer.items}
           index={viewer.index}
+          order={order}
+          onSaveAnnotated={async (file, source) => {
+            const { uploaded } = await uploadOrderPhotos(order, [file], { status: source?.status || "intake", by });
+            if (!uploaded) throw new Error("upload");
+            toast("Foto anotada guardada");
+            await reload();
+          }}
           onClose={() => setViewer(null)}
           onDelete={async (url) => {
             try {

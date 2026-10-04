@@ -15,7 +15,7 @@ import { A, SubPage, Group, Row, ErrorLine } from "@/components/ajustes/ui";
 import { MiNegocioList, InfoNegocio, Apariencia, Region } from "@/components/ajustes/MiNegocio";
 import { OfertasAjustes } from "@/components/ajustes/Ofertas";
 import { FinanzasList, MetodosPago, PosRecibo, GastosFijos } from "@/components/ajustes/Finanzas";
-import { TallerList, TipoNegocio, EstadosOrden, DatosTaller } from "@/components/ajustes/Taller";
+import { TallerList, TipoNegocio, EstadosOrden, DatosTaller, CatalogoDispositivos } from "@/components/ajustes/Taller";
 import { ComunicacionList, PlantillasLista, EditorPlantilla, Politicas, PushSettings } from "@/components/ajustes/Comunicacion";
 import { CuentaList, Seguridad, Diagnostico, ReportarProblema, Suscripcion } from "@/components/ajustes/Cuenta";
 
@@ -177,7 +177,7 @@ export default function Ajustes() {
     let view = null;
     if (active.id === "mi-negocio") view = s === "info" ? <InfoNegocio {...common} /> : s === "apariencia" ? <Apariencia back={back} /> : s === "region" ? <Region {...common} /> : <MiNegocioList tenant={tenant} go={go} />;
     else if (active.id === "finanzas") view = s === "metodos-pago" ? <MetodosPago {...common} /> : s === "pos-recibo" ? <PosRecibo {...common} /> : s === "gastos-fijos" ? <GastosFijos {...common} /> : <FinanzasList tenant={tenant} go={go} />;
-    else if (active.id === "taller") view = s === "tipo-negocio" ? <TipoNegocio {...common} /> : s === "estados" ? <EstadosOrden {...common} /> : s === "ofertas" ? <OfertasAjustes tenantId={tenantId} back={back} /> : s === "datos" && isPlanProOrAbove(tenant) ? <DatosTaller {...common} /> : <TallerList tenant={tenant} go={go} />;
+    else if (active.id === "taller") view = s === "tipo-negocio" ? <TipoNegocio {...common} /> : s === "estados" ? <EstadosOrden {...common} /> : s === "ofertas" ? <OfertasAjustes tenantId={tenantId} back={back} /> : s === "catalogo" ? <CatalogoDispositivos back={back} /> : s === "datos" && isPlanProOrAbove(tenant) ? <DatosTaller {...common} /> : <TallerList tenant={tenant} go={go} />;
     else if (active.id === "comunicacion") {
       const listBack = () => go("comunicacion", "plantillas");
       view = s === "plantillas" ? <PlantillasLista tenant={tenant} go={go} back={back} /> : s.startsWith("plantilla:") ? <EditorPlantilla id={s.slice(10)} tenant={tenant} tenantId={tenantId} reload={reload} back={listBack} /> : s === "politicas" ? <Politicas {...common} /> : s === "push" ? <PushSettings {...common} /> : <ComunicacionList tenant={tenant} go={go} />;

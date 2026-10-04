@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Eye, EyeOff, Star, MessageCircle, MessageSquare, Mail, ShieldCheck, Check, ChevronRight, Camera, ImagePlus, X } from "lucide-react";
+import { loadCatalog } from "@/lib/wizard/api";
 import { C, tint, Sheet, Btn } from "./ui";
 
 const inputStyle = { width: "100%", background: C.card2, color: C.text, borderRadius: 12, padding: "12px 14px", fontSize: 15, border: "none", outline: "none" };
@@ -121,6 +122,78 @@ export function PromisedDateSheet({ open, onClose, current, onSave }) {
   );
 }
 
+const norm = (v) => String(v || "").trim().toLowerCase();
+const byName = (list, name) => list.find((x) => norm(x.name) === norm(name)) || null;
+
+function DeviceCatalogFields({ f, setF, order, set }) {
+  const [cat, setCat] = useState(null);
+  const [manual, setManual] = useState(false);
+  useEffect(() => {
+    let live = true;
+    loadCatalog(order?.tenant_id).then((c) => { if (live) setCat(c); }, () => { if (live) setManual(true); });
+    return () => { live = false; };
+  }, [order?.id, order?.tenant_id]);
+
+  const current = [f.device_brand, f.device_family, f.device_model].filter(Boolean).join(" · ");
+  if (manual || !cat) {
+    return (
+      <>
+        {current && <p style={{ fontSize: 13, color: C.sub, margin: "0 4px 8px" }}>Actual: {current}</p>}
+        <input value={f.device_brand || ""} onChange={set("device_brand")} placeholder="Marca (Apple, Samsung...)" style={inputStyle} />
+        <input value={f.device_family || ""} onChange={set("device_family")} placeholder="Familia (iPhone, Galaxy S...)" style={{ ...inputStyle, marginTop: 8 }} />
+        <input value={f.device_model || ""} onChange={set("device_model")} placeholder="Modelo (iPhone 14 Pro Max)" style={{ ...inputStyle, marginTop: 8 }} />
+        {cat && <button type="button" onClick={() => setManual(false)} style={{ color: C.brand, fontSize: 13, fontWeight: 600, marginTop: 8 }}>Elegir del catálogo</button>}
+      </>
+    );
+  }
+
+  const category = byName(cat.categories, f.device_type);
+  const unmatched = !category;
+  const brands = category ? cat.brands.filter((b) => b.category_id === category.id) : [];
+  const brand = byName(brands, f.device_brand);
+  const families = brand ? cat.families.filter((x) => x.brand_id === brand.id) : [];
+  const family = byName(families, f.device_family);
+  const models = family ? cat.models.filter((m) => m.family_id === family.id) : [];
+  const model = byName(models, f.device_model);
+  const sel = { ...inputStyle, colorScheme: "dark", marginTop: 8 };
+
+  return (
+    <>
+      {current && <p style={{ fontSize: 13, color: C.sub, margin: "0 4px 8px" }}>Actual: {current}</p>}
+      <select value={category?.id || ""} onChange={(e) => { const c = cat.categories.find((x) => x.id === e.target.value); setF((p) => (unmatched ? { ...p, device_type: c ? c.name : p.device_type } : { ...p, device_type: c ? c.name : "", device_brand: "", device_family: "", device_model: "" })); }} style={{ ...sel, marginTop: 0 }} aria-label="Tipo de equipo">
+        <option value="">{f.device_type && !category ? f.device_type : "Tipo de equipo"}</option>
+        {cat.categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+      </select>
+      {unmatched && (
+        <>
+          <input value={f.device_brand || ""} onChange={set("device_brand")} placeholder="Marca (Apple, Samsung...)" style={sel} />
+          <input value={f.device_family || ""} onChange={set("device_family")} placeholder="Familia (iPhone, Galaxy S...)" style={sel} />
+          <input value={f.device_model || ""} onChange={set("device_model")} placeholder="Modelo (iPhone 14 Pro Max)" style={sel} />
+        </>
+      )}
+      {category && (
+        <select value={brand?.id || ""} onChange={(e) => { const b = brands.find((x) => x.id === e.target.value); setF((p) => ({ ...p, device_brand: b ? b.name : "", device_family: "", device_model: "" })); }} style={sel} aria-label="Marca">
+          <option value="">{f.device_brand && !brand ? f.device_brand : "Marca"}</option>
+          {brands.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+        </select>
+      )}
+      {brand && families.length > 0 && (
+        <select value={family?.id || ""} onChange={(e) => { const x = families.find((y) => y.id === e.target.value); setF((p) => ({ ...p, device_family: x ? x.name : "", device_model: "" })); }} style={sel} aria-label="Familia">
+          <option value="">{f.device_family && !family ? f.device_family : "Familia"}</option>
+          {families.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
+        </select>
+      )}
+      {family && models.length > 0 && (
+        <select value={model?.id || ""} onChange={(e) => { const m = models.find((y) => y.id === e.target.value); setF((p) => ({ ...p, device_model: m ? m.name : "" })); }} style={sel} aria-label="Modelo">
+          <option value="">{f.device_model && !model ? f.device_model : "Modelo"}</option>
+          {models.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+        </select>
+      )}
+      <button type="button" onClick={() => setManual(true)} style={{ color: C.brand, fontSize: 13, fontWeight: 600, marginTop: 8 }}>No está en el catálogo, escribir a mano</button>
+    </>
+  );
+}
+
 export function EditOrderSheet({ open, onClose, order, technicians, onSave }) {
   const [f, setF] = useState({});
   const [busy, setBusy] = useState(false);
@@ -133,6 +206,7 @@ export function EditOrderSheet({ open, onClose, order, technicians, onSave }) {
       initial_problem: order.initial_problem || "",
       cost_estimate: order.cost_estimate ?? "",
       labor_cost: order.labor_cost ?? "",
+      device_type: order.device_type || "",
       device_brand: order.device_brand || "",
       device_family: order.device_family || "",
       device_model: order.device_model || "",
@@ -158,9 +232,7 @@ export function EditOrderSheet({ open, onClose, order, technicians, onSave }) {
         <input value={f.labor_cost} onChange={set("labor_cost")} placeholder="Mano de obra ($)" inputMode="decimal" style={inputStyle} />
       </div>
       <span style={labelStyle}>Dispositivo</span>
-      <input value={f.device_brand || ""} onChange={set("device_brand")} placeholder="Marca (Apple, Samsung...)" style={inputStyle} />
-      <input value={f.device_family || ""} onChange={set("device_family")} placeholder="Familia (iPhone, Galaxy S...)" style={{ ...inputStyle, marginTop: 8 }} />
-      <input value={f.device_model || ""} onChange={set("device_model")} placeholder="Modelo (iPhone 14 Pro Max)" style={{ ...inputStyle, marginTop: 8 }} />
+      {open && order && <DeviceCatalogFields f={f} setF={setF} order={order} set={set} />}
       <input value={f.device_color || ""} onChange={set("device_color")} placeholder="Color (Negro, Blanco...)" style={{ ...inputStyle, marginTop: 8 }} />
       <input value={f.device_serial || ""} onChange={set("device_serial")} placeholder="Serial / IMEI" style={{ ...inputStyle, marginTop: 8 }} />
       <span style={labelStyle}>Prioridad</span>

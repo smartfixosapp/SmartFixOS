@@ -8,6 +8,7 @@ import { fetchOrder } from "@/lib/orderDetailApi";
 import { remainingBalance, orderTotal, sendPaymentReceipt } from "@/lib/orderEmails";
 import { statusInfo } from "@/lib/orderStatus";
 import { usd } from "@/lib/posLogic";
+import { presentCelebration } from "@/lib/celebrations";
 
 export default function OrderPayDialog({ open, onClose, tenantId, tenant, employee, onPaid }) {
   const [q, setQ] = useState("");
@@ -19,6 +20,7 @@ export default function OrderPayDialog({ open, onClose, tenantId, tenant, employ
   const [selected, setSelected] = useState(null);
   const timer = useRef(null);
   const paidRef = useRef(false);
+  const outcomeRef = useRef(null);
 
   useEffect(() => {
     if (!open) return;
@@ -81,6 +83,7 @@ export default function OrderPayDialog({ open, onClose, tenantId, tenant, employ
       sendPaymentReceipt({ order: fresh, tenant, amount: res.applied, method, isFull: res.isPaidNow, transactionId: res.transactionId }).catch(() => {});
     }
     const settled = orderTotal(fresh) > 0 && remainingBalance(fresh) <= 0.004;
+    outcomeRef.current = { settled, amount: res.applied, label, order: fresh, balance: remainingBalance(fresh) };
     onPaid?.(settled ? `Orden saldada · ${usd(res.applied)} · ${label}` : `Depósito recibido · ${usd(res.applied)} · ${label}`);
   };
 
@@ -122,7 +125,14 @@ export default function OrderPayDialog({ open, onClose, tenantId, tenant, employ
           <div style={{ margin: "0 16px 16px", borderRadius: 12, background: "#2C2C2E", overflow: "hidden" }}>{results.map(row)}</div>
         )}
       </Dialog>
-      <QuickPaySheet open={open && !!selected} order={selected} tenant={tenant} onClose={() => { setSelected(null); if (paidRef.current) onClose(); }} onSubmit={submit} />
+      <QuickPaySheet open={open && !!selected} order={selected} tenant={tenant} onClose={() => {
+        setSelected(null);
+        if (!paidRef.current) return;
+        const o = outcomeRef.current;
+        outcomeRef.current = null;
+        if (o) presentCelebration(o.settled ? { style: "money", title: "Orden saldada", subtitle: `${usd(o.amount)} · ${o.label}`, detail: [o.order?.order_number, o.order?.customer_name].filter(Boolean).join(" · ") } : { style: "deposit", title: "Depósito recibido", subtitle: `${usd(o.amount)} · ${o.label}`, detail: `Falta por cobrar ${usd(o.balance)}` });
+        onClose();
+      }} onSubmit={submit} />
     </>
   );
 }

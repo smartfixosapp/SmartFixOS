@@ -11,6 +11,10 @@ import SalesHistoryDialog from "@/components/pos/native/SalesHistory";
 import OrderPayDialog from "@/components/pos/native/OrderPay";
 import { OpenCashSheet, CloseCashSheet } from "@/components/cash/CashSheets";
 import { fetchTenant, resolveCurrentEmployee } from "@/lib/orderDetailApi";
+import PunchGateSheet from "@/components/punch/PunchGateSheet";
+import { fetchOpenEntry, matchIdsFor, currentAuthUid, isFromEarlierDay, requiresAutomaticClose } from "@/lib/punchApi";
+import { safeTZ } from "@/lib/finance/tz";
+import { isPlanTeamOrAbove } from "@/lib/tenantSettings";
 import { canCloseCashRegister, isAdminOrOwner, fetchOpenRegister, subscribeToRegisters } from "@/lib/cashRegisterApi";
 import {
   loadCatalog, loadProducts, recordPosSale, confirmRegisterStillOpen, RegisterClosedError, addLoyaltyPoints, deductStockForSale,
@@ -78,42 +82,54 @@ function ScannerDialog({ open, onClose, onCode }) {
   useEffect(() => {
     if (!open) return undefined;
     setError(null);
-    const supported = typeof window !== "undefined" && "BarcodeDetector" in window && navigator.mediaDevices?.getUserMedia;
+    const supported = typeof navigator !== "undefined" && !!navigator.mediaDevices?.getUserMedia;
     setUnsupported(!supported);
     if (!supported) return undefined;
     let stream = null;
+    let controls = null;
     let alive = true;
     let raf = 0;
+    const found = (value) => {
+      if (!alive) return;
+      alive = false;
+      onCodeRef.current(value);
+      onCloseRef.current();
+    };
     (async () => {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
         const video = videoRef.current;
-        if (!alive || !video) { stream.getTracks().forEach((t) => t.stop()); return; }
-        video.srcObject = stream;
-        await video.play();
-        const detector = new window.BarcodeDetector();
-        const tick = async () => {
-          if (!alive) return;
-          try {
-            const codes = await detector.detect(video);
-            if (codes.length && codes[0].rawValue) {
-              onCodeRef.current(codes[0].rawValue);
-              onCloseRef.current();
-              return;
+        if (typeof window !== "undefined" && "BarcodeDetector" in window) {
+          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+          if (!alive || !video) { stream.getTracks().forEach((t) => t.stop()); return; }
+          video.srcObject = stream;
+          await video.play();
+          const detector = new window.BarcodeDetector();
+          const tick = async () => {
+            if (!alive) return;
+            try {
+              const codes = await detector.detect(video);
+              if (codes.length && codes[0].rawValue) { found(codes[0].rawValue); return; }
+            } catch {
+              alive = alive && true;
             }
-          } catch {
-            alive = alive && true;
-          }
-          raf = requestAnimationFrame(tick);
-        };
-        tick();
+            raf = requestAnimationFrame(tick);
+          };
+          tick();
+          return;
+        }
+        const { BrowserMultiFormatReader } = await import("@zxing/browser");
+        if (!alive || !video) return;
+        const reader = new BrowserMultiFormatReader();
+        const ctl = await reader.decodeFromConstraints({ video: { facingMode: "environment" } }, video, (result) => { if (result) found(result.getText()); });
+        if (!alive) ctl.stop(); else controls = ctl;
       } catch (e) {
-        setError(e?.message || String(e));
+        if (alive) setError(e?.message || String(e));
       }
     })();
     return () => {
       alive = false;
       cancelAnimationFrame(raf);
+      controls?.stop();
       stream?.getTracks().forEach((t) => t.stop());
     };
   }, [open]);
@@ -122,7 +138,7 @@ function ScannerDialog({ open, onClose, onCode }) {
       {unsupported ? (
         <div className="flex flex-col items-center text-center" style={{ padding: 24, gap: 10 }}>
           <Camera className="w-10 h-10" style={{ color: P.ter }} />
-          <p style={{ fontSize: 15, color: P.sub }}>Este navegador no lee códigos con la cámara. Usa un lector de código de barras conectado o escribe el código en la búsqueda y presiona Enter.</p>
+          <p style={{ fontSize: 15, color: P.sub }}>No se pudo acceder a la cámara en este navegador. Usa un lector de código de barras conectado o escribe el código en la búsqueda y presiona Enter.</p>
         </div>
       ) : (
         <div className="flex flex-col" style={{ gap: 10 }}>
@@ -172,6 +188,9 @@ export default function POS() {
   const [outOfStock, setOutOfStock] = useState(null);
   const [variantProduct, setVariantProduct] = useState(null);
   const [dialog, setDialog] = useState(null);
+  const [punchGate, setPunchGate] = useState(false);
+  const [authUid, setAuthUid] = useState(null);
+  const punchChecked = useRef(false);
   const [pendingDiscount, setPendingDiscount] = useState(null);
   const [discountNonce, setDiscountNonce] = useState(0);
   const [lastSale, setLastSale] = useState(null);
@@ -511,6 +530,34 @@ export default function POS() {
     setDialog((d) => (d === "receipt" ? null : d));
   };
 
+  const [punchTick, setPunchTick] = useState(0);
+  useEffect(() => {
+    const retry = () => { if (!punchChecked.current) setPunchTick((n) => n + 1); };
+    window.addEventListener("online", retry);
+    window.addEventListener("focus", retry);
+    return () => { window.removeEventListener("online", retry); window.removeEventListener("focus", retry); };
+  }, []);
+
+  useEffect(() => {
+    if (punchChecked.current || !tenantId || !tenant || !employee) return;
+    if (!isPlanTeamOrAbove(tenant)) { punchChecked.current = true; return; }
+    (async () => {
+      try {
+        const uid = await currentAuthUid();
+        const ids = matchIdsFor(employee, uid);
+        if (!ids.length) { punchChecked.current = true; return; }
+        const open = await fetchOpenEntry(tenantId, ids);
+        punchChecked.current = true;
+        setAuthUid(uid);
+        const tz = safeTZ(tenant.timezone);
+        const stale = !!open && isFromEarlierDay(open, tz) && requiresAutomaticClose(open, tenant.settings?.business_hours, tz);
+        if (!open || stale) setPunchGate(true);
+      } catch {
+        return;
+      }
+    })();
+  }, [tenantId, tenant, employee, punchTick]);
+
   const onCashPill = () => {
     if (!canCloseCashRegister({ register, employee, tenant })) {
       showToast("Solo el dueño, un administrador o quien abrió la caja puede cerrarla.", true);
@@ -686,6 +733,7 @@ export default function POS() {
         <div style={{ height: "100%" }}>{cartPane}</div>
       </Dialog>
 
+      <PunchGateSheet open={punchGate} context="el Punto de Venta" tenantId={tenantId} tenant={tenant} sessionEmployee={employee} authUid={authUid} onClose={() => setPunchGate(false)} />
       <ContextMenu menu={menu} onClose={() => setMenu(null)} />
       {showcase && <Showcase products={filtered} offersById={offersById} startId={showcase} onClose={() => setShowcase(null)} />}
       <AlertDialog

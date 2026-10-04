@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { Package, Home, Zap, Megaphone, Hammer, FileText, MoreHorizontal, CheckCircle2, Loader2, AlertTriangle, Trash2 } from "lucide-react";
+import { Package, Home, Zap, Megaphone, Hammer, FileText, MoreHorizontal, CheckCircle2, Loader2, AlertTriangle, Trash2, ScanLine, X } from "lucide-react";
 import { Dialog, TextAction, AlertDialog, tint } from "@/components/pos/native/posUi";
 import { FP } from "@/lib/finance/ledger";
 import { insertExpense, insertIncome, recentExpenseTemplates, updateExpense, softDeleteTx } from "@/lib/finance/api";
 import { money } from "./ui";
+import ExpenseReceiptScanner from "./ExpenseReceiptScanner";
 
 export const EXPENSE_CATEGORIES = [
   { id: "supplies", label: "Insumos / Piezas", Icon: Package, color: FP.warning },
@@ -69,9 +70,13 @@ export function AddExpenseDialog({ open, onClose, tenantId, recordedBy, onSaved 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [recent, setRecent] = useState([]);
+  const [receiptUrl, setReceiptUrl] = useState("");
+  const [taxAmount, setTaxAmount] = useState(0);
+  const [scanOpen, setScanOpen] = useState(false);
   useEffect(() => {
     if (!open) return;
     setAmount(""); setCategory("supplies"); setMethod("cash"); setNotes(""); setDate(todayStr()); setError(null); setSaving(false);
+    setReceiptUrl(""); setTaxAmount(0); setScanOpen(false);
     recentExpenseTemplates(tenantId).then(setRecent, () => setRecent([]));
   }, [open, tenantId]);
   const amt = parse(amount);
@@ -85,8 +90,9 @@ export function AddExpenseDialog({ open, onClose, tenantId, recordedBy, onSaved 
       tenant_id: tenantId, type: "expense", category, amount: amt,
       description: notes.trim() ? notes : cat.label,
       payment_method: method, recorded_by: String(recordedBy || "").trim() || "Usuario",
-      tax_amount: 0, deductible_tax: false,
+      tax_amount: taxAmount > 0 ? taxAmount : 0, deductible_tax: taxAmount > 0,
     };
+    if (receiptUrl) body.receipt_url = receiptUrl;
     if (date !== todayStr()) body.created_at = backdated(date);
     try {
       const tx = await insertExpense(body);
@@ -96,6 +102,16 @@ export function AddExpenseDialog({ open, onClose, tenantId, recordedBy, onSaved 
       setError(e?.message || String(e));
       setSaving(false);
     }
+  };
+  const applyScan = (r) => {
+    if (r.amount > 0) setAmount(r.amount.toFixed(2));
+    if (r.taxAmount > 0) setTaxAmount(r.taxAmount);
+    if (r.date) setDate(r.date > todayStr() ? todayStr() : r.date);
+    if (r.vendor) {
+      const tag = `${r.vendor}${r.invoiceNumber ? ` · Factura ${r.invoiceNumber}` : ""}`;
+      setNotes((prev) => (prev.trim() ? `${tag} — ${prev}` : tag));
+    }
+    setReceiptUrl(r.receiptUrl || "");
   };
   return (
     <Dialog open={open} onClose={onClose} title="Nuevo gasto" width={620} height="88dvh"
@@ -114,6 +130,20 @@ export function AddExpenseDialog({ open, onClose, tenantId, recordedBy, onSaved 
           </div>
         </Section>
       )}
+      <Section title="Recibo (opcional)">
+        {receiptUrl ? (
+          <div className="flex items-center gap-3" style={{ padding: "12px 14px" }}>
+            <CheckCircle2 className="w-5 h-5" style={{ color: FP.success }} />
+            <span className="flex-1"><span className="block" style={{ fontSize: 15, fontWeight: 600 }}>Recibo adjunto</span><span className="block" style={{ fontSize: 12, color: "#8E8E93" }}>Smart IA pre-llenó monto, fecha y vendedor</span></span>
+            <button onClick={() => { setReceiptUrl(""); setTaxAmount(0); }} aria-label="Quitar recibo" style={{ color: "#8E8E93" }}><X className="w-5 h-5" /></button>
+          </div>
+        ) : (
+          <button onClick={() => setScanOpen(true)} className="apple-press w-full flex items-center gap-3 text-left" style={{ padding: "12px 14px" }}>
+            <span style={{ width: 36, height: 36, borderRadius: 10, background: tint(FP.brand, 0.16), color: FP.brand, display: "flex", alignItems: "center", justifyContent: "center" }}><ScanLine className="w-5 h-5" /></span>
+            <span className="flex-1"><span className="block" style={{ fontSize: 15, fontWeight: 600 }}>Escanear recibo</span><span className="block" style={{ fontSize: 12, color: "#8E8E93" }}>Foto, screenshot o PDF · Smart IA llena los campos</span></span>
+          </button>
+        )}
+      </Section>
       <Section title="Monto" footer={amt > 0 ? `Se registrará como gasto en la categoría '${cat.label}'.` : null}>
         <div style={{ padding: "8px 14px" }}>
           <p style={{ fontSize: 12, color: "#8E8E93" }}>Monto</p>
@@ -149,6 +179,7 @@ export function AddExpenseDialog({ open, onClose, tenantId, recordedBy, onSaved 
         <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Detalles del gasto (opcional)" rows={3} style={{ ...inputStyle, resize: "none" }} />
       </Section>
       {error && <p className="flex items-center gap-1.5" style={{ marginTop: 14, fontSize: 14, color: FP.danger }}><AlertTriangle className="w-4 h-4" /> {error}</p>}
+      <ExpenseReceiptScanner open={scanOpen} tenantId={tenantId} onClose={() => setScanOpen(false)} onConfirm={applyScan} />
     </Dialog>
   );
 }

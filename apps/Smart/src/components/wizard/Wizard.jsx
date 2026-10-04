@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, X, Check, Loader2, BadgeCheck, UserRound, Smartphone, MessageSquareWarning, Camera, ListChecks, CircleDollarSign, PenLine, CheckCheck, ClipboardList, Zap } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Check, Loader2, BadgeCheck, UserRound, Smartphone, MessageSquareWarning, Camera, ListChecks, CircleDollarSign, PenLine, CheckCheck, ClipboardList, Zap, LockOpen } from "lucide-react";
 import { AlertDialog, tint } from "@/components/pos/native/posUi";
 import { QuickPaySheet } from "@/components/orderDetail/Money";
 import { fetchTenant, resolveCurrentEmployee } from "@/lib/orderDetailApi";
@@ -159,6 +159,11 @@ function WizardInner({ onClose, onCreated, prefill, resume, tenantProp, employee
     rememberMode(mode);
   };
 
+  const cancelSinglePage = () => {
+    if (busy || created || celebrate || payOrder || closedAlert) return;
+    if (w.hasAnyData()) setConfirmClose(true); else switchMode("regular");
+  };
+
   const afterCreate = async (order, charge) => {
     finishedRef.current = true;
     discardDraft();
@@ -280,7 +285,7 @@ function WizardInner({ onClose, onCreated, prefill, resume, tenantProp, employee
         <div style={{ padding: "12px 16px 8px", background: W.card }}>
           <div className="flex items-center gap-2">
             <span className="flex-1" style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.06em", color: modeColor, textTransform: "uppercase" }}>{singlePage ? MODES[s.mode].label : meta.title}</span>
-            <button onClick={requestClose} aria-label="Cerrar"><X className="w-5 h-5" /></button>
+            <button onClick={singlePage ? cancelSinglePage : requestClose} aria-label="Cerrar"><X className="w-5 h-5" /></button>
           </div>
           {!singlePage && (
             <div className="flex items-center gap-1.5" style={{ marginTop: 8 }}>
@@ -293,7 +298,7 @@ function WizardInner({ onClose, onCreated, prefill, resume, tenantProp, employee
         </div>
       )}
       <div className="flex flex-1 min-h-0">
-        {!narrow && rail}
+        {!narrow && !singlePage && rail}
         <div className="flex-1 flex flex-col min-w-0">
           <div className="flex-1 overflow-y-auto">
             <div className="mx-auto flex flex-col" style={{ maxWidth: 1100, padding: narrow ? "16px 16px 24px" : "24px 32px 32px", gap: 20 }}>
@@ -304,7 +309,7 @@ function WizardInner({ onClose, onCreated, prefill, resume, tenantProp, employee
                 </div>
               )}
               {singlePage && !narrow && (
-                <div className="flex items-center gap-3"><span style={{ width: 42, height: 42, borderRadius: 12, background: modeColor, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}><ClipboardList className="w-5 h-5" /></span><span><span className="block" style={{ fontSize: 24, fontWeight: 800 }}>{MODES[s.mode].label}</span><span className="block" style={{ fontSize: 14, color: W.sub }}>Una sola página</span></span></div>
+                <div className="flex items-center gap-3"><span style={{ width: 42, height: 42, borderRadius: 12, background: modeColor, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>{s.mode === "recharge" ? <Smartphone className="w-5 h-5" /> : <LockOpen className="w-5 h-5" />}</span><span className="flex-1"><span className="block" style={{ fontSize: 24, fontWeight: 800 }}>{MODES[s.mode].label}</span><span className="block" style={{ fontSize: 14, color: W.sub }}>Una sola página</span></span><button onClick={cancelSinglePage} aria-label="Cerrar" style={{ width: 34, height: 34, borderRadius: 999, background: "#3A3A3C", display: "flex", alignItems: "center", justifyContent: "center" }}><X className="w-4 h-4" /></button></div>
               )}
               {body}
             </div>

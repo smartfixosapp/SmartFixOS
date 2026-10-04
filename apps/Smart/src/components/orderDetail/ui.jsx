@@ -108,11 +108,11 @@ export function useEscapeLayer(open, onEscape) {
   }, [open]);
 }
 
-export function Sheet({ open, onClose, title, children, footer, width = 480, dismissable = true }) {
+export function Sheet({ open, onClose, title, children, footer, width = 480, dismissable = true, zIndex }) {
   useEscapeLayer(open, () => { if (dismissable) onClose?.(); });
   if (!open || typeof document === "undefined") return null;
   return createPortal(
-    <div className="apple-type fixed inset-0 z-[300] flex items-end sm:items-center justify-center" role="dialog" aria-modal="true">
+    <div className="apple-type fixed inset-0 z-[300] flex items-end sm:items-center justify-center" style={zIndex ? { zIndex } : undefined} role="dialog" aria-modal="true">
       <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.6)" }} onClick={() => dismissable && onClose?.()} />
       <div
         className="relative w-full flex flex-col"

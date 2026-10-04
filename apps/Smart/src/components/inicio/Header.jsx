@@ -9,6 +9,8 @@ import { loadMiTurno } from "@/lib/inicioApi";
 import { currentAuthUid } from "@/lib/punchApi";
 import { requestAppLock } from "@/components/auth/AppLock";
 import { signOut } from "@/components/auth/signOut";
+import { hasInternalChat } from "@/lib/tenantSettings";
+import { SyncBadge, ChatButton } from "@/components/inicio/HeaderExtras";
 
 export const firstName = (name) => String(name || "").trim().split(/\s+/)[0] || "";
 export const avatarInitials = (name) => {
@@ -138,13 +140,17 @@ export default function InicioHeader({ employee, tenant, tz, wide, tenantId }) {
     <div className="flex items-start gap-3">
       <div className="flex-1 min-w-0 flex flex-col" style={{ gap: 6 }}>
         <h2 className="truncate" style={{ margin: 0, fontSize: wide ? 42 : 32, fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.1 }}>{first ? `Hola, ${first}` : "Hola"}</h2>
-        <LiveClock tz={tz} />
+        <div className="flex items-center flex-wrap" style={{ gap: 12 }}>
+          <LiveClock tz={tz} />
+          <SyncBadge />
+        </div>
       </div>
       {!wide && (
         <button onClick={() => navigate("/Settings")} aria-label="Ajustes" className="apple-press" style={{ width: 44, height: 44, borderRadius: 999, background: "#1C1C1E", border: "1px solid #2C2C2E", color: "#8E8E93", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <Settings className="w-5 h-5" />
         </button>
       )}
+      {hasInternalChat(tenant) && <ChatButton tenantId={tenantId} employee={employee} />}
       <AvatarMenu employeeName={name} logoUrl={tenant?.logo_url} onMiTurno={() => setMiTurno(true)} onSwitchUser={switchUser} onLock={closeSession} />
       <AlertDialog open={pinNeeded} title="Primero crea tu PIN de dueño" message="Crea tu PIN de dueño en la app Archilla OS (Ajustes, Seguridad) para poder cambiar de usuario." onClose={() => setPinNeeded(false)} actions={[{ label: "Entendido", bold: true }]} />
       <AlertDialog open={signOutNeeded} title="¿Cerrar la sesión?" message="Sin un PIN de dueño no se puede bloquear la app, así que se cerrará la sesión por completo. Crea tu PIN en Ajustes, Seguridad para poder bloquear en el futuro." onClose={() => setSignOutNeeded(false)} actions={[{ label: "Cerrar sesión", destructive: true, onPress: signOut }, { label: "Cancelar", bold: true }]} />

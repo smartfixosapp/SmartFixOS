@@ -52,42 +52,107 @@ function ContextMenu({ menu, onClose }) {
   );
 }
 
-function Showcase({ products, offersById, startId, onClose }) {
-  const withPhotos = products.filter((p) => productThumb(p));
-  const [i, setI] = useState(Math.max(0, withPhotos.findIndex((p) => p.id === startId)));
+function ShowcaseCard({ product, offer, onClick }) {
+  const thumb = productThumb(product);
+  const savings = hasSavings(offer);
+  return (
+    <button onClick={onClick} className="apple-press flex flex-col text-left" style={{ gap: 10, padding: 12, borderRadius: 20, background: P.card, border: savings ? `1.5px solid ${tint(P.danger, 0.5)}` : "1.5px solid transparent" }}>
+      <div className="relative flex items-center justify-center" style={{ aspectRatio: "1 / 1", borderRadius: 14, background: thumb ? "#fff" : P.card2, overflow: "hidden", padding: thumb ? 10 : 0 }}>
+        {thumb ? <img src={thumb} alt={product.name} loading="lazy" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} /> : <Images className="w-10 h-10" style={{ color: P.ter }} />}
+        {savings && <span className="absolute" style={{ top: 8, left: 8, padding: "3px 9px", borderRadius: 999, background: P.danger, color: "#fff", fontSize: 12, fontWeight: 800 }}>{offer.label || "Oferta"}</span>}
+      </div>
+      <p style={{ fontSize: 17, fontWeight: 600, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{product.name}</p>
+      {savings ? (
+        <div className="flex flex-col">
+          <span style={{ fontSize: 24, fontWeight: 800, color: P.danger }}>{usd(offer.promoPrice)}</span>
+          <span style={{ fontSize: 14, color: P.sub, textDecoration: "line-through" }}>{usd(effectivePrice(product))}</span>
+        </div>
+      ) : (
+        <span style={{ fontSize: 24, fontWeight: 800, color: P.brand }}>{usd(effectivePrice(product))}</span>
+      )}
+    </button>
+  );
+}
+
+function ShowcaseFocus({ product, offer, onBack }) {
+  const urls = (Array.isArray(product.photo_urls) && product.photo_urls.length ? product.photo_urls : [product.image_url]).filter(Boolean);
+  const [page, setPage] = useState(0);
+  const [zoom, setZoom] = useState(1);
+  const savings = hasSavings(offer);
+  useEffect(() => { setZoom(1); }, [page]);
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === "ArrowRight") setI((v) => Math.min(withPhotos.length - 1, v + 1));
-      if (e.key === "ArrowLeft") setI((v) => Math.max(0, v - 1));
-      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight") setPage((v) => Math.min(urls.length - 1, v + 1));
+      if (e.key === "ArrowLeft") setPage((v) => Math.max(0, v - 1));
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [withPhotos.length, onClose]);
-  const p = withPhotos[i];
-  if (!p || typeof document === "undefined") return null;
-  const offer = offersById[p.id];
-  const photos = [p.image_url, ...(Array.isArray(p.photo_urls) ? p.photo_urls : [])].filter(Boolean);
+  }, [urls.length]);
+  const clamp = (v) => Math.max(1, Math.min(4, v));
+  return (
+    <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex items-center" style={{ padding: "0 18px 8px" }}>
+        <button onClick={onBack} aria-label="Volver al catálogo" className="apple-press" style={{ width: 40, height: 40, borderRadius: 999, background: P.card2, display: "flex", alignItems: "center", justifyContent: "center" }}><ChevronLeft className="w-6 h-6" /></button>
+      </div>
+      <div className="flex-1 flex items-center justify-center relative min-h-0" style={{ padding: "0 20px" }}>
+        {urls.length > 0 ? (
+          <div className="flex items-center justify-center" onWheel={(e) => setZoom((z) => clamp(z - e.deltaY * 0.004))} onDoubleClick={() => setZoom((z) => (z > 1 ? 1 : 2.5))} style={{ background: "#fff", borderRadius: 24, padding: 20, width: "100%", maxWidth: 820, maxHeight: "100%", overflow: "hidden", touchAction: "pan-y" }}>
+            <img src={urls[page]} alt={product.name} draggable={false} style={{ maxHeight: "55dvh", maxWidth: "100%", objectFit: "contain", transform: `scale(${zoom})`, transition: "transform 0.15s", cursor: zoom > 1 ? "zoom-out" : "zoom-in" }} />
+          </div>
+        ) : (
+          <div className="flex items-center justify-center" style={{ width: "100%", maxWidth: 820, height: "50dvh", borderRadius: 24, background: P.card2 }}><Images className="w-14 h-14" style={{ color: P.ter }} /></div>
+        )}
+        {page > 0 && <button onClick={() => setPage(page - 1)} aria-label="Foto anterior" className="absolute left-4 apple-press" style={{ width: 44, height: 44, borderRadius: 999, background: P.card2, display: "flex", alignItems: "center", justifyContent: "center" }}><ChevronLeft className="w-6 h-6" /></button>}
+        {page < urls.length - 1 && <button onClick={() => setPage(page + 1)} aria-label="Foto siguiente" className="absolute right-4 apple-press" style={{ width: 44, height: 44, borderRadius: 999, background: P.card2, display: "flex", alignItems: "center", justifyContent: "center" }}><ChevronRight className="w-6 h-6" /></button>}
+      </div>
+      {urls.length > 1 && (
+        <div className="flex items-center justify-center" style={{ gap: 6, padding: 10 }}>
+          {urls.map((u, k) => <span key={u} style={{ width: 8, height: 8, borderRadius: 999, background: k === page ? "#fff" : P.ter }} />)}
+        </div>
+      )}
+      <div className="flex flex-col items-center text-center" style={{ padding: "8px 18px 28px", gap: 4 }}>
+        <p style={{ fontSize: 26, fontWeight: 800 }}>{product.name}</p>
+        {savings ? (
+          <div className="flex items-baseline" style={{ gap: 12 }}>
+            <span style={{ fontSize: 46, fontWeight: 800, color: P.danger }}>{usd(offer.promoPrice)}</span>
+            <span style={{ fontSize: 20, color: P.sub, textDecoration: "line-through" }}>{usd(effectivePrice(product))}</span>
+          </div>
+        ) : <span style={{ fontSize: 46, fontWeight: 800, color: P.brand }}>{usd(effectivePrice(product))}</span>}
+      </div>
+    </div>
+  );
+}
+
+function Showcase({ products, offersById, onClose }) {
+  const [focusId, setFocusId] = useState(null);
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key !== "Escape") return;
+      if (focusId) setFocusId(null); else onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [focusId, onClose]);
+  const focused = focusId ? products.find((p) => p.id === focusId) : null;
+  if (typeof document === "undefined") return null;
   return createPortal(
     <div className="apple-type fixed inset-0 z-[360] flex flex-col" style={{ background: "#000", color: P.text }}>
       <div className="flex items-center justify-between" style={{ padding: "16px 18px" }}>
-        <div>
-          <p style={{ fontSize: 17, fontWeight: 700 }}>Catálogo</p>
-          <p style={{ fontSize: 13, color: P.sub }}>{withPhotos.length} productos</p>
-        </div>
+        {focused ? <span /> : (
+          <div>
+            <p style={{ fontSize: 34, fontWeight: 800 }}>Catálogo</p>
+            <p style={{ fontSize: 13, color: P.sub }}>{products.length} productos</p>
+          </div>
+        )}
         <button onClick={onClose} aria-label="Cerrar" className="apple-press" style={{ width: 36, height: 36, borderRadius: 999, background: P.card2, display: "flex", alignItems: "center", justifyContent: "center" }}><X className="w-5 h-5" /></button>
       </div>
-      <div className="flex-1 flex items-center justify-center relative" style={{ padding: 20 }}>
-        <button onClick={() => setI((v) => Math.max(0, v - 1))} disabled={i === 0} aria-label="Anterior" className="absolute left-4 apple-press disabled:opacity-20" style={{ width: 44, height: 44, borderRadius: 999, background: P.card2, display: "flex", alignItems: "center", justifyContent: "center" }}><ChevronLeft className="w-6 h-6" /></button>
-        <div className="flex flex-col items-center" style={{ maxWidth: 720, width: "100%" }}>
-          <div style={{ background: "#fff", borderRadius: 24, padding: 20, width: "100%", display: "flex", justifyContent: "center" }}>
-            <img src={photos[0]} alt={p.name} style={{ maxHeight: "55dvh", maxWidth: "100%", objectFit: "contain" }} />
+      {focused ? <ShowcaseFocus key={focused.id} product={focused} offer={offersById[focused.id]} onBack={() => setFocusId(null)} /> : (
+        <div className="flex-1 overflow-y-auto" style={{ padding: "0 18px 28px" }}>
+          <div className="grid" style={{ gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
+            {products.map((p) => <ShowcaseCard key={p.id} product={p} offer={offersById[p.id]} onClick={() => setFocusId(p.id)} />)}
           </div>
-          <p style={{ fontSize: 26, fontWeight: 800, marginTop: 18, textAlign: "center" }}>{p.name}</p>
-          <p style={{ fontSize: 30, fontWeight: 800, color: hasSavings(offer) ? P.success : P.brand }}>{usd(hasSavings(offer) ? offer.promoPrice : effectivePrice(p))}</p>
         </div>
-        <button onClick={() => setI((v) => Math.min(withPhotos.length - 1, v + 1))} disabled={i >= withPhotos.length - 1} aria-label="Siguiente" className="absolute right-4 apple-press disabled:opacity-20" style={{ width: 44, height: 44, borderRadius: 999, background: P.card2, display: "flex", alignItems: "center", justifyContent: "center" }}><ChevronRight className="w-6 h-6" /></button>
-      </div>
+      )}
     </div>,
     document.body
   );
