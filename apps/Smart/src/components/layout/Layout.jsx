@@ -6,6 +6,7 @@ import { PanelProvider } from "@/components/utils/panelContext";
 import { TenantProvider } from "@/components/utils/tenantContext";
 import AppLock from "@/components/auth/AppLock";
 import CelebrationHost from "@/components/ui/CelebrationHost";
+import ChangePinGate from "@/components/auth/ChangePinGate";
 
 export default function Layout({ children }) {
   const { pathname } = useLocation();
@@ -25,6 +26,7 @@ export default function Layout({ children }) {
         <MobileBottomNav />
         <AppLock />
         <CelebrationHost />
+        <ChangePinGate />
       </PanelProvider>
     </TenantProvider>
   );

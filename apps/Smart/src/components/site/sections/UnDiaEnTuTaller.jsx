@@ -177,6 +177,7 @@ export function UnDiaEnTuTaller() {
   const trackRef = useRef(null);
 
   const { scrollYProgress } = useScroll({
+    container: { current: typeof document !== "undefined" ? document.getElementById("root") : null },
     target: trackRef,
     offset: ["start 70%", "end 60%"],
   });

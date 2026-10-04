@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { flagPinChange } from "@/components/auth/ChangePinGate";
 import { createPortal } from "react-dom";
 import { LogOut } from "lucide-react";
 import { supabase } from "../../../../../lib/supabase-client.js";
@@ -158,6 +159,7 @@ function LockScreen({ tenantId, onUnlock }) {
       }
       const email = String(body?.auth?.email || "").toLowerCase();
       const roles = [...(Array.isArray(body?.employee?.roles) ? body.employee.roles : []), body?.employee?.role].filter(Boolean).map((r) => String(r).toLowerCase());
+      if (body?.employee?.pin_is_temp === true && body?.employee?.id) flagPinChange(body.employee.id);
       const dest = roles.some((r) => ADMIN_ROLES.includes(r)) ? "/Dashboard" : "/Orders";
       if (email && email === String(who.email || "").toLowerCase()) {
         resetPinLockout(tenantId);
