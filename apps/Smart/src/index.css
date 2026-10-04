@@ -1048,3 +1048,12 @@ html.app-light img, html.app-light video, html.app-light canvas, html.app-light 
 .stagger > *:nth-child(6) { animation-delay: 200ms; }
 .stagger > *:nth-child(n+7) { animation-delay: 240ms; }
 @media (prefers-reduced-motion: reduce) { .skeleton, .stagger > *, .hover-lift { animation: none !important; transition: none !important; } }
+
+.cat-row .cat-actions { opacity: 0; transition: opacity 0.15s; }
+.cat-row:hover .cat-actions,
+.cat-row:focus-within .cat-actions,
+.cat-row.cat-touch .cat-actions { opacity: 1; }
+.cat-row:hover { background-color: rgba(255, 255, 255, 0.04); }
+@media (pointer: coarse) {
+  .cat-row .cat-actions { opacity: 1; }
+}

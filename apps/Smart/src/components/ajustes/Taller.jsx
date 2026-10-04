@@ -7,7 +7,7 @@ import { A, SubPage, Group, Row, ToggleRow, PrimaryBtn, ErrorLine } from "./ui";
 import { updateTenant, hiddenStatusesOf, localGet, localSet, fetchTenantRow, isPlanProOrAbove } from "@/lib/tenantSettings";
 import { ORDER_STATUS } from "@/lib/orderStatus";
 import { cacheBusinessMode } from "@/lib/businessMode";
-import DeviceCatalogManager from "@/components/settings/DeviceCatalogManager";
+import Catalogo from "./Catalogo";
 
 const MODES = { repair: ["Reparación", "Taller de reparación: órdenes, técnicos, garantías y POS."], retail: ["Tienda", "Solo venta: covers, accesorios y celulares. POS e inventario, sin reparación."], both: ["Ambos", "Reparación y tienda juntas. Todas las funciones disponibles."] };
 const modeSummary = (m) => (m === "retail" ? "Tienda — solo venta" : m === "both" ? "Reparación + Tienda" : "Reparación");
@@ -38,12 +38,8 @@ export function TallerList({ tenant, go }) {
   );
 }
 
-export function CatalogoDispositivos({ back }) {
-  return (
-    <SubPage title="Catálogo de Dispositivos" onBack={back}>
-      <DeviceCatalogManager />
-    </SubPage>
-  );
+export function CatalogoDispositivos({ back, tenantId }) {
+  return <Catalogo tenantId={tenantId} back={back} />;
 }
 
 export function TipoNegocio({ tenant, tenantId, reload, back }) {
