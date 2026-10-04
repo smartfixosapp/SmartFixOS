@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { ChevronLeft, MessageSquare, Pencil, MoreHorizontal, Trash2, Zap, Info, History, Check, X, AlertTriangle, Loader2, Hand, CalendarClock } from "lucide-react";
+import { ChevronLeft, MessageSquare, Pencil, MoreHorizontal, Trash2, Zap, Info, History, Check, X, AlertTriangle, Loader2, Hand, CalendarClock, Mail } from "lucide-react";
 import { statusInfo } from "@/lib/orderStatus";
 import { hiddenStatusesOf } from "@/lib/tenantSettings";
 import {
@@ -23,7 +23,8 @@ import POSheet from "@/components/orderDetail/POSheet";
 import HeaderCard from "@/components/orderDetail/HeaderCard";
 import StatusModule from "@/components/orderDetail/StatusModule";
 import InfoSections, { RatingCard, QuickServiceCard, DeviceCard } from "@/components/orderDetail/InfoSections";
-import Timeline from "@/components/orderDetail/Timeline";
+import Timeline, { RecentActivity } from "@/components/orderDetail/Timeline";
+import MoneyCard from "@/components/orderDetail/MoneyCard";
 import { PhotosCaptureSheet, PhotoGateSheet, PhotoStrip, PhotoViewer } from "@/components/orderDetail/Photos";
 import {
   StatusPickerSheet, NoteForChangeSheet, AddNoteSheet, AdvisoriesSheet, NotifySheet, TechPickerSheet,
@@ -43,6 +44,17 @@ import { OrderTasksCard } from "@/components/tareas/Tasks";
 import { buildReceiptPDF, buildQuotePDF, printLabel, labelsEnabled } from "@/lib/orderDocs";
 import { CloseDraftDialog } from "@/components/compras/PODetail";
 import { findOpenRegister, recordOrderPayment, addDeposit, editDeposit, deleteDeposit, recordOrderRefund } from "@/lib/orderMoneyApi";
+
+function useMedia(q) {
+  const [v, setV] = useState(() => typeof window !== "undefined" && window.matchMedia(q).matches);
+  useEffect(() => {
+    const m = window.matchMedia(q);
+    const on = () => setV(m.matches);
+    m.addEventListener("change", on);
+    return () => m.removeEventListener("change", on);
+  }, [q]);
+  return v;
+}
 
 function useIsDesktop() {
   const q = "(min-width: 768px)";
@@ -69,6 +81,7 @@ export default function OrderDetail() {
   const navigate = useNavigate();
   const location = useLocation();
   const isDesktop = useIsDesktop();
+  const isWide = useMedia("(min-width: 1180px)");
   const tenantId = storedTenantId();
 
   const [order, setOrder] = useState(null);
@@ -720,7 +733,7 @@ export default function OrderDetail() {
       onCharge={() => requireRegister(openQuickPay)}
       onPromisedDate={() => setSheet({ name: "promised" })}
       onContact={(k) => contact(k)}
-      onEmail={() => setSheet({ name: "notify", variant: "general" })}
+      onTech={() => setSheet({ name: "tech" })}
       onApproval={async (ok) => {
         if (await attempt("No se pudo guardar la respuesta", () => resolveApprovalInPerson(order.id, ok, by))) toast(ok ? "Cotización aprobada" : "Cotización rechazada");
         reload();
@@ -844,6 +857,9 @@ export default function OrderDetail() {
     />
   );
 
+  const moneyCard = <MoneyCard order={order} onCharge={() => requireRegister(openQuickPay)} />;
+  const recent = <RecentActivity order={order} onSeeAll={() => setTab("history")} />;
+
   const bannerEl = banner && (
     <div className="flex items-center gap-3" style={{ position: "sticky", top: 12, zIndex: 50, backdropFilter: "blur(14px)", padding: "12px 14px", borderRadius: 14, background: tint(banner.type === "error" ? C.red : C.green, 0.22), color: banner.type === "error" ? C.red : C.green }}>
       {banner.type === "error" ? <AlertTriangle className="w-4 h-4 shrink-0" /> : <Check className="w-4 h-4 shrink-0" />}
@@ -889,23 +905,45 @@ export default function OrderDetail() {
         <div className="flex flex-col gap-4">
           {queueEl}
           {isDesktop ? (
-            <>
-              {header}
-              {visitCard}
-              {module}
-              {liquidBanner}
-              <QuickServiceCard order={order} onQuickService={async (v) => { await attempt("No se pudo guardar", () => setQuickService(order.id, v)); reload(); }} />
-              {partsModule}
-              <DeviceCard order={order} compact onPromisedDate={() => setSheet({ name: "promised" })} />
-              {costTasks}
-              <RatingCard order={order} />
-              {photos}
-              {timeline}
-            </>
+            isWide ? (
+              <div className="grid gap-4 items-start" style={{ gridTemplateColumns: "minmax(0, 1.55fr) minmax(0, 1fr)" }}>
+                <div className="flex flex-col gap-4 min-w-0">
+                  {header}
+                  {visitCard}
+                  {module}
+                  {liquidBanner}
+                  <QuickServiceCard order={order} onQuickService={async (v) => { await attempt("No se pudo guardar", () => setQuickService(order.id, v)); reload(); }} />
+                  {partsModule}
+                  <DeviceCard order={order} compact onPromisedDate={() => setSheet({ name: "promised" })} />
+                  {costTasks}
+                  <RatingCard order={order} />
+                </div>
+                <div className="flex flex-col gap-4 min-w-0">
+                  {moneyCard}
+                  {photos}
+                  {timeline}
+                </div>
+              </div>
+            ) : (
+              <>
+                {header}
+                {visitCard}
+                {module}
+                {liquidBanner}
+                {moneyCard}
+                <QuickServiceCard order={order} onQuickService={async (v) => { await attempt("No se pudo guardar", () => setQuickService(order.id, v)); reload(); }} />
+                {partsModule}
+                <DeviceCard order={order} compact onPromisedDate={() => setSheet({ name: "promised" })} />
+                {costTasks}
+                <RatingCard order={order} />
+                {photos}
+                {timeline}
+              </>
+            )
           ) : (
             <>
               {liquidBanner}
-              {tab === "actions" && (<>{header}{visitCard}{module}{partsBoard}</>)}
+              {tab === "actions" && (<>{header}{visitCard}{module}{recent}{partsBoard}</>)}
               {tab === "info" && info}
               {tab === "history" && (<>{photos}{timeline}</>)}
             </>
@@ -1182,6 +1220,11 @@ export default function OrderDetail() {
         <button onClick={() => setSheet({ name: "schedule" })} className="apple-press w-full flex items-center gap-3 text-left" style={{ padding: "13px 14px", borderRadius: 12, background: C.card2, marginBottom: 8, fontSize: 16, fontWeight: 600 }}>
           <CalendarClock className="w-5 h-5" style={{ color: C.brand }} /> {order.service_type === "visit" && order.appointment_at ? "Editar cita" : "Agendar cita"}
         </button>
+        {String(order.customer_email || "").trim() && (
+          <button onClick={() => setSheet({ name: "notify", variant: "general" })} className="apple-press w-full flex items-center gap-3 text-left" style={{ padding: "13px 14px", borderRadius: 12, background: C.card2, marginBottom: 8, fontSize: 16, fontWeight: 600 }}>
+            <Mail className="w-5 h-5" style={{ color: C.amber }} /> Enviar correo al cliente
+          </button>
+        )}
         <button onClick={() => setSheet({ name: "delete" })} className="apple-press w-full flex items-center gap-3 text-left" style={{ padding: "13px 14px", borderRadius: 12, background: C.card2, color: C.red, fontSize: 15, fontWeight: 600 }}>
           <Trash2 className="w-5 h-5" /> Borrar orden
         </button>

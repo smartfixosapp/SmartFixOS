@@ -31,6 +31,37 @@ function entryView(e) {
   return null;
 }
 
+export function RecentActivity({ order, onSeeAll }) {
+  const rows = useMemo(() => (Array.isArray(order.status_history) ? order.status_history : [])
+    .filter((e) => e?.kind !== "email" && entryView(e))
+    .sort((a, b) => new Date(b?.timestamp || 0) - new Date(a?.timestamp || 0))
+    .slice(0, 2), [order.status_history]);
+  if (!rows.length) return null;
+  return (
+    <Card style={{ padding: "12px 16px" }}>
+      <div className="flex items-center justify-between" style={{ marginBottom: 6 }}>
+        <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", color: C.sub }}>ÚLTIMA ACTIVIDAD</p>
+        <button onClick={onSeeAll} className="apple-press" style={{ fontSize: 13, fontWeight: 600, color: C.brand }}>Ver todo</button>
+      </div>
+      {rows.map((e, i) => {
+        const v = entryView(e);
+        return (
+          <div key={`${e.timestamp || i}-${i}`} className="flex items-center gap-3" style={{ padding: "8px 0", borderTop: i ? `0.5px solid ${C.sep}` : "none" }}>
+            <span style={{ width: 28, height: 28, borderRadius: 8, background: tint(v.color, 0.18), color: v.color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <v.Icon className="w-3.5 h-3.5" />
+            </span>
+            <span className="flex-1 min-w-0">
+              <span className="block truncate" style={{ fontSize: 14, fontWeight: 600, color: C.text }}>{v.title}</span>
+              {v.body && <span className="block truncate" style={{ fontSize: 12, color: C.sub }}>{v.body}</span>}
+            </span>
+            <span style={{ fontSize: 12, color: C.sub, whiteSpace: "nowrap" }}>{relativeTime(e.timestamp)}</span>
+          </div>
+        );
+      })}
+    </Card>
+  );
+}
+
 export default function Timeline({ order, emails, onOpenEmail, onDoneInternal, onAddNote, compact }) {
   const [filter, setFilter] = useState("all");
   const rows = useMemo(() => {

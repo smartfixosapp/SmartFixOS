@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Search, Plus, Building2, Smartphone, Laptop, Tablet, Gamepad2, LockOpen, Wrench, List, Archive, ChevronRight, ChevronLeft, ChevronsUpDown } from "lucide-react";
+import { Search, Plus, Building2, List, Archive, ChevronRight, ChevronLeft, ChevronsUpDown } from "lucide-react";
 import { toast } from "sonner";
 import NewOrderWizard from "@/components/wizard/Wizard";
 import { OrderCreatedToast } from "@/components/inicio/Cards";
 import { dataClient } from "@/components/api/dataClient";
 import { statusInfo, isOrderClosed } from "@/lib/orderStatus";
 import OrdersKanban from "@/components/orders/OrdersKanban";
+import { BUCKET_STYLE } from "@/components/orders/orderBits";
 import { AlertDialog } from "@/components/pos/native/posUi";
 import { fetchTenant, resolveCurrentEmployee, changeStatusRpc, changedByLabel, addInternalNote, fetchOrder, findOlderUndiagnosed } from "@/lib/orderDetailApi";
 import { loadB2bCompanyMap } from "@/lib/invoicesApi";
@@ -20,14 +21,6 @@ import { isMonthlyLimitReached, subscribeOrders } from "@/lib/inicioApi";
 import { safeTZ } from "@/lib/finance/tz";
 import { useBusinessMode } from "@/lib/businessMode";
 
-const BUCKET_STYLE = {
-  phones: { Icon: Smartphone, color: "#0A84FF" },
-  computers: { Icon: Laptop, color: "#BF5AF2" },
-  tablets: { Icon: Tablet, color: "#40C8E0" },
-  consoles: { Icon: Gamepad2, color: "#FF375F" },
-  unlocks: { Icon: LockOpen, color: "#FF9F0A" },
-  other: { Icon: Wrench, color: "#8E8E93" },
-};
 
 export default function Orders() {
   const navigate = useNavigate();

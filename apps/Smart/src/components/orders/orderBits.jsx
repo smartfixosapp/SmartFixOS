@@ -3,6 +3,14 @@ import { tint } from "@/components/orderDetail/ui";
 import { initialsOf } from "@/lib/ordersBoard";
 
 export const KIND_ICON = { console: Gamepad2, tablet: Tablet, computer: Laptop, phone: Smartphone, unlock: LockOpen, other: Wrench };
+export const BUCKET_STYLE = {
+  phones: { Icon: Smartphone, color: "#0A84FF" },
+  computers: { Icon: Laptop, color: "#BF5AF2" },
+  tablets: { Icon: Tablet, color: "#40C8E0" },
+  consoles: { Icon: Gamepad2, color: "#FF375F" },
+  unlocks: { Icon: LockOpen, color: "#FF9F0A" },
+  other: { Icon: Wrench, color: "#8E8E93" },
+};
 export const DWELL_COLOR = { normal: "rgba(235,235,245,0.3)", warning: "#FF9F0A", danger: "#FF453A" };
 export const SERVICE_LABEL = { visit: "Visita técnica", remote: "Remoto" };
 export const PRIORITY = { high: { label: "Alta", color: "#FF9F0A" }, urgent: { label: "Urgente", color: "#FF453A" } };

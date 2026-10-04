@@ -96,32 +96,61 @@ function stageGuide(order, tenant) {
   return g;
 }
 
-function QuickTile({ label, Icon, color, badge, onClick, isDesktop, disabled }) {
-  if (isDesktop) {
-    return (
-      <button
-        onClick={onClick}
-        disabled={disabled}
-        className="apple-press relative flex flex-col items-center justify-center gap-2 disabled:opacity-50"
-        style={{ aspectRatio: "1 / 1", borderRadius: 16, background: tint(color, 0.14), border: `1px solid ${tint(color, 0.25)}`, color }}
-      >
-        <Icon className="w-7 h-7" />
-        <span style={{ fontSize: 14, fontWeight: 600, color: C.text }}>{label}</span>
-        {badge !== undefined && badge !== null && badge !== "" && (
-          <span style={{ position: "absolute", top: 8, right: 8, minWidth: 20, padding: "1px 6px", borderRadius: 999, background: color, color: "#fff", fontSize: 11, fontWeight: 700 }}>{badge}</span>
-        )}
-      </button>
-    );
-  }
+const STEPS = [
+  { id: "intake", label: "Recepción" },
+  { id: "diagnosing", label: "Diagnóstico" },
+  { id: "in_progress", label: "Reparación" },
+  { id: "ready_for_pickup", label: "Listo" },
+  { id: "delivered", label: "Entregado" },
+];
+
+const STEP_INDEX = {
+  intake: 0, scheduled: 0,
+  diagnosing: 1, waiting_customer: 1, pending_order: 1, waiting_parts: 1, part_arrived_waiting_device: 1, reparacion_externa: 1, por_reparar: 1,
+  in_progress: 2, ready_for_pickup: 3, delivered: 4, warranty: 4,
+};
+
+function Stepper({ status, color, label }) {
+  const idx = STEP_INDEX[status];
+  if (idx === undefined) return null;
   return (
-    <button onClick={onClick} disabled={disabled} className="apple-press flex flex-col items-center gap-1.5 disabled:opacity-50">
-      <span className="relative" style={{ width: 56, height: 56, borderRadius: 999, background: tint(color, 0.18), border: `1px solid ${tint(color, 0.3)}`, color, display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ position: "relative" }}>
+      <div style={{ position: "absolute", left: "10%", right: "10%", top: 9, height: 3, borderRadius: 2, background: C.card2 }} />
+      <div style={{ position: "absolute", left: "10%", width: `${idx * 20}%`, top: 9, height: 3, borderRadius: 2, background: C.green, transition: "width 0.45s cubic-bezier(0.2, 0.8, 0.2, 1)" }} />
+      <div className="grid" style={{ gridTemplateColumns: "repeat(5, minmax(0, 1fr))", position: "relative" }}>
+        {STEPS.map((step, i) => {
+          const done = i < idx;
+          const current = i === idx;
+          const text = current && label && STEPS[i].id !== status ? label : step.label;
+          return (
+            <div key={step.id} className="flex flex-col items-center" style={{ gap: 6 }}>
+              <span style={{
+                width: 21, height: 21, borderRadius: 999, display: "flex", alignItems: "center", justifyContent: "center",
+                background: done ? C.green : current ? color : C.card2,
+                boxShadow: current ? `0 0 0 4px ${tint(color, 0.22)}` : "none",
+                transition: "background 0.3s, box-shadow 0.3s",
+              }}>
+                {done && <Check className="w-3 h-3" style={{ color: "#fff" }} strokeWidth={3.5} />}
+              </span>
+              <span className="text-center" style={{ fontSize: 11, lineHeight: 1.15, fontWeight: current ? 700 : 500, color: current ? C.text : C.sub }}>{text}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function QuickTile({ label, Icon, color, badge, onClick, disabled }) {
+  return (
+    <button onClick={onClick} disabled={disabled} className="apple-press hover-lift flex flex-col items-center gap-1.5 shrink-0 disabled:opacity-50" style={{ width: 68 }}>
+      <span className="relative" style={{ width: 54, height: 54, borderRadius: 999, background: tint(color, 0.16), border: `1px solid ${tint(color, 0.3)}`, color, display: "flex", alignItems: "center", justifyContent: "center" }}>
         <Icon className="w-6 h-6" />
         {badge !== undefined && badge !== null && badge !== "" && (
-          <span style={{ position: "absolute", top: -4, right: -6, minWidth: 18, padding: "0 5px", borderRadius: 999, background: color, color: "#fff", fontSize: 10, fontWeight: 700 }}>{badge}</span>
+          <span style={{ position: "absolute", top: -5, right: -8, minWidth: 18, padding: "0 5px", borderRadius: 999, background: color, color: "#fff", fontSize: 10, fontWeight: 700, lineHeight: "18px" }}>{badge}</span>
         )}
       </span>
-      <span style={{ fontSize: 12, color: C.text }}>{label}</span>
+      <span className="text-center truncate w-full" style={{ fontSize: 12, color: C.text }}>{label}</span>
     </button>
   );
 }
@@ -187,18 +216,30 @@ export default function StatusModule({
     )
   );
 
-  const primary = collectButtons || advancePrimary;
-
-  const secondary = closed ? (
+  const reopenButton = closed ? (
     <button onClick={onReopen} disabled={saving} className="apple-press flex items-center justify-center gap-2 disabled:opacity-50"
       style={{ minHeight: 50, padding: "0 18px", borderRadius: 14, background: C.brand, color: "#fff", fontWeight: 700, fontSize: 15, flex: 1 }}>
       <RotateCcw className="w-4 h-4" /> Reabrir orden
     </button>
-  ) : (
-    <button onClick={onOpenPicker} disabled={saving} className="apple-press flex items-center justify-center gap-2 disabled:opacity-50"
-      style={{ minHeight: 50, padding: "0 18px", borderRadius: 14, background: C.card2, color: C.sub, fontWeight: 600, fontSize: 15, flex: 1 }}>
-      {isDesktop ? "Cambiar estado" : "Cambiar a otro estado"}
-    </button>
+  ) : null;
+
+  const primary = collectButtons || advancePrimary || reopenButton;
+
+  const guideShown = guide && !["intake", "diagnosing", "por_reparar", "in_progress", "ready_for_pickup", "delivered", "warranty", "scheduled"].includes(order.status) ? guide : null;
+  const guidePills = guide ? guide.pills : [];
+
+  const links = !closed && (
+    <div className="flex flex-wrap items-center" style={{ gap: "2px 18px", marginTop: 8 }}>
+      <button onClick={onOpenPicker} disabled={saving} className="apple-press disabled:opacity-50" style={{ padding: "6px 0", fontSize: 13, fontWeight: 600, color: C.sub }}>
+        Cambiar estado
+      </button>
+      {guidePills.map((p) => (
+        <button key={p.key} onClick={() => onStagePill(p.key)} disabled={saving} className="apple-press disabled:opacity-50"
+          style={{ padding: "6px 0", fontSize: 13, fontWeight: 600, color: p.color === C.sub ? C.sub : p.color }}>
+          {p.label}
+        </button>
+      ))}
+    </div>
   );
 
   const tiles = [
@@ -206,43 +247,47 @@ export default function StatusModule({
     { key: "photo", label: uploadingPhotos ? "Subiendo…" : "Foto", Icon: Camera, color: C.indigo, badge: photos.length || null },
     { key: "note", label: "Nota", Icon: StickyNote, color: C.blue, badge: notesCount(order) || null },
     ...(order.status === "ready_for_pickup" ? [
-      { key: "notify_ready", label: "Avisar cliente", Icon: Bell, color: C.green },
+      { key: "notify_ready", label: "Avisar", Icon: Bell, color: C.green },
       { key: "advisories", label: "Avisos", Icon: AlertTriangle, color: C.amber },
-      { key: "abandon_notice", label: "Aviso abandono", Icon: Archive, color: C.pink },
+      { key: "abandon_notice", label: "Abandono", Icon: Archive, color: C.pink },
     ] : []),
     { key: "documents", label: "Documentos", Icon: FileText, color: C.brand },
-    { key: "security", label: "PIN/Seguridad", Icon: KeyRound, color: C.sub },
+    { key: "security", label: "PIN", Icon: KeyRound, color: C.sub },
     ...(isDesktop ? [{ key: "tech", label: techName || "Técnico", Icon: UserCog, color: C.teal }] : []),
   ];
 
+  const status = (
+    <div style={{ minHeight: 18, marginTop: 12 }}>
+      {saving ? (
+        <p className="flex items-center gap-1.5" style={{ fontSize: 12, color: C.sub }}><Loader2 className="w-3.5 h-3.5 animate-spin" /> guardando…</p>
+      ) : notice ? (
+        <Notice notice={notice} onUndo={onUndo} onSms={onSmsFallback} onDismiss={onDismissNotice} />
+      ) : (
+        <p style={{ fontSize: 12, color: C.sub }}>{caption}</p>
+      )}
+    </div>
+  );
+
+  const stepper = <Stepper status={order.status} color={st.color} label={st.label} />;
+
   return (
     <Card>
-      <div className={isDesktop ? "flex items-center justify-between gap-4 flex-wrap" : ""}>
-        <div className="flex items-center gap-3 min-w-0">
-          <span style={{ width: 46, height: 46, borderRadius: 13, background: tint(st.color, 0.15), color: st.color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <st.Icon className="w-6 h-6" />
-          </span>
-          <div className="min-w-0">
-            <p style={{ fontSize: 20, fontWeight: 800, color: C.text }}>{st.label}</p>
-            {saving ? (
-              <p className="flex items-center gap-1.5" style={{ fontSize: 13, color: C.sub }}><Loader2 className="w-3.5 h-3.5 animate-spin" /> guardando…</p>
-            ) : notice ? (
-              <Notice notice={notice} onUndo={onUndo} onSms={onSmsFallback} onDismiss={onDismissNotice} />
-            ) : (
-              <p style={{ fontSize: 13, color: C.sub }}>{caption}</p>
-            )}
-          </div>
+      {isDesktop && primary && stepper ? (
+        <div className="flex items-center gap-5 flex-wrap">
+          <div style={{ flex: "1 1 320px", minWidth: 0 }}>{stepper}</div>
+          <div className="flex gap-2" style={{ flex: "0 1 300px", minWidth: 220 }}>{primary}</div>
         </div>
-        {isDesktop && (
-          <div className="flex gap-2 flex-wrap" style={{ minWidth: 320, flex: "0 1 520px" }}>
-            {primary}
-            {secondary}
-          </div>
-        )}
-      </div>
+      ) : (
+        <>
+          {stepper}
+          {primary && <div className="flex flex-col gap-2" style={{ marginTop: 14 }}>{primary}</div>}
+        </>
+      )}
+      {links}
+      {status}
 
       {closed && (
-        <div className="flex items-start gap-3" style={{ marginTop: 14, padding: 12, borderRadius: 12, background: tint(C.sub, 0.12) }}>
+        <div className="flex items-start gap-3" style={{ marginTop: 6, padding: 12, borderRadius: 12, background: tint(C.sub, 0.12) }}>
           <Lock className="w-4 h-4 shrink-0" style={{ color: C.sub, marginTop: 2 }} />
           <div>
             <p style={{ fontSize: 14, fontWeight: 700, color: C.text }}>Orden cerrada</p>
@@ -282,46 +327,20 @@ export default function StatusModule({
         )
       )}
 
-      {!isDesktop && (
-        <div className="flex flex-col gap-2" style={{ marginTop: 14 }}>
-          {primary}
-          {secondary}
+      {guideShown && (
+        <div className="flex items-start gap-3" style={{ marginTop: 12, padding: 12, borderRadius: 12, background: tint(st.color, 0.1) }}>
+          <st.Icon className="w-4 h-4 shrink-0" style={{ color: st.color, marginTop: 2 }} />
+          <div className="min-w-0">
+            <p style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{guideShown.title}</p>
+            <p style={{ fontSize: 13, color: C.sub }}>{guideShown.subtitle}</p>
+          </div>
         </div>
       )}
 
-      {guide && (
-        <>
-          <div style={{ height: 0.5, background: C.sep, margin: "16px 0" }} />
-          <div className="flex items-start gap-3">
-            <span style={{ width: 36, height: 36, borderRadius: 9, background: tint(st.color, 0.18), color: st.color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <st.Icon className="w-5 h-5" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p style={{ fontSize: 15, fontWeight: 700, color: C.text }}>{guide.title}</p>
-              <p style={{ fontSize: 13, color: C.sub }}>{guide.subtitle}</p>
-              {guide.pills.length > 0 && (
-                <div className="flex gap-2 overflow-x-auto" style={{ marginTop: 10, paddingBottom: 2 }}>
-                  {guide.pills.map((p) => (
-                    <button key={p.key} onClick={() => onStagePill(p.key)} disabled={saving} className="apple-press disabled:opacity-50"
-                      style={{ padding: "7px 13px", borderRadius: 999, background: tint(p.color, 0.18), color: p.color === C.sub ? C.text : p.color, fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>
-                      {p.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </>
-      )}
-
-      <div style={{ height: 0.5, background: C.sep, margin: "16px 0" }} />
-      <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: C.sub, marginBottom: 12 }}>ACCIONES RÁPIDAS</p>
-      <div
-        className="grid gap-3"
-        style={{ gridTemplateColumns: isDesktop ? "repeat(auto-fill, minmax(130px, 200px))" : "repeat(3, minmax(0, 1fr))" }}
-      >
+      <div style={{ height: 0.5, background: C.sep, margin: "16px 0 12px" }} />
+      <div className="flex overflow-x-auto" style={{ gap: 10, paddingTop: 8, paddingRight: 10, paddingBottom: 2 }}>
         {tiles.map((t) => (
-          <QuickTile key={t.key} {...t} isDesktop={isDesktop} onClick={() => onQuick(t.key)} disabled={t.key === "photo" && uploadingPhotos} />
+          <QuickTile key={t.key} {...t} onClick={() => onQuick(t.key)} disabled={t.key === "photo" && uploadingPhotos} />
         ))}
       </div>
     </Card>
