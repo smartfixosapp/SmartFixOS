@@ -11,12 +11,12 @@ import {
 import { Section, Eyebrow, Heading, Lede, Chip, GlowBlob, cx } from "../primitives";
 import { EASE, VIEWPORT, fadeUp, fadeUpSm, staggerList } from "../motion";
 
-import s06 from "../../../assets/images/screenshots/06-ordenes-list.png";
-import s07 from "../../../assets/images/screenshots/07-pos-catalogo.png";
-import s04 from "../../../assets/images/screenshots/04-finanzas-dashboard.png";
-import s18 from "../../../assets/images/screenshots/18-compras-paso2-productos.png";
-import s14 from "../../../assets/images/screenshots/14-smart-search.png";
-import s13 from "../../../assets/images/screenshots/13-notificar-cliente.png";
+import s06 from "../../../assets/images/screenshots/06-ordenes-list.webp";
+import s07 from "../../../assets/images/screenshots/07-pos-catalogo.webp";
+import s04 from "../../../assets/images/screenshots/04-finanzas-dashboard.webp";
+import s18 from "../../../assets/images/screenshots/18-compras-paso2-productos.webp";
+import s14 from "../../../assets/images/screenshots/14-smart-search.webp";
+import s13 from "../../../assets/images/screenshots/13-notificar-cliente.webp";
 
 const MODULES = [
   {

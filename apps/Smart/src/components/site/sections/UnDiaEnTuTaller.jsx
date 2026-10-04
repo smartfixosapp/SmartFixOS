@@ -3,12 +3,12 @@ import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion
 import { Section, Eyebrow, Heading, cx } from "../primitives";
 import { PhoneMock } from "../PhoneMock";
 import { EASE, DUR, VIEWPORT } from "../motion";
-import s12 from "../../../assets/images/screenshots/12-orden-detail.png";
-import s13 from "../../../assets/images/screenshots/13-notificar-cliente.png";
-import s06 from "../../../assets/images/screenshots/06-ordenes-list.png";
-import s03 from "../../../assets/images/screenshots/03-inicio.png";
-import s07 from "../../../assets/images/screenshots/07-pos-catalogo.png";
-import s04 from "../../../assets/images/screenshots/04-finanzas-dashboard.png";
+import s12 from "../../../assets/images/screenshots/12-orden-detail.webp";
+import s13 from "../../../assets/images/screenshots/13-notificar-cliente.webp";
+import s06 from "../../../assets/images/screenshots/06-ordenes-list.webp";
+import s03 from "../../../assets/images/screenshots/03-inicio.webp";
+import s07 from "../../../assets/images/screenshots/07-pos-catalogo.webp";
+import s04 from "../../../assets/images/screenshots/04-finanzas-dashboard.webp";
 
 const STEPS = [
   {

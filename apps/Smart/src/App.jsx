@@ -163,6 +163,7 @@ function App() {
   // sessionStorage se preserva → no parpadea el splash al guardar código.
   const [showSplash, setShowSplash] = useState(() => {
     try {
+      if (["/", "/Pricing", "/registro", "/signup", "/crear-taller", "/Login"].includes(window.location.pathname)) return false;
       return sessionStorage.getItem(SPLASH_SESSION_KEY) !== "1";
     } catch {
       return true;

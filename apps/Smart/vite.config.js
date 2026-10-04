@@ -20,6 +20,7 @@ export default defineConfig({
         clientsClaim: true,
         skipWaiting: true,
         globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
+        globIgnores: ['assets/vendor-scan-*.js', 'assets/vendor-tools-*.js', 'assets/vendor-pdf-*.js'],
         cleanupOutdatedCaches: true,
         navigateFallback: null,
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB
@@ -27,12 +28,7 @@ export default defineConfig({
           // Supabase API — Network First (datos siempre frescos)
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'supabase-api',
-              networkTimeoutSeconds: 10,
-              expiration: { maxEntries: 50, maxAgeSeconds: 5 * 60 },
-            },
+            handler: 'NetworkOnly',
           },
           // Funciones Deno — Network First
           {

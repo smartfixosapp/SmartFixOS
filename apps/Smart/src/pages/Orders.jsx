@@ -57,7 +57,17 @@ export default function Orders() {
 
   useEffect(() => { try { sessionStorage.setItem("orders_view", JSON.stringify({ search, statusFilter, bucket })); } catch { return; } }, [search, statusFilter, bucket]);
 
-  const loadOrders = useCallback(async () => {
+  const lastLoad = useRef(0);
+  const trailing = useRef(null);
+  const loadOrdersRef = useRef(() => {});
+  const loadOrders = useCallback(async (force = true) => {
+    if (force !== true && Date.now() - lastLoad.current < 3000) {
+      clearTimeout(trailing.current);
+      trailing.current = setTimeout(() => loadOrdersRef.current(true), 3000);
+      return;
+    }
+    clearTimeout(trailing.current);
+    lastLoad.current = Date.now();
     const seq = ++loadSeq.current;
     try {
       const [recent, open] = await Promise.all([
@@ -75,6 +85,8 @@ export default function Orders() {
   }, []);
 
   useEffect(() => { ordersRef.current = orders; }, [orders]);
+  useEffect(() => { loadOrdersRef.current = loadOrders; }, [loadOrders]);
+  useEffect(() => () => clearTimeout(trailing.current), []);
 
   useEffect(() => {
     if (!location.state?.focusSearch || loading) return;
@@ -83,15 +95,15 @@ export default function Orders() {
   }, [location.state, location.pathname, loading, navigate]);
 
   useEffect(() => {
-    loadOrders();
+    loadOrders(true);
   }, [loadOrders]);
 
   useEffect(() => {
     let tid = "";
     try { tid = localStorage.getItem("smartfix_tenant_id") || ""; } catch { tid = ""; }
     if (!tid) return undefined;
-    const off = subscribeOrders(tid, loadOrders);
-    const refreshVisible = () => { if (document.visibilityState === "visible") loadOrders(); };
+    const off = subscribeOrders(tid, () => loadOrders(false));
+    const refreshVisible = () => { if (document.visibilityState === "visible") loadOrders(false); };
     const poll = setInterval(refreshVisible, 45000);
     document.addEventListener("visibilitychange", refreshVisible);
     window.addEventListener("focus", refreshVisible);

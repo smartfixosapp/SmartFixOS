@@ -8,7 +8,7 @@ import { BetaPill } from "../BetaPill";
 import { useBetaSlots } from "../useBetaSlots";
 import { EASE } from "../motion";
 import { APP_STORE_URL, REGISTRO_PATH } from "../constants";
-import heroShot from "../../../assets/images/screenshots/03-inicio.png";
+import heroShot from "../../../assets/images/screenshots/03-inicio.webp";
 
 const enter = (delay) => ({
   initial: { opacity: 0, y: 18 },
