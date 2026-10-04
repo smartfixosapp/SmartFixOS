@@ -15,7 +15,7 @@ import { sendStatusEmail, isMailableStatus } from "@/lib/orderEmails";
 import { NoteForChangeSheet, QueueWarningSheet } from "@/components/orderDetail/Sheets";
 import { DEVICE_BUCKETS, deviceBucket } from "@/lib/deviceBucket";
 import CountUp from "@/components/ui/CountUp";
-import { SkeletonCards } from "@/components/ui/Skeleton";
+import { SkeletonCards } from "@/components/ui/skeleton";
 import { ConsolidatedInvoiceDialog, InvoiceHistoryDialog } from "@/components/invoices/InvoiceDialogs";
 import { isMonthlyLimitReached, subscribeOrders } from "@/lib/inicioApi";
 import { safeTZ } from "@/lib/finance/tz";

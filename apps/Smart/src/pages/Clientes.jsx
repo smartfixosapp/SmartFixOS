@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { SkeletonRows } from "@/components/ui/Skeleton";
+import { SkeletonRows } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import { Search, X, ArrowUpDown, Megaphone, UserPlus, Users, Crown, Phone, MessageSquare, Mail, ArrowUpRight, Wrench, ShoppingCart, Pencil, Trash2, Star, Check, AlertTriangle, Loader2, ScanSearch, ChevronDown, Building2, History, DollarSign, TrendingUp } from "lucide-react";
 import { AlertDialog, Toggle, tint } from "@/components/pos/native/posUi";

@@ -11,7 +11,7 @@ import SalesHistoryDialog from "@/components/pos/native/SalesHistory";
 import OrderPayDialog from "@/components/pos/native/OrderPay";
 import { OpenCashSheet, CloseCashSheet } from "@/components/cash/CashSheets";
 import { fetchTenant, resolveCurrentEmployee } from "@/lib/orderDetailApi";
-import { SkeletonCards } from "@/components/ui/Skeleton";
+import { SkeletonCards } from "@/components/ui/skeleton";
 import ScannerDialog from "@/components/pos/native/ScannerDialog";
 import PunchGateSheet from "@/components/punch/PunchGateSheet";
 import { fetchOpenEntry, matchIdsFor, currentAuthUid, isFromEarlierDay, requiresAutomaticClose } from "@/lib/punchApi";
