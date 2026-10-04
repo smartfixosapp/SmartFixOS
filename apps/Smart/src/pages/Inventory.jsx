@@ -500,6 +500,9 @@ function InventoryItemDialog({
     supplier_id: "",
     supplier_name: "",
     description: "",
+    sku: "",
+    barcode: "",
+    location: "",
     compatibility_models_text: "",
     device_imei: "",
     device_condition: "excelente",
@@ -525,6 +528,9 @@ function InventoryItemDialog({
         supplier_id: value.supplier_id || "",
         supplier_name: value.supplier_name || "",
         description: value.description || "",
+        sku: value.sku || "",
+        barcode: value.barcode || "",
+        location: value.location || "",
         compatibility_models_text: Array.isArray(value.compatibility_models) ?
         value.compatibility_models.join("\n") : "",
         device_imei: value.device_imei || "",
@@ -554,6 +560,9 @@ function InventoryItemDialog({
         supplier_id: "",
         supplier_name: "",
         description: "",
+        sku: "",
+        barcode: "",
+        location: "",
         compatibility_models_text: "",
         device_imei: "",
         device_condition: "excelente",
@@ -609,6 +618,9 @@ function InventoryItemDialog({
       supplier_id: form.supplier_id || "",
       supplier_name: selectedSupplier?.name || form.supplier_name?.trim() || "",
       description: form.description?.trim() || "",
+      sku: form.sku?.trim() || null,
+      barcode: form.barcode?.trim() || null,
+      location: form.location?.trim() || null,
       active: true,
       compatibility_models: (form.compatibility_models_text || "").
       split("\n").
@@ -980,6 +992,30 @@ function InventoryItemDialog({
               <option key={sup.id} value={sup.id}>{sup.name}</option>
               )}
             </select>
+          </div>
+
+          {Number(form.price) > 0 && Number(form.cost) > 0 && (
+            <p className="text-xs" style={{ color: Number(form.price) <= Number(form.cost) ? "#FF7373" : "#4DC780", fontWeight: 700 }}>
+              {`Ganancia ${money(Number(form.price) - Number(form.cost))} · margen ${Math.round(((Number(form.price) - Number(form.cost)) / Number(form.price)) * 100)}%`}
+            </p>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="text-xs text-white/50 mb-1 block">SKU</label>
+              <div className="flex gap-1">
+                <Input value={form.sku} onChange={(e) => setForm((f) => ({ ...f, sku: e.target.value }))} placeholder="Opcional" className="bg-black/20 border-white/10 text-white" />
+                <button type="button" onClick={() => setForm((f) => ({ ...f, sku: `${String(f.name || "PRD").replace(/[^a-zA-Z0-9]/g, "").slice(0, 3).toUpperCase() || "PRD"}-${Math.floor(1000 + Math.random() * 9000)}` }))} className="apple-press px-2 rounded-md bg-white/10 text-xs font-bold text-white/70" aria-label="Generar SKU">Auto</button>
+              </div>
+            </div>
+            <div>
+              <label className="text-xs text-white/50 mb-1 block">Código de barras</label>
+              <Input value={form.barcode} onChange={(e) => setForm((f) => ({ ...f, barcode: e.target.value }))} placeholder="Opcional" className="bg-black/20 border-white/10 text-white" />
+            </div>
+            <div>
+              <label className="text-xs text-white/50 mb-1 block">Ubicación</label>
+              <Input value={form.location} onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))} placeholder="Estante, gaveta" className="bg-black/20 border-white/10 text-white" />
+            </div>
           </div>
 
           <div>
