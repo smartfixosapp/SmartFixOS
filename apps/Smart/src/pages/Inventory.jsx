@@ -31,6 +31,7 @@ import SetDiscountDialog from "../components/inventory/SetDiscountDialog";
 import ManageCategoriesDialog from "../components/inventory/ManageCategoriesDialog";
 import InventoryReports from "../components/inventory/InventoryReports";
 import RestockDialog from "../components/inventory/RestockDialog";
+import ProductDetailDialog from "../components/inventory/ProductDetailDialog";
 import { catalogCache } from "@/components/utils/dataCache";
 import { AlertDialog } from "@/components/pos/native/posUi";
 import { loadSuppliersSafe } from "@/components/utils/suppliers";
@@ -1045,6 +1046,7 @@ export default function Inventory() {
   const [sortKey, setSortKey] = useState("name");
   const [showReports, setShowReports] = useState(false);
   const [showRestock, setShowRestock] = useState(false);
+  const [detailItem, setDetailItem] = useState(null);
   const [showManageCategories, setShowManageCategories] = useState(false);
   const [viewMode, setViewMode] = useState("products"); // products | categories
   // ── Ajuste Rápido de Stock ────────────────────────────────────────────
@@ -1795,7 +1797,7 @@ export default function Inventory() {
                 <InventoryCard
                   key={item.id}
                   item={item}
-                  onEdit={it => { setEditing(it); setShowItemDialog(true); }}
+                  onEdit={it => setDetailItem(it)}
                   onDelete={handleDeleteItem}
                   onOffer={it => handleSelectProduct(it, true)}
                   onQuickAdjust={it => setQuickAdjustItem(it)}
@@ -1850,6 +1852,7 @@ export default function Inventory() {
           />
         )}
 
+        <ProductDetailDialog open={!!detailItem} item={detailItem} suppliers={suppliers} onClose={() => setDetailItem(null)} onEdit={(it) => { setDetailItem(null); setEditing(it); setShowItemDialog(true); }} />
         <RestockDialog open={showRestock} onClose={() => setShowRestock(false)} products={items} tenantId={localStorage.getItem("smartfix_tenant_id") || ""} employeeName={localStorage.getItem("smartfix_employee_name") || "Web"} />
 
         {showReports && (
