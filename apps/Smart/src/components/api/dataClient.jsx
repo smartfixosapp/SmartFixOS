@@ -70,10 +70,10 @@ function tenantScoped(entity) {
       if (tid) return entity.filter({ tenant_id: tid }, order, limit);
       return entity.list(order, limit);
     },
-    filter(q = {}, order, limit) {
+    filter(q = {}, order, limit, skip, fields) {
       const tid = getTenantId();
-      if (tid) return entity.filter({ ...q, tenant_id: tid }, order, limit);
-      return entity.filter(q, order, limit);
+      if (tid) return entity.filter({ ...q, tenant_id: tid }, order, limit, skip, fields);
+      return entity.filter(q, order, limit, skip, fields);
     },
     create(data) {
       const tid = getTenantId();

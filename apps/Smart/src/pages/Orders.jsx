@@ -22,6 +22,20 @@ import { safeTZ } from "@/lib/finance/tz";
 import { useBusinessMode } from "@/lib/businessMode";
 
 
+const LIST_FIELDS = ["id", "tenant_id", "order_number", "created_date", "updated_date", "status", "status_history", "status_note", "customer_id", "customer_name", "customer_phone", "customer_email", "device_type", "device_brand", "device_family", "device_model", "device_serial", "is_quick_service", "is_deleted", "promised_date", "cost_estimate", "labor_cost", "priority", "service_type", "warranty_claim", "liquid_damage", "assigned_to", "assigned_to_name", "not_repairable_resolved_at"];
+let lightListOk = true;
+
+async function fetchOrderRows(conditions, limit) {
+  if (lightListOk) {
+    try {
+      return await dataClient.entities.Order.filter(conditions, "-updated_date", limit, null, LIST_FIELDS);
+    } catch {
+      lightListOk = false;
+    }
+  }
+  return dataClient.entities.Order.filter(conditions, "-updated_date", limit);
+}
+
 export default function Orders() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -67,8 +81,8 @@ export default function Orders() {
     const seq = ++loadSeq.current;
     try {
       const [recent, open] = await Promise.all([
-        dataClient.entities.Order.filter({ is_deleted: false }, "-updated_date", 500),
-        dataClient.entities.Order.filter({ is_deleted: false, status: { $nin: ["delivered", "warranty", "abandoned"] } }, "-updated_date", 2000).catch(() => []),
+        fetchOrderRows({ is_deleted: false }, 500),
+        fetchOrderRows({ is_deleted: false, status: { $nin: ["delivered", "warranty", "abandoned"] } }, 2000).catch(() => []),
       ]);
       const seen = new Set((recent || []).map((o) => o.id));
       const merged = [...(recent || []), ...(open || []).filter((o) => !seen.has(o.id))];
@@ -90,9 +104,8 @@ export default function Orders() {
     let cancelled = false;
     const timer = setTimeout(() => {
       const like = { $ilike: `%${q}%` };
-      dataClient.entities.Order.filter(
+      fetchOrderRows(
         { is_deleted: false, $or: [{ order_number: like }, { customer_name: like }, { customer_phone: like }, { customer_email: like }, { device_model: like }, { device_serial: like }] },
-        "-updated_date",
         80,
       ).then((rows) => {
         if (cancelled || !rows?.length) return;

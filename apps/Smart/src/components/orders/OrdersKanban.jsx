@@ -7,7 +7,7 @@ import { KIND_ICON, DWELL_COLOR, SERVICE_LABEL, PRIORITY, Pill, AssignmentChip }
 import { displayDevice, money, tint, relativeTime } from "@/components/orderDetail/ui";
 import { anchorInView } from "@/lib/viewport";
 
-function OrderTile({ order, companyName, onClick, onMenu }) {
+function OrderTile({ order, companyName, onClick, onMenu, flash }) {
   const info = statusInfo(order.status);
   const Icon = KIND_ICON[deviceKind(order)] || Wrench;
   const dwell = dwellInfo(order);
@@ -44,6 +44,7 @@ function OrderTile({ order, companyName, onClick, onMenu }) {
         width: "100%", minWidth: 0, WebkitTouchCallout: "none", userSelect: "none",
       }}
     >
+      {flash && <span className="tile-flash" aria-hidden="true" />}
       <span style={{ position: "absolute", top: 1, left: 10, right: 10, height: 3, borderRadius: 2, background: info.color }} />
       <div style={{ display: "flex", alignItems: "flex-start", gap: 6 }}>
         <span style={{ width: 30, height: 30, borderRadius: 8, background: "#2C2C2E", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -146,6 +147,20 @@ export default function OrdersKanban({ orders, onCardClick, companyById = {}, on
     [orders, flat, hiddenStatuses],
   );
   const visible = groups.filter((g) => g.orders.length > 0);
+  const prevStatus = useRef(null);
+  const [flashIds, setFlashIds] = useState(null);
+  useEffect(() => {
+    const next = new Map((orders || []).map((o) => [o.id, o.status]));
+    const prev = prevStatus.current;
+    prevStatus.current = next;
+    if (!prev) return undefined;
+    const moved = [];
+    next.forEach((st, id) => { if (prev.has(id) && prev.get(id) !== st) moved.push(id); });
+    if (!moved.length) return undefined;
+    setFlashIds(new Set(moved));
+    const t = setTimeout(() => setFlashIds(null), 1300);
+    return () => clearTimeout(t);
+  }, [orders]);
 
   if (visible.length === 0) {
     return <div className="text-center py-16 apple-label-tertiary apple-text-subheadline">No hay órdenes que coincidan</div>;
@@ -180,6 +195,7 @@ export default function OrdersKanban({ orders, onCardClick, companyById = {}, on
                   key={order.id}
                   order={order}
                   companyName={companyById[order.customer_id]}
+                  flash={!!flashIds && flashIds.has(order.id)}
                   onClick={onCardClick}
                   onMenu={onQuickStatus && quickActionsFor(order).length > 0 ? (o, x, y) => setMenu({ id: o.id, x, y }) : null}
                 />

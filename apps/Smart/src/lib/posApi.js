@@ -66,13 +66,17 @@ export async function confirmRegisterStillOpen(register) {
   throw new RegisterClosedError(current?.closed_by);
 }
 
-function saleNumber() {
+export function newSaleNumber() {
   const uuid = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `${Date.now().toString(16)}${Math.random().toString(16).slice(2)}`;
   return `POS-${uuid.replace(/-/g, "").slice(0, 8).toUpperCase()}`;
 }
 
-export async function recordPosSale({ tenantId, register, cart, totals, payments, customLabel, changeDue, employeeName, customerId, notes }) {
+export async function recordPosSale({ tenantId, register, cart, totals, payments, customLabel, changeDue, employeeName, customerId, notes, saleNo }) {
   if (!payments.length) throw new Error("Sin métodos de pago");
+  if (saleNo) {
+    const { data: prior } = await supabase.from("sale").select("id").eq("tenant_id", tenantId).eq("sale_number", saleNo).limit(1);
+    if (prior?.[0]?.id) return { saleId: prior[0].id, saleNumber: saleNo, duplicate: true };
+  }
   const primary = payments.reduce((a, b) => (b.amount > a.amount ? b : a), payments[0]);
   const primaryMethodKey = customLabel ? customLabel.toLowerCase() : primary.method;
   const totalReceived = r2(payments.reduce((s, p) => s + p.amount, 0));
@@ -85,7 +89,7 @@ export async function recordPosSale({ tenantId, register, cart, totals, payments
   });
   const appliedTotal = r2(applied.reduce((s, a) => s + a, 0));
   const employee = String(employeeName || "").trim() || "system";
-  const number = saleNumber();
+  const number = saleNo || newSaleNumber();
   const sale = {
     tenant_id: tenantId,
     sale_number: number,

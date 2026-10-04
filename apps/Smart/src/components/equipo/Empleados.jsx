@@ -126,8 +126,10 @@ function Profile({ emp, self, tenant, atLimit, limitText, onSaved, onBack, onDel
   const [canDelete, setCanDelete] = useState(null);
 
   useEffect(() => {
-    setName(emp.full_name || ""); setEmail(emp.email || ""); setPhone(emp.phone || ""); setRoles(rolesOf(emp)); setPush(emp.push_enabled !== false); setNewPin(""); setError(null); setNotice(null);
+    setName(emp.full_name || ""); setEmail(emp.email || ""); setPhone(emp.phone || ""); setRoles(rolesOf(emp)); setPush(emp.push_enabled !== false);
   }, [emp.id, emp.updated_at]);
+
+  useEffect(() => { setNewPin(""); setError(null); setNotice(null); }, [emp.id]);
 
   useEffect(() => {
     setCanDelete(null);

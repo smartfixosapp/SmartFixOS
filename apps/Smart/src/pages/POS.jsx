@@ -19,7 +19,7 @@ import { safeTZ } from "@/lib/finance/tz";
 import { isPlanTeamOrAbove } from "@/lib/tenantSettings";
 import { canCloseCashRegister, isAdminOrOwner, fetchOpenRegister, subscribeToRegisters } from "@/lib/cashRegisterApi";
 import {
-  loadCatalog, loadProducts, recordPosSale, confirmRegisterStillOpen, RegisterClosedError, addLoyaltyPoints, deductStockForSale,
+  loadCatalog, loadProducts, recordPosSale, newSaleNumber, confirmRegisterStillOpen, RegisterClosedError, addLoyaltyPoints, deductStockForSale,
   restoreStockForSale, voidSaleRow, insertRefundTransaction, fetchCustomer,
 } from "@/lib/posApi";
 import {
@@ -118,6 +118,7 @@ export default function POS() {
   const [discountNonce, setDiscountNonce] = useState(0);
   const [lastSale, setLastSale] = useState(null);
   const lastDeltasRef = useRef({});
+  const saleNoRef = useRef(null);
   const toastTimer = useRef(null);
   const searchRef = useRef(null);
 
@@ -286,6 +287,7 @@ export default function POS() {
   };
 
   const applyDiscount = (amount) => {
+    setRedeemedPoints(0);
     if (!(amount > 0) || !(totals.subtotal > 0)) {
       setDiscountAmount(Math.max(0, amount || 0));
       return;
@@ -294,6 +296,11 @@ export default function POS() {
     if (isAdmin || withinLimit) setDiscountAmount(amount);
     else { setPendingDiscount(amount); setDialog("discountPin"); }
   };
+
+  const customerKey = customer?.id || null;
+  const redeemedRef = useRef(0);
+  redeemedRef.current = redeemedPoints;
+  useEffect(() => { if (redeemedRef.current > 0) { setRedeemedPoints(0); setDiscountAmount(0); } }, [customerKey]);
 
   const redeem = () => {
     const points = Number(customer?.loyalty_points) || 0;
@@ -407,10 +414,13 @@ export default function POS() {
     }
     const employeeName = employee?.full_name || "";
     const cartSnapshot = cart;
+    const sig = JSON.stringify([total, saleCart.map((c) => [c.id, c.quantity]), payments.map((p) => [p.method, p.amount]), customer?.id || null]);
+    if (!saleNoRef.current || saleNoRef.current.sig !== sig) saleNoRef.current = { no: newSaleNumber(), sig };
     const { saleId } = await recordPosSale({
       tenantId, register, cart: saleCart, totals, payments, customLabel: split ? null : customLabel, changeDue, employeeName,
-      customerId: customer?.id || null, notes: notes.trim() ? notes : null,
+      customerId: customer?.id || null, notes: notes.trim() ? notes : null, saleNo: saleNoRef.current.no,
     });
+    saleNoRef.current = null;
     snapshot.saleId = saleId;
     if (customer?.id) {
       await addLoyaltyPoints(customer.id, tenantId, Math.round(total));
