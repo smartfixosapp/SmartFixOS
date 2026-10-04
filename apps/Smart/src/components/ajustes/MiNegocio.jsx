@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { applyAppearance } from "@/lib/appearance";
 import { Building2, Moon, Sun, Globe, Camera, Phone, Clock, Link2, DollarSign, Trash2, Loader2, Store } from "lucide-react";
 import { AlertDialog, tint } from "@/components/pos/native/posUi";
 import { supabase } from "../../../../../lib/supabase-client.js";
@@ -154,7 +155,7 @@ export function InfoNegocio({ tenant, tenantId, reload, back }) {
 
 export function Apariencia({ back }) {
   const [mode, setMode] = useState(localGet("appearance.preferredMode", "dark"));
-  const toggle = () => { const n = mode === "dark" ? "light" : "dark"; setMode(n); localSet("appearance.preferredMode", n); };
+  const toggle = () => { const n = mode === "dark" ? "light" : "dark"; setMode(n); localSet("appearance.preferredMode", n); applyAppearance(n); };
   return (
     <SubPage title="Apariencia" onBack={back}>
       <div className="flex flex-col items-center" style={{ gap: 18, padding: "50px 0" }}>
@@ -164,7 +165,7 @@ export function Apariencia({ back }) {
           <span className="absolute" style={{ top: 34, left: mode === "dark" ? 140 : 40, fontWeight: 800, color: mode === "dark" ? A.sub : "#8E8E93" }}>{mode === "dark" ? "Dark" : "Light"}</span>
         </button>
         <b style={{ fontSize: 20 }}>{mode === "dark" ? "Modo Oscuro" : "Modo Claro"}</b>
-        <p style={{ fontSize: 12, color: A.sub, maxWidth: 320, textAlign: "center" }}>La web aún usa el tema oscuro en todas las pantallas; esta preferencia se guarda en este navegador.</p>
+        <p style={{ fontSize: 12, color: A.sub, maxWidth: 320, textAlign: "center" }}>El modo claro es experimental: algunos colores pueden verse aproximados. La preferencia se guarda en este navegador.</p>
       </div>
     </SubPage>
   );

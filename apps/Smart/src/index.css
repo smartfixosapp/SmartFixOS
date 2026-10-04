@@ -1026,3 +1026,6 @@ button:focus-visible {
 @media (prefers-reduced-motion: reduce) { .tile-in { animation: none; } }
 
 .sp-grid > :not([data-group]) { grid-column: 1 / -1; }
+
+html.app-light { filter: invert(1) hue-rotate(180deg); }
+html.app-light img, html.app-light video, html.app-light canvas, html.app-light iframe { filter: invert(1) hue-rotate(180deg); }
