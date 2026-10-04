@@ -512,7 +512,8 @@ export default function PlanTab({ p, onPlanFinanciero, onGastosFijos }) {
                   </button>
                   <div className="flex items-center gap-3" style={{ padding: "0 12px 8px" }}>
                     <button onClick={() => p.onHistory(emp)} className="flex items-center gap-1" style={{ fontSize: 12, fontWeight: 600, color: FP.brand }}><History className="w-3.5 h-3.5" /> Ver pagos</button>
-                    {line?.hasOverlaps && <span className="flex items-center gap-1" style={{ fontSize: 12, color: FP.warning }}><AlertTriangle className="w-3.5 h-3.5" /> Ponches encimados, corrígelos en Editar ponches</span>}
+                    {line?.hasOverlaps && <span className="flex items-center gap-1" style={{ fontSize: 12, color: FP.warning }}><AlertTriangle className="w-3.5 h-3.5" /> Ponches encimados</span>}
+                    {line?.hasOverlaps && p.onReviewPunches && <button onClick={() => p.onReviewPunches(emp)} className="apple-press" style={{ fontSize: 12, fontWeight: 700, color: FP.brand }}>Revisar ponches</button>}
                     <span className="flex-1" />
                     <span style={{ fontSize: 12, color: "#8E8E93" }}>Pago fijo semanal</span>
                     <button onClick={() => p.setRecurring(emp, !p.isRecurring(emp))} aria-label="Pago fijo semanal" style={{ width: 51, height: 31, borderRadius: 999, background: p.isRecurring(emp) ? "#30D158" : "#3A3A3C", position: "relative", flexShrink: 0 }}>

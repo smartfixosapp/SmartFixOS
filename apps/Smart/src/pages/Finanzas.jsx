@@ -11,6 +11,7 @@ import {
   monthlySummaries, chartData, monthProjection, planDailyMinimum, MOV_CATEGORY_OPTIONS, periodWeekStart, txDate, num,
 } from "@/lib/finance/ledger";
 import { loadLedger, subscribeTransactions, payRecurring, payIVU, payPurchaseOrder, undoPayment, updateCategory, currentMonthTransactions } from "@/lib/finance/api";
+import { EditPunchesDialog } from "@/components/equipo/Ponches";
 import { lastClosedWeek, loadPayroll, payrollLines, paymentsDiffer, punchesDiffer, periodRangeLabel, recordPayrollPayment, fetchEmployees, employeeRate, hoursLabel, payrollDbLabel } from "@/lib/finance/payroll";
 import { TodayStrip, MesCard, CuentasButton, QuickActions, DevolucionesCard, Movimientos } from "@/components/finanzas/Resumen";
 import ReportesTab from "@/components/finanzas/Reportes";
@@ -89,6 +90,7 @@ export default function Finanzas() {
   const [module, setModule] = useState(null);
   const [payrollEdit, setPayrollEdit] = useState(null);
   const [payrollHistory, setPayrollHistory] = useState(null);
+  const [punchScope, setPunchScope] = useState(null);
   const [receipt, setReceipt] = useState(null);
   const [profitGoal, setProfitGoal] = useState(() => readNum("smartfix.plan.monthlyProfitGoal"));
   const [laborOverride, setLaborOverride] = useState(() => readNum("smartfix.plan.laborOverride"));
@@ -315,7 +317,7 @@ export default function Finanzas() {
       try { localStorage.setItem("smartfix.recurring_payroll.v1", JSON.stringify(next)); } catch { return next; }
       return next;
     }),
-    onEdit: setPayrollEdit, onHistory: setPayrollHistory, payingAll,
+    onEdit: setPayrollEdit, onHistory: setPayrollHistory, onReviewPunches: (emp) => payroll.period && setPunchScope({ employee: emp, period: payroll.period }), payingAll,
     pendingNames: pendingPayrollLines.map((l) => l.employee.full_name).join(", "), unperiodedWarning,
     payAll: async (method) => {
       if (payingAll) return;
@@ -438,6 +440,7 @@ export default function Finanzas() {
       <ReportModuleDialog module={module} onClose={() => setModule(null)} tenantId={tenantId} tz={tz} transactions={txs} />
       <PayrollEditDialog employee={payrollEdit} onClose={() => setPayrollEdit(null)} onSave={saveEmployeePayroll}
         refetch={async (emp) => { const { data, error: e } = await supabase.from("app_employee").select("*").eq("id", emp.id).eq("tenant_id", tenantId).limit(1); if (e) throw e; return data?.[0] || null; }} />
+      <EditPunchesDialog open={!!punchScope} scope={punchScope} tenant={tenant} tenantId={tenantId} self={employee} onClose={() => { setPunchScope(null); refreshPayroll(); }} />
       <PayrollHistoryDialog employee={payrollHistory} onClose={() => setPayrollHistory(null)}
         loader={async (emp) => { const { data } = await supabase.from("transaction").select("*").eq("tenant_id", tenantId).eq("type", "expense").eq("category", "payroll").ilike("description", `[emp:${emp.id}]%`).eq("is_deleted", false).order("created_at", { ascending: false }).limit(25); return data || []; }} />
       <PayrollReceiptDialog receipt={receipt} onClose={() => setReceipt(null)}
