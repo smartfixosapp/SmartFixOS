@@ -626,9 +626,9 @@ export default function POS() {
   );
 
   return (
-    <div className="apple-type" style={{ background: P.bg, color: P.text, minHeight: "calc(100dvh - var(--app-nav-h, 0px))" }}>
+    <div className="apple-type" style={{ background: P.bg, color: P.text, minHeight: "calc(100dvh / var(--ui-zoom, 1) - var(--app-nav-h, 0px))" }}>
       {isDesktop ? (
-        <div className="flex" style={{ height: "calc(100dvh - var(--app-nav-h, 0px))" }}>
+        <div className="flex" style={{ height: "calc(100dvh / var(--ui-zoom, 1) - var(--app-nav-h, 0px))" }}>
           <div className="flex-1 min-w-0 overflow-y-auto" style={{ padding: "0 20px 24px" }}>
             {header}
             {catalog}

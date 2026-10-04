@@ -97,10 +97,10 @@ function ShowcaseFocus({ product, offer, onBack }) {
       <div className="flex-1 flex items-center justify-center relative min-h-0" style={{ padding: "0 20px" }}>
         {urls.length > 0 ? (
           <div className="flex items-center justify-center" onWheel={(e) => setZoom((z) => clamp(z - e.deltaY * 0.004))} onDoubleClick={() => setZoom((z) => (z > 1 ? 1 : 2.5))} style={{ background: "#fff", borderRadius: 24, padding: 20, width: "100%", maxWidth: 820, maxHeight: "100%", overflow: "hidden", touchAction: "pan-y" }}>
-            <img src={urls[page]} alt={product.name} draggable={false} style={{ maxHeight: "55dvh", maxWidth: "100%", objectFit: "contain", transform: `scale(${zoom})`, transition: "transform 0.15s", cursor: zoom > 1 ? "zoom-out" : "zoom-in" }} />
+            <img src={urls[page]} alt={product.name} draggable={false} style={{ maxHeight: "calc(55dvh / var(--ui-zoom, 1))", maxWidth: "100%", objectFit: "contain", transform: `scale(${zoom})`, transition: "transform 0.15s", cursor: zoom > 1 ? "zoom-out" : "zoom-in" }} />
           </div>
         ) : (
-          <div className="flex items-center justify-center" style={{ width: "100%", maxWidth: 820, height: "50dvh", borderRadius: 24, background: P.card2 }}><Images className="w-14 h-14" style={{ color: P.ter }} /></div>
+          <div className="flex items-center justify-center" style={{ width: "100%", maxWidth: 820, height: "calc(50dvh / var(--ui-zoom, 1))", borderRadius: 24, background: P.card2 }}><Images className="w-14 h-14" style={{ color: P.ter }} /></div>
         )}
         {page > 0 && <button onClick={() => setPage(page - 1)} aria-label="Foto anterior" className="absolute left-4 apple-press" style={{ width: 44, height: 44, borderRadius: 999, background: P.card2, display: "flex", alignItems: "center", justifyContent: "center" }}><ChevronLeft className="w-6 h-6" /></button>}
         {page < urls.length - 1 && <button onClick={() => setPage(page + 1)} aria-label="Foto siguiente" className="absolute right-4 apple-press" style={{ width: 44, height: 44, borderRadius: 999, background: P.card2, display: "flex", alignItems: "center", justifyContent: "center" }}><ChevronRight className="w-6 h-6" /></button>}

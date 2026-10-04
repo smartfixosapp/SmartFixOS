@@ -4,6 +4,7 @@ import { X, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { backdropMotion, panelMotion, MOTION, dur } from "@/lib/motion";
 import { useEscapeLayer } from "@/components/orderDetail/ui";
+import { fitViewport } from "@/lib/viewport";
 
 export const P = {
   bg: "#000",
@@ -38,7 +39,7 @@ export function Dialog({ open, onClose, title, children, footer, width = 520, di
     <AnimatePresence>
     {open && <motion.div key="dialog" {...backdropMotion} className="apple-type fixed inset-0 z-[330] flex items-end sm:items-center justify-center" role="dialog" aria-modal="true">
       <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.62)" }} onClick={() => dismissable && onClose?.()} />
-      <motion.div {...panelMotion} className="relative w-full flex flex-col" style={{ maxWidth: width, height: height || "auto", maxHeight: "94dvh", background: P.card, borderRadius: 24, color: P.text, overflow: "hidden" }}>
+      <motion.div {...panelMotion} className="relative w-full flex flex-col" style={{ maxWidth: width, height: fitViewport(height) || "auto", maxHeight: fitViewport("94dvh"), background: P.card, borderRadius: 24, color: P.text, overflow: "hidden" }}>
         {(title !== undefined || leading || trailing) && (
           <div className="flex items-center justify-between gap-3" style={{ padding: "14px 16px 10px", minHeight: 52 }}>
             <div style={{ minWidth: 80 }}>{leading}</div>

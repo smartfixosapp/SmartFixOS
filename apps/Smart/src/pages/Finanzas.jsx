@@ -401,7 +401,7 @@ export default function Finanzas() {
   );
 
   return (
-    <div className="apple-type" style={{ background: "#000", color: "#fff", minHeight: "calc(100dvh - var(--app-nav-h, 0px))", paddingBottom: 120 }}>
+    <div className="apple-type" style={{ background: "#000", color: "#fff", minHeight: "calc(100dvh / var(--ui-zoom, 1) - var(--app-nav-h, 0px))", paddingBottom: 120 }}>
       <div className="mx-auto flex flex-col" style={{ maxWidth: 1400, padding: "16px 16px 0", gap: 16 }}>
         <p style={{ fontSize: 34, fontWeight: 800 }}>Contabilidad</p>
         {header}

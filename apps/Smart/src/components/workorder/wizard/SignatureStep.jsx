@@ -188,7 +188,7 @@ export default function SignatureStep({ formData, updateFormData }) {
               className="w-full max-w-4xl bg-white rounded-apple-md overflow-hidden shadow-apple-xl"
               style={{
                 aspectRatio: "3/2",
-                maxHeight: "calc(100vh - 250px)",
+                maxHeight: "calc(100vh / var(--ui-zoom, 1) - 250px)",
                 touchAction: "none",
                 userSelect: "none"
               }}

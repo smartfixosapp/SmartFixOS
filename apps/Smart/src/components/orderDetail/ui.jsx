@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { backdropMotion, panelMotion } from "@/lib/motion";
+import { fitViewport } from "@/lib/viewport";
 
 export const C = {
   bg: "#000",
@@ -120,7 +121,7 @@ export function Sheet({ open, onClose, title, children, footer, width = 480, dis
       <motion.div
         {...panelMotion}
         className="relative w-full flex flex-col"
-        style={{ maxWidth: width, maxHeight: "90dvh", background: C.card, borderRadius: 24, color: C.text, overflow: "hidden" }}
+        style={{ maxWidth: width, maxHeight: fitViewport("90dvh"), background: C.card, borderRadius: 24, color: C.text, overflow: "hidden" }}
       >
         {title !== undefined && (
           <div className="flex items-center justify-between gap-3" style={{ padding: "16px 18px 10px" }}>

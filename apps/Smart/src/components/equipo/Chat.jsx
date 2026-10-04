@@ -168,11 +168,11 @@ export default function Mensajes({ tenantId, self, employees, initialChannel = n
   return (
     <div>
       {desktop ? (
-        <div className="flex" style={{ gap: 16, alignItems: "stretch", height: "calc(100dvh - 190px)", minHeight: 480 }}>
+        <div className="flex" style={{ gap: 16, alignItems: "stretch", height: "calc(100dvh / var(--ui-zoom, 1) - 190px)", minHeight: 480 }}>
           <div className="overflow-y-auto" style={{ width: 340, flexShrink: 0 }}>{list}</div>
           <div className="flex-1 min-w-0" style={{ borderRadius: 16, background: "#1C1C1E", overflow: "hidden" }}>{thread}</div>
         </div>
-      ) : (mobileOpen ? <div style={{ borderRadius: 16, background: "#1C1C1E", overflow: "hidden", height: "calc(100dvh - 190px)" }}>{thread}</div> : list)}
+      ) : (mobileOpen ? <div style={{ borderRadius: 16, background: "#1C1C1E", overflow: "hidden", height: "calc(100dvh / var(--ui-zoom, 1) - 190px)" }}>{thread}</div> : list)}
       <Dialog open={newOpen} onClose={() => setNewOpen(false)} title="Nuevo mensaje" width={420} leading={<TextAction onClick={() => setNewOpen(false)}>Cancelar</TextAction>} trailing={<span />}>
         {!active.filter((e) => e.id !== self?.id).length ? <div className="text-center" style={{ padding: 30, color: W.sub }}><b style={{ color: "#fff" }}>Sin empleados</b><p style={{ fontSize: 13, marginTop: 4 }}>No hay otros empleados activos.</p></div> : (
           <div style={{ borderRadius: 14, background: "#2C2C2E", overflow: "hidden", marginTop: 6 }}>

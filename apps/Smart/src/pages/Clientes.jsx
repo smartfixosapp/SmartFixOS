@@ -362,7 +362,7 @@ export default function Clientes() {
 
   if (wide) {
     return (
-      <div className="apple-type flex flex-col" style={{ background: "#000", color: "#fff", height: "calc(100dvh - var(--app-nav-h, 0px))" }}>
+      <div className="apple-type flex flex-col" style={{ background: "#000", color: "#fff", height: "calc(100dvh / var(--ui-zoom, 1) - var(--app-nav-h, 0px))" }}>
         <div className="mx-auto w-full" style={{ maxWidth: 1400, padding: "24px 16px 0" }}>
           {titleRow}
           {filterHeader && <div style={{ paddingBottom: 14, borderBottom: "0.5px solid rgba(84,84,88,0.6)" }}>{filterHeader}</div>}

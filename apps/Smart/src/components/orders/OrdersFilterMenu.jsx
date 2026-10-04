@@ -60,7 +60,7 @@ export default function OrdersFilterMenu({
         <div onPointerDown={() => setOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 3000 }}>
           <div
             onPointerDown={(e) => e.stopPropagation()}
-            style={{ position: "fixed", left, top, width: 260, maxHeight: "min(70dvh, 560px)", overflowY: "auto", borderRadius: 16, background: "rgba(44,44,46,0.97)", backdropFilter: "blur(20px)", boxShadow: "0 14px 44px rgba(0,0,0,0.55)", padding: 6 }}
+            style={{ position: "fixed", left, top, width: 260, maxHeight: "min(calc(70dvh / var(--ui-zoom, 1)), 560px)", overflowY: "auto", borderRadius: 16, background: "rgba(44,44,46,0.97)", backdropFilter: "blur(20px)", boxShadow: "0 14px 44px rgba(0,0,0,0.55)", padding: 6 }}
           >
             {b2bAvailable && (
               <>

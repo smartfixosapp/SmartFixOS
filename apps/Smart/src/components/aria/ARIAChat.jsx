@@ -1491,7 +1491,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
       {open && (
         <div
           className="apple-surface-elevated w-[calc(100vw-2.5rem)] sm:w-[380px] rounded-apple-xl shadow-apple-xl overflow-hidden flex flex-col pointer-events-auto"
-          style={{ height: "min(480px, calc(100dvh - 220px))" }}
+          style={{ height: "min(480px, calc(100dvh / var(--ui-zoom, 1) - 220px))" }}
         >
           {/* Header */}
           <div

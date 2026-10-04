@@ -38,16 +38,19 @@ html {
  */
 
 /* Zoom moderado: solo iPad y desktop, y conservador */
+:root { --ui-zoom: 1; }
+
 @media (min-width: 768px) {
-  body { zoom: 1.08; }
+  :root { --ui-zoom: 1.08; }
+  body { zoom: var(--ui-zoom); }
 }
 
 @media (min-width: 1024px) {
-  body { zoom: 1.12; }
+  :root { --ui-zoom: 1.12; }
 }
 
 @media (min-width: 1440px) {
-  body { zoom: 1.16; }
+  :root { --ui-zoom: 1.16; }
 }
 
 /* ── Boost de texto chico en desktop/tablet ─────────────────────────────
@@ -144,7 +147,8 @@ body {
 
 /* iOS Safari: forzar recalculo de viewport en portrait inicial */
 @supports (height: 100dvh) {
-  html, body { height: 100dvh; min-height: 100dvh; }
+  html { height: 100dvh; min-height: 100dvh; }
+  body { height: 100dvh; min-height: 100dvh; }
 }
 
 html.theme-light {
