@@ -4,7 +4,7 @@ import { Wrench, Building2, StickyNote, CheckCircle2 } from "lucide-react";
 import { statusInfo } from "@/lib/orderStatus";
 import { dwellInfo, latestNote, daysUntilPromised, deviceKind, orderAmount, groupForBoard, groupFlat, quickActionsFor } from "@/lib/ordersBoard";
 import { KIND_ICON, DWELL_COLOR, SERVICE_LABEL, PRIORITY, Pill, AssignmentChip } from "@/components/orders/orderBits";
-import { displayDevice, money, tint } from "@/components/orderDetail/ui";
+import { displayDevice, money, tint, relativeTime } from "@/components/orderDetail/ui";
 
 function OrderTile({ order, companyName, onClick, onMenu }) {
   const info = statusInfo(order.status);
@@ -51,9 +51,11 @@ function OrderTile({ order, companyName, onClick, onMenu }) {
         <span style={{ flex: 1 }} />
         <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1, minWidth: 0 }}>
           <span style={{ fontSize: 11, fontWeight: 600, color: "#8E8E93" }}>{order.order_number || `#${String(order.id).slice(0, 6)}`}</span>
-          {dwell && (
+          {dwell ? (
             <span style={{ fontSize: 11, fontWeight: dwell.severity === "normal" ? 400 : 700, color: DWELL_COLOR[dwell.severity], whiteSpace: "nowrap" }}>{dwell.label}</span>
-          )}
+          ) : order.created_date ? (
+            <span style={{ fontSize: 11, color: DWELL_COLOR.normal, whiteSpace: "nowrap" }}>{relativeTime(order.created_date)}</span>
+          ) : null}
         </span>
       </div>
 

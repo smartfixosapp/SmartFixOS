@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import ScannerDialog from "@/components/pos/native/ScannerDialog";
 import { Search, X, ScanBarcode, Smartphone, BatteryFull, Plug, Camera, Square, Cpu, Shield, Stethoscope, Package, MoreHorizontal, Copy, MessageCircle, Loader2 } from "lucide-react";
 import { Dialog, TextAction, tint } from "@/components/pos/native/posUi";
 import { FP } from "@/lib/finance/ledger";
@@ -71,6 +72,7 @@ function ResultRow({ p, onPick, onCopy, onWhatsApp }) {
 
 export function PartSearchBar({ tenantId, tenant, onQuote }) {
   const [query, setQuery] = useState("");
+  const [scanOpen, setScanOpen] = useState(false);
   const [debounced, setDebounced] = useState("");
   const [focused, setFocused] = useState(false);
   const [products, setProducts] = useState(null);
@@ -107,13 +109,14 @@ export function PartSearchBar({ tenantId, tenant, onQuote }) {
 
   return (
     <div className="flex flex-col" style={{ gap: 8 }}>
+      <ScannerDialog open={scanOpen} onClose={() => setScanOpen(false)} onCode={(c) => { setQuery(c); setFocused(true); }} />
       <div className="flex items-center gap-3">
         <label className="flex-1 flex items-center gap-2" style={{ height: 48, padding: "0 14px", borderRadius: 12, background: "#1C1C1E", border: `1px solid ${focused ? tint(FP.brand, 0.65) : "transparent"}` }}>
           <Search className="w-4 h-4 flex-shrink-0" style={{ color: focused ? FP.brand : "#8E8E93" }} />
           <input ref={inputRef} value={query} onChange={(e) => setQuery(e.target.value)} onFocus={() => { setFocused(true); reload(); }} onBlur={() => setFocused(false)}
             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onEnter(); } else if (e.key === "Escape") cancel(); }}
             placeholder="Buscar pieza, precio o servicio…" aria-label="Buscar pieza, precio o servicio" className="flex-1 bg-transparent outline-none" style={{ color: "#fff", fontSize: 16, minWidth: 0 }} />
-          {query ? <button onMouseDown={(e) => e.preventDefault()} onClick={() => setQuery("")} aria-label="Limpiar" style={{ color: "#8E8E93" }}><X className="w-4 h-4" /></button> : <ScanBarcode className="w-5 h-5" style={{ color: "#8E8E93" }} aria-hidden="true" />}
+          {query ? <button onMouseDown={(e) => e.preventDefault()} onClick={() => setQuery("")} aria-label="Limpiar" style={{ color: "#8E8E93" }}><X className="w-4 h-4" /></button> : <button onMouseDown={(e) => e.preventDefault()} onClick={() => setScanOpen(true)} aria-label="Escanear código de barras" style={{ color: "#8E8E93" }}><ScanBarcode className="w-5 h-5" /></button>}
         </label>
         {(focused || query) && <button onMouseDown={(e) => e.preventDefault()} onClick={cancel} style={{ fontSize: 16, color: FP.brand }}>Cancelar</button>}
       </div>
