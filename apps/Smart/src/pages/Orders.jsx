@@ -32,8 +32,9 @@ export default function Orders() {
   useEffect(() => { if (businessMode === "retail") navigate("/POS", { replace: true }); }, [businessMode, navigate]);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const stored = (() => { try { return JSON.parse(sessionStorage.getItem("orders_view") || "{}") || {}; } catch { return {}; } })();
+  const [search, setSearch] = useState(stored.search || "");
+  const [statusFilter, setStatusFilter] = useState(stored.statusFilter || "all");
   const [wizard, setWizard] = useState(false);
   const [created, setCreated] = useState(null);
   const [tenant, setTenant] = useState(null);
@@ -55,6 +56,8 @@ export default function Orders() {
   const [partsOpen, setPartsOpen] = useState(false);
   const [noteFor, setNoteFor] = useState(null);
   const [queueWarn, setQueueWarn] = useState(null);
+
+  useEffect(() => { try { sessionStorage.setItem("orders_view", JSON.stringify({ search, statusFilter })); } catch { return; } }, [search, statusFilter]);
 
   const loadOrders = useCallback(async () => {
     const seq = ++loadSeq.current;

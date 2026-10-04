@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { Images, Camera, X, Trash2, Sparkles, Loader2 } from "lucide-react";
 import { tint } from "@/components/pos/native/posUi";
 import { warmUpload, analyzeDamagePhoto } from "@/lib/wizard/api";
+import BurstCamera from "./BurstCamera";
 import { IOS, PHOTO_EXCEPTIONS } from "@/lib/wizard/helpers";
 import { Caption, W } from "./ui";
 
@@ -28,6 +29,8 @@ export default function StepPhotos({ w, tenantId }) {
   const cameraRef = useRef(null);
   const add = usePhotoAdder({ tenantId, w });
   const full = s.photos.length >= MAX_PHOTOS;
+  const [burst, setBurst] = useState(false);
+  const useBurst = typeof window !== "undefined" && window.matchMedia?.("(pointer: fine)").matches && !!navigator.mediaDevices?.getUserMedia;
   const [analyzing, setAnalyzing] = useState(false);
   const [vision, setVision] = useState(null);
   const [visionError, setVisionError] = useState(false);
@@ -60,7 +63,10 @@ export default function StepPhotos({ w, tenantId }) {
       </div>
       <input ref={galleryRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { add(e.target.files); e.target.value = ""; }} />
       <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => { add(e.target.files); e.target.value = ""; }} />
-      <div className="flex" style={{ gap: 12 }}>{btn(Images, "Galería", galleryRef)}{btn(Camera, "Cámara", cameraRef)}</div>
+      <BurstCamera open={burst} max={MAX_PHOTOS} already={s.photos.length} onDone={(files) => add(files)} onClose={() => setBurst(false)} />
+      <div className="flex" style={{ gap: 12 }}>{btn(Images, "Galería", galleryRef)}{useBurst ? (
+        <button onClick={() => setBurst(true)} disabled={full} className="apple-press flex-1 flex items-center justify-center gap-2 disabled:opacity-40" style={{ height: 56, borderRadius: 16, background: W.card, fontSize: 16, fontWeight: 600 }}><Camera className="w-5 h-5" style={{ color: IOS.indigo }} /> Cámara</button>
+      ) : btn(Camera, "Cámara", cameraRef)}</div>
       {s.photos.length > 0 ? (
         <>
           <div className="flex items-center">
