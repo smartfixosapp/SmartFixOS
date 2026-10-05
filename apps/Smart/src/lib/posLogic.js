@@ -107,8 +107,9 @@ export function isService(p) {
 
 export function isServiceItem(p) {
   const bucket = String(p?.tipo_principal || "").toLowerCase();
-  if (bucket) return bucket === "servicios";
+  if (bucket === "servicios") return true;
   if (isService(p)) return true;
+  if (bucket) return false;
   if (String(p?.part_type || "").toLowerCase() === "servicio") return true;
   return String(p?.category || "").toLowerCase() === "diagnostic";
 }

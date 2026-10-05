@@ -167,7 +167,7 @@ export async function deductStockForSale({ items, products, tenantId, employeeNa
     }
     if (!it.productId) continue;
     const product = products.find((p) => p.id === it.productId);
-    if (!product || !((Number(product.stock) || 0) > 0)) continue;
+    if (!product || isServiceItem(product) || !((Number(product.stock) || 0) > 0)) continue;
     try {
       const { before, after: next } = await adjustProductStock(product, -it.quantity, "Venta POS", label, tenantId);
       deltas[product.id] = (deltas[product.id] || 0) + (before - next);

@@ -24,6 +24,8 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 import SuppliersDialog from "../components/inventory/SuppliersDialog";
+import { rankedSearch } from "@/lib/posLogic";
+import { adjustStockAtomic } from "@/lib/stockAdjust";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import NotificationService from "../components/notifications/NotificationService";
 import DiscountBadge, { formatPriceWithDiscount } from "../components/inventory/DiscountBadge";
@@ -98,16 +100,19 @@ function normalizeProductPayload(payload) {
     payload?.part_type === "diagnostic" ||
     payload?.category === "diagnostic";
 
-  return {
+  const out = {
     ...payload,
     type: isService ? "service" : "product",
     category: mapPartTypeToProductCategory(payload?.part_type),
-    tipo_principal: payload?.tipo_principal === "servicios" ? "dispositivos" : (payload?.tipo_principal || "dispositivos"),
+    tipo_principal: isService ? "servicios" : (payload?.tipo_principal || "dispositivos"),
     subcategoria: payload?.subcategoria === "servicio" ? "piezas_servicios" : (payload?.subcategoria || "piezas_servicios"),
+    ...(isService ? { min_stock: 0 } : {}),
     supplier_id: payload?.supplier_id || "",
     supplier_name: payload?.supplier_name || "",
     active: payload?.active !== false,
   };
+  if (isService) delete out.stock;
+  return out;
 }
 
 
@@ -1085,6 +1090,7 @@ export default function Inventory() {
   const [page, setPage] = useState(1);
   const [mainCategory, setMainCategory] = useState("todos");
   const [sortKey, setSortKey] = useState("name");
+  const [onlyLow, setOnlyLow] = useState(false);
   const [showReports, setShowReports] = useState(false);
   const [showRestock, setShowRestock] = useState(false);
   const [detailItem, setDetailItem] = useState(null);
@@ -1218,6 +1224,7 @@ export default function Inventory() {
 
   const filtered = useMemo(() => {
     let list = items.filter((item) => {
+      if (onlyLow && !isLowStockItem(item)) return false;
       if (mainCategory === "todos") return true;
       if (itemKind(item) !== mainCategory) return false;
       if (mainCategory === "accesorios") {
@@ -1234,7 +1241,9 @@ export default function Inventory() {
 
     if (q.trim()) {
       const t = q.toLowerCase();
+      const ranked = new Set(rankedSearch(list, q).results.map((it) => it.id));
       list = list.filter((it) =>
+        ranked.has(it.id) ||
         String(it.name || "").toLowerCase().includes(t) ||
         String(it.sku || "").toLowerCase().includes(t) ||
         String(it.barcode || "").toLowerCase().includes(t) ||
@@ -1255,7 +1264,7 @@ export default function Inventory() {
       sorted.sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "es", { sensitivity: "base" }));
     }
     return sorted;
-  }, [items, mainCategory, deviceCategory, partTypeFilter, viewTab, q, sortKey]);
+  }, [items, mainCategory, deviceCategory, partTypeFilter, viewTab, q, sortKey, onlyLow]);
 
   const [drill, setDrill] = useState({ brand: null, family: null, model: null, all: false });
   useEffect(() => { setDrill({ brand: null, family: null, model: null, all: false }); setSelectMode(false); setBulkIds([]); }, [mainCategory, viewTab, q, deviceCategory, partTypeFilter]);
@@ -1304,6 +1313,17 @@ export default function Inventory() {
       const sessionRaw = localStorage.getItem("employee_session") || sessionStorage.getItem("911-session");
       const session = sessionRaw ? JSON.parse(sessionRaw) : null;
       const performed_by = session?.full_name || session?.userName || session?.email || "Usuario";
+      const tenantForLog = localStorage.getItem("smartfix_tenant_id");
+      if (tenantForLog && reference_type === "adjustment" && Number(quantity) && movement_type === "adjustment") {
+        supabase.from("transaction").insert({
+          tenant_id: tenantForLog,
+          type: "stock_adjustment",
+          category: Number(quantity) > 0 ? "stock_in" : "stock_out",
+          amount: Math.abs(Number(quantity)),
+          description: `[${product_name}] ${notes || "Ajuste manual"}`,
+          recorded_by: performed_by,
+        }).then(() => {}, () => {});
+      }
       await dataClient.entities.InventoryMovement.create({
         product_id,
         product_name,
@@ -1321,17 +1341,21 @@ export default function Inventory() {
   };
 
   // ── Ajuste Rápido de Stock ────────────────────────────────────────────
-  const handleQuickAdjust = async ({ item, newStock, previousStock, mode, qty, note }) => {
-    const clampedStock = Math.max(0, newStock);
+  const handleQuickAdjust = async ({ item, newStock, previousStock: shownStock, mode, qty, note }) => {
+    let clampedStock = Math.max(0, newStock);
+    let previousStock = shownStock;
     try {
-      // Actualizar producto
-      await dataClient.entities.Product.update(item.id, { stock: clampedStock });
-      // Actualizar estado local inmediatamente
+      if (mode === "set") {
+        await dataClient.entities.Product.update(item.id, { stock: clampedStock });
+      } else {
+        const res = await adjustStockAtomic({ id: item.id, delta: mode === "add" ? qty : -qty });
+        if (!res.ok) throw res.error || new Error("No se pudo actualizar el stock");
+        clampedStock = res.after;
+        previousStock = res.before;
+      }
       setItems(prev => prev.map(p => p.id === item.id ? { ...p, stock: clampedStock } : p));
 
-      // Registrar movimiento
-      const movQty = mode === "set" ? (clampedStock - previousStock)
-        : mode === "add" ? qty : -qty;
+      const movQty = clampedStock - previousStock;
       await recordMovement({
         product_id: item.id,
         product_name: item.name,
@@ -1746,9 +1770,9 @@ export default function Inventory() {
 
         <div className="flex flex-wrap items-center gap-2 mb-4" style={{ fontSize: 12 }}>
           {lowCount > 0 && (
-            <span style={{ background: "rgba(255,69,58,0.15)", color: "#FF6961", borderRadius: 999, padding: "5px 12px", display: "flex", alignItems: "center", gap: 5 }}>
-              <AlertTriangle className="w-3.5 h-3.5" /> {lowCount} con stock bajo o agotado
-            </span>
+            <button type="button" onClick={() => setOnlyLow((v) => !v)} aria-pressed={onlyLow} className="apple-press" style={{ background: onlyLow ? "#FF453A" : "rgba(255,69,58,0.15)", color: onlyLow ? "#fff" : "#FF6961", borderRadius: 999, padding: "5px 12px", display: "flex", alignItems: "center", gap: 5, fontWeight: onlyLow ? 700 : 400 }}>
+              <AlertTriangle className="w-3.5 h-3.5" /> {lowCount} con stock bajo o agotado{onlyLow ? " · mostrando solo estos" : ""}
+            </button>
           )}
           <span className="tabular-nums" style={{ background: "#1C1C1E", color: "#8E8E93", borderRadius: 999, padding: "5px 12px" }}>
             Valor del inventario ${inventoryValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}

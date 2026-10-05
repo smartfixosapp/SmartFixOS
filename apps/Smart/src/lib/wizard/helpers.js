@@ -169,8 +169,9 @@ export function abandonmentText(tenant) {
 
 export function isServiceItem(p) {
   const bucket = String(p?.tipo_principal || "").toLowerCase();
-  if (bucket) return bucket === "servicios";
+  if (bucket === "servicios") return true;
   if (p?.type === "service") return true;
+  if (bucket) return false;
   if (String(p?.part_type || "").toLowerCase() === "servicio") return true;
   return String(p?.category || "").toLowerCase() === "diagnostic";
 }
