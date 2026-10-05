@@ -9,6 +9,8 @@ import {
 } from "@/lib/punchApi";
 import { fetchTenant } from "@/lib/orderDetailApi";
 import { PunchPinScreen } from "./PunchKiosk";
+import { PunchTimeField, resolvePunchTime } from "./PunchTime";
+import { overlappingEntry } from "@/lib/teamTime";
 
 export default function PunchGateSheet({ open, context, tenantId, tenant, sessionEmployee, authUid, onClose, onPunched }) {
   const tz = safeTZ(tenant?.timezone);
@@ -16,6 +18,7 @@ export default function PunchGateSheet({ open, context, tenantId, tenant, sessio
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [stale, setStale] = useState(null);
+  const [timeText, setTimeText] = useState(null);
   const selfIds = useMemo(() => matchIdsFor(sessionEmployee, authUid), [sessionEmployee, authUid]);
 
   const finish = (employee) => {
@@ -25,8 +28,14 @@ export default function PunchGateSheet({ open, context, tenantId, tenant, sessio
   };
 
   const clockIn = async (employee) => {
+    const when = resolvePunchTime(timeText);
+    if (when.error) { setError(when.error); return; }
     try {
-      await punchIn({ tenantId, employee });
+      if (when.backdated) {
+        const conflict = await overlappingEntry({ tenantId, matchIds: matchIdsFor(employee, authUid), clockIn: when.at, clockOut: null, tz });
+        if (conflict) { setError(conflict.message); return; }
+      }
+      await punchIn({ tenantId, employee, at: when.at });
       finish(employee);
     } catch (e) {
       if (e instanceof PunchError && e.kind === "alreadyOpen") { await handleOpen(e.entry, employee); return; }
@@ -117,6 +126,7 @@ export default function PunchGateSheet({ open, context, tenantId, tenant, sessio
               <span className="block" style={{ fontSize: 12, color: C.sub }}>Ponchar entrada ahora asegura que tus horas queden correctas.</span>
             </span>
           </div>
+          <PunchTimeField value={timeText} onChange={setTimeText} />
           {busy && <p className="flex items-center justify-center gap-2" style={{ fontSize: 13, color: C.sub }}><Loader2 className="w-4 h-4 animate-spin" /> Registrando…</p>}
           {error && <p style={{ fontSize: 13, color: C.red }}>{error}</p>}
         </div>

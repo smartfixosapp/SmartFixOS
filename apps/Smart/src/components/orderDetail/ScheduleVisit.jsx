@@ -15,7 +15,7 @@ export default function ScheduleVisitSheet({ open, order, tenant, by, onClose, o
   const [when, setWhen] = useState("");
   const [location, setLocation] = useState("");
   const [note, setNote] = useState("");
-  const [toStatus, setToStatus] = useState(true);
+  const [toStatus, setToStatus] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   useEffect(() => {
@@ -23,7 +23,7 @@ export default function ScheduleVisitSheet({ open, order, tenant, by, onClose, o
     setError(null);
     setWhen(toInput(order.appointment_at ? new Date(order.appointment_at) : new Date(Date.now() + 3600000)));
     setLocation(order.appointment_location || ""); setNote(order.appointment_note || "");
-    setToStatus(order.status !== "scheduled" && !isTerminal(order.status));
+    setToStatus(false);
   }, [open, order?.id]);
   if (!order) return null;
   const at = new Date(when);
@@ -37,8 +37,9 @@ export default function ScheduleVisitSheet({ open, order, tenant, by, onClose, o
     setBusy(true); setError(null);
     try {
       await schedulePatch(order, { at, location, note });
-      if (toStatus && canToggle) await changeStatusRpc(order.id, "scheduled", by || "Web", true);
-      if (!editing && String(order.customer_email || "").trim()) {
+      const newConfirmation = toStatus && canToggle;
+      if (newConfirmation) await changeStatusRpc(order.id, "scheduled", by || "Web", true);
+      if (newConfirmation && String(order.customer_email || "").trim()) {
         const shop = tenantEmailFromName(tenant);
         const when2 = new Intl.DateTimeFormat("es-PR", { dateStyle: "full", timeStyle: "short" }).format(at);
         const html = `<div style="font-family:-apple-system,Segoe UI,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#111"><h2>Cita confirmada</h2><p>Hola ${esc(order.customer_name || "")}, tu cita para la orden <b>${esc(order.order_number)}</b> quedó confirmada.</p><p><b>${esc(when2)}</b></p>${location.trim() ? `<p>Ubicación: ${esc(location.trim())}</p>` : ""}${note.trim() ? `<p>${esc(note.trim())}</p>` : ""}<p style="color:#666">${esc(shop)}</p></div>`;

@@ -81,7 +81,9 @@ export function AddExpenseDialog({ open, onClose, tenantId, recordedBy, onSaved 
   }, [open, tenantId]);
   const amt = parse(amount);
   const cat = EXPENSE_CATEGORIES.find((c) => c.id === category);
-  const canSubmit = amt > 0 && !saving;
+  const taxExceeds = taxAmount > 0 && amt > 0 && taxAmount > amt;
+  useEffect(() => { setError(taxExceeds ? "El IVU del recibo no puede ser mayor que el monto del gasto." : null); }, [taxExceeds]);
+  const canSubmit = amt > 0 && !saving && !taxExceeds;
   const submit = async () => {
     if (!canSubmit) return;
     setSaving(true);
@@ -92,7 +94,7 @@ export function AddExpenseDialog({ open, onClose, tenantId, recordedBy, onSaved 
       payment_method: method, recorded_by: String(recordedBy || "").trim() || "Usuario",
       tax_amount: taxAmount > 0 ? taxAmount : 0, deductible_tax: taxAmount > 0,
     };
-    if (receiptUrl) body.receipt_url = receiptUrl;
+    if (receiptUrl) { body.receipt_url = receiptUrl; body.scanned_at = new Date().toISOString(); }
     if (date !== todayStr()) body.created_at = backdated(date);
     try {
       const tx = await insertExpense(body);

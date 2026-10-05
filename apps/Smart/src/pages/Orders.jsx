@@ -188,6 +188,24 @@ export default function Orders() {
     navigate(`/Orders/${order.id}`, { state: queueMessage ? { queueMessage } : undefined });
   };
 
+  const openScanned = (value) => {
+    const m = String(value || "").trim().match(/^smartfixos:\/\/order\/([\w-]{6,})$/i);
+    if (!m) return false;
+    setSearch("");
+    navigate(`/Orders/${m[1]}`);
+    return true;
+  };
+
+  const openExact = (value) => {
+    const t = String(value || "").trim().toLowerCase();
+    if (!t) return false;
+    const hit = ordersRef.current.find((o) => String(o.order_number || "").toLowerCase() === t || (o.device_serial && String(o.device_serial).toLowerCase() === t));
+    if (!hit) return false;
+    setSearch("");
+    openOrder(hit);
+    return true;
+  };
+
   const bucketCounts = useMemo(() => {
     const c = {};
     orders.forEach((o) => { if (!isOrderClosed(o)) { const b = deviceBucket(o); c[b] = (c[b] || 0) + 1; } });
@@ -287,7 +305,8 @@ export default function Orders() {
             ref={searchRef}
             type="text"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => { const v = e.target.value; if (!openScanned(v)) setSearch(v); }}
+            onKeyDown={(e) => { if (e.key === "Enter" && openExact(search)) e.preventDefault(); }}
             placeholder="Buscar por orden, cliente, teléfono o equipo"
             className="apple-type w-full h-11"
             style={{ borderRadius: 999, paddingLeft: 40, paddingRight: 16, background: "rgba(255,255,255,0.06)", color: "#fff", border: "none", outline: "none", fontSize: 14 }}

@@ -68,7 +68,7 @@ export async function recordOrderPayment({ order, amount, method, customLabel, b
   const applied = hasEstimate && outstanding > 0 ? Math.min(amount, outstanding) : amount;
   const existing = await listOrderTransactions(order.id, (q) => q.eq("type", "revenue").eq("category", "repair_payment").limit(200));
   const payment_method = customLabel ? String(customLabel).toLowerCase() : method;
-  const dup = existing.some((t) => Math.abs(n(t.amount) - applied) < 0.005 && String(t.payment_method || "") === String(payment_method) && Date.now() - new Date(t.created_at).getTime() < 20000);
+  const dup = existing.some((t) => Math.abs(n(t.amount) - applied) < 0.005 && String(t.payment_method || "") === String(payment_method) && Date.now() - new Date(t.created_at).getTime() < 120000);
   if (dup) return { applied: 0, isPaidNow: !!order.paid, transactionId: null, duplicate: true };
   let txId = null;
   const { data, error } = await supabase.from("transaction").insert({

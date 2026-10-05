@@ -220,6 +220,14 @@ export default function OrderDetail() {
   }, [tenantId, orderId, reload]);
 
   useEffect(() => {
+    if (!tenantId || !orderId) return undefined;
+    const refresh = () => { if (document.visibilityState === "visible" && !busyRef.current) reload(); };
+    const timer = setInterval(refresh, 45000);
+    document.addEventListener("visibilitychange", refresh);
+    return () => { clearInterval(timer); document.removeEventListener("visibilitychange", refresh); };
+  }, [tenantId, orderId, reload]);
+
+  useEffect(() => {
     if (!queueBanner) return undefined;
     const t = setTimeout(() => setQueueBanner(null), 8000);
     return () => clearTimeout(t);

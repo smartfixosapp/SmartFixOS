@@ -21,7 +21,7 @@ function deliveredAt(order) {
 }
 
 function warrantyInfo(order) {
-  if (order.status !== "delivered") return null;
+  if (!deliveredAt(order)) return null;
   const days = order.warranty_days === null || order.warranty_days === undefined ? 30 : Number(order.warranty_days);
   if (days === 0) return { none: true };
   const from = deliveredAt(order);

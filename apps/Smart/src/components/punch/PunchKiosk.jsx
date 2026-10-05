@@ -13,6 +13,8 @@ import {
   shiftTasks, isShiftTaskDone, setShiftTaskDone, PunchError,
 } from "@/lib/punchApi";
 import { PinDots, Keypad, usePinEntry, BRAND } from "./PinPad";
+import { PunchTimeField, resolvePunchTime } from "./PunchTime";
+import { overlappingEntry } from "@/lib/teamTime";
 
 const ROLE_LABEL = { owner: "Dueño", admin: "Administrador", manager: "Gerente", contable: "Contable", cashier: "Cajero", technician: "Técnico", tech: "Técnico" };
 const initials = (name) => {
@@ -177,6 +179,7 @@ export default function PunchKiosk({ open, onClose, tenantId, tenant, sessionEmp
   const tz = safeTZ(tenant?.timezone);
   const hours = tenant?.settings?.business_hours;
   const [now, setNow] = useState(() => new Date());
+  const [timeText, setTimeText] = useState(null);
   const [onDuty, setOnDuty] = useState([]);
   const [selfOpen, setSelfOpen] = useState(null);
   const [week, setWeek] = useState(0);
@@ -243,10 +246,17 @@ export default function PunchKiosk({ open, onClose, tenantId, tenant, sessionEmp
   };
 
   const doClockIn = async (employee) => {
+    const when = resolvePunchTime(timeText);
+    if (when.error) { setError(when.error); return; }
     setBusy(true);
     try {
-      await punchIn({ tenantId, employee });
-      finish("in", employee);
+      if (when.backdated) {
+        const conflict = await overlappingEntry({ tenantId, matchIds: matchIdsFor(employee), clockIn: when.at, clockOut: null, tz });
+        if (conflict) { setError(conflict.message); setBusy(false); return; }
+      }
+      await punchIn({ tenantId, employee, at: when.at });
+      setTimeText(null);
+      finish("in", employee, when.at);
     } catch (e) {
       if (e instanceof PunchError && e.kind === "alreadyOpen") await handleExistingOpen(e.entry, employee);
       else setError(e?.message ? `No se pudo confirmar el ponche. Revisa tu conexión e intenta de nuevo.` : "Sin conexión. Intenta de nuevo.");
@@ -285,10 +295,12 @@ export default function PunchKiosk({ open, onClose, tenantId, tenant, sessionEmp
   };
 
   const doClose = async (employee, entry) => {
+    const when = resolvePunchTime(timeText);
+    if (when.error) { setError(when.error); return; }
     setBusy(true);
     try {
-      const r = await closeEntry({ entryId: entry.id, at: new Date(), tenantId });
-      if (r.status === "closed") finish("out", employee);
+      const r = await closeEntry({ entryId: entry.id, at: when.at, tenantId });
+      if (r.status === "closed") { setTimeText(null); finish("out", employee, when.at); }
       else { setError(isSelf(employee) ? "Tu turno ya estaba cerrado." : `${employee.full_name} no tiene un turno abierto.`); load(); }
     } catch {
       setError("No se pudo confirmar el ponche. Revisa tu conexión e intenta de nuevo.");
@@ -412,6 +424,7 @@ export default function PunchKiosk({ open, onClose, tenantId, tenant, sessionEmp
                 <button onClick={() => setError(null)} aria-label="Cerrar"><X className="w-4 h-4" /></button>
               </div>
             )}
+            <div style={{ width: "100%", maxWidth: 460 }}><PunchTimeField value={timeText} onChange={setTimeText} now={now} accent={BRAND} /></div>
             <div className="flex justify-center" style={{ gap: 20, paddingTop: 8 }}>
               {[["in", "Entrar", Play, BRAND], ["out", "Salir", Square, "#FF453A"]].map(([k, label, Icon, c]) => (
                 <button key={k} onClick={() => setPinFor(k)} disabled={busy} className="apple-press flex flex-col items-center justify-center disabled:opacity-50"
