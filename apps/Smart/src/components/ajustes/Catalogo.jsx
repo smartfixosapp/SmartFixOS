@@ -323,6 +323,7 @@ export default function Catalogo({ tenantId, back }) {
       } else {
         const body = { name };
         if (lv.parentCol) body[lv.parentCol] = sel[form.level - 1];
+        if (form.level === 3) body.brand_id = brandId;
         if (form.level === 0 && icon) body.icon_name = icon;
         if (form.level > 0 && tid) body.tenant_id = tid;
         await mutate(supabase.from(lv.table).insert(body).select("id"));
