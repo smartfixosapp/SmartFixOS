@@ -582,7 +582,7 @@ function InventoryItemDialog({
         location: value.location || "",
         compatibility_models_text: Array.isArray(value.compatibility_models) ?
         value.compatibility_models.join("\n") : "",
-        device_imei: value.device_imei || "",
+        device_imei: value.device_imei || value.imei || "",
         device_condition: value.device_condition || "excelente",
         device_storage: value.device_storage || "",
         device_color: value.device_color || "",
@@ -682,6 +682,7 @@ function InventoryItemDialog({
     // Agregar campos de dispositivo completo si aplica
     if (form.subcategoria === "dispositivo_completo") {
       payload.device_imei = form.device_imei?.trim() || "";
+      payload.imei = payload.device_imei || null;
       payload.device_condition = form.device_condition || "excelente";
       payload.device_storage = form.device_storage?.trim() || "";
       payload.device_color = form.device_color?.trim() || "";
