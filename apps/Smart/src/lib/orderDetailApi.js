@@ -45,14 +45,34 @@ export async function patchOrder(orderId, fields, { touchUpdated = true } = {}) 
   if (error) throw error;
 }
 
-async function appendHistory(orderId, entry) {
+let historyRpcMissing = false;
+
+const rpcMissing = (error) => !!error && (error.code === "PGRST202" || error.code === "42883" || /could not find the function|does not exist/i.test(String(error.message || "")));
+
+async function rpcHistory(name, args) {
+  if (historyRpcMissing) return null;
+  const { data, error } = await supabase.rpc(name, args);
+  if (error) {
+    if (rpcMissing(error)) historyRpcMissing = true;
+    return null;
+  }
+  return Array.isArray(data) ? data : null;
+}
+
+async function appendHistoryEntries(orderId, entries) {
+  const viaRpc = await rpcHistory("append_order_history", { p_order_id: orderId, p_entries: entries });
+  if (viaRpc) return viaRpc;
   const { data, error } = await supabase.from("order").select("status_history").eq("id", orderId).maybeSingle();
   if (error) throw error;
   const history = Array.isArray(data?.status_history) ? data.status_history : [];
-  const next = [...history, entry];
+  const next = [...history, ...entries];
   const { error: upErr } = await supabase.from("order").update({ status_history: next }).eq("id", orderId);
   if (upErr) throw upErr;
   return next;
+}
+
+async function appendHistory(orderId, entry) {
+  return appendHistoryEntries(orderId, [entry]);
 }
 
 export const ACTIVITY_LABELS = {
@@ -96,24 +116,20 @@ export function addCustomerAdvisory(orderId, text, by) {
 export async function addCustomerAdvisories(orderId, texts, by) {
   const list = (texts || []).map((t) => String(t || "").trim()).filter(Boolean);
   if (!list.length) return null;
-  const { data, error } = await supabase.from("order").select("status_history").eq("id", orderId).maybeSingle();
-  if (error) throw error;
-  const history = Array.isArray(data?.status_history) ? data.status_history : [];
   const ts = nowISO();
-  const next = [...history, ...list.map((note) => ({
+  return appendHistoryEntries(orderId, list.map((note) => ({
     status: null,
     timestamp: ts,
     changed_by: by,
     note,
     visible_to_customer: false,
     kind: "customer_advisory",
-  }))];
-  const { error: upErr } = await supabase.from("order").update({ status_history: next }).eq("id", orderId);
-  if (upErr) throw upErr;
-  return next;
+  })));
 }
 
 export async function deleteInternalNote(orderId, noteId) {
+  const viaRpc = await rpcHistory("remove_order_history_note", { p_order_id: orderId, p_note_id: String(noteId) });
+  if (viaRpc) return;
   const { data, error } = await supabase.from("order").select("status_history").eq("id", orderId).maybeSingle();
   if (error) throw error;
   const history = Array.isArray(data?.status_history) ? data.status_history : [];
