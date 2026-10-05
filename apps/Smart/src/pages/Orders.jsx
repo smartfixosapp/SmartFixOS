@@ -67,6 +67,9 @@ export default function Orders() {
   useEffect(() => { try { sessionStorage.setItem("orders_view", JSON.stringify({ search, statusFilter, bucket })); } catch { return; } }, [search, statusFilter, bucket]);
 
   const searchExtras = useRef(new Map());
+  const closedExtras = useRef(new Map());
+  const [closedLimit, setClosedLimit] = useState(200);
+  const [closedFull, setClosedFull] = useState(true);
   const lastLoad = useRef(0);
   const trailing = useRef(null);
   const loadOrdersRef = useRef(() => {});
@@ -87,7 +90,8 @@ export default function Orders() {
       const seen = new Set((recent || []).map((o) => o.id));
       const merged = [...(recent || []), ...(open || []).filter((o) => !seen.has(o.id))];
       const mergedIds = new Set(merged.map((o) => o.id));
-      searchExtras.current.forEach((o, id) => { if (!mergedIds.has(id)) merged.push(o); });
+      searchExtras.current.forEach((o, id) => { if (!mergedIds.has(id)) { merged.push(o); mergedIds.add(id); } });
+      closedExtras.current.forEach((o, id) => { if (!mergedIds.has(id)) merged.push(o); });
       if (seq === loadSeq.current) setOrders(merged);
     } catch (err) {
       console.error("Orders load error:", err);
@@ -97,6 +101,24 @@ export default function Orders() {
   }, []);
 
   useEffect(() => { ordersRef.current = orders; }, [orders]);
+
+  useEffect(() => { setClosedLimit(200); closedExtras.current = new Map(); }, [statusFilter]);
+
+  useEffect(() => {
+    if (!["delivered", "warranty", "abandoned", "cancelled", "not_repairable"].includes(statusFilter)) { setClosedFull(true); return undefined; }
+    let alive = true;
+    fetchOrderRows({ is_deleted: false, status: statusFilter }, closedLimit).then((rows) => {
+      if (!alive || !rows) return;
+      setClosedFull(rows.length < closedLimit);
+      closedExtras.current = new Map(rows.map((o) => [o.id, o]));
+      setOrders((list) => {
+        const have = new Set(list.map((o) => o.id));
+        const extra = rows.filter((o) => !have.has(o.id));
+        return extra.length ? [...list, ...extra] : list;
+      });
+    }).catch(() => {});
+    return () => { alive = false; };
+  }, [statusFilter, closedLimit]);
 
   useEffect(() => {
     const q = search.trim();
@@ -382,6 +404,11 @@ export default function Orders() {
               </div>
             ) : (
               <OrdersKanban orders={filteredOrders} onCardClick={openOrder} companyById={companyById} onQuickStatus={quickStatus} flat={!!search.trim()} />
+            )}
+            {!closedFull && statusFilter !== "all" && !search.trim() && (
+              <div className="flex justify-center" style={{ paddingBottom: 32 }}>
+                <button onClick={() => setClosedLimit((n) => n + 200)} className="apple-press" style={{ height: 40, padding: "0 20px", borderRadius: 999, background: "rgba(255,255,255,0.08)", color: "#fff", fontSize: 14, fontWeight: 600 }}>Cargar más</button>
+              </div>
             )}
           </>
         )}

@@ -621,8 +621,8 @@ export default function OrderDetail() {
     const res = await recordOrderPayment({ order: o, amount, method, customLabel, by });
     const fresh = await reload();
     const settled = fresh && orderTotal(fresh) > 0 && remainingBalance(fresh) <= 0.004;
-    if (settled) setBanner({ text: `Orden cobrada por ${label}`, type: "success" });
-    else { setBanner({ text: `Pago registrado por ${label}`, type: "success" }); toast(`Cobro de ${money(amount)} registrado`); }
+    if (settled) setBanner({ text: `Orden cobrada por ${label}`, type: "success", action: "receipt" });
+    else { setBanner({ text: `Pago registrado por ${label}`, type: "success", action: "receipt" }); toast(`Cobro de ${money(amount)} registrado`); }
     if (fresh && String(fresh.customer_email || "").trim() && tenant) {
       sendPaymentReceipt({ order: fresh, tenant, amount: res.applied, method, isFull: res.isPaidNow, transactionId: res.transactionId })
         .then(() => refreshEmails(), () => refreshEmails());
@@ -872,6 +872,7 @@ export default function OrderDetail() {
     <div className="flex items-center gap-3" style={{ position: "sticky", top: 12, zIndex: 50, backdropFilter: "blur(14px)", padding: "12px 14px", borderRadius: 14, background: tint(banner.type === "error" ? C.red : C.green, 0.22), color: banner.type === "error" ? C.red : C.green }}>
       {banner.type === "error" ? <AlertTriangle className="w-4 h-4 shrink-0" /> : <Check className="w-4 h-4 shrink-0" />}
       <span className="flex-1" style={{ fontSize: 14, whiteSpace: "pre-line" }}>{banner.text}</span>
+      {banner.action === "receipt" && <button onClick={() => { setBanner(null); makeDoc("receipt"); }} className="apple-press" style={{ padding: "6px 12px", borderRadius: 999, background: "rgba(255,255,255,0.18)", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>Compartir recibo</button>}
       <button onClick={() => setBanner(null)} aria-label="Cerrar" className="apple-press"><X className="w-4 h-4" /></button>
     </div>
   );
