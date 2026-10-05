@@ -16,7 +16,7 @@ import {
   FileText, Upload, Trash2, Edit, ChevronLeft, ChevronRight,
   Globe, Tag, CheckSquare, Monitor, Battery, Wrench, Box,
   Sparkles, Settings, Package, Zap, History, TrendingUp, TrendingDown,
-  Minus, ArrowUpDown, MoreHorizontal, Truck, Store, LayoutGrid, Download } from
+  Minus, ArrowUpDown, MoreHorizontal, Truck, Store, LayoutGrid, Download, ClipboardList } from
 "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter // 👈 DialogFooter añadido
@@ -28,6 +28,7 @@ import { rankedSearch } from "@/lib/posLogic";
 import { adjustStockAtomic } from "@/lib/stockAdjust";
 import { buildInventoryCsv, downloadCsv } from "@/lib/inventoryCsv";
 import { imageToJpegBlob } from "@/lib/comprasApi";
+import StockCountDialog from "../components/inventory/StockCountDialog";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import NotificationService from "../components/notifications/NotificationService";
 import DiscountBadge, { formatPriceWithDiscount } from "../components/inventory/DiscountBadge";
@@ -1163,6 +1164,7 @@ export default function Inventory() {
   const [partTypeFilter, setPartTypeFilter] = useState("all");
   const [q, setQ] = useState("");
   const [showItemDialog, setShowItemDialog] = useState(false);
+  const [showCount, setShowCount] = useState(false);
   const [editing, setEditing] = useState(null);
   const [showSuppliers, setShowSuppliers] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState([]);
@@ -1778,6 +1780,7 @@ export default function Inventory() {
                     { label: 'Gestionar categorías', Icon: Settings, action: () => { setShowManageCategories(true); setShowMoreMenu(false); } },
                     { label: 'Reportes', Icon: TrendingUp, action: () => { setShowReports(true); setShowMoreMenu(false); } },
                     { label: 'Reabastecer', Icon: Box, action: () => { setShowRestock(true); setShowMoreMenu(false); } },
+                    { label: 'Conteo físico', Icon: ClipboardList, action: () => { setShowCount(true); setShowMoreMenu(false); } },
                     { label: 'Exportar CSV', Icon: Download, action: () => { exportInventoryCsv(); setShowMoreMenu(false); } },
                   ].map((item, i) =>
                     item === null ? (
@@ -2102,6 +2105,14 @@ export default function Inventory() {
         {showManageCategories && (
           <ManageCategoriesDialog open={showManageCategories} onClose={() => setShowManageCategories(false)} onUpdate={loadInventory} />
         )}
+
+        <StockCountDialog
+          open={showCount}
+          items={items}
+          employeeName={(() => { try { const raw = localStorage.getItem("employee_session") || sessionStorage.getItem("911-session"); const sess = raw ? JSON.parse(raw) : null; return sess?.full_name || sess?.userName || sess?.email || "Usuario"; } catch { return "Usuario"; } })()}
+          onClose={() => setShowCount(false)}
+          onApplied={() => { loadInventory(); toast.success("Conteo aplicado"); }}
+        />
 
         {/* ── Ajuste Rápido de Stock ─────────────────────────────── */}
         {quickAdjustItem && (
