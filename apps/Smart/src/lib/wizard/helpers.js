@@ -1,3 +1,4 @@
+import { discountEnded } from "@/lib/discounts";
 export const IOS = {
   blue: "#0A84FF", pink: "#FF375F", orange: "#FF9F0A", indigo: "#5E5CE6", yellow: "#FFD60A", red: "#FF453A",
   green: "#30D158", teal: "#40C8E0", purple: "#BF5AF2", mint: "#66D4CF", gray: "#8E8E93",
@@ -186,7 +187,7 @@ export function isFullDeviceItem(p) {
 export function effectivePrice(p) {
   const price = Number(p?.price) || 0;
   const pct = Number(p?.discount_percentage) || 0;
-  return p?.discount_active === true && pct > 0 ? price * (1 - pct / 100) : price;
+  return p?.discount_active === true && pct > 0 && !discountEnded(p?.discount_end_date) ? price * (1 - pct / 100) : price;
 }
 
 export function lineSubtotal(line) {

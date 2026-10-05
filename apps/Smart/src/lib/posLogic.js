@@ -1,3 +1,4 @@
+import { discountEnded } from "@/lib/discounts";
 import { normalizeTaxPercent } from "@/lib/taxRate";
 export function r2(value) {
   const x = Number(value);
@@ -140,7 +141,7 @@ export function num(v) {
 export function effectivePrice(p) {
   const price = num(p?.price) ?? 0;
   const pct = num(p?.discount_percentage);
-  if (p?.discount_active === true && pct && pct > 0) return price * (1 - pct / 100);
+  if (p?.discount_active === true && pct && pct > 0 && !discountEnded(p?.discount_end_date)) return price * (1 - pct / 100);
   return price;
 }
 
@@ -217,7 +218,7 @@ function offerLabel(o) {
 export function offerResolution(product, offers) {
   const price = num(product?.price) ?? 0;
   const pct = num(product?.discount_percentage);
-  const productLevel = product?.discount_active === true && pct && pct > 0
+  const productLevel = product?.discount_active === true && pct && pct > 0 && !discountEnded(product?.discount_end_date)
     ? { promoPrice: effectivePrice(product), originalPrice: price, label: "Oferta", offerType: "percent" }
     : null;
   const matching = (offers || []).filter((o) => offerApplies(o, product));

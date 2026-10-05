@@ -304,7 +304,9 @@ function QuickStockAdjust({ item, onClose, onSave }) {
   const [mode, setMode] = React.useState("add"); // "add" | "remove" | "set"
   const [qty, setQty] = React.useState("");
   const [note, setNote] = React.useState("");
+  const [reason, setReason] = React.useState("");
   const [saving, setSaving] = React.useState(false);
+  const REASONS = ["Compra", "Daño", "Devolución", "Robo / pérdida", "Corrección de inventario", "Otro"];
 
   const newStock = mode === "set"
     ? Number(qty || 0)
@@ -316,9 +318,10 @@ function QuickStockAdjust({ item, onClose, onSave }) {
     const n = Number(qty);
     if (mode !== "set" && (!qty || n <= 0)) { toast.error("Ingresa una cantidad mayor a 0"); return; }
     if (mode === "set" && qty === "") { toast.error("Ingresa el nuevo stock"); return; }
+    if (mode === "remove" && n > currentStock) { toast.error(`No puedes quitar más de lo que hay (${currentStock})`); return; }
     setSaving(true);
     try {
-      await onSave({ item, newStock, previousStock: currentStock, mode, qty: n, note });
+      await onSave({ item, newStock, previousStock: currentStock, mode, qty: n, note: [reason, note.trim()].filter(Boolean).join(" · ") });
       onClose();
     } catch { /* error handled in parent */ }
     finally { setSaving(false); }
@@ -372,6 +375,15 @@ function QuickStockAdjust({ item, onClose, onSave }) {
             </div>
           )}
         </div>
+
+        {mode !== "set" && (
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {REASONS.map((r) => (
+              <button key={r} type="button" onClick={() => setReason((cur) => (cur === r ? "" : r))}
+                className={`px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all ${reason === r ? "bg-orange-500/20 border-orange-500/40 text-orange-300" : "bg-white/5 border-white/10 text-white/50 hover:text-white/70"}`}>{r}</button>
+            ))}
+          </div>
+        )}
 
         <input
           value={note}
