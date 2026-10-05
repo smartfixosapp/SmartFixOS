@@ -10,6 +10,7 @@ import {
   canCloseCashRegister, employeeDisplayName, openDuration, sendClosingEmail, EMPTY_SUMMARY, expectedCashFor,
 } from "@/lib/cashRegisterApi";
 import { useEscapeLayer } from "@/components/orderDetail/ui";
+import { closeEntry, isFromEarlierDay } from "@/lib/punchApi";
 
 export const K = {
   bg: "#000",
@@ -389,6 +390,9 @@ export function CloseCashSheet({ open, onClose, register, tenantId, tenant, empl
   const [alreadyClosed, setAlreadyClosed] = useState(null);
   const [didClose, setDidClose] = useState(false);
   const [celebration, setCelebration] = useState(null);
+  const [punchPrompt, setPunchPrompt] = useState(null);
+  const [punchBusy, setPunchBusy] = useState(false);
+  const [punchErr, setPunchErr] = useState(null);
 
   const loadSummary = useCallback(async () => {
     if (!register) return;
@@ -478,8 +482,12 @@ export function CloseCashSheet({ open, onClose, register, tenantId, tenant, empl
         difference: uiDifference, summary: snapSummary, counts: snapCounts, observations: obs,
       });
       setCelebration({ revenue: snapSummary.totalRevenue, difference: uiDifference });
+      const mine = openShifts.find((x) => !!employee?.id && String(x.employee_id || "") === String(employee.id));
       setTimeout(() => {
         setCelebration(null);
+        let askPunch = false;
+        try { askPunch = !!mine?.id && !isFromEarlierDay(mine, tenant?.timezone || undefined); } catch { askPunch = false; }
+        if (askPunch) { setPunchPrompt(mine); return; }
         onClosed?.();
         onClose?.();
       }, 2000);
@@ -661,6 +669,26 @@ export function CloseCashSheet({ open, onClose, register, tenantId, tenant, empl
         cancelLabel={null}
         onConfirm={() => { setAlreadyClosed(null); onClose?.(); }}
         onCancel={() => { setAlreadyClosed(null); onClose?.(); }}
+      />
+      <ConfirmDialog
+        open={!!punchPrompt}
+        Icon={UserRoundCheck}
+        color={K.brand}
+        title="¿Ponchar salida también?"
+        message={punchErr || (punchPrompt?.clock_in ? `Cerraste la caja del día. Tu turno sigue abierto desde ${timeLabel(punchPrompt.clock_in)}. ¿Ponchar tu salida ahora?` : "Cerraste la caja del día. ¿Quieres registrar tu salida ahora para cerrar tu turno?")}
+        confirmLabel={punchBusy ? "Ponchando…" : "Ponchar salida"}
+        cancelLabel="No, sigo trabajando"
+        onConfirm={async () => {
+          if (punchBusy) return;
+          setPunchBusy(true);
+          setPunchErr(null);
+          try { await closeEntry({ entryId: punchPrompt.id, tenantId }); } catch (e) { setPunchBusy(false); setPunchErr(e?.message || "No se pudo ponchar la salida. Ciérrala desde Ponchar."); return; }
+          setPunchBusy(false);
+          setPunchPrompt(null);
+          onClosed?.();
+          onClose?.();
+        }}
+        onCancel={() => { if (punchBusy) return; setPunchErr(null); setPunchPrompt(null); onClosed?.(); onClose?.(); }}
       />
       <Celebration data={celebration} />
     </>

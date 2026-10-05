@@ -16,7 +16,7 @@ import {
   FileText, Upload, Trash2, Edit, ChevronLeft, ChevronRight,
   Globe, Tag, CheckSquare, Monitor, Battery, Wrench, Box,
   Sparkles, Settings, Package, Zap, History, TrendingUp, TrendingDown,
-  Minus, ArrowUpDown, MoreHorizontal, Truck, Store, LayoutGrid } from
+  Minus, ArrowUpDown, MoreHorizontal, Truck, Store, LayoutGrid, Download } from
 "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter // 👈 DialogFooter añadido
@@ -26,6 +26,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import SuppliersDialog from "../components/inventory/SuppliersDialog";
 import { rankedSearch } from "@/lib/posLogic";
 import { adjustStockAtomic } from "@/lib/stockAdjust";
+import { buildInventoryCsv, downloadCsv } from "@/lib/inventoryCsv";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import NotificationService from "../components/notifications/NotificationService";
 import DiscountBadge, { formatPriceWithDiscount } from "../components/inventory/DiscountBadge";
@@ -1341,6 +1342,13 @@ export default function Inventory() {
   };
 
   // ── Ajuste Rápido de Stock ────────────────────────────────────────────
+  const exportInventoryCsv = () => {
+    const list = filtered.length ? filtered : items;
+    const kindLabel = (p) => ({ dispositivos: "Dispositivo", piezas: "Pieza", accesorios: "Accesorio", servicios: "Servicio" }[itemKind(p)] || "Pieza");
+    downloadCsv(buildInventoryCsv(list, kindLabel), `inventario-${new Date().toISOString().slice(0, 10)}.csv`);
+    toast.success(`Exportadas ${list.length} filas`);
+  };
+
   const handleQuickAdjust = async ({ item, newStock, previousStock: shownStock, mode, qty, note }) => {
     let clampedStock = Math.max(0, newStock);
     let previousStock = shownStock;
@@ -1686,6 +1694,7 @@ export default function Inventory() {
                     { label: 'Gestionar categorías', Icon: Settings, action: () => { setShowManageCategories(true); setShowMoreMenu(false); } },
                     { label: 'Reportes', Icon: TrendingUp, action: () => { setShowReports(true); setShowMoreMenu(false); } },
                     { label: 'Reabastecer', Icon: Box, action: () => { setShowRestock(true); setShowMoreMenu(false); } },
+                    { label: 'Exportar CSV', Icon: Download, action: () => { exportInventoryCsv(); setShowMoreMenu(false); } },
                   ].map((item, i) =>
                     item === null ? (
                       <div key={i} className="h-[0.5px] mx-3" style={{ backgroundColor: "rgba(255,255,255,0.1)" }} />
