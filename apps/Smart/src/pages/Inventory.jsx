@@ -27,6 +27,7 @@ import SuppliersDialog from "../components/inventory/SuppliersDialog";
 import { rankedSearch } from "@/lib/posLogic";
 import { adjustStockAtomic } from "@/lib/stockAdjust";
 import { buildInventoryCsv, downloadCsv } from "@/lib/inventoryCsv";
+import { imageToJpegBlob } from "@/lib/comprasApi";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import NotificationService from "../components/notifications/NotificationService";
 import DiscountBadge, { formatPriceWithDiscount } from "../components/inventory/DiscountBadge";
@@ -530,8 +531,36 @@ function InventoryItemDialog({
     device_battery_health: "",
     device_warranty: false,
     device_warranty_months: "",
-    taxable: true
+    taxable: true,
+    photo_urls: []
   });
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const photoInputRef = useRef(null);
+
+  const addPhotos = async (files) => {
+    const list = Array.from(files || []).filter((f) => f.type.startsWith("image/")).slice(0, 8);
+    if (!list.length) return;
+    const tenant = localStorage.getItem("smartfix_tenant_id") || "shared";
+    setPhotoBusy(true);
+    const urls = [];
+    let failed = 0;
+    for (const file of list) {
+      try {
+        const blob = await imageToJpegBlob(file, 1800);
+        const id = (typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`).toUpperCase();
+        const path = `${tenant}/${id}.jpg`;
+        const bucket = supabase.storage.from("products");
+        const { error } = await bucket.upload(path, blob, { contentType: "image/jpeg", upsert: true });
+        if (error) throw error;
+        urls.push(bucket.getPublicUrl(path).data.publicUrl);
+      } catch {
+        failed += 1;
+      }
+    }
+    setPhotoBusy(false);
+    if (urls.length) setForm((f) => ({ ...f, photo_urls: [...(f.photo_urls || []), ...urls] }));
+    if (failed) toast.error(`No se pudieron subir ${failed} foto${failed === 1 ? "" : "s"}. Revisa tu conexión.`);
+  };
 
   useEffect(() => {
     if (value) {
@@ -546,6 +575,7 @@ function InventoryItemDialog({
         supplier_id: value.supplier_id || "",
         supplier_name: value.supplier_name || "",
         description: value.description || "",
+        photo_urls: Array.isArray(value.photo_urls) && value.photo_urls.length ? value.photo_urls : (value.image_url ? [value.image_url] : []),
         sku: value.sku || "",
         barcode: value.barcode || "",
         location: value.location || "",
@@ -578,6 +608,7 @@ function InventoryItemDialog({
         supplier_id: "",
         supplier_name: "",
         description: "",
+        photo_urls: [],
         sku: "",
         barcode: "",
         location: "",
@@ -595,7 +626,7 @@ function InventoryItemDialog({
     }
   }, [value, open, deviceCategories, partTypes, currentDeviceCategory, currentPartType]);
 
-  const handleSave = async () => {
+  const handleSave = async (addAnother = false) => {
     if (!form.name?.trim()) {
       toast.error("El nombre es requerido");
       return;
@@ -636,6 +667,7 @@ function InventoryItemDialog({
       supplier_id: form.supplier_id || "",
       supplier_name: selectedSupplier?.name || form.supplier_name?.trim() || "",
       description: form.description?.trim() || "",
+      ...(isServiceType ? {} : { photo_urls: form.photo_urls || [], image_url: (form.photo_urls || [])[0] || null }),
       sku: form.sku?.trim() || null,
       barcode: form.barcode?.trim() || null,
       location: form.location?.trim() || null,
@@ -662,7 +694,14 @@ function InventoryItemDialog({
       payload.id = value.id;
     }
 
-    await onSave?.(payload, form.device_category, form.part_type);
+    const saved = await onSave?.(payload, form.device_category, form.part_type, { keepOpen: addAnother === true });
+    if (addAnother === true && saved !== false) {
+      setForm((f) => ({
+        ...f, name: "", price: "", cost: "", stock: "", min_stock: "", sku: "", barcode: "", location: "", description: "",
+        photo_urls: [], compatibility_models_text: "", device_imei: "", device_color: "", device_storage: "", device_carrier: "",
+        device_battery_health: "", device_warranty: false, device_warranty_months: "",
+      }));
+    }
   };
 
   const selectedPartType = partTypes.find((pt) => pt.slug === form.part_type);
@@ -1036,6 +1075,26 @@ function InventoryItemDialog({
             </div>
           </div>
 
+          {!isService && (
+            <div>
+              <label className="text-xs text-white/50 mb-2 block theme-light:text-gray-600">Fotos</label>
+              <div className="flex gap-2 flex-wrap">
+                {(form.photo_urls || []).map((u, i) => (
+                  <div key={u} className="relative" style={{ width: 72, height: 72 }}>
+                    <img src={u} alt={`Foto ${i + 1}`} loading="lazy" style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 12, background: "#2C2C2E" }} />
+                    <button type="button" aria-label="Quitar foto" onClick={() => setForm((f) => ({ ...f, photo_urls: (f.photo_urls || []).filter((x) => x !== u) }))} className="absolute flex items-center justify-center" style={{ top: -6, right: -6, width: 22, height: 22, borderRadius: 999, background: "#FF453A", color: "#fff", fontSize: 12, fontWeight: 800 }}>×</button>
+                  </div>
+                ))}
+                {(form.photo_urls || []).length < 8 && (
+                  <button type="button" onClick={() => photoInputRef.current?.click()} disabled={photoBusy} className="flex flex-col items-center justify-center gap-1 text-white/60 hover:text-white disabled:opacity-50" style={{ width: 72, height: 72, borderRadius: 12, border: "1.5px dashed rgba(255,255,255,0.25)", fontSize: 11 }}>
+                    {photoBusy ? <span>Subiendo…</span> : <><Plus className="w-5 h-5" /><span>Agregar</span></>}
+                  </button>
+                )}
+              </div>
+              <input ref={photoInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { const files = e.target.files; e.target.value = ""; addPhotos(files); }} />
+            </div>
+          )}
+
           <div>
             <label className="text-xs text-white/50 mb-1 block theme-light:text-gray-600">Descripción</label>
             <Textarea
@@ -1065,8 +1124,17 @@ function InventoryItemDialog({
 
             Cancelar
           </Button>
+          {!value?.id && (
+            <Button
+              variant="outline"
+              onClick={() => handleSave(true)}
+              className="border-white/15 flex-1 theme-light:border-gray-300">
+
+              Guardar y agregar otro
+            </Button>
+          )}
           <Button
-            onClick={handleSave}
+            onClick={() => handleSave(false)}
             className="bg-gradient-to-r from-orange-600 to-emerald-700 flex-1">
 
             Guardar
@@ -1415,7 +1483,7 @@ export default function Inventory() {
     }
   };
 
-  const handleSaveItem = async (payload, savedCategory, savedPartType) => {
+  const handleSaveItem = async (payload, savedCategory, savedPartType, opts) => {
     try {
       const normalizedPayload = normalizeProductPayload(payload);
       const oldItem = payload.id ? items.find((i) => i.id === payload.id) : null;
@@ -1588,12 +1656,16 @@ export default function Inventory() {
         }, 700);
       }
 
-      setShowItemDialog(false);
-      setEditing(null);
+      if (!opts?.keepOpen) {
+        setShowItemDialog(false);
+        setEditing(null);
+      }
       toast.success(payload.id ? "Actualizado" : "Pieza creada");
+      return true;
     } catch (err) {
       console.error("Error:", err);
       toast.error(err?.message || "No se pudo guardar");
+      return false;
     }
   };
 
