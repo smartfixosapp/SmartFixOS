@@ -7,6 +7,8 @@ import { OrderCreatedToast } from "@/components/inicio/Cards";
 import { dataClient } from "@/components/api/dataClient";
 import { statusInfo, isOrderClosed } from "@/lib/orderStatus";
 import OrdersKanban from "@/components/orders/OrdersKanban";
+import OrdersFilterMenu from "@/components/orders/OrdersFilterMenu";
+import { orderKind } from "@/lib/ordersBoard";
 import { BUCKET_STYLE } from "@/components/orders/orderBits";
 import { AlertDialog } from "@/components/pos/native/posUi";
 import { fetchTenant, resolveCurrentEmployee, changeStatusRpc, changedByLabel, addInternalNote, fetchOrder, findOlderUndiagnosed } from "@/lib/orderDetailApi";
@@ -62,6 +64,12 @@ export default function Orders() {
   const [tenantId, setTenantId] = useState("");
   const [companyById, setCompanyById] = useState({});
   const [noteFor, setNoteFor] = useState(null);
+  const [kindFilter, setKindFilter] = useState(null);
+  const [deviceTypeFilter, setDeviceTypeFilter] = useState(null);
+  const [b2bOnly, setB2bOnly] = useState(false);
+  const [showDates, setShowDates] = useState(false);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [queueWarn, setQueueWarn] = useState(null);
 
   useEffect(() => { try { sessionStorage.setItem("orders_view", JSON.stringify({ search, statusFilter, bucket })); } catch { return; } }, [search, statusFilter, bucket]);
@@ -245,13 +253,39 @@ export default function Orders() {
 
   const goHome = () => { setBucket(null); setStatusFilter("all"); setSearch(""); setHistoryMenu(false); };
 
+  const filterStats = useMemo(() => {
+    const kinds = {};
+    const types = new Set();
+    let b2bCount = 0;
+    orders.forEach((o) => {
+      if (isOrderClosed(o)) return;
+      kinds[orderKind(o)] = (kinds[orderKind(o)] || 0) + 1;
+      const t = String(o.device_type || "").trim();
+      if (t) types.add(t);
+      if (companyById[o.customer_id]) b2bCount += 1;
+    });
+    return { kinds, types: [...types].sort((a, b) => a.localeCompare(b, "es")), b2bCount };
+  }, [orders, companyById]);
+  const filtersActive = !!(kindFilter || deviceTypeFilter || b2bOnly || (showDates && (dateFrom || dateTo)));
+  const clearFilters = () => { setKindFilter(null); setDeviceTypeFilter(null); setB2bOnly(false); setShowDates(false); setDateFrom(""); setDateTo(""); };
+
   const filteredOrders = useMemo(() => {
     const q = search.trim().toLowerCase();
     return orders.filter((o) => {
       if (statusFilter !== "all" && o.status !== statusFilter) return false;
       if (statusFilter === "all" && !q && isOrderClosed(o)) return false;
       if (!q && bucket && bucket !== "all" && deviceBucket(o) !== bucket) return false;
-      if (!q) return true;
+      if (!q) {
+        if (kindFilter && orderKind(o) !== kindFilter) return false;
+        if (deviceTypeFilter && String(o.device_type || "").trim() !== deviceTypeFilter) return false;
+        if (b2bOnly && !companyById[o.customer_id]) return false;
+        if (showDates && (dateFrom || dateTo)) {
+          const t = new Date(o.created_date || 0).getTime();
+          if (dateFrom && t < new Date(`${dateFrom}T00:00:00`).getTime()) return false;
+          if (dateTo && t > new Date(`${dateTo}T23:59:59`).getTime()) return false;
+        }
+        return true;
+      }
       const digits = q.replace(/\D/g, "");
       return (
         o.customer_name?.toLowerCase().includes(q) ||
@@ -264,7 +298,7 @@ export default function Orders() {
         (digits.length >= 3 && String(o.customer_phone || "").replace(/\D/g, "").includes(digits))
       );
     });
-  }, [orders, search, statusFilter, bucket]);
+  }, [orders, search, statusFilter, bucket, kindFilter, deviceTypeFilter, b2bOnly, showDates, dateFrom, dateTo, companyById]);
 
   const applyQuickStatus = useCallback(async (orderId, newStatus) => {
     const live = ordersRef.current.find((o) => o.id === orderId);
@@ -320,8 +354,8 @@ export default function Orders() {
         </div>
       </div>
 
-      <div className="app-container pb-3">
-        <div style={{ position: "relative" }}>
+      <div className="app-container pb-3 flex items-center" style={{ gap: 10 }}>
+        <div style={{ position: "relative", flex: 1 }}>
           <Search className="w-4 h-4" style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "rgba(255,255,255,0.4)" }} />
           <input
             ref={searchRef}
@@ -334,7 +368,33 @@ export default function Orders() {
             style={{ borderRadius: 999, paddingLeft: 40, paddingRight: 16, background: "rgba(255,255,255,0.06)", color: "#fff", border: "none", outline: "none", fontSize: 14 }}
           />
         </div>
+        <div className="hidden md:block">
+          <OrdersFilterMenu
+            active={filtersActive}
+            b2bAvailable={filterStats.b2bCount > 0 || b2bOnly}
+            b2bCount={filterStats.b2bCount}
+            b2bOnly={b2bOnly}
+            onB2b={setB2bOnly}
+            kind={kindFilter}
+            kindCounts={filterStats.kinds}
+            onKind={setKindFilter}
+            deviceType={deviceTypeFilter}
+            deviceTypes={filterStats.types}
+            onDeviceType={setDeviceTypeFilter}
+            showDates={showDates}
+            onToggleDates={() => setShowDates((v) => !v)}
+            onClear={clearFilters}
+          />
+        </div>
       </div>
+      {showDates && (
+        <div className="app-container pb-3 hidden md:flex items-center" style={{ gap: 10, fontSize: 13, color: "#8E8E93" }}>
+          <span>Desde</span>
+          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} aria-label="Desde" style={{ background: "rgba(255,255,255,0.08)", color: "#fff", borderRadius: 10, padding: "6px 10px", colorScheme: "dark" }} />
+          <span>Hasta</span>
+          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} aria-label="Hasta" style={{ background: "rgba(255,255,255,0.08)", color: "#fff", borderRadius: 10, padding: "6px 10px", colorScheme: "dark" }} />
+        </div>
+      )}
 
       <div className="app-container">
         {loading ? (
