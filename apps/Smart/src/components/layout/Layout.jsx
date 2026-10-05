@@ -8,6 +8,7 @@ import { TenantProvider } from "@/components/utils/tenantContext";
 import AppLock from "@/components/auth/AppLock";
 import CelebrationHost from "@/components/ui/CelebrationHost";
 import ChangePinGate from "@/components/auth/ChangePinGate";
+import TeamAlerts from "@/components/notifications/TeamAlerts";
 
 export default function Layout({ children }) {
   const { pathname } = useLocation();
@@ -30,6 +31,7 @@ export default function Layout({ children }) {
         <AppLock />
         <CelebrationHost />
         <ChangePinGate />
+        <TeamAlerts />
       </PanelProvider>
     </TenantProvider>
   );

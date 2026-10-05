@@ -223,9 +223,9 @@ export function PushSettings({ tenant, tenantId, reload, back }) {
       {typeof Notification !== "undefined" && perm === "default" ? (
         <Group form pad={false} footer="Activa el permiso para recibir avisos en tiempo real."><ActionRow first Icon={Bell} color={A.brand} label="Activar notificaciones" onClick={enable} /></Group>
       ) : (
-        <p style={{ fontSize: 13, color: A.sub, padding: "0 16px", marginTop: -12 }}>{granted ? "Las notificaciones están activas. Los ajustes de abajo se guardan automáticamente." : perm === "denied" ? "Las denegaste antes. Actívalas en los ajustes del navegador para este sitio." : "Activa el permiso para recibir avisos en tiempo real."}</p>
+        <p style={{ fontSize: 13, color: A.sub, padding: "0 16px", marginTop: -12 }}>{granted ? "Las notificaciones están activas mientras Archilla OS esté abierto en una pestaña o en la app instalada. Los ajustes de abajo se guardan automáticamente." : perm === "denied" ? "Las denegaste antes. Actívalas en los ajustes del navegador para este sitio." : "Activa el permiso para recibir avisos en tiempo real."}</p>
       )}
-      <Group header="Tipos de aviso" form footer={granted ? "Cambios se guardan automáticamente." : "Activa el permiso de notificaciones para que estos ajustes tengan efecto."} pad={false}>
+      <Group header="Tipos de aviso" form footer={granted ? "Cambios se guardan automáticamente. En la web solo avisamos de cambios de estado de órdenes y de cobros." : "Activa el permiso de notificaciones para que estos ajustes tengan efecto."} pad={false}>
         {PREF_ROWS.map(([k, l], i) => <ToggleRow key={k} first={!i} bold={false} title={l} on={prefs[k]} onChange={(v) => setPref(k, v)} disabled={!granted} />)}
       </Group>
       <Group header="No molestar" icon={Moon} form footer="En este horario (hora del taller) no se envían notificaciones. Útil para no recibir avisos de noche.">
