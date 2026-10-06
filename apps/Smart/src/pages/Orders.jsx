@@ -8,6 +8,7 @@ import { dataClient } from "@/components/api/dataClient";
 import { statusInfo, isOrderClosed } from "@/lib/orderStatus";
 import OrdersKanban from "@/components/orders/OrdersKanban";
 import OrdersFilterMenu from "@/components/orders/OrdersFilterMenu";
+import OrdersBucketRow from "@/components/orders/OrdersBucketRow";
 import { orderKind } from "@/lib/ordersBoard";
 import { BUCKET_STYLE } from "@/components/orders/orderBits";
 import { AlertDialog } from "@/components/pos/native/posUi";
@@ -38,8 +39,21 @@ async function fetchOrderRows(conditions, limit) {
   return dataClient.entities.Order.filter(conditions, "-updated_date", limit);
 }
 
+function useWide() {
+  const query = "(min-width: 768px)";
+  const [wide, setWide] = useState(() => typeof window !== "undefined" && window.matchMedia(query).matches);
+  useEffect(() => {
+    const m = window.matchMedia(query);
+    const on = () => setWide(m.matches);
+    m.addEventListener("change", on);
+    return () => m.removeEventListener("change", on);
+  }, []);
+  return wide;
+}
+
 export default function Orders() {
   const navigate = useNavigate();
+  const wide = useWide();
   const location = useLocation();
   const searchRef = useRef(null);
   const ordersRef = useRef([]);
@@ -73,6 +87,11 @@ export default function Orders() {
   const [queueWarn, setQueueWarn] = useState(null);
 
   useEffect(() => { try { sessionStorage.setItem("orders_view", JSON.stringify({ search, statusFilter, bucket })); } catch { return; } }, [search, statusFilter, bucket]);
+  useEffect(() => {
+    if (!wide) return;
+    if (statusFilter !== "all") setStatusFilter("all");
+    if (bucket === "all") setBucket(null);
+  }, [wide, statusFilter, bucket]);
 
   const searchExtras = useRef(new Map());
   const closedExtras = useRef(new Map());
@@ -399,6 +418,17 @@ export default function Orders() {
       <div className="app-container">
         {loading ? (
           <SkeletonCards count={6} height={150} min={220} />
+        ) : wide ? (
+          <>
+            <OrdersBucketRow bucket={bucket} counts={bucketCounts} total={openTotal} onSelect={setBucket} />
+            {filteredOrders.length === 0 ? (
+              <div className="text-center py-16 apple-text-subheadline" style={{ color: "rgba(255,255,255,0.4)" }}>
+                {search.trim() ? "Ninguna orden coincide con la búsqueda" : orders.length === 0 ? "Aún no hay órdenes. Crea la primera." : "No hay órdenes aquí"}
+              </div>
+            ) : (
+              <OrdersKanban orders={filteredOrders} onCardClick={openOrder} companyById={companyById} onQuickStatus={quickStatus} flat={!!search.trim()} />
+            )}
+          </>
         ) : isHome ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 12, paddingBottom: 40 }}>
             <div className="stagger" style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 1fr))" }}>
