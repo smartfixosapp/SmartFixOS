@@ -40,12 +40,12 @@ async function imageData(url) {
 export const orderQrUrl = (order) => `smartfixos://order/${order.id}`;
 export const qrData = (text, width = 300) => QRCode.toDataURL(text, { width, margin: 0, errorCorrectionLevel: "M" });
 
-function deviceText(o) {
+export function deviceText(o) {
   const t = [o.device_type, o.device_brand, o.device_model].map((x) => String(x || "").trim()).filter(Boolean).join(" ");
   return t || "—";
 }
 
-function deliveredDate(o) {
+export function deliveredDate(o) {
   let max = null;
   (Array.isArray(o.status_history) ? o.status_history : []).forEach((e) => { if (e?.status === "delivered" && e.timestamp) { const d = new Date(e.timestamp); if (!Number.isNaN(d.getTime()) && (!max || d > max)) max = d; } });
   return max;
@@ -60,7 +60,7 @@ export function serviceSummary(o) {
   return String(o.initial_problem || "").trim();
 }
 
-async function build(kind, { order, tenant }) {
+async function build(kind, { order, tenant, publicView = false }) {
   const { jsPDF } = await import("jspdf");
   const quote = kind === "quote";
   const doc = new jsPDF({ unit: "pt", format: "letter" });
@@ -82,7 +82,7 @@ async function build(kind, { order, tenant }) {
   let y = 40;
   const ensure = (need) => { if (y + need > H - 90) { doc.addPage(); y = 40; return true; } return false; };
 
-  if (!quote) {
+  if (!quote && !publicView) {
     const qr = await qrData(orderQrUrl(order));
     doc.addImage(qr, "PNG", R - 80, 40, 80, 80);
     text(order.order_number || "", R - 40, 123, { size: 9, align: "center" });
@@ -91,7 +91,7 @@ async function build(kind, { order, tenant }) {
   text(tenant?.name || "Taller de Reparación", L, y, { size: 22, style: "bold" });
   y += 26;
   [tenant?.address, tenant?.admin_phone && `Tel: ${tenant.admin_phone}`, tenant?.email, !quote && String(tenant?.settings?.merchant_registration || "").trim() && `Reg. Comerciante: ${tenant.settings.merchant_registration}`].filter(Boolean).forEach((l) => { text(l, L, y, { size: 10, color: GRAY }); y += 13; });
-  y = Math.max(y, quote ? y : 128) + 4;
+  y = Math.max(y, quote || publicView ? y : 128) + 4;
   doc.setDrawColor(190, 190, 190);
   doc.line(L, y, R, y);
   y += 12;

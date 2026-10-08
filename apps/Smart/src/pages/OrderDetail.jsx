@@ -975,7 +975,7 @@ export default function OrderDetail() {
       )}
 
       <DocumentsSheet open={sheet?.name === "documents"} onClose={() => setSheet(null)} order={order} busy={docBusy} onReceipt={() => makeDoc("receipt")} onQuote={() => makeDoc("quote")} onLabel={doLabel} />
-      <DocumentShareSheet open={!!docShare} kind={docShare?.kind} order={order} blob={docShare?.blob} onClose={() => setDocShare(null)} />
+      <DocumentShareSheet open={!!docShare} kind={docShare?.kind} order={order} tenant={tenant} blob={docShare?.blob} onClose={() => setDocShare(null)} />
       <ScheduleVisitSheet open={sheet?.name === "schedule"} order={order} tenant={tenant} by={by} onClose={() => setSheet(null)} onSaved={() => { toast(order.appointment_at ? "Cita actualizada" : "Cita agendada"); reload(); }} />
       <CloseDraftDialog open={sheet?.name === "closeDraft"} po={sheet?.po} tenantId={tenantId} employeeName={by} onClose={() => setSheet(null)} onDone={(p, msg) => { toast(msg); reload(); }} />
       <POSheet open={sheet?.name === "po"} poId={sheet?.poId} tenant={tenant} tenantId={tenantId} employeeName={by} onClose={() => { setSheet(null); reload(); setCostTick((n) => n + 1); }} onChanged={() => { reload(); setCostTick((n) => n + 1); }} />

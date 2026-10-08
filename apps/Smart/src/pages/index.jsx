@@ -28,6 +28,7 @@ const Billing          = lazyWithRetry(() => import("./Billing"));
 const LegalTerms       = lazyWithRetry(() => import("./LegalTerms"));
 const LegalRefunds     = lazyWithRetry(() => import("./LegalRefunds"));
 const Receipt          = lazyWithRetry(() => import("./Receipt"));
+const PublicReceipt    = lazyWithRetry(() => import("./PublicReceipt"));
 const CustomerPortal   = lazyWithRetry(() => import("./CustomerPortal"));
 const CustomerApproval = lazyWithRetry(() => import("./CustomerApproval"));
 const GACC             = lazyWithRetry(() => import("./gacc"));
@@ -79,6 +80,7 @@ function PagesContent() {
         <Route path="/legal/terms"       element={<LegalTerms />} />
         <Route path="/legal/refunds"     element={<LegalRefunds />} />
         <Route path="/Receipt"           element={<Receipt />} />
+        <Route path="/r/:token"          element={<PublicReceipt />} />
         <Route path="/CustomerPortal"    element={<CustomerPortal />} />
         <Route path="/CustomerApproval"  element={<CustomerApproval />} />
         <Route path="/SuperAdmin"        element={<GACC />} />
