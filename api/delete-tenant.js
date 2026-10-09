@@ -59,8 +59,76 @@ async function deleteAuthUser(authId) {
   } catch { return false; }
 }
 
+// Toda tabla con columna tenant_id, verificada contra el esquema real
+// (2026-10-09, information_schema.columns) — el esquema no tiene FKs
+// (0 constraints), así que nada se borra en cascada solo: cada tabla
+// tiene que listarse aquí explícitamente. audit_log se excluye a
+// propósito (conserva el historial de que esta tienda existió y se
+// borró). Si se agrega una tabla nueva con tenant_id, hay que sumarla
+// aquí a mano — no hay forma automática de detectarla en runtime sin
+// un segundo roundtrip a information_schema.
+const TENANT_SCOPED_TABLES = [
+  'announcement', 'app_employee', 'app_settings', 'app_update', 'appointment',
+  'billing_event', 'biometric_credential', 'brand', 'cash_drawer_movement',
+  'cash_register', 'communication_history', 'communication_queue', 'customer',
+  'customer_portal_token', 'customer_segment', 'daily_goal_log', 'device_category',
+  'device_family', 'device_model', 'device_model_photo', 'device_subcategory',
+  'device_token', 'discount_code', 'email_log', 'email_template', 'employee_payment',
+  'external_link', 'file_upload', 'fixed_expense', 'internal_message',
+  'inventory_movement', 'invoice', 'key_value', 'maintenance_reminder',
+  'notification', 'notification_rule', 'notification_settings', 'offer',
+  'one_time_expense', 'order_link', 'order_sequence', 'owner_pin', 'part_link',
+  'personal_note', 'po_number_sequence', 'product', 'product_category',
+  'product_variant', 'purchase_order', 'push_queue', 'quote', 'receipt_link',
+  'recharge', 'sale', 'sequence_counter', 'service', 'shift_task', 'shift_task_log',
+  'subscription', 'subscription_event', 'supplier', 'system_config',
+  'technician_metrics', 'technician_profile', 'tenant_membership', 'tenant_role',
+  'time_entry', 'transaction', 'work_order_config', 'work_order_event',
+  'work_order_wizard_config', 'workshop_task',
+  // order/users van después (las lee cascadeDeleteTenant para recoger
+  // auth ids antes de borrar), pero igual se listan aquí para el log
+  'order', 'users',
+];
+
+// Tenants que esta funcion nunca puede borrar, pase lo que pase —
+// freno de seguridad contra un tap equivocado en la app admin.
+const PROTECTED_TENANT_IDS = new Set([
+  'dc902f30-ef85-4ac0-8032-df64bae3f7f0', // 911 Smart Fix (Francis)
+  'cafe0001-0000-4000-8000-000000000001', // Demo tenant (Apple Review)
+]);
+
+async function logTenantDeletion(adminEmail, tenantId, tenantName, deleted) {
+  try {
+    const now = new Date().toISOString();
+    await fetch(`${SB_URL}/rest/v1/audit_log`, {
+      method: 'POST',
+      headers: { ...sbHeaders(), Prefer: 'return=minimal' },
+      body: JSON.stringify({
+        id: crypto.randomUUID(),
+        created_at: now,
+        updated_at: now,
+        created_by_id: adminEmail,
+        created_by: adminEmail,
+        action: 'tenant.delete',
+        entity_type: 'tenant',
+        entity_id: tenantId,
+        user_id: adminEmail,
+        user_name: adminEmail,
+        user_role: 'super_admin',
+        severity: 'critical',
+        changes: { tenant_name: tenantName || null, tables_cleared: deleted.tables.length, auth_users_deleted: deleted.authUsers },
+        tenant_id: tenantId,
+      }),
+    });
+  } catch {}
+}
+
 // Cascade-delete all data for a tenant (given tenantId)
 async function cascadeDeleteTenant(tenantId, deleted) {
+  if (PROTECTED_TENANT_IDS.has(tenantId)) {
+    throw new Error('Esta tienda está protegida y no se puede eliminar desde aquí.');
+  }
+
   const filter = `tenant_id=eq.${encodeURIComponent(tenantId)}`;
 
   // Collect auth IDs before wiping tables
@@ -76,15 +144,7 @@ async function cascadeDeleteTenant(tenantId, deleted) {
   });
 
   // Delete all operational tables
-  const tables = [
-    'work_order_event', 'email_log', 'fn_trigger_rule', 'notification',
-    'invoice', 'sale_item', 'sale', 'transaction', 'order_payment',
-    'order_part', 'work_order', 'order', 'inventory', 'purchase_order',
-    'supplier', 'service', 'product', 'customer', 'email_template',
-    'app_settings', 'system_config', 'app_employee', 'users',
-  ];
-
-  for (const table of tables) {
+  for (const table of TENANT_SCOPED_TABLES) {
     const ok = await sbDelete(table, filter);
     if (ok) deleted.tables.push(table);
   }
@@ -199,8 +259,12 @@ export default async function handler(req, res) {
   }
 
   try {
+    const existing = await sbSelect('tenant', `id=eq.${encodeURIComponent(tenantId)}`, 'id,name');
+    const tenantName = existing[0]?.name || null;
+
     const deleted = { tables: [], authUsers: 0, errors: [] };
     await cascadeDeleteTenant(tenantId, deleted);
+    await logTenantDeletion(admin.email, tenantId, tenantName, deleted);
 
     console.log(`✅ Tenant ${tenantId} deleted — tables: ${deleted.tables.length}, auth users: ${deleted.authUsers}`);
     return res.status(200).json({
