@@ -140,7 +140,7 @@ export default async function handler(req, res) {
   if (!rl.ok) return tooManyRequests(res, rl.retryAfterSec);
 
   const { tenantId, action, ...extra } = req.body || {};
-  const tenantlessActions = new Set(['list_tenants']);
+  const tenantlessActions = new Set(['list_tenants', 'list_billing_events']);
   if (!action || (!tenantId && !tenantlessActions.has(action))) {
     return res.status(400).json({ success: false, error: 'tenantId y action son requeridos' });
   }
@@ -155,12 +155,17 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, tenants: rows.map(pickTenant) });
     }
 
+    if (action === 'list_billing_events') {
+      const rows = await sbList('billing_event', 'select=*&order=created_at.desc&limit=300').catch(() => []);
+      return res.status(200).json({ success: true, events: rows });
+    }
+
     if (action === 'tenant_overview') {
       const monthStart = new Date();
       monthStart.setDate(1);
       monthStart.setHours(0, 0, 0, 0);
       const tid = encodeURIComponent(tenantId);
-      const [tenantRows, employees, customers, orders, ordersMonth, lastOrder, events] = await Promise.all([
+      const [tenantRows, employees, customers, orders, ordersMonth, lastOrder, events, billing] = await Promise.all([
         sbList('tenant', `select=*&${filter}&limit=1`),
         sbCount('app_employee', `tenant_id=eq.${tid}`),
         sbCount('customer', `tenant_id=eq.${tid}`),
@@ -168,6 +173,7 @@ export default async function handler(req, res) {
         sbCount('order', `tenant_id=eq.${tid}&created_date=gte.${encodeURIComponent(monthStart.toISOString())}`),
         sbList('order', `select=created_date&tenant_id=eq.${tid}&order=created_date.desc&limit=1`).catch(() => []),
         sbList('audit_log', `select=id,created_at,created_by,action,severity,changes&tenant_id=eq.${tid}&order=created_at.desc&limit=30`).catch(() => []),
+        sbList('billing_event', `select=*&tenant_id=eq.${tid}&order=created_at.desc&limit=30`).catch(() => []),
       ]);
       if (!tenantRows[0]) return res.status(404).json({ success: false, error: 'Tienda no encontrada' });
       return res.status(200).json({
@@ -181,6 +187,7 @@ export default async function handler(req, res) {
           last_order_at: lastOrder[0]?.created_date || null,
         },
         events,
+        billing,
       });
     }
 
