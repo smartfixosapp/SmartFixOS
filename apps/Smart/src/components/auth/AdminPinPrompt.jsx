@@ -100,20 +100,13 @@ export default function AdminPinPrompt({ onSuccess, onCancel }) {
       if (configs?.length) {
         setMasterHash(configs[0].value);
       } else {
-        // Si no hay nada en BD, crear con hash de contraseña por defecto
-        const defaultHash = await sha256("SmFix@2026!");
-        await base44.entities.SystemConfig.create({
-          key: "master_pin",
-          value: defaultHash,
-          category: "security",
-          description: "Contraseña maestra admin — SHA-256",
-        });
-        setMasterHash(defaultHash);
+        setMasterHash(null);
+        setErr("No hay contraseña maestra configurada. Pide a un administrador que la cree.");
       }
     } catch (e) {
       console.error("Error loading master hash:", e);
-      // Fallback: hash de la contraseña por defecto
-      setMasterHash(await sha256("SmFix@2026!"));
+      setMasterHash(null);
+      setErr("No se pudo verificar la contraseña maestra.");
     }
   };
 
@@ -134,6 +127,11 @@ export default function AdminPinPrompt({ onSuccess, onCancel }) {
     const info = getLockoutInfo();
     if (info.locked) {
       showFail(`Bloqueado. Intenta en ${info.remaining} min.`);
+      return;
+    }
+
+    if (!masterHash) {
+      showFail("No hay contraseña maestra configurada.");
       return;
     }
 

@@ -4,7 +4,6 @@ import { Shield, AlertTriangle, ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminAuthGate({ onSuccess, onCancel }) {
-  const MASTER_PIN = "3407";
   const [pin, setPin] = useState("");
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -84,7 +83,7 @@ export default function AdminAuthGate({ onSuccess, onCancel }) {
       // Buscar admin con ese PIN
       const validAdmin = adminUsers.find(admin => admin.pin === pin);
 
-      if (validAdmin || pin === MASTER_PIN) {
+      if (validAdmin) {
         onSuccess?.();
       } else {
         setError(true);
