@@ -16,6 +16,7 @@ import { checkRateLimit, getClientIP, tooManyRequests } from './_lib/rateLimit.j
  */
 
 import { ensureResendConfigured, sendResendEmail } from '../lib/server/resend.js';
+import { requireSuperAdmin } from '../lib/server/requireSuperAdmin.js';
 
 const SB_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://idntuvtabecwubzswpwi.supabase.co';
 const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
@@ -54,9 +55,12 @@ async function sbGet(table, filter, select = '*') {
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });
+
+  const admin = await requireSuperAdmin(req);
+  if (admin.error) return res.status(admin.status).json({ success: false, error: admin.error });
 
   // Rate limit: máx 30 acciones admin por IP por 10 minutos
   const rl = checkRateLimit(getClientIP(req), 'manage-tenant', { max: 30, windowMs: 10 * 60_000 });
