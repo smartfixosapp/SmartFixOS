@@ -15,6 +15,7 @@ import { checkRateLimit, getClientIP, tooManyRequests } from './_lib/rateLimit.j
  * Body: { tenantId, action, ...extra }
  */
 
+import { randomUUID } from 'crypto';
 import { ensureResendConfigured, sendResendEmail } from '../lib/server/resend.js';
 import { requireSuperAdmin } from '../lib/server/requireSuperAdmin.js';
 
@@ -52,6 +53,78 @@ async function sbGet(table, filter, select = '*') {
   return Array.isArray(rows) ? rows[0] ?? null : null;
 }
 
+async function sbList(table, query) {
+  const res = await fetch(`${SB_URL}/rest/v1/${table}?${query}`, { headers: sbH() });
+  if (!res.ok) {
+    const err = await res.text().catch(() => res.status);
+    throw new Error(`GET ${table}: ${err}`);
+  }
+  const rows = await res.json();
+  return Array.isArray(rows) ? rows : [];
+}
+
+async function sbCount(table, filter) {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/${table}?select=id&${filter}`, {
+      headers: { ...sbH(), Prefer: 'count=exact', Range: '0-0' },
+    });
+    const range = res.headers.get('content-range') || '';
+    const total = Number(range.split('/')[1]);
+    return Number.isFinite(total) ? total : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function pickTenant(t) {
+  return {
+    id: t.id,
+    name: t.name,
+    email: t.email,
+    admin_name: t.admin_name,
+    admin_phone: t.admin_phone,
+    country: t.country,
+    currency: t.currency,
+    plan: t.plan,
+    status: t.status,
+    subscription_status: t.subscription_status,
+    monthly_cost: t.monthly_cost,
+    trial_end_date: t.trial_end_date,
+    next_billing_date: t.next_billing_date,
+    billing_source: t.billing_source,
+    apple_product_id: t.apple_product_id,
+    created_at: t.created_at,
+    last_seen: t.last_seen,
+    logo_url: t.logo_url,
+  };
+}
+
+async function audit(admin, tenantId, action, severity, changes) {
+  const now = new Date().toISOString();
+  try {
+    await fetch(`${SB_URL}/rest/v1/audit_log`, {
+      method: 'POST',
+      headers: { ...sbH(), Prefer: 'return=minimal' },
+      body: JSON.stringify({
+        id: randomUUID(),
+        created_at: now,
+        updated_at: now,
+        created_by_id: admin.email,
+        created_by: admin.email,
+        action,
+        entity_type: 'tenant',
+        entity_id: tenantId,
+        user_id: admin.email,
+        user_name: admin.email,
+        user_role: 'super_admin',
+        changes: changes || {},
+        severity,
+        tenant_id: tenantId,
+      }),
+    });
+  } catch {}
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -67,23 +140,61 @@ export default async function handler(req, res) {
   if (!rl.ok) return tooManyRequests(res, rl.retryAfterSec);
 
   const { tenantId, action, ...extra } = req.body || {};
-  if (!tenantId || !action) {
+  const tenantlessActions = new Set(['list_tenants']);
+  if (!action || (!tenantId && !tenantlessActions.has(action))) {
     return res.status(400).json({ success: false, error: 'tenantId y action son requeridos' });
   }
   if (!SB_KEY) return res.status(500).json({ success: false, error: 'Server misconfiguration' });
 
-  const filter = `id=eq.${encodeURIComponent(tenantId)}`;
+  const filter = `id=eq.${encodeURIComponent(tenantId || '')}`;
+  const reason = typeof extra.reason === 'string' ? extra.reason.trim().slice(0, 500) : null;
 
   try {
+    if (action === 'list_tenants') {
+      const rows = await sbList('tenant', 'select=*&order=created_at.desc&limit=500');
+      return res.status(200).json({ success: true, tenants: rows.map(pickTenant) });
+    }
+
+    if (action === 'tenant_overview') {
+      const monthStart = new Date();
+      monthStart.setDate(1);
+      monthStart.setHours(0, 0, 0, 0);
+      const tid = encodeURIComponent(tenantId);
+      const [tenantRows, employees, customers, orders, ordersMonth, lastOrder, events] = await Promise.all([
+        sbList('tenant', `select=*&${filter}&limit=1`),
+        sbCount('app_employee', `tenant_id=eq.${tid}`),
+        sbCount('customer', `tenant_id=eq.${tid}`),
+        sbCount('order', `tenant_id=eq.${tid}`),
+        sbCount('order', `tenant_id=eq.${tid}&created_date=gte.${encodeURIComponent(monthStart.toISOString())}`),
+        sbList('order', `select=created_date&tenant_id=eq.${tid}&order=created_date.desc&limit=1`).catch(() => []),
+        sbList('audit_log', `select=id,created_at,created_by,action,severity,changes&tenant_id=eq.${tid}&order=created_at.desc&limit=30`).catch(() => []),
+      ]);
+      if (!tenantRows[0]) return res.status(404).json({ success: false, error: 'Tienda no encontrada' });
+      return res.status(200).json({
+        success: true,
+        tenant: pickTenant(tenantRows[0]),
+        insights: {
+          employees,
+          customers,
+          orders,
+          orders_this_month: ordersMonth,
+          last_order_at: lastOrder[0]?.created_date || null,
+        },
+        events,
+      });
+    }
+
     // ── suspend ──────────────────────────────────────────────────────────────
     if (action === 'suspend') {
       await sbPatch('tenant', filter, { status: 'suspended', subscription_status: 'inactive' });
+      await audit(admin, tenantId, 'tenant.suspend', 'high', { reason });
       return res.status(200).json({ success: true, message: '⏸ Tienda suspendida' });
     }
 
     // ── reactivate ───────────────────────────────────────────────────────────
     if (action === 'reactivate') {
       await sbPatch('tenant', filter, { status: 'active', subscription_status: 'active' });
+      await audit(admin, tenantId, 'tenant.reactivate', 'high', { reason });
       return res.status(200).json({ success: true, message: '▶️ Tienda reactivada' });
     }
 
@@ -95,6 +206,7 @@ export default async function handler(req, res) {
       newEnd.setTime(Math.max(currentEnd.getTime(), Date.now()));
       newEnd.setDate(newEnd.getDate() + 15);
       await sbPatch('tenant', filter, { trial_end_date: newEnd.toISOString() });
+      await audit(admin, tenantId, 'tenant.extend_trial', 'medium', { reason, trial_end_date: newEnd.toISOString() });
       return res.status(200).json({ success: true, message: `⏱ Trial extendido hasta ${newEnd.toLocaleDateString('es')}` });
     }
 
@@ -102,8 +214,10 @@ export default async function handler(req, res) {
     if (action === 'set_plan') {
       const plan = extra.plan;
       if (!plan) return res.status(400).json({ success: false, error: 'plan es requerido' });
-      const planPrices = { basic: 55, pro: 85, enterprise: 200 };
-      await sbPatch('tenant', filter, { plan, monthly_cost: planPrices[plan] || 55 });
+      const updates = { plan };
+      if (extra.monthly_cost !== undefined) updates.monthly_cost = Number(extra.monthly_cost) || 0;
+      await sbPatch('tenant', filter, updates);
+      await audit(admin, tenantId, 'tenant.set_plan', 'high', { reason, plan, monthly_cost: updates.monthly_cost ?? null });
       return res.status(200).json({ success: true, message: `📦 Plan actualizado a ${plan}` });
     }
 
@@ -135,6 +249,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ success: false, error: 'Nada que actualizar' });
       }
       await sbPatch('tenant', filter, updates);
+      await audit(admin, tenantId, 'tenant.edit', 'medium', { reason, fields: Object.keys(updates) });
       return res.status(200).json({ success: true, message: '✏️ Información actualizada' });
     }
 
@@ -168,6 +283,7 @@ export default async function handler(req, res) {
           headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY },
           body: JSON.stringify({ email }),
         });
+        await audit(admin, tenantId, 'tenant.reset_password', 'medium', { reason, email });
         return res.status(200).json({ success: true, message: '📧 Enlace de restablecimiento enviado' });
       }
 
@@ -179,7 +295,7 @@ export default async function handler(req, res) {
       <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png" alt="SmartFixOS" style="height:44px;" />
     </div>
     <h2 style="color:#111;margin:0 0 8px;">Restablecer contraseña</h2>
-    <p style="color:#555;margin:0 0 28px;font-size:15px;">Haz clic en el botón de abajo para crear una nueva contraseña para tu cuenta SmartFixOS.</p>
+    <p style="color:#555;margin:0 0 28px;font-size:15px;">Haz clic en el botón de abajo para crear una nueva contraseña para tu cuenta Archilla OS.</p>
     <div style="text-align:center;margin:32px 0;">
       <a href="${recoveryLink}" style="background:linear-gradient(135deg,#0891b2,#0e7490);color:#fff;padding:16px 36px;border-radius:10px;text-decoration:none;font-weight:700;font-size:16px;display:inline-block;">
         🔑 Restablecer contraseña
@@ -191,12 +307,13 @@ export default async function handler(req, res) {
 
       await sendResendEmail({
         to: email,
-        subject: '🔑 Restablece tu contraseña de SmartFixOS',
+        subject: 'Restablece tu contraseña de Archilla OS',
         html: emailHtml,
-        fromName: 'SmartFixOS',
+        fromName: 'Archilla OS',
         fromEmail: FROM_EMAIL,
       });
 
+      await audit(admin, tenantId, 'tenant.reset_password', 'medium', { reason, email });
       return res.status(200).json({ success: true, message: `📧 Enlace de restablecimiento enviado a ${email}` });
     }
 
