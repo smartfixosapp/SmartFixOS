@@ -38,7 +38,7 @@ export function Historia() {
             style={{ background: "var(--ar-glow)", filter: "blur(26px)", opacity: 0.55 }}
           />
           <img
-            src="/images/logo.png"
+            src="/images/logo-160.webp"
             alt=""
             className="rounded-2xl"
             style={{ width: 46, height: 46, objectFit: "contain" }}

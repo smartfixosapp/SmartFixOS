@@ -5,6 +5,7 @@ export const SOPORTE_EMAIL = "soporte@archillaos.com";
 
 export const NAV_LINKS = [
   { label: "Módulos", href: "#modulos" },
+  { label: "Multitienda", href: "#multitienda" },
   { label: "Cómo entra", href: "#como-entra" },
   { label: "Historia", href: "#historia" },
   { label: "Planes", href: "#planes" },

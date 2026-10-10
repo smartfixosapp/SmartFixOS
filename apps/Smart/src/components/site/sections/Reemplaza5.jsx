@@ -118,7 +118,7 @@ export function Reemplaza5() {
             className="ar-shadow-lift-accent inline-flex shrink-0 items-center gap-3.5 self-center rounded-2xl border px-5 py-4"
             style={{ borderColor: "var(--ar-border-strong)", background: "var(--ar-card)", boxShadow: "0 0 0 1px var(--ar-border-accent), 0 24px 60px -34px var(--ar-glow)" }}
           >
-            <img src="/images/logo.png" alt="" style={{ width: 40, height: 40, objectFit: "contain" }} />
+            <img src="/images/logo-160.webp" alt="" style={{ width: 40, height: 40, objectFit: "contain" }} />
             <div className="flex flex-col">
               <span className="font-brico text-[17px] font-bold tracking-[-0.03em]" style={{ color: "var(--ar-text)" }}>
                 Archilla OS

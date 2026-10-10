@@ -35,12 +35,12 @@ export function NavBar() {
       <div className="mx-auto flex h-16 w-full max-w-[1200px] items-center justify-between px-5 sm:px-8 xl:px-10">
         <a href="#top" className="shrink-0"><LogoLockup size={28} /></a>
 
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="hidden items-center gap-1 xl:flex">
           {NAV_LINKS.map((l) => (
             <a
               key={l.href}
               href={l.href}
-              className="rounded-lg px-3 py-2 font-mono text-[11px] uppercase tracking-[0.12em] transition-colors"
+              className="whitespace-nowrap rounded-lg px-3 py-2 font-mono text-[11px] uppercase tracking-[0.12em] transition-colors"
               style={{ color: "var(--ar-text-2)" }}
               onMouseEnter={(e) => (e.currentTarget.style.color = "var(--ar-text)")}
               onMouseLeave={(e) => (e.currentTarget.style.color = "var(--ar-text-2)")}
@@ -53,7 +53,7 @@ export function NavBar() {
         <div className="hidden items-center gap-2.5 md:flex">
           <Link
             to="/Login"
-            className="rounded-lg px-3 py-2 text-[13px] font-semibold transition-colors"
+            className="whitespace-nowrap rounded-lg px-3 py-2 text-[13px] font-semibold transition-colors"
             style={{ color: "var(--ar-text-2)" }}
             onMouseEnter={(e) => (e.currentTarget.style.color = "var(--ar-text)")}
             onMouseLeave={(e) => (e.currentTarget.style.color = "var(--ar-text-2)")}
@@ -62,7 +62,7 @@ export function NavBar() {
           </Link>
           <Link
             to={REGISTRO_PATH}
-            className="rounded-full border px-4 py-2 text-[13px] font-semibold transition-colors"
+            className="whitespace-nowrap rounded-full border px-4 py-2 text-[13px] font-semibold transition-colors"
             style={{ borderColor: "var(--ar-border)", color: "var(--ar-text)" }}
           >
             Crear mi taller
@@ -71,7 +71,7 @@ export function NavBar() {
             href={APP_STORE_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="ar-grad inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[13px] font-semibold text-white"
+            className="ar-grad inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-[13px] font-semibold text-white"
           >
             <FlaskConical className="h-3.5 w-3.5" strokeWidth={2.2} />
             Probar el app
@@ -81,7 +81,7 @@ export function NavBar() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="ar-focus-ring rounded-lg p-2 md:hidden"
+          className="ar-focus-ring rounded-lg p-2 xl:hidden"
           style={{ color: "var(--ar-text)" }}
           aria-label="Abrir menú"
         >
@@ -95,7 +95,7 @@ export function NavBar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] md:hidden"
+            className="fixed inset-0 z-[60] xl:hidden"
             style={{ background: "rgba(10,10,10,0.96)", backdropFilter: "blur(12px)" }}
           >
             <div className="flex h-16 items-center justify-between px-5">

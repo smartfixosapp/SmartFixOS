@@ -11,7 +11,7 @@ const FAQS = [
   },
   {
     q: "¿Cuánto cuesta?",
-    a: "$9.99 al mes, un solo plan con todo incluido. Pruebas 14 días gratis, sin tarjeta.",
+    a: "Hay dos planes. Solo boletos: $20 al mes con 1 técnico, y $5 más por cada técnico adicional. Completo: $49 al mes con hasta 5 usuarios y todo incluido (boletos, POS, finanzas e inventario). Los dos traen multitienda y 14 días gratis, sin tarjeta.",
   },
   {
     q: "¿Cómo me suscribo?",
@@ -27,7 +27,11 @@ const FAQS = [
   },
   {
     q: "¿Sirve para más de un técnico?",
-    a: "Sí, hasta 5 usuarios en el mismo plan: chat interno, nómina, comisiones y multi-device en tiempo real.",
+    a: "Sí. En Solo boletos sumas técnicos a $5 al mes cada uno. El plan Completo incluye hasta 5 usuarios: chat interno, nómina, comisiones y multi-device en tiempo real.",
+  },
+  {
+    q: "¿Puedo tener más de una tienda?",
+    a: "Sí, la multitienda viene en los dos planes. Entras a cada tienda por separado o ves todas juntas, y mueves un boleto de una tienda a otra cuando haga falta.",
   },
   {
     q: "¿Mis datos están seguros?",

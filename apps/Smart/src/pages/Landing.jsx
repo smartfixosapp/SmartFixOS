@@ -7,6 +7,7 @@ import { Hero } from "../components/site/sections/Hero";
 import { Reemplaza5 } from "../components/site/sections/Reemplaza5";
 import { UnDiaEnTuTaller } from "../components/site/sections/UnDiaEnTuTaller";
 import { Modulos } from "../components/site/sections/Modulos";
+import { Multitienda } from "../components/site/sections/Multitienda";
 import { AntesDespues } from "../components/site/sections/AntesDespues";
 import { VistaPreviaTour } from "../components/site/sections/VistaPreviaTour";
 import { ComoEntrar } from "../components/site/sections/ComoEntrar";
@@ -73,6 +74,7 @@ export default function Landing() {
         <Reemplaza5 />
         <UnDiaEnTuTaller />
         <Modulos />
+        <Multitienda />
         <AntesDespues />
         <VistaPreviaTour />
         <ComoEntrar />

@@ -2,7 +2,7 @@ import React from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { GlowBlob, cx } from "./primitives";
 
-export function PhoneMock({ src, alt = "", width = 280, glow = true, float = false, tilt = 0, className = "" }) {
+export function PhoneMock({ src, alt = "", width = 280, glow = true, float = false, tilt = 0, priority = false, className = "" }) {
   const reduce = useReducedMotion();
   const animate = float && !reduce ? { y: [0, -10, 0] } : undefined;
   return (
@@ -32,7 +32,9 @@ export function PhoneMock({ src, alt = "", width = 280, glow = true, float = fal
         <img
           src={src}
           alt={alt}
-          loading="lazy"
+          loading={priority ? "eager" : "lazy"}
+          fetchPriority={priority ? "high" : "auto"}
+          decoding="async"
           className="block w-full object-cover object-top"
           style={{ borderRadius: 38, aspectRatio: "9 / 19.5" }}
         />
