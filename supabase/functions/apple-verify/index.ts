@@ -7,6 +7,7 @@ const APPLE_ROOT_G3_B64 =
 
 const SOLO = "com.archillastudios.SmartFixOS.solo.monthly1";
 const TEAM = "com.archillastudios.SmartFixOS.team.monthly";
+const BOLETOS_PREFIX = "com.archillastudios.SmartFixOS.boletos.monthly";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -71,6 +72,23 @@ export async function verifyAppleJWS(jws: string): Promise<Record<string, unknow
 export function planFor(productId: unknown): string | null {
   if (productId === SOLO) return "solo";
   if (productId === TEAM) return "team";
+  if (boletosTechnicians(productId) !== null) return "boletos";
+  return null;
+}
+
+function boletosTechnicians(productId: unknown): number | null {
+  if (typeof productId !== "string" || !productId.startsWith(BOLETOS_PREFIX)) return null;
+  const n = Number(productId.slice(BOLETOS_PREFIX.length));
+  return Number.isInteger(n) && n >= 1 && n <= 5 ? n : null;
+}
+
+function monthlyCostFor(productId: unknown, priceMilli: unknown): number | null {
+  const paid = Number(priceMilli);
+  if (Number.isFinite(paid) && paid > 0) return Math.round(paid) / 1000;
+  const n = boletosTechnicians(productId);
+  if (n !== null) return 20 + 5 * (n - 1);
+  if (productId === SOLO) return 9.99;
+  if (productId === TEAM) return 49;
   return null;
 }
 
@@ -120,6 +138,10 @@ Deno.serve(async (req) => {
       apple_original_transaction_id: String(tx.originalTransactionId ?? ""),
       apple_product_id: tx.productId,
       next_billing_date: expiresMs ? new Date(expiresMs).toISOString() : null,
+      ...(active && monthlyCostFor(tx.productId, tx.price) !== null
+        ? { monthly_cost: monthlyCostFor(tx.productId, tx.price) }
+        : {}),
+      ...(active && plan === "boletos" ? { business_mode: "tickets" } : {}),
     });
 
     return json({ ok: true, plan: active ? plan : "expired" });

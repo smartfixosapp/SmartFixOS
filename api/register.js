@@ -151,12 +151,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ success: false, error: 'Email inválido' });
     }
 
-    const planMap = { basic: 'smartfixos', pro: 'pro', enterprise: 'enterprise' };
-    const plan = planMap[rawPlan] || 'smartfixos';
+    const planMap = { boletos: 'boletos', completo: 'team', team: 'team', basic: 'boletos', pro: 'team', enterprise: 'team' };
+    const plan = planMap[rawPlan] || 'team';
+    const technicians = Math.min(5, Math.max(1, Math.round(Number(req.body?.technicians) || 1)));
     const PLANS = {
-      smartfixos: { max_users: 1,    monthly_cost: 55,  label: 'Basic'      },
-      pro:        { max_users: 3,    monthly_cost: 85,  label: 'Pro'        },
-      enterprise: { max_users: 9999, monthly_cost: 0,   label: 'Enterprise' },
+      boletos: { max_users: technicians, monthly_cost: 20 + 5 * (technicians - 1), label: 'Solo boletos' },
+      team:    { max_users: 5,           monthly_cost: 49,                         label: 'Completo'     },
     };
     const planCfg = PLANS[plan];
 

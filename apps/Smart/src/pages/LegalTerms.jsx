@@ -39,25 +39,32 @@ export default function LegalTerms() {
         <li>Eres responsable de mantener la confidencialidad de tus credenciales de acceso.</li>
         <li>Eres responsable de toda actividad que ocurra bajo tu cuenta.</li>
         <li>Te comprometes a proporcionar información veraz, exacta y actualizada al registrarte.</li>
-        <li>Una cuenta corresponde a un (1) taller. Para múltiples sucursales, contáctanos.</li>
+        <li>Una cuenta puede operar una o varias tiendas (multitienda) bajo el mismo plan. La multitienda está incluida en Solo boletos y se agrega al plan Completo sin costo adicional a medida que esté disponible.</li>
       </ul>
 
       <h2>3. Planes y Suscripción</h2>
       <p>
-        Archilla OS ofrece una sola suscripción mensual:
+        Archilla OS ofrece dos planes de suscripción mensual:
       </p>
       <ul>
-        <li><strong>Archilla OS</strong> — $9.99 USD/mes. Incluye todo: órdenes, POS, inventario, finanzas, hasta 5 usuarios, chat interno y multi-device.</li>
+        <li><strong>Solo boletos</strong> — $20 USD/mes con 1 técnico, más $5 USD/mes por cada técnico adicional (hasta 5 técnicos, $40 USD/mes). Incluye boletos, clientes, piezas por boleto, chat interno, ponche y multitienda. No incluye POS, cobros, inventario ni finanzas.</li>
+        <li><strong>Completo</strong> — $49 USD/mes. Incluye todo: boletos, POS, cobros, inventario, finanzas, portal del cliente, nómina y comisiones, chat interno, multi-device y hasta 5 usuarios.</li>
       </ul>
+      <p>
+        Los clientes con una suscripción anterior (Archilla OS a $9.99 USD/mes) conservan su precio mientras mantengan
+        su suscripción activa. Los precios están en dólares estadounidenses; en la App Store pueden mostrarse con
+        el equivalente local y los impuestos que Apple aplique en tu país.
+      </p>
       <p>
         Toda suscripción incluye un período de prueba de <strong>14 días sin tarjeta de crédito</strong>.
         Al finalizar el trial, si no activas un plan pagado, la cuenta queda inactiva
         pero la data permanece almacenada por 90 días.
       </p>
       <p>
-        Los pagos se procesan a través de <strong>Stripe, Inc.</strong> Aceptamos las tarjetas
-        de crédito y débito compatibles con Stripe. La facturación es <strong>mensual y se renueva
-        automáticamente</strong> hasta que canceles.
+        Las suscripciones contratadas desde la app de iPhone o iPad se cobran y gestionan a través de
+        la <strong>App Store de Apple</strong>, y se rigen también por los términos de Apple. Las contratadas desde la web
+        se procesan a través de <strong>Stripe, Inc.</strong>, con las tarjetas de crédito y débito compatibles con Stripe.
+        La facturación es <strong>mensual y se renueva automáticamente</strong> hasta que canceles.
       </p>
 
       <h2>4. Cancelación</h2>

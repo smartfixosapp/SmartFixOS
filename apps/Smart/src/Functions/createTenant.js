@@ -46,7 +46,7 @@ export async function createTenantHandler(req) {
       currency: 'USD',
       status: 'active',
       plan: 'solo',
-      monthly_cost: 9.99,
+      monthly_cost: 49,
       subscription_status: 'trial',
       trial_status: 'active',
       trial_period_days: 15,

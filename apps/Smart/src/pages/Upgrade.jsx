@@ -9,13 +9,13 @@ import { STRIPE_PRICES, PLANS, isStripeConfigured } from "@/lib/stripe";
 import DownloadAppGate from "@/components/DownloadAppGate";
 
 /**
- * /upgrade?plan=solo
+ * /upgrade?plan=completo
  *
  * Sprint 135 pivot — this route is the target of the iOS app's
  * SFSafariViewController when the user taps "Upgrade" in-app.
  *
  * Flow:
- *   1. Validate plan param (solo | team)
+ *   1. Validate plan param (completo | boletos_1..boletos_5)
  *   2. Verify Stripe is configured (frontend pk + price IDs)
  *   3. Read Supabase session. If absent → DownloadAppGate (Sprint 135
  *      removed the web /signup; signup now lives in iOS)
@@ -56,14 +56,14 @@ export default function Upgrade() {
         // 1. Validar plan param antes de pedir sesión — falla rápido si bad URL
         if (!planSlug || !PLANS[planSlug]) {
           setErrorMsg(
-            `Plan inválido: "${planSlug || "(vacío)"}". La única opción es "solo".`,
+            `Plan inválido: "${planSlug || "(vacío)"}". Las opciones son "completo" o "boletos_1" a "boletos_5".`,
           );
           setStatus("error");
           return;
         }
 
         // 2. Verificar configuración de Stripe
-        if (!isStripeConfigured()) {
+        if (!isStripeConfigured(planSlug)) {
           setErrorMsg("Stripe no está configurado todavía. Avísanos a archillastudios@gmail.com.");
           setStatus("error");
           return;

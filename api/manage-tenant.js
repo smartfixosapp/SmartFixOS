@@ -223,6 +223,7 @@ export default async function handler(req, res) {
       if (!plan) return res.status(400).json({ success: false, error: 'plan es requerido' });
       const updates = { plan };
       if (extra.monthly_cost !== undefined) updates.monthly_cost = Number(extra.monthly_cost) || 0;
+      if (plan === 'boletos') updates.business_mode = 'tickets';
       await sbPatch('tenant', filter, updates);
       await audit(admin, tenantId, 'tenant.set_plan', 'high', { reason, plan, monthly_cost: updates.monthly_cost ?? null });
       return res.status(200).json({ success: true, message: `📦 Plan actualizado a ${plan}` });

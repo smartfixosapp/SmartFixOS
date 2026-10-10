@@ -8,7 +8,7 @@ import { localGet, localSet, planName, planKey, trialDays } from "@/lib/tenantSe
 import { requestAppLock } from "@/components/auth/AppLock";
 import { SignOutConfirm } from "@/components/layout/AccountMenu";
 import { sendRawEmail, tenantEmailFromName } from "@/lib/orderEmails";
-import { PLANS, TRIAL_DAYS, isStripeConfigured } from "@/lib/stripe";
+import { PLANS, PLAN_AMOUNTS_USD, BOLETOS_MAX_TECHNICIANS, TRIAL_DAYS, isStripeConfigured } from "@/lib/stripe";
 import { createStripePortalSession } from "@/api/functions";
 
 export const IDLE_OPTS = [[0, "Inmediato"], [15, "15 segundos"], [30, "30 segundos"], [60, "1 minuto"], [300, "5 minutos"], [900, "15 minutos"], [1800, "30 minutos"], [3600, "1 hora"], [86400, "Nunca"]];
@@ -147,21 +147,42 @@ export function PaywallDialog({ open, onClose, blocking, onSignOut }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const tenantId = localGet("smartfix_tenant_id", "");
+  const [choice, setChoice] = useState("completo");
+  const [techs, setTechs] = useState(1);
+  const slug = choice === "boletos" ? `boletos_${techs}` : "completo";
+  const plan = PLANS[slug];
   const start = async () => {
     setBusy(true); setError(null);
-    try { window.location.href = `/upgrade?plan=solo${tenantId ? `&tenant=${tenantId}` : ""}`; } catch (e) { setError(e?.message || String(e)); setBusy(false); }
+    try { window.location.href = `/upgrade?plan=${slug}${tenantId ? `&tenant=${tenantId}` : ""}`; } catch (e) { setError(e?.message || String(e)); setBusy(false); }
   };
-  const feats = ["Órdenes, POS y Finanzas", "Inventario e IVU", "Portal del cliente", "Hasta 5 usuarios", "Chat interno del equipo", "Nómina y comisiones", "Multi-device en tiempo real"];
+  const feats = choice === "boletos"
+    ? ["Boletos con estados, fotos y notas", "Clientes con su historial", "Piezas por boleto", "Chat interno y ponche", "Multitienda incluida"]
+    : ["Boletos, POS y Finanzas", "Inventario e IVU", "Portal del cliente", "Hasta 5 usuarios", "Chat interno del equipo", "Nómina y comisiones", "Multi-device en tiempo real"];
   const body = (
     <div className="flex flex-col" style={{ gap: 14, paddingTop: 8 }}>
       <div className="flex items-center gap-3"><span style={{ width: 52, height: 52, borderRadius: 14, background: tint(A.brand, 0.16), color: A.brand, display: "flex", alignItems: "center", justifyContent: "center" }}><Crown className="w-6 h-6" /></span><span><b style={{ fontSize: 22 }}>{blocking ? "Activa tu suscripción" : "Tu plan"}</b><span className="block" style={{ fontSize: 13, color: A.sub }}>{TRIAL_DAYS} días gratis. Cancela cuando quieras.</span></span></div>
       <div style={{ padding: 16, borderRadius: 18, background: A.card2 }}>
-        <p className="flex items-baseline gap-1"><b style={{ fontSize: 34, color: A.brand }}>${PLANS.solo.price}</b><span style={{ color: A.sub }}>/mes</span></p>
-        <p style={{ color: A.sub, fontSize: 14 }}>{PLANS.solo.tagline}</p>
-        <p style={{ margin: "10px 0", padding: "6px 12px", borderRadius: 999, background: tint(A.success, 0.14), color: A.success, fontWeight: 700, fontSize: 13, display: "inline-block" }}>{TRIAL_DAYS} días gratis, luego ${PLANS.solo.price}/mes</p>
+        <div className="flex gap-2" style={{ marginBottom: 12 }}>
+          {[["completo", "Completo"], ["boletos", "Solo boletos"]].map(([k, l]) => (
+            <button key={k} onClick={() => setChoice(k)} className="apple-press" style={{ flex: 1, padding: "8px 0", borderRadius: 12, fontWeight: 700, fontSize: 14, background: choice === k ? A.brand : tint(A.brand, 0.12), color: choice === k ? "#fff" : A.brand }}>{l}</button>
+          ))}
+        </div>
+        {choice === "boletos" && (
+          <div className="flex items-center justify-between" style={{ marginBottom: 10, fontSize: 14 }}>
+            <span style={{ color: A.sub }}>Técnicos (+${PLAN_AMOUNTS_USD.boletos_tecnico_extra}/mes cada extra)</span>
+            <span className="flex items-center gap-3">
+              <button onClick={() => setTechs((t) => Math.max(1, t - 1))} disabled={techs <= 1} className="apple-press disabled:opacity-40" style={{ width: 32, height: 32, borderRadius: 16, background: tint(A.brand, 0.14), color: A.brand, fontWeight: 800 }}>−</button>
+              <b>{techs}</b>
+              <button onClick={() => setTechs((t) => Math.min(BOLETOS_MAX_TECHNICIANS, t + 1))} disabled={techs >= BOLETOS_MAX_TECHNICIANS} className="apple-press disabled:opacity-40" style={{ width: 32, height: 32, borderRadius: 16, background: tint(A.brand, 0.14), color: A.brand, fontWeight: 800 }}>+</button>
+            </span>
+          </div>
+        )}
+        <p className="flex items-baseline gap-1"><b style={{ fontSize: 34, color: A.brand }}>${plan.price}</b><span style={{ color: A.sub }}>/mes</span></p>
+        <p style={{ color: A.sub, fontSize: 14 }}>{plan.tagline}</p>
+        <p style={{ margin: "10px 0", padding: "6px 12px", borderRadius: 999, background: tint(A.success, 0.14), color: A.success, fontWeight: 700, fontSize: 13, display: "inline-block" }}>{TRIAL_DAYS} días gratis, luego ${plan.price}/mes</p>
         {feats.map((f) => <p key={f} className="flex items-center gap-2" style={{ fontSize: 14, padding: "3px 0" }}><Check className="w-4 h-4" style={{ color: A.brand }} strokeWidth={3} /> {f}</p>)}
-        <button onClick={start} disabled={busy || !isStripeConfigured()} className="apple-press w-full flex items-center justify-center gap-2 disabled:opacity-50" style={{ marginTop: 14, padding: "14px 0", borderRadius: 14, background: A.brand, color: "#fff", fontWeight: 700, fontSize: 16 }}>{busy ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />} Empezar {TRIAL_DAYS} días gratis</button>
-        {!isStripeConfigured() && <p style={{ fontSize: 12, color: A.warning, marginTop: 8 }}>El cobro en línea aún no está configurado para este entorno.</p>}
+        <button onClick={start} disabled={busy || !isStripeConfigured(slug)} className="apple-press w-full flex items-center justify-center gap-2 disabled:opacity-50" style={{ marginTop: 14, padding: "14px 0", borderRadius: 14, background: A.brand, color: "#fff", fontWeight: 700, fontSize: 16 }}>{busy ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />} Empezar {TRIAL_DAYS} días gratis</button>
+        {!isStripeConfigured(slug) && <p style={{ fontSize: 12, color: A.warning, marginTop: 8 }}>El cobro en línea aún no está configurado para este entorno.</p>}
       </div>
       <p style={{ fontSize: 12, color: A.sub }}>Al continuar aceptas los <a href="https://archillaos.com/terms" target="_blank" rel="noopener noreferrer" style={{ color: A.brand }}>Términos</a> · <a href="https://archillaos.com/privacy" target="_blank" rel="noopener noreferrer" style={{ color: A.brand }}>Privacidad</a>. La suscripción se cobra con tarjeta mediante Stripe y puedes cancelarla en cualquier momento.</p>
       <ErrorLine message={error} />

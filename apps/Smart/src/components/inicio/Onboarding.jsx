@@ -138,7 +138,7 @@ export function WelcomeOnboarding({ open, tenant, onAction }) {
   );
 }
 
-const PLAN_FEATURES = ["Órdenes, POS y Finanzas", "Inventario e IVU", "Portal del cliente", "Hasta 5 usuarios", "Chat interno del equipo", "Nómina y comisiones", "Multi-device en tiempo real"];
+const PLAN_FEATURES = ["Boletos, POS y Finanzas", "Inventario e IVU", "Portal del cliente", "Hasta 5 usuarios", "Chat interno del equipo", "Nómina y comisiones", "Multi-device en tiempo real"];
 
 export function PaywallDialog({ open, onClose, onSubscribe }) {
   return (
@@ -148,10 +148,10 @@ export function PaywallDialog({ open, onClose, onSubscribe }) {
         <p style={{ fontSize: 14, color: "#8E8E93", textAlign: "center" }}>14 días gratis. Cancela cuando quieras.</p>
         <div className="w-full flex flex-col" style={{ gap: 10, padding: 18, borderRadius: 18, background: "#2C2C2E", border: `1px solid ${tint(FP.brand, 0.4)}` }}>
           <div className="flex items-baseline justify-between">
-            <span style={{ fontSize: 20, fontWeight: 800 }}>Solo</span>
-            <span><span style={{ fontSize: 22, fontWeight: 800 }}>$9.99</span> <span style={{ fontSize: 13, color: "#8E8E93" }}>/mes</span></span>
+            <span style={{ fontSize: 20, fontWeight: 800 }}>Completo</span>
+            <span><span style={{ fontSize: 22, fontWeight: 800 }}>$49</span> <span style={{ fontSize: 13, color: "#8E8E93" }}>/mes</span></span>
           </div>
-          <p style={{ fontSize: 13, color: "#8E8E93" }}>Todo tu taller, todo incluido.</p>
+          <p style={{ fontSize: 13, color: "#8E8E93" }}>Todo tu taller, todo incluido. Solo boletos desde $20/mes (+$5 por técnico extra).</p>
           {PLAN_FEATURES.map((f) => <p key={f} className="flex items-center gap-2" style={{ fontSize: 14 }}><Check className="w-4 h-4" style={{ color: FP.success }} /> {f}</p>)}
         </div>
         <button onClick={onSubscribe} className="apple-press w-full" style={{ height: 52, borderRadius: 16, background: FP.brand, color: "#fff", fontSize: 17, fontWeight: 700 }}>Empezar 14 días gratis</button>

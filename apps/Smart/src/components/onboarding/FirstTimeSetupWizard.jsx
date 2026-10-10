@@ -32,8 +32,8 @@ const DEFAULT_SCHEDULE = {
   sun: { open: false, from: "09:00", to: "17:00" },
 };
 
-// Un solo plan: Archilla OS ($9.99/mes), todo incluido.
-const PLAN_INFO = { label: "Archilla OS", color: "blue", max_users: 999, price: "$9.99/mes" };
+// Dos planes: Solo boletos (desde $20/mes) y Completo ($49/mes).
+const PLAN_INFO = { label: "Archilla OS", color: "blue", max_users: 999, price: "Desde $20/mes" };
 
 const STEPS = [
   { id: 1, label: "Identidad",  icon: Building2        },

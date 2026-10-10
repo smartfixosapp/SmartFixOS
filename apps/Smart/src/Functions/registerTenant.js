@@ -108,7 +108,7 @@ export async function registerTenantHandler(req) {
 
     const intendedPlan = 'solo';
     const PLANS = {
-      solo: { max_users: 5, monthly_cost: 9.99, label: 'Solo' },
+      solo: { max_users: 5, monthly_cost: 49, label: 'Completo' },
     };
     const planCfg = PLANS[intendedPlan];
 

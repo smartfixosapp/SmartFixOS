@@ -96,10 +96,10 @@ export function recurringOf(tenant) {
   return items.filter((i) => i && i.id).map((i) => ({ ...i, amount: Number(i.amount) || 0, day_of_month: parseInt(i.day_of_month, 10) || 1 }));
 }
 
-export const PLAN_NAMES = { trial: "Prueba gratis", solo: "SOLO", team: "TEAM", beta: "Beta", pro: "Pro (legacy)", enterprise: "Enterprise (legacy)", founders_lifetime: "Founder ∞", free: "Free (legacy)", expired: "Vencido" };
+export const PLAN_NAMES = { trial: "Prueba gratis", boletos: "Solo boletos", solo: "SOLO (anterior)", team: "Completo", beta: "Beta", pro: "Pro (legacy)", enterprise: "Enterprise (legacy)", founders_lifetime: "Founder ∞", free: "Free (legacy)", expired: "Vencido" };
 export const planKey = (tenant) => String(tenant?.plan || "").toLowerCase();
 export const planName = (tenant) => PLAN_NAMES[planKey(tenant)] || "—";
-export const hasInternalChat = (tenant) => ["trial", "solo", "team", "beta", "pro", "enterprise", "founders_lifetime"].includes(planKey(tenant));
+export const hasInternalChat = (tenant) => ["trial", "boletos", "solo", "team", "beta", "pro", "enterprise", "founders_lifetime"].includes(planKey(tenant));
 
 export function trialDays(tenant) {
   if (!tenant?.trial_end_date) return null;
