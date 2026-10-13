@@ -17,6 +17,10 @@
   ],
   "rewrites": [
     {
+      "source": "/api/muse/:path*",
+      "destination": "/api/seed-email-templates?muse=:path*"
+    },
+    {
       "source": "/edge/owner-pin",
       "destination": "https://idntuvtabecwubzswpwi.supabase.co/functions/v1/owner-pin"
     },

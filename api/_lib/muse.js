@@ -609,14 +609,14 @@ function openapi() {
 }
 
 function segments(req) {
-  const raw = req.query?.route;
-  if (Array.isArray(raw)) return raw.filter(Boolean);
+  const raw = req.query?.muse;
+  if (Array.isArray(raw)) return raw.flatMap((r) => String(r).split('/')).filter(Boolean);
   if (typeof raw === 'string' && raw) return raw.split('/').filter(Boolean);
   const path = String(req.url || '').split('?')[0].replace(/^\/api\/muse\/?/, '');
   return path.split('/').filter(Boolean);
 }
 
-export default async function handler(req, res) {
+export async function museHandler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   const parts = segments(req);
 

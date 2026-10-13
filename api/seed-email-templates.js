@@ -8,6 +8,8 @@
  *   - If omitted: seed ALL tenants (SuperAdmin use)
  */
 
+import { museHandler } from './_lib/muse.js';
+
 const SB_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://idntuvtabecwubzswpwi.supabase.co';
 const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
@@ -79,6 +81,7 @@ async function seedForTenant(tenant_id) {
 }
 
 export default async function handler(req, res) {
+  if (typeof req.query?.muse === 'string') return museHandler(req, res);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
