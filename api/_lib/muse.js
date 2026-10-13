@@ -1,15 +1,15 @@
 import crypto from 'node:crypto';
 import { ensureResendConfigured, sendResendEmail } from '../../lib/server/resend.js';
 
-const SB_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://idntuvtabecwubzswpwi.supabase.co';
-const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+export const SB_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://idntuvtabecwubzswpwi.supabase.co';
+export const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 const API_TOKEN = process.env.MUSE_API_TOKEN || '';
 const TENANT_ID = process.env.MUSE_TENANT_ID || '';
 const PUBLIC_BASE = 'https://archillaos.com/api/muse';
 const PR_OFFSET_HOURS = -4;
 const ACTOR = 'Muse';
 
-const STATUS_LABELS = {
+export const STATUS_LABELS = {
   intake: 'Recepción',
   diagnosing: 'Diagnóstico',
   waiting_customer: 'Esperando cliente',
@@ -27,10 +27,10 @@ const STATUS_LABELS = {
   not_repairable: 'No reparable',
   abandoned: 'Abandonado',
 };
-const TERMINAL = ['delivered', 'cancelled', 'warranty', 'not_repairable', 'abandoned'];
-const NON_MAILABLE = ['pending_order', 'reparacion_externa'];
-const BLOCKED_STATUSES = ['warranty', 'abandoned'];
-const STATUS_MESSAGES = {
+export const TERMINAL = ['delivered', 'cancelled', 'warranty', 'not_repairable', 'abandoned'];
+export const NON_MAILABLE = ['pending_order', 'reparacion_externa'];
+export const BLOCKED_STATUSES = ['warranty', 'abandoned'];
+export const STATUS_MESSAGES = {
   intake: 'Recibimos tu equipo y ya está en nuestra lista de trabajo.',
   diagnosing: 'Estamos diagnosticando tu equipo.',
   waiting_customer: 'Necesitamos tu respuesta para continuar con tu orden. Por favor contáctanos.',
@@ -46,7 +46,7 @@ const STATUS_MESSAGES = {
 };
 const EXPENSE_CATEGORIES = ['parts', 'supplies', 'rent', 'utilities', 'marketing', 'repairs', 'taxes', 'other'];
 const PAYMENT_METHODS = ['cash', 'card', 'ath_movil'];
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ORDER_COLUMNS = [
   'id', 'order_number', 'status', 'status_note', 'status_history', 'customer_name', 'customer_phone',
   'customer_email', 'device_type', 'device_brand', 'device_model', 'device_color', 'initial_problem',
@@ -74,7 +74,7 @@ function tokenOk(header) {
   return crypto.timingSafeEqual(a, b);
 }
 
-async function sb(path, { method = 'GET', body, prefer } = {}) {
+export async function sb(path, { method = 'GET', body, prefer } = {}) {
   const headers = {
     apikey: SB_KEY,
     Authorization: `Bearer ${SB_KEY}`,
@@ -101,19 +101,19 @@ function fail(res, status, error, code) {
   return res.status(status).json({ ok: false, error, code: code || 'error' });
 }
 
-function money(n) {
+export function money(n) {
   return Math.round((Number(n) || 0) * 100) / 100;
 }
 
-function escapeHtml(s) {
+export function escapeHtml(s) {
   return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-function cleanFilter(s) {
+export function cleanFilter(s) {
   return String(s || '').replace(/[,()*%\\"']/g, ' ').trim().slice(0, 60);
 }
 
-function prDayRange(dateStr) {
+export function prDayRange(dateStr) {
   const today = new Date(Date.now() + PR_OFFSET_HOURS * 3600_000).toISOString().slice(0, 10);
   const day = /^\d{4}-\d{2}-\d{2}$/.test(dateStr || '') ? dateStr : today;
   const start = new Date(`${day}T00:00:00.000Z`).getTime() - PR_OFFSET_HOURS * 3600_000;
@@ -204,7 +204,7 @@ function emailHtml({ shop, greetingName, message, order }) {
     </div></body></html>`;
 }
 
-async function sendCustomerEmail({ order, subject, message }) {
+export async function sendCustomerEmail({ order, subject, message }) {
   ensureResendConfigured();
   const shop = await shopInfo();
   const compact = compactOrder(order);
@@ -219,7 +219,7 @@ async function sendCustomerEmail({ order, subject, message }) {
   });
 }
 
-function validEmail(s) {
+export function validEmail(s) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s || '').trim());
 }
 

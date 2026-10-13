@@ -21,6 +21,10 @@
       "destination": "/api/seed-email-templates?muse=:path*"
     },
     {
+      "source": "/api/jaime/:path*",
+      "destination": "/api/seed-email-templates?jaime=:path*"
+    },
+    {
       "source": "/edge/owner-pin",
       "destination": "https://idntuvtabecwubzswpwi.supabase.co/functions/v1/owner-pin"
     },
