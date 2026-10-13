@@ -594,7 +594,7 @@ async function catalog(req, res) {
   let url =
     `product?tenant_id=eq.${TENANT_ID}&active=eq.true&type=eq.product` +
     `&select=id,name,stock,min_stock,cost,price,supplier_name,device_brand,device_model_tag,part_type&order=name.asc&limit=${limit}&offset=${(page - 1) * limit}`;
-  if (String(q.todos) !== 'true') url += '&part_type=eq.pieza';
+  if (String(q.todos) !== 'true') url += '&tipo_principal=eq.dispositivos&subcategoria=eq.piezas_servicios';
   const term = cleanFilter(q.q);
   if (term) url += `&name=ilike.*${term}*`;
   let rows = (await sb(url)) || [];
