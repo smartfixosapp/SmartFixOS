@@ -483,16 +483,33 @@ async function addPiece(req, res, ref) {
   let precio = body.precio === undefined ? null : Number(body.precio);
   let costo = body.costo === undefined || body.costo === null ? null : Number(body.costo);
   const cantidad = body.cantidad === undefined ? 1 : parseInt(body.cantidad, 10);
-  const productoId = typeof body.producto_id === 'string' ? body.producto_id.trim() : '';
+  let productoId = typeof body.producto_id === 'string' ? body.producto_id.trim() : '';
   if (!Number.isInteger(cantidad) || cantidad < 1 || cantidad > 100) return fail(res, 400, 'cantidad debe ser un entero entre 1 y 100', 'invalid_body');
+  const productCols = 'id,name,price,cost,stock';
+  let producto = null;
+  let detectado = false;
   if (productoId) {
     if (!UUID_RE.test(productoId)) return fail(res, 400, 'producto_id invalido', 'invalid_body');
-    const rows = await sb(`product?tenant_id=eq.${TENANT_ID}&id=eq.${productoId}&select=id,name,price,cost&limit=1`);
-    const p = rows?.[0];
-    if (!p) return fail(res, 404, 'Producto no encontrado en el inventario', 'not_found');
-    if (!nombre) nombre = p.name;
-    if (precio === null) precio = Number(p.price) || 0;
-    if (costo === null && p.cost !== null && p.cost !== undefined) costo = Number(p.cost) || 0;
+    const rows = await sb(`product?tenant_id=eq.${TENANT_ID}&id=eq.${productoId}&select=${productCols}&limit=1`);
+    producto = rows?.[0] || null;
+    if (!producto) return fail(res, 404, 'Producto no encontrado en el inventario', 'not_found');
+  } else if (nombre) {
+    const exact = cleanFilter(nombre);
+    if (exact && exact === nombre) {
+      const rows = await sb(
+        `product?tenant_id=eq.${TENANT_ID}&active=eq.true&type=eq.product&name=ilike.${encodeURIComponent(exact)}&select=${productCols}&limit=2`
+      );
+      if (Array.isArray(rows) && rows.length === 1) {
+        producto = rows[0];
+        productoId = producto.id;
+        detectado = true;
+      }
+    }
+  }
+  if (producto) {
+    if (!nombre) nombre = producto.name;
+    if (precio === null) precio = Number(producto.price) || 0;
+    if (costo === null && producto.cost !== null && producto.cost !== undefined) costo = Number(producto.cost) || 0;
   }
   if (!nombre) return fail(res, 400, 'nombre es requerido', 'invalid_body');
   if (precio === null || !Number.isFinite(precio) || precio < 0 || precio > 100000) return fail(res, 400, 'precio debe ser un numero entre 0 y 100000', 'invalid_body');
@@ -510,7 +527,45 @@ async function addPiece(req, res, ref) {
     return res.status(200).json({ ok: true, duplicado: true, nota: 'La misma pieza ya estaba como ultima linea del boleto; no se duplico.' });
   }
 
+  const inventario = { descontado: false, producto: producto ? producto.name : null, motivo: null };
+  let prevStock = null;
+  let nextStock = null;
+  if (!producto) {
+    inventario.motivo = 'sin producto_id ni coincidencia exacta de nombre en el inventario';
+  } else if (producto.stock === null || producto.stock === undefined || Number(producto.stock) < 0) {
+    inventario.motivo = 'el producto no lleva control de stock';
+  } else {
+    prevStock = Number(producto.stock) || 0;
+    nextStock = Math.max(0, prevStock - cantidad);
+    const upd = await sb(`product?id=eq.${producto.id}&tenant_id=eq.${TENANT_ID}&stock=eq.${prevStock}`, {
+      method: 'PATCH',
+      body: { stock: nextStock },
+      prefer: 'return=representation',
+    });
+    if (!Array.isArray(upd) || upd.length === 0) {
+      return fail(res, 409, 'El stock cambio mientras se registraba la pieza; vuelve a intentar.', 'stock_conflict');
+    }
+    inventario.descontado = true;
+    inventario.stock_anterior = prevStock;
+    inventario.stock_nuevo = nextStock;
+    if (prevStock < cantidad) inventario.aviso = `Stock insuficiente en el sistema (habia ${prevStock}, se uso ${cantidad}); quedo en 0.`;
+  }
+
+  const revertStock = async () => {
+    if (!inventario.descontado) return;
+    try {
+      await sb(`product?id=eq.${producto.id}&tenant_id=eq.${TENANT_ID}&stock=eq.${nextStock}`, {
+        method: 'PATCH',
+        body: { stock: prevStock },
+        prefer: 'return=minimal',
+      });
+    } catch {}
+  };
+
   let linkId = null;
+  let estimate = 0;
+  let balance = 0;
+  try {
   if (costo !== null) {
     const inserted = await sb('part_link', {
       method: 'POST',
@@ -544,8 +599,8 @@ async function addPiece(req, res, ref) {
   const discountTotal = combined.reduce((s, i) => (i.type === 'discount' ? s + Math.abs(Number(i.total) || 0) : s), 0);
   const subtotal = itemsTotal + (Number(order.labor_cost) || 0);
   const rate = Number(order.tax_rate) || 0;
-  const estimate = Math.max(0, subtotal + subtotal * rate - discountTotal);
-  const balance = Math.max(0, estimate - (Number(order.amount_paid) || 0));
+  estimate = Math.max(0, subtotal + subtotal * rate - discountTotal);
+  balance = Math.max(0, estimate - (Number(order.amount_paid) || 0));
   const nowIso = new Date().toISOString();
   const history = Array.isArray(order.status_history) ? order.status_history : [];
   await sb(`order?id=eq.${order.id}&tenant_id=eq.${TENANT_ID}`, {
@@ -570,13 +625,38 @@ async function addPiece(req, res, ref) {
     },
     prefer: 'return=minimal',
   });
+  } catch (e) {
+    await revertStock();
+    throw e;
+  }
+  if (inventario.descontado) {
+    sb('inventory_movement', {
+      method: 'POST',
+      body: {
+        tenant_id: TENANT_ID,
+        product_id: producto.id,
+        movement_type: 'sale',
+        quantity: cantidad,
+        previous_stock: prevStock,
+        new_stock: nextStock,
+        unit_cost: costo === null ? 0 : money(costo),
+        total_amount: money(cantidad * precio),
+        reference_type: 'work_order',
+        reference_id: order.id,
+        reference_number: order.order_number,
+        performed_by: ACTOR,
+      },
+      prefer: 'return=minimal',
+    }).catch(() => {});
+  }
   return res.status(200).json({
     ok: true,
     ticket: order.order_number,
     pieza: { nombre, cantidad, precio: money(precio), total: money(cantidad * precio), costo_total: costo === null ? null : money(costo * cantidad) },
     total_facturado: money(estimate),
     balance_pendiente: money(balance),
-    inventario_descontado: false,
+    inventario_descontado: inventario.descontado,
+    inventario: { ...inventario, producto_detectado_por_nombre: detectado },
   });
 }
 
@@ -863,7 +943,7 @@ function openapi() {
         },
         post: {
           operationId: 'registrarPieza',
-          summary: 'Registra una pieza usada: la agrega al boleto para facturarla, recalcula el total y guarda su costo. No descuenta inventario.',
+          summary: 'Registra una pieza usada: la agrega al boleto para facturarla, recalcula el total, guarda su costo y descuenta el inventario si es un producto con control de stock (por producto_id o por coincidencia exacta de nombre).',
           parameters: [idParam],
           requestBody: body({
             type: 'object',
