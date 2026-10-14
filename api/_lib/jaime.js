@@ -1246,12 +1246,20 @@ async function createTicket(req, res) {
     device_model: modelo || equipo,
   };
   if (customer && customer.id) row.customer_id = customer.id;
-  if (telefono) row.customer_phone = telefono;
-  else if (customer && customer.phone) row.customer_phone = customer.phone;
-  if (email) row.customer_email = email;
-  else if (customer && customer.email) row.customer_email = customer.email;
+  row.customer_phone = telefono || (customer && customer.phone) || '';
+  row.customer_email = email || (customer && customer.email) || '';
   if (marca) row.device_brand = marca;
-  if (deviceType) row.device_type = deviceType;
+  if (!deviceType && (marca || modelo)) {
+    const { chain } = await deviceChain(marca, modelo);
+    if (chain.device_category) deviceType = chain.device_category;
+    if (!deviceFamily && chain.device_family) deviceFamily = chain.device_family;
+  }
+  if (deviceType) {
+    row.device_type = deviceType;
+  } else {
+    row.device_type = 'temporary';
+    row.device_model = `TEMPORAL: ${modelo || equipo}`;
+  }
   if (deviceFamily) row.device_family = deviceFamily;
   if (storeId) row.store_id = storeId;
   if (employee) {
