@@ -1108,6 +1108,15 @@ async function findCustomer(telefono, email, cliente) {
     const match = (rows || []).find((c) => String(c.name || '').toLowerCase().includes(first));
     if (match) return match;
   }
+  if (!digits && !email) {
+    const exact = cleanFilter(cliente);
+    if (exact) {
+      const rows = await sb(
+        `customer?tenant_id=eq.${TENANT_ID}&name=ilike.${encodeURIComponent(exact)}&phone=is.null&email=is.null&select=${cols}&limit=1`
+      );
+      if (rows && rows[0]) return rows[0];
+    }
+  }
   return null;
 }
 
@@ -1182,18 +1191,15 @@ async function createTicket(req, res) {
 
   let customer = null;
   let clienteNuevo = false;
-  if (telefono || email) {
-    customer = await findCustomer(telefono, email, cliente);
-    if (!customer) {
-      const payload = { tenant_id: TENANT_ID, name: cliente, preferred_language: 'es', risk_flag: false };
-      if (telefono) payload.phone = telefono;
-      if (email) payload.email = email;
-      const created = await sb('customer', { method: 'POST', body: payload, prefer: 'return=representation' });
-      customer = Array.isArray(created) ? created[0] : created;
-      clienteNuevo = true;
-    }
-  } else {
-    avisos.push('Sin telefono ni email: el boleto se creo sin ficha de cliente.');
+  customer = await findCustomer(telefono, email, cliente);
+  if (!customer) {
+    const payload = { tenant_id: TENANT_ID, name: cliente, preferred_language: 'es', risk_flag: false };
+    if (telefono) payload.phone = telefono;
+    if (email) payload.email = email;
+    const created = await sb('customer', { method: 'POST', body: payload, prefer: 'return=representation' });
+    customer = Array.isArray(created) ? created[0] : created;
+    clienteNuevo = true;
+    if (!telefono && !email) avisos.push('Cliente creado sin telefono ni email.');
   }
 
   let employee = null;
