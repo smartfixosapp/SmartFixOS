@@ -24,7 +24,7 @@ const PUBLIC_BASE = 'https://archillaos.com/api/jaime';
 const ACTOR = 'Jaime';
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const ORDER_COLUMNS = [
-  'id', 'order_number', 'status', 'status_note', 'status_history', 'customer_name', 'customer_phone',
+  'id', 'customer_id', 'order_number', 'status', 'status_note', 'status_history', 'customer_name', 'customer_phone',
   'customer_email', 'device_type', 'device_brand', 'device_model', 'device_color', 'initial_problem',
   'labor_cost', 'cost_estimate', 'tax_rate', 'amount_paid', 'balance_due', 'paid', 'deposit_amount',
   'assigned_to_name', 'promised_date', 'created_date', 'updated_date', 'order_items', 'device_photos',
@@ -195,6 +195,7 @@ async function ticketPieces(order) {
       });
     }
   }
+  const linkById = new Map(links.map((l) => [l.id, l]));
   const poIdsInLinks = new Set(links.map((l) => l.purchase_order_id).filter(Boolean));
   const costoLinks = links
     .filter((l) => l.status !== 'to_order')
@@ -210,6 +211,12 @@ async function ticketPieces(order) {
       cantidad: i.quantity ?? 1,
       precio: money(i.price),
       total: money(i.total ?? (Number(i.quantity) || 1) * (Number(i.price) || 0)),
+      costo_total: i.source_part_link_id && linkById.has(i.source_part_link_id)
+        ? money(linkById.get(i.source_part_link_id).cost)
+        : null,
+      suplidor: i.source_part_link_id && linkById.has(i.source_part_link_id)
+        ? linkById.get(i.source_part_link_id).store || null
+        : null,
     })),
     por_ordenar_o_ordenadas: links.map((l) => ({
       id: l.id,
@@ -229,6 +236,10 @@ async function ticketPieces(order) {
 async function ticketDetail(req, res, ref) {
   const order = await findOrder(ref);
   if (!order) return fail(res, 404, 'Boleto no encontrado', 'not_found');
+  return res.status(200).json({ ok: true, ticket: await buildTicketDetail(order) });
+}
+
+async function buildTicketDetail(order) {
   const history = Array.isArray(order.status_history) ? order.status_history : [];
   const [piezas, pagos] = await Promise.all([
     ticketPieces(order),
@@ -242,9 +253,7 @@ async function ticketDetail(req, res, ref) {
     const meta = photos.find((p) => p && p.url === url) || {};
     return { url, estatus: meta.status || null, por: meta.by || null, fecha: meta.taken_at || null };
   });
-  return res.status(200).json({
-    ok: true,
-    ticket: {
+  return {
       ...ticketResumen(order),
       email: order.customer_email || null,
       problema: order.initial_problem || null,
@@ -272,8 +281,7 @@ async function ticketDetail(req, res, ref) {
         descripcion: t.description || null,
         fecha: t.created_at,
       })),
-    },
-  });
+  };
 }
 
 async function changeStatus(req, res, ref) {
@@ -472,27 +480,28 @@ async function addPhoto(req, res, ref) {
   return res.status(200).json({ ok: true, ticket: order.order_number, url: publicUrl, total_fotos: photos.length + 1 });
 }
 
-async function addPiece(req, res, ref) {
-  const body = req.body || {};
-  const order = await findOrder(ref);
-  if (!order) return fail(res, 404, 'Boleto no encontrado', 'not_found');
+function rfail(status, error, code) {
+  return { status, body: { ok: false, error, code } };
+}
+
+async function registerPiece(order, body) {
   if (TERMINAL.includes(order.status)) {
-    return fail(res, 409, 'El boleto esta cerrado; no se le pueden agregar piezas.', 'closed');
+    return rfail(409, 'El boleto esta cerrado; no se le pueden agregar piezas.', 'closed');
   }
   let nombre = typeof body.nombre === 'string' ? body.nombre.trim().slice(0, 140) : '';
   let precio = body.precio === undefined ? null : Number(body.precio);
   let costo = body.costo === undefined || body.costo === null ? null : Number(body.costo);
   const cantidad = body.cantidad === undefined ? 1 : parseInt(body.cantidad, 10);
   let productoId = typeof body.producto_id === 'string' ? body.producto_id.trim() : '';
-  if (!Number.isInteger(cantidad) || cantidad < 1 || cantidad > 100) return fail(res, 400, 'cantidad debe ser un entero entre 1 y 100', 'invalid_body');
+  if (!Number.isInteger(cantidad) || cantidad < 1 || cantidad > 100) return rfail(400, 'cantidad debe ser un entero entre 1 y 100', 'invalid_body');
   const productCols = 'id,name,price,cost,stock';
   let producto = null;
   let detectado = false;
   if (productoId) {
-    if (!UUID_RE.test(productoId)) return fail(res, 400, 'producto_id invalido', 'invalid_body');
+    if (!UUID_RE.test(productoId)) return rfail(400, 'producto_id invalido', 'invalid_body');
     const rows = await sb(`product?tenant_id=eq.${TENANT_ID}&id=eq.${productoId}&select=${productCols}&limit=1`);
     producto = rows?.[0] || null;
-    if (!producto) return fail(res, 404, 'Producto no encontrado en el inventario', 'not_found');
+    if (!producto) return rfail(404, 'Producto no encontrado en el inventario', 'not_found');
   } else if (nombre) {
     const exact = cleanFilter(nombre);
     if (exact && exact === nombre) {
@@ -511,9 +520,9 @@ async function addPiece(req, res, ref) {
     if (precio === null) precio = Number(producto.price) || 0;
     if (costo === null && producto.cost !== null && producto.cost !== undefined) costo = Number(producto.cost) || 0;
   }
-  if (!nombre) return fail(res, 400, 'nombre es requerido', 'invalid_body');
-  if (precio === null || !Number.isFinite(precio) || precio < 0 || precio > 100000) return fail(res, 400, 'precio debe ser un numero entre 0 y 100000', 'invalid_body');
-  if (costo !== null && (!Number.isFinite(costo) || costo < 0 || costo > 100000)) return fail(res, 400, 'costo invalido', 'invalid_body');
+  if (!nombre) return rfail(400, 'nombre es requerido', 'invalid_body');
+  if (precio === null || !Number.isFinite(precio) || precio < 0 || precio > 100000) return rfail(400, 'precio debe ser un numero entre 0 y 100000', 'invalid_body');
+  if (costo !== null && (!Number.isFinite(costo) || costo < 0 || costo > 100000)) return rfail(400, 'costo invalido', 'invalid_body');
   const suplidor = typeof body.suplidor === 'string' ? body.suplidor.trim().slice(0, 100) : '';
 
   const items = Array.isArray(order.order_items) ? order.order_items : [];
@@ -524,7 +533,7 @@ async function addPiece(req, res, ref) {
     Number(last.quantity) === cantidad && money(last.price) === money(precio) &&
     Date.now() - updatedAt < 10 * 60_000
   ) {
-    return res.status(200).json({ ok: true, duplicado: true, nota: 'La misma pieza ya estaba como ultima linea del boleto; no se duplico.' });
+    return { status: 200, body: { ok: true, duplicado: true, nota: 'La misma pieza ya estaba como ultima linea del boleto; no se duplico.' } };
   }
 
   const inventario = { descontado: false, producto: producto ? producto.name : null, motivo: null };
@@ -543,7 +552,7 @@ async function addPiece(req, res, ref) {
       prefer: 'return=representation',
     });
     if (!Array.isArray(upd) || upd.length === 0) {
-      return fail(res, 409, 'El stock cambio mientras se registraba la pieza; vuelve a intentar.', 'stock_conflict');
+      return rfail(409, 'El stock cambio mientras se registraba la pieza; vuelve a intentar.', 'stock_conflict');
     }
     inventario.descontado = true;
     inventario.stock_anterior = prevStock;
@@ -566,65 +575,60 @@ async function addPiece(req, res, ref) {
   let estimate = 0;
   let balance = 0;
   try {
-  if (costo !== null) {
-    const inserted = await sb('part_link', {
-      method: 'POST',
-      body: {
-        tenant_id: TENANT_ID,
-        order_id: order.id,
-        order_number: order.order_number,
-        url: '',
-        title: nombre,
-        store: suplidor || null,
-        cost: money(costo * cantidad),
-        price: money(precio * cantidad),
-        status: 'received',
-      },
-      prefer: 'return=representation',
-    });
-    linkId = (Array.isArray(inserted) ? inserted[0] : inserted)?.id || null;
-  }
-
-  const line = {
-    id: productoId || crypto.randomUUID(),
-    type: productoId ? 'part' : 'manual',
-    name: nombre,
-    quantity: cantidad,
-    price: money(precio),
-    total: money(cantidad * precio),
-  };
-  if (linkId) line.source_part_link_id = linkId;
-  const combined = [...items, line];
-  const itemsTotal = combined.reduce((s, i) => (i.type === 'discount' ? s : s + (Number(i.total) || 0)), 0);
-  const discountTotal = combined.reduce((s, i) => (i.type === 'discount' ? s + Math.abs(Number(i.total) || 0) : s), 0);
-  const subtotal = itemsTotal + (Number(order.labor_cost) || 0);
-  const rate = Number(order.tax_rate) || 0;
-  estimate = Math.max(0, subtotal + subtotal * rate - discountTotal);
-  balance = Math.max(0, estimate - (Number(order.amount_paid) || 0));
-  const nowIso = new Date().toISOString();
-  const history = Array.isArray(order.status_history) ? order.status_history : [];
-  await sb(`order?id=eq.${order.id}&tenant_id=eq.${TENANT_ID}`, {
-    method: 'PATCH',
-    body: {
-      order_items: combined,
-      cost_estimate: money(estimate),
-      balance_due: money(balance),
-      paid: balance <= 0.005 && estimate > 0,
-      status_history: [
-        ...history,
-        {
-          status: null,
-          timestamp: nowIso,
-          changed_by: ACTOR,
-          note: `Pieza agregada: ${nombre} x${cantidad} a $${money(precio).toFixed(2)}`,
-          visible_to_customer: false,
-          kind: 'note',
+    if (costo !== null) {
+      const inserted = await sb('part_link', {
+        method: 'POST',
+        body: {
+          tenant_id: TENANT_ID,
+          order_id: order.id,
+          order_number: order.order_number,
+          url: '',
+          title: nombre,
+          store: suplidor || null,
+          cost: money(costo * cantidad),
+          price: money(precio * cantidad),
+          status: 'received',
         },
-      ],
-      updated_date: nowIso,
-    },
-    prefer: 'return=minimal',
-  });
+        prefer: 'return=representation',
+      });
+      linkId = (Array.isArray(inserted) ? inserted[0] : inserted)?.id || null;
+    }
+
+    const line = {
+      id: productoId || crypto.randomUUID(),
+      type: productoId ? 'part' : 'manual',
+      name: nombre,
+      quantity: cantidad,
+      price: money(precio),
+      total: money(cantidad * precio),
+    };
+    if (linkId) line.source_part_link_id = linkId;
+    const combined = [...items, line];
+    ({ estimate, balance } = recomputeTotals(order, combined));
+    const nowIso = new Date().toISOString();
+    const history = Array.isArray(order.status_history) ? order.status_history : [];
+    await sb(`order?id=eq.${order.id}&tenant_id=eq.${TENANT_ID}`, {
+      method: 'PATCH',
+      body: {
+        order_items: combined,
+        cost_estimate: money(estimate),
+        balance_due: money(balance),
+        paid: balance <= 0.005 && estimate > 0,
+        status_history: [
+          ...history,
+          {
+            status: null,
+            timestamp: nowIso,
+            changed_by: ACTOR,
+            note: `Pieza agregada: ${nombre} x${cantidad} a $${money(precio).toFixed(2)}`,
+            visible_to_customer: false,
+            kind: 'note',
+          },
+        ],
+        updated_date: nowIso,
+      },
+      prefer: 'return=minimal',
+    });
   } catch (e) {
     await revertStock();
     throw e;
@@ -649,15 +653,42 @@ async function addPiece(req, res, ref) {
       prefer: 'return=minimal',
     }).catch(() => {});
   }
-  return res.status(200).json({
-    ok: true,
-    ticket: order.order_number,
-    pieza: { nombre, cantidad, precio: money(precio), total: money(cantidad * precio), costo_total: costo === null ? null : money(costo * cantidad) },
-    total_facturado: money(estimate),
-    balance_pendiente: money(balance),
-    inventario_descontado: inventario.descontado,
-    inventario: { ...inventario, producto_detectado_por_nombre: detectado },
-  });
+  return {
+    status: 200,
+    body: {
+      ok: true,
+      ticket: order.order_number,
+      pieza: {
+        id: productoId || null,
+        nombre,
+        cantidad,
+        precio: money(precio),
+        total: money(cantidad * precio),
+        costo_total: costo === null ? null : money(costo * cantidad),
+      },
+      total_facturado: money(estimate),
+      balance_pendiente: money(balance),
+      inventario_descontado: inventario.descontado,
+      inventario: { ...inventario, producto_detectado_por_nombre: detectado },
+    },
+  };
+}
+
+function recomputeTotals(order, items) {
+  const itemsTotal = items.reduce((s, i) => (i.type === 'discount' ? s : s + (Number(i.total) || 0)), 0);
+  const discountTotal = items.reduce((s, i) => (i.type === 'discount' ? s + Math.abs(Number(i.total) || 0) : s), 0);
+  const subtotal = itemsTotal + (Number(order.labor_cost) || 0);
+  const rate = Number(order.tax_rate) || 0;
+  const estimate = Math.max(0, subtotal + subtotal * rate - discountTotal);
+  const balance = Math.max(0, estimate - (Number(order.amount_paid) || 0));
+  return { estimate, balance };
+}
+
+async function addPiece(req, res, ref) {
+  const order = await findOrder(ref);
+  if (!order) return fail(res, 404, 'Boleto no encontrado', 'not_found');
+  const r = await registerPiece(order, req.body || {});
+  return res.status(r.status).json(r.body);
 }
 
 async function listPieces(req, res, ref) {
@@ -673,7 +704,7 @@ async function catalog(req, res) {
   const page = Math.max(parseInt(q.pagina, 10) || 1, 1);
   let url =
     `product?tenant_id=eq.${TENANT_ID}&active=eq.true&type=eq.product` +
-    `&select=id,name,stock,min_stock,cost,price,supplier_name,device_brand,device_model_tag,part_type&order=name.asc&limit=${limit}&offset=${(page - 1) * limit}`;
+    `&select=id,name,stock,min_stock,cost,price,supplier_name,device_brand,device_model_tag,category,part_type&order=name.asc&limit=${limit}&offset=${(page - 1) * limit}`;
   if (String(q.todos) !== 'true') url += '&tipo_principal=eq.dispositivos&subcategoria=eq.piezas_servicios';
   const term = cleanFilter(q.q);
   if (term) url += `&name=ilike.*${term}*`;
@@ -693,6 +724,7 @@ async function catalog(req, res) {
       suplidor: p.supplier_name || null,
       marca: p.device_brand || null,
       modelo: p.device_model_tag || null,
+      categoria: p.category || null,
     })),
   });
 }
@@ -837,6 +869,725 @@ async function alerts(req, res) {
   });
 }
 
+const NAME_PARTICLES = new Set(['de', 'del', 'la', 'las', 'los', 'y', 'e', 'van', 'von', 'da', 'do', 'dos']);
+
+function normalizeName(raw) {
+  const clean = String(raw || '').trim().replace(/\s+/g, ' ');
+  if (!clean) return '';
+  if (clean !== clean.toLowerCase() && clean !== clean.toUpperCase()) return clean;
+  return clean
+    .split(' ')
+    .map((w, i) => (i > 0 && NAME_PARTICLES.has(w.toLowerCase()) ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()))
+    .join(' ');
+}
+
+function productShape(p) {
+  return {
+    id: p.id,
+    nombre: p.name,
+    stock: Number(p.stock) || 0,
+    stock_minimo: Number(p.min_stock) || 0,
+    costo: money(p.cost),
+    precio: money(p.price),
+    suplidor: p.supplier_name || null,
+    marca: p.device_brand || null,
+    modelo: p.device_model_tag || null,
+    categoria: p.category || null,
+  };
+}
+
+const PRODUCT_SHAPE_COLUMNS = 'id,name,stock,min_stock,cost,price,supplier_name,device_brand,device_model_tag,category';
+
+function readNumber(value, label, { min = 0, max = 100000 } = {}) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < min || n > max) {
+    const err = new Error(`${label} debe ser un numero entre ${min} y ${max}`);
+    err.status = 400;
+    throw err;
+  }
+  return n;
+}
+
+function readText(value, label, { max = 140, required = false } = {}) {
+  if (value === undefined || value === null || value === '') {
+    if (required) {
+      const err = new Error(`${label} es requerido`);
+      err.status = 400;
+      throw err;
+    }
+    return '';
+  }
+  if (typeof value !== 'string') {
+    const err = new Error(`${label} debe ser texto`);
+    err.status = 400;
+    throw err;
+  }
+  const t = value.trim();
+  if (required && !t) {
+    const err = new Error(`${label} es requerido`);
+    err.status = 400;
+    throw err;
+  }
+  if (t.length > max) {
+    const err = new Error(`${label} demasiado largo (max ${max})`);
+    err.status = 400;
+    throw err;
+  }
+  return t;
+}
+
+async function deviceChain(marca, modelo) {
+  const brand = cleanFilter(marca);
+  const model = cleanFilter(modelo);
+  if (!brand && !model) return { chain: {}, aviso: null };
+  const cols = 'device_brand,device_category,device_family,device_model_tag';
+  const base = `product?tenant_id=eq.${TENANT_ID}&device_brand=not.is.null&device_family=not.is.null&device_category=not.is.null&select=${cols}&limit=1`;
+  let sib = null;
+  if (model) {
+    const rows = await sb(`${base}&device_model_tag=ilike.${encodeURIComponent(model)}`);
+    sib = rows?.[0] || null;
+  }
+  if (!sib && brand && model) {
+    const token = model.split(/\s+/)[0];
+    const rows = await sb(`${base}&device_brand=ilike.${encodeURIComponent(brand)}&device_family=ilike.${encodeURIComponent(token)}`);
+    sib = rows?.[0] || null;
+    if (sib) sib = { ...sib, device_model_tag: modelo };
+  }
+  if (!sib && brand) {
+    const rows = await sb(`${base}&device_brand=ilike.${encodeURIComponent(brand)}`);
+    const found = rows?.[0] || null;
+    if (found && model) {
+      sib = { device_brand: found.device_brand, device_category: found.device_category, device_family: model.split(/\s+/)[0], device_model_tag: modelo };
+    }
+  }
+  if (!sib) {
+    return {
+      chain: {},
+      aviso: 'No habia una pieza similar en el inventario para completar marca, categoria y familia; se creo sin marca/modelo para que aparezca en "sin categoria".',
+    };
+  }
+  return {
+    chain: {
+      device_brand: sib.device_brand,
+      device_category: sib.device_category,
+      device_family: sib.device_family,
+      device_model_tag: sib.device_model_tag || modelo,
+    },
+    aviso: null,
+  };
+}
+
+async function logStockMovement(product, prev, next, reason, number) {
+  try {
+    await sb('inventory_movement', {
+      method: 'POST',
+      body: {
+        tenant_id: TENANT_ID,
+        product_id: product.id,
+        movement_type: 'adjustment',
+        quantity: Math.abs(next - prev),
+        previous_stock: prev,
+        new_stock: next,
+        unit_cost: money(product.cost),
+        total_amount: money(Math.abs(next - prev) * (Number(product.cost) || 0)),
+        reference_type: reason,
+        reference_number: number || null,
+        performed_by: ACTOR,
+      },
+      prefer: 'return=minimal',
+    });
+  } catch {}
+}
+
+async function createProduct(req, res) {
+  const b = req.body || {};
+  let nombre;
+  let precio;
+  let costo = 0;
+  let stock = 0;
+  let stockMin = 0;
+  try {
+    nombre = readText(b.nombre, 'nombre', { required: true });
+    precio = readNumber(b.precio, 'precio');
+    if (b.costo !== undefined && b.costo !== null) costo = readNumber(b.costo, 'costo');
+    if (b.stock !== undefined && b.stock !== null) stock = readNumber(b.stock, 'stock', { max: 100000 });
+    if (b.stock_minimo !== undefined && b.stock_minimo !== null) stockMin = readNumber(b.stock_minimo, 'stock_minimo');
+  } catch (e) {
+    return fail(res, e.status || 400, e.message, 'invalid_body');
+  }
+  const marca = readText(b.marca, 'marca', { max: 60 });
+  const modelo = readText(b.modelo, 'modelo', { max: 100 });
+  const categoria = readText(b.categoria, 'categoria', { max: 60 });
+  const suplidor = readText(b.suplidor, 'suplidor', { max: 100 });
+
+  const exact = cleanFilter(nombre);
+  if (exact) {
+    const dup = await sb(
+      `product?tenant_id=eq.${TENANT_ID}&name=ilike.${encodeURIComponent(exact)}&select=${PRODUCT_SHAPE_COLUMNS}&limit=1`
+    );
+    if (dup && dup.length > 0) {
+      return res.status(409).json({
+        ok: false,
+        error: 'Ya existe un producto con ese nombre. Usa PATCH /piezas/{id} para editarlo.',
+        code: 'duplicate',
+        existente: productShape(dup[0]),
+      });
+    }
+  }
+
+  const { chain, aviso } = await deviceChain(marca, modelo);
+  const row = {
+    tenant_id: TENANT_ID,
+    name: nombre,
+    type: 'product',
+    tipo_principal: 'dispositivos',
+    subcategoria: 'piezas_servicios',
+    part_type: 'pieza',
+    price: money(precio),
+    cost: money(costo),
+    stock,
+    min_stock: stockMin,
+    taxable: true,
+    active: true,
+    ...chain,
+  };
+  if (categoria) row.category = categoria;
+  if (suplidor) row.supplier_name = suplidor;
+  const inserted = await sb('product', { method: 'POST', body: row, prefer: 'return=representation' });
+  const created = Array.isArray(inserted) ? inserted[0] : inserted;
+  if (created && stock > 0) await logStockMovement({ ...created, cost: costo }, 0, stock, 'api_create', null);
+  return res.status(200).json({ ok: true, pieza: productShape({ ...row, ...created }), ...(aviso ? { aviso } : {}) });
+}
+
+async function patchProduct(req, res, id) {
+  if (!UUID_RE.test(String(id))) return fail(res, 400, 'id de pieza invalido', 'invalid_id');
+  const rows = await sb(`product?tenant_id=eq.${TENANT_ID}&id=eq.${id}&select=${PRODUCT_SHAPE_COLUMNS}&limit=1`);
+  const current = rows?.[0];
+  if (!current) return fail(res, 404, 'Pieza no encontrada', 'not_found');
+  const b = req.body || {};
+  const patch = {};
+  try {
+    if (b.nombre !== undefined) patch.name = readText(b.nombre, 'nombre', { required: true });
+    if (b.marca !== undefined) patch.device_brand = readText(b.marca, 'marca', { max: 60 }) || null;
+    if (b.modelo !== undefined) patch.device_model_tag = readText(b.modelo, 'modelo', { max: 100 }) || null;
+    if (b.categoria !== undefined) patch.category = readText(b.categoria, 'categoria', { max: 60 }) || null;
+    if (b.suplidor !== undefined) patch.supplier_name = readText(b.suplidor, 'suplidor', { max: 100 }) || null;
+    if (b.costo !== undefined) patch.cost = money(readNumber(b.costo, 'costo'));
+    if (b.precio !== undefined) patch.price = money(readNumber(b.precio, 'precio'));
+    if (b.stock !== undefined) patch.stock = readNumber(b.stock, 'stock');
+    if (b.stock_minimo !== undefined) patch.min_stock = readNumber(b.stock_minimo, 'stock_minimo');
+  } catch (e) {
+    return fail(res, e.status || 400, e.message, 'invalid_body');
+  }
+  if (Object.keys(patch).length === 0) return fail(res, 400, 'No hay campos para actualizar', 'invalid_body');
+  const updated = await sb(`product?id=eq.${id}&tenant_id=eq.${TENANT_ID}`, {
+    method: 'PATCH',
+    body: patch,
+    prefer: 'return=representation',
+  });
+  const next = Array.isArray(updated) ? updated[0] : updated;
+  if (patch.stock !== undefined && Number(current.stock) !== patch.stock) {
+    await logStockMovement({ ...current, cost: patch.cost ?? current.cost }, Number(current.stock) || 0, patch.stock, 'api_adjustment', null);
+  }
+  return res.status(200).json({ ok: true, pieza: productShape({ ...current, ...patch, ...(next || {}) }) });
+}
+
+async function findCustomer(telefono, email, cliente) {
+  const first = (cliente.split(/\s+/)[0] || '').toLowerCase();
+  const digits = String(telefono || '').replace(/\D/g, '');
+  const cols = 'id,name,phone,email';
+  if (digits.length >= 10) {
+    const d = digits.slice(-10);
+    const pattern = `*${d.slice(0, 3)}*${d.slice(3, 6)}*${d.slice(6)}*`;
+    const rows = await sb(`customer?tenant_id=eq.${TENANT_ID}&phone=ilike.${encodeURIComponent(pattern)}&select=${cols}&limit=5`);
+    const match = (rows || []).find((c) => String(c.name || '').toLowerCase().includes(first));
+    if (match) return match;
+  }
+  if (email) {
+    const rows = await sb(`customer?tenant_id=eq.${TENANT_ID}&email=ilike.${encodeURIComponent(email)}&select=${cols}&limit=5`);
+    const match = (rows || []).find((c) => String(c.name || '').toLowerCase().includes(first));
+    if (match) return match;
+  }
+  return null;
+}
+
+async function nextOrderNumber() {
+  try {
+    const r = await sb('rpc/next_order_number', { method: 'POST', body: { p_tenant_id: TENANT_ID } });
+    const v = typeof r === 'string' ? r : (r && (r.next_order_number || r.order_number));
+    if (v && /^WO-\d+$/i.test(String(v))) return String(v).toUpperCase();
+  } catch {}
+  const rows = await sb(`order?tenant_id=eq.${TENANT_ID}&order_number=not.is.null&select=order_number&order=created_date.desc&limit=500`);
+  const max = (rows || [])
+    .map((r) => parseInt(String(r.order_number).split('-').pop(), 10))
+    .filter((n) => Number.isInteger(n))
+    .reduce((m, n) => Math.max(m, n), 0);
+  return `WO-${max + 1}`;
+}
+
+async function createTicket(req, res) {
+  const b = req.body || {};
+  let cliente;
+  let equipo;
+  let problema;
+  let telefono;
+  let email;
+  let marca;
+  let modelo;
+  let tecnico;
+  let fechaPrometida;
+  try {
+    cliente = normalizeName(readText(b.cliente, 'cliente', { required: true, max: 120 }));
+    equipo = readText(b.equipo, 'equipo', { required: true, max: 120 });
+    problema = readText(b.problema, 'problema', { required: true, max: 1000 });
+    telefono = readText(b.telefono, 'telefono', { max: 30 });
+    email = readText(b.email, 'email', { max: 120 }).toLowerCase();
+    marca = readText(b.marca, 'marca', { max: 60 });
+    modelo = readText(b.modelo, 'modelo', { max: 100 });
+    tecnico = readText(b.tecnico, 'tecnico', { max: 80 });
+    fechaPrometida = readText(b.fecha_prometida, 'fecha_prometida', { max: 10 });
+  } catch (e) {
+    return fail(res, e.status || 400, e.message, 'invalid_body');
+  }
+  if (telefono) {
+    const d = telefono.replace(/\D/g, '');
+    if (d.length < 7 || d.length > 15) return fail(res, 400, 'telefono invalido', 'invalid_body');
+  }
+  if (email && (!validEmail(email) || /[^\x00-\x7F]/.test(email))) return fail(res, 400, 'email invalido (solo caracteres basicos, sin acentos)', 'invalid_body');
+  if (fechaPrometida && !validDate(fechaPrometida)) return fail(res, 400, 'fecha_prometida debe ser YYYY-MM-DD', 'invalid_body');
+  const notas = Array.isArray(b.notas) ? b.notas.filter((n) => typeof n === 'string' && n.trim()).map((n) => n.trim().slice(0, 500)).slice(0, 10) : [];
+  const piezas = Array.isArray(b.piezas) ? b.piezas.slice(0, 20) : [];
+  const avisos = [];
+
+  const sinceIso = new Date(Date.now() - 10 * 60_000).toISOString();
+  const recent = await sb(
+    `order?tenant_id=eq.${TENANT_ID}&is_deleted=eq.false&created_date=gte.${sinceIso}&select=${ORDER_COLUMNS}&order=created_date.desc&limit=20`
+  );
+  const deviceLabel = (modelo || equipo).toLowerCase();
+  const dup = (recent || []).find(
+    (o) =>
+      String(o.customer_name || '').toLowerCase() === cliente.toLowerCase() &&
+      String(o.device_model || '').toLowerCase() === deviceLabel &&
+      String(o.initial_problem || '').toLowerCase() === problema.toLowerCase()
+  );
+  if (dup) {
+    return res.status(200).json({
+      ok: true,
+      creado: false,
+      duplicado: true,
+      nota: 'Ya existia un boleto identico creado en los ultimos 10 minutos; no se duplico.',
+      ticket: await buildTicketDetail(dup),
+    });
+  }
+
+  let customer = null;
+  let clienteNuevo = false;
+  if (telefono || email) {
+    customer = await findCustomer(telefono, email, cliente);
+    if (!customer) {
+      const payload = { tenant_id: TENANT_ID, name: cliente, preferred_language: 'es', risk_flag: false };
+      if (telefono) payload.phone = telefono;
+      if (email) payload.email = email;
+      const created = await sb('customer', { method: 'POST', body: payload, prefer: 'return=representation' });
+      customer = Array.isArray(created) ? created[0] : created;
+      clienteNuevo = true;
+    }
+  } else {
+    avisos.push('Sin telefono ni email: el boleto se creo sin ficha de cliente.');
+  }
+
+  let employee = null;
+  if (tecnico) {
+    const term = cleanFilter(tecnico);
+    const rows = await sb(
+      `app_employee?tenant_id=eq.${TENANT_ID}&active=eq.true&full_name=ilike.${encodeURIComponent(`*${term}*`)}&select=id,full_name&limit=5`
+    );
+    const exact = (rows || []).find((r) => String(r.full_name).toLowerCase() === tecnico.toLowerCase());
+    if (exact) employee = exact;
+    else if (rows && rows.length === 1) employee = rows[0];
+    else avisos.push(rows && rows.length > 1 ? `El tecnico "${tecnico}" coincide con varios empleados; el boleto quedo sin asignar.` : `No se encontro al tecnico "${tecnico}"; el boleto quedo sin asignar.`);
+  }
+
+  let deviceType = null;
+  let deviceFamily = null;
+  const sibling = await sb(
+    `order?tenant_id=eq.${TENANT_ID}&device_model=ilike.${encodeURIComponent(cleanFilter(modelo || equipo))}&device_type=not.is.null&select=device_type,device_family,device_brand&limit=1`
+  );
+  if (sibling && sibling[0]) {
+    deviceType = sibling[0].device_type;
+    deviceFamily = sibling[0].device_family;
+    if (!marca && sibling[0].device_brand) marca = sibling[0].device_brand;
+  }
+
+  const stores = await sb(`order?tenant_id=eq.${TENANT_ID}&select=store_id&order=created_date.desc&limit=5`);
+  const storeIds = [...new Set((stores || []).map((r) => r.store_id))];
+  const storeId = storeIds.length === 1 && storeIds[0] ? storeIds[0] : null;
+
+  const nowIso = new Date().toISOString();
+  const orderNumber = await nextOrderNumber();
+  const row = {
+    tenant_id: TENANT_ID,
+    order_number: orderNumber,
+    customer_name: cliente,
+    status: 'intake',
+    priority: 'normal',
+    created_by_name: ACTOR,
+    created_date: nowIso,
+    updated_date: nowIso,
+    is_quick_service: false,
+    service_type: 'workshop',
+    initial_problem: problema,
+    device_model: modelo || equipo,
+  };
+  if (customer && customer.id) row.customer_id = customer.id;
+  if (telefono) row.customer_phone = telefono;
+  else if (customer && customer.phone) row.customer_phone = customer.phone;
+  if (email) row.customer_email = email;
+  else if (customer && customer.email) row.customer_email = customer.email;
+  if (marca) row.device_brand = marca;
+  if (deviceType) row.device_type = deviceType;
+  if (deviceFamily) row.device_family = deviceFamily;
+  if (storeId) row.store_id = storeId;
+  if (employee) {
+    row.assigned_to = employee.id;
+    row.assigned_to_name = employee.full_name;
+  }
+  if (fechaPrometida) row.promised_date = `${fechaPrometida}T12:00:00-04:00`;
+  if (notas.length > 0) {
+    row.status_history = notas.map((n) => ({
+      status: null,
+      timestamp: nowIso,
+      changed_by: ACTOR,
+      note: n,
+      visible_to_customer: false,
+      kind: 'note',
+    }));
+  }
+  const insertedRows = await sb('order', { method: 'POST', body: row, prefer: 'return=representation' });
+  const inserted = Array.isArray(insertedRows) ? insertedRows[0] : insertedRows;
+  let order = await findOrder(inserted.id);
+
+  const piezasResultado = [];
+  for (const p of piezas) {
+    const r = await registerPiece(order, p && typeof p === 'object' ? p : {});
+    piezasResultado.push({ nombre: p && p.nombre ? String(p.nombre) : null, ok: r.body.ok === true, ...(r.body.ok ? { inventario_descontado: r.body.inventario_descontado } : { error: r.body.error }) });
+    order = (await findOrder(inserted.id)) || order;
+  }
+
+  return res.status(200).json({
+    ok: true,
+    creado: true,
+    numero: order.order_number,
+    cliente_nuevo: clienteNuevo,
+    avisos,
+    piezas_resultado: piezasResultado,
+    ticket: await buildTicketDetail(order),
+  });
+}
+
+const PAYMENT_METHODS = {
+  efectivo: 'cash',
+  cash: 'cash',
+  ath_movil: 'ath_movil',
+  ath: 'ath_movil',
+  tarjeta: 'card',
+  card: 'card',
+  transferencia: 'transferencia',
+};
+
+async function addPayment(req, res, ref) {
+  const b = req.body || {};
+  const metodo = PAYMENT_METHODS[normalizeKey(b.metodo)];
+  if (!metodo) return fail(res, 400, 'metodo invalido. Validos: efectivo, ath_movil, tarjeta, transferencia', 'invalid_body');
+  let monto;
+  try {
+    monto = readNumber(b.monto, 'monto', { min: 0.01, max: 100000 });
+  } catch (e) {
+    return fail(res, 400, e.message, 'invalid_body');
+  }
+  monto = money(monto);
+  const nota = typeof b.nota === 'string' ? b.nota.trim().slice(0, 150) : '';
+  const order = await findOrder(ref);
+  if (!order) return fail(res, 404, 'Boleto no encontrado', 'not_found');
+  if (TERMINAL.includes(order.status)) {
+    return fail(res, 409, 'El boleto esta cerrado; no se le pueden registrar pagos.', 'closed');
+  }
+  const total = Number(order.cost_estimate ?? order.labor_cost ?? 0) || 0;
+  const paid = Number(order.amount_paid) || 0;
+  const hasEstimate = total > 0;
+  const outstanding = Math.max(0, total - paid);
+  if (hasEstimate && outstanding <= 0.004) {
+    return fail(res, 409, 'El boleto ya esta saldado; no hay balance que cobrar.', 'already_paid');
+  }
+  const applied = hasEstimate && outstanding > 0 ? Math.min(monto, outstanding) : monto;
+  const newPaid = hasEstimate ? Math.min(paid + monto, total) : paid + monto;
+  const newBalance = hasEstimate ? Math.max(0, total - newPaid) : 0;
+  const paidNow = hasEstimate && newBalance <= 0.004;
+
+  const existing = (await sb(
+    `transaction?tenant_id=eq.${TENANT_ID}&order_id=eq.${order.id}&is_deleted=eq.false&type=eq.revenue&category=eq.repair_payment` +
+    `&select=amount,created_at&order=created_at.desc&limit=20`
+  )) || [];
+  const refunds = (await sb(
+    `transaction?tenant_id=eq.${TENANT_ID}&order_id=eq.${order.id}&is_deleted=eq.false&type=eq.refund&select=created_at&order=created_at.desc&limit=1`
+  )) || [];
+  const lastRefund = refunds[0] ? new Date(refunds[0].created_at).getTime() : 0;
+  const repeated = existing.some((t) => {
+    const at = new Date(t.created_at).getTime();
+    return Math.abs(Number(t.amount) - applied) < 0.005 && at > lastRefund && Date.now() - at < 120_000;
+  });
+  if (repeated) {
+    return res.status(200).json({
+      ok: true,
+      duplicado: true,
+      nota: 'Ya habia un pago identico en los ultimos 2 minutos; no se registro otro.',
+      ticket: ticketResumen(order),
+    });
+  }
+
+  const description = `Pago orden ${order.order_number} · ${order.customer_name || 'Cliente'}${nota ? ` · ${nota}` : ''}`;
+  await sb('transaction', {
+    method: 'POST',
+    body: {
+      tenant_id: TENANT_ID,
+      type: 'revenue',
+      category: 'repair_payment',
+      amount: money(applied),
+      description,
+      payment_method: metodo,
+      recorded_by: ACTOR,
+      order_id: order.id,
+      order_number: order.order_number,
+      is_settled: metodo !== 'card',
+    },
+    prefer: 'return=minimal',
+  });
+
+  const nowIso = new Date().toISOString();
+  const history = Array.isArray(order.status_history) ? order.status_history : [];
+  const patchBody = {
+    amount_paid: money(newPaid),
+    balance_due: money(newBalance),
+    paid: paidNow,
+    status_history: [
+      ...history,
+      {
+        status: null,
+        timestamp: nowIso,
+        changed_by: ACTOR,
+        note: `Pago registrado: $${money(applied).toFixed(2)} (${metodo})${nota ? ` - ${nota}` : ''}`,
+        visible_to_customer: false,
+        kind: 'note',
+      },
+    ],
+    updated_date: nowIso,
+  };
+  let patched = false;
+  for (let attempt = 0; attempt < 2 && !patched; attempt += 1) {
+    try {
+      await sb(`order?id=eq.${order.id}&tenant_id=eq.${TENANT_ID}`, { method: 'PATCH', body: patchBody, prefer: 'return=minimal' });
+      patched = true;
+    } catch (e) {
+      if (attempt === 1) {
+        return fail(res, 502, 'El pago se registro en Finanzas pero no se pudo actualizar el boleto. Revisalo en la app antes de reintentar.', 'partial_failure');
+      }
+    }
+  }
+  if (order.customer_id && applied >= 1) {
+    sb('rpc/increment_loyalty_points', {
+      method: 'POST',
+      body: { p_customer_id: order.customer_id, p_tenant_id: TENANT_ID, p_delta: Math.round(applied) },
+    }).catch(() => {});
+  }
+  const fresh = await findOrder(order.id);
+  return res.status(200).json({
+    ok: true,
+    pago: { monto: money(applied), metodo, saldado: paidNow, recibido: monto },
+    ticket: ticketResumen(fresh || order),
+  });
+}
+
+function findLine(order, piezaId) {
+  const items = Array.isArray(order.order_items) ? order.order_items : [];
+  const index = items.findIndex((i) => i && String(i.id) === String(piezaId));
+  return { items, index, line: index >= 0 ? items[index] : null };
+}
+
+async function removePiece(req, res, ref, piezaId) {
+  const order = await findOrder(ref);
+  if (!order) return fail(res, 404, 'Boleto no encontrado', 'not_found');
+  if (TERMINAL.includes(order.status)) return fail(res, 409, 'El boleto esta cerrado; no se pueden quitar piezas.', 'closed');
+  const { items, index, line } = findLine(order, piezaId);
+  if (!line) return fail(res, 404, 'Pieza no encontrada en el boleto', 'not_found');
+  const quantity = parseInt(line.quantity, 10) || 1;
+
+  const inventario = { restaurado: false, motivo: null };
+  let product = null;
+  let prev = null;
+  let next = null;
+  if (line.type === 'part' && UUID_RE.test(String(line.id))) {
+    const rows = await sb(`product?tenant_id=eq.${TENANT_ID}&id=eq.${line.id}&select=id,name,stock,cost&limit=1`);
+    product = rows?.[0] || null;
+    if (product && product.stock !== null && product.stock !== undefined && Number(product.stock) >= 0) {
+      prev = Number(product.stock) || 0;
+      next = prev + quantity;
+      const upd = await sb(`product?id=eq.${product.id}&tenant_id=eq.${TENANT_ID}&stock=eq.${prev}`, {
+        method: 'PATCH',
+        body: { stock: next },
+        prefer: 'return=representation',
+      });
+      if (!Array.isArray(upd) || upd.length === 0) {
+        return fail(res, 409, 'El stock cambio mientras se quitaba la pieza; vuelve a intentar.', 'stock_conflict');
+      }
+      inventario.restaurado = true;
+      inventario.stock_anterior = prev;
+      inventario.stock_nuevo = next;
+    } else {
+      inventario.motivo = product ? 'el producto no lleva control de stock' : 'el producto ya no existe en el inventario';
+    }
+  } else {
+    inventario.motivo = 'la linea no descontaba inventario';
+  }
+
+  const remaining = items.filter((_, i) => i !== index);
+  const { estimate, balance } = recomputeTotals(order, remaining);
+  const nowIso = new Date().toISOString();
+  const history = Array.isArray(order.status_history) ? order.status_history : [];
+  try {
+    await sb(`order?id=eq.${order.id}&tenant_id=eq.${TENANT_ID}`, {
+      method: 'PATCH',
+      body: {
+        order_items: remaining,
+        cost_estimate: money(estimate),
+        balance_due: money(balance),
+        paid: balance <= 0.005 && estimate > 0,
+        status_history: [
+          ...history,
+          {
+            status: null,
+            timestamp: nowIso,
+            changed_by: ACTOR,
+            note: `Pieza eliminada por Jaime: ${line.name} x${quantity}`,
+            visible_to_customer: false,
+            kind: 'note',
+          },
+        ],
+        updated_date: nowIso,
+      },
+      prefer: 'return=minimal',
+    });
+  } catch (e) {
+    if (inventario.restaurado) {
+      try {
+        await sb(`product?id=eq.${product.id}&tenant_id=eq.${TENANT_ID}&stock=eq.${next}`, {
+          method: 'PATCH',
+          body: { stock: prev },
+          prefer: 'return=minimal',
+        });
+      } catch {}
+    }
+    throw e;
+  }
+  if (inventario.restaurado) {
+    await logStockMovement({ ...product }, prev, next, 'work_order_piece_removed', order.order_number);
+  }
+  if (line.source_part_link_id) {
+    try {
+      const links = await sb(`part_link?tenant_id=eq.${TENANT_ID}&id=eq.${line.source_part_link_id}&select=id,url,status&limit=1`);
+      if (links?.[0] && links[0].url === '' && links[0].status === 'received') {
+        await sb(`part_link?id=eq.${links[0].id}&tenant_id=eq.${TENANT_ID}`, { method: 'DELETE', prefer: 'return=minimal' });
+      }
+    } catch {}
+  }
+  const fresh = await findOrder(order.id);
+  return res.status(200).json({
+    ok: true,
+    eliminada: { id: line.id, nombre: line.name, cantidad: quantity },
+    inventario,
+    total_facturado: money(estimate),
+    balance_pendiente: money(balance),
+    ticket: ticketResumen(fresh || order),
+  });
+}
+
+async function updatePieceCost(req, res, ref, piezaId) {
+  const b = req.body || {};
+  if (b.costo === undefined && b.suplidor === undefined) return fail(res, 400, 'Envia costo y/o suplidor', 'invalid_body');
+  let costo = null;
+  try {
+    if (b.costo !== undefined && b.costo !== null) costo = readNumber(b.costo, 'costo');
+  } catch (e) {
+    return fail(res, 400, e.message, 'invalid_body');
+  }
+  const suplidor = typeof b.suplidor === 'string' ? b.suplidor.trim().slice(0, 100) : null;
+  const order = await findOrder(ref);
+  if (!order) return fail(res, 404, 'Boleto no encontrado', 'not_found');
+  if (TERMINAL.includes(order.status)) return fail(res, 409, 'El boleto esta cerrado; no se puede editar el costo de sus piezas.', 'closed');
+  const { items, index, line } = findLine(order, piezaId);
+  if (!line) return fail(res, 404, 'Pieza no encontrada en el boleto', 'not_found');
+  const quantity = parseInt(line.quantity, 10) || 1;
+  const nowIso = new Date().toISOString();
+  const history = Array.isArray(order.status_history) ? order.status_history : [];
+  const note = {
+    status: null,
+    timestamp: nowIso,
+    changed_by: ACTOR,
+    note: `Costo de pieza actualizado por Jaime: ${line.name}${costo !== null ? ` costo $${money(costo).toFixed(2)} c/u` : ''}${suplidor ? ` (${suplidor})` : ''}`,
+    visible_to_customer: false,
+    kind: 'note',
+  };
+
+  let link = null;
+  if (line.source_part_link_id) {
+    const rows = await sb(`part_link?tenant_id=eq.${TENANT_ID}&id=eq.${line.source_part_link_id}&select=id,cost,store&limit=1`);
+    link = rows?.[0] || null;
+  }
+  if (link) {
+    const patch = {};
+    if (costo !== null) patch.cost = money(costo * quantity);
+    if (suplidor !== null) patch.store = suplidor || null;
+    await sb(`part_link?id=eq.${link.id}&tenant_id=eq.${TENANT_ID}`, { method: 'PATCH', body: patch, prefer: 'return=minimal' });
+    await sb(`order?id=eq.${order.id}&tenant_id=eq.${TENANT_ID}`, {
+      method: 'PATCH',
+      body: { status_history: [...history, note], updated_date: nowIso },
+      prefer: 'return=minimal',
+    });
+  } else {
+    if (costo === null) return fail(res, 400, 'Esta pieza no tiene costo registrado; envia costo.', 'invalid_body');
+    const inserted = await sb('part_link', {
+      method: 'POST',
+      body: {
+        tenant_id: TENANT_ID,
+        order_id: order.id,
+        order_number: order.order_number,
+        url: '',
+        title: line.name,
+        store: suplidor || null,
+        cost: money(costo * quantity),
+        price: money(Number(line.total) || (Number(line.price) || 0) * quantity),
+        status: 'received',
+      },
+      prefer: 'return=representation',
+    });
+    const created = Array.isArray(inserted) ? inserted[0] : inserted;
+    const updatedItems = items.map((it, i) => (i === index ? { ...it, source_part_link_id: created.id } : it));
+    await sb(`order?id=eq.${order.id}&tenant_id=eq.${TENANT_ID}`, {
+      method: 'PATCH',
+      body: { order_items: updatedItems, status_history: [...history, note], updated_date: nowIso },
+      prefer: 'return=minimal',
+    });
+  }
+  const fresh = await findOrder(order.id);
+  const piezas = await ticketPieces(fresh || order);
+  const updatedLine = piezas.facturadas.find((p) => String(p.id) === String(piezaId)) || null;
+  return res.status(200).json({
+    ok: true,
+    ticket: order.order_number,
+    pieza: updatedLine,
+    costo_piezas: piezas.costo_piezas,
+  });
+}
+
 function openapi() {
   const bearer = [{ bearerAuth: [] }];
   const idParam = {
@@ -862,6 +1613,42 @@ function openapi() {
     components: { securitySchemes: { bearerAuth: { type: 'http', scheme: 'bearer' } } },
     paths: {
       '/tickets': {
+        post: {
+          operationId: 'crearTicket',
+          summary: 'Crea un boleto en estatus Recepcion (como el wizard de la app), con cliente, equipo, problema y piezas opcionales. Confirma los datos con el dueno.',
+          requestBody: body({
+            type: 'object',
+            required: ['cliente', 'equipo', 'problema'],
+            properties: {
+              cliente: { type: 'string' },
+              telefono: { type: 'string' },
+              email: { type: 'string' },
+              equipo: { type: 'string', description: 'Descripcion del equipo, ej. Apple iPhone 15 Plus' },
+              marca: { type: 'string' },
+              modelo: { type: 'string' },
+              problema: { type: 'string' },
+              tecnico: { type: 'string', description: 'Nombre del empleado a asignar' },
+              fecha_prometida: { type: 'string', description: 'YYYY-MM-DD' },
+              notas: { type: 'array', items: { type: 'string' } },
+              piezas: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  required: ['nombre', 'precio'],
+                  properties: {
+                    nombre: { type: 'string' },
+                    cantidad: { type: 'integer', default: 1 },
+                    precio: { type: 'number' },
+                    costo: { type: 'number' },
+                    suplidor: { type: 'string' },
+                    producto_id: { type: 'string' },
+                  },
+                },
+              },
+            },
+          }),
+          responses: { 200: { description: 'Boleto creado (mismo shape que GET /tickets/{id})' } },
+        },
         get: {
           operationId: 'listarTickets',
           summary: 'Lista boletos (id, numero, cliente, telefono, equipo, estatus, fechas, total facturado, cobrado y balance)',
@@ -876,6 +1663,44 @@ function openapi() {
             { name: 'pagina', in: 'query', schema: { type: 'integer', default: 1 } },
           ],
           responses: { 200: { description: 'Lista paginada' } },
+        },
+      },
+      '/tickets/{id}/pagos': {
+        post: {
+          operationId: 'registrarPago',
+          summary: 'Registra un cobro del boleto: crea el ingreso en Finanzas y actualiza cobrado y balance. Confirma monto y metodo con el dueno.',
+          parameters: [idParam],
+          requestBody: body({
+            type: 'object',
+            required: ['monto', 'metodo'],
+            properties: {
+              monto: { type: 'number' },
+              metodo: { type: 'string', enum: ['efectivo', 'ath_movil', 'tarjeta', 'transferencia'] },
+              nota: { type: 'string' },
+            },
+          }),
+          responses: { 200: { description: 'Pago registrado' }, 409: { description: 'Boleto cerrado o ya saldado' } },
+        },
+      },
+      '/tickets/{id}/piezas/{piezaId}': {
+        delete: {
+          operationId: 'quitarPieza',
+          summary: 'Quita una pieza agregada por error (solo correcciones): restaura el stock si lo habia descontado y recalcula el total.',
+          parameters: [idParam, { name: 'piezaId', in: 'path', required: true, description: 'id de la linea (campo id en GET /tickets/{id}/piezas)', schema: { type: 'string' } }],
+          responses: { 200: { description: 'Pieza quitada' }, 404: { description: 'No existe' }, 409: { description: 'Boleto cerrado' } },
+        },
+        patch: {
+          operationId: 'actualizarCostoPieza',
+          summary: 'Actualiza el costo interno (y suplidor) de una pieza facturada. No cambia el precio al cliente.',
+          parameters: [idParam, { name: 'piezaId', in: 'path', required: true, schema: { type: 'string' } }],
+          requestBody: body({
+            type: 'object',
+            properties: {
+              costo: { type: 'number', description: 'Costo unitario para el taller' },
+              suplidor: { type: 'string' },
+            },
+          }),
+          responses: { 200: { description: 'Costo actualizado' }, 409: { description: 'Boleto cerrado' } },
         },
       },
       '/tickets/{id}': {
@@ -963,7 +1788,37 @@ function openapi() {
       '/estatus': {
         get: { operationId: 'listarEstatus', summary: 'Estatus validos del sistema con nombre exacto', responses: { 200: { description: 'Lista' } } },
       },
+      '/piezas/{id}': {
+        patch: {
+          operationId: 'editarPieza',
+          summary: 'Edita un producto del inventario (cualquier subconjunto de campos)',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          requestBody: body({
+            type: 'object',
+            properties: {
+              nombre: { type: 'string' }, marca: { type: 'string' }, modelo: { type: 'string' }, categoria: { type: 'string' },
+              costo: { type: 'number' }, precio: { type: 'number' }, stock: { type: 'number' }, stock_minimo: { type: 'number' },
+              suplidor: { type: 'string' },
+            },
+          }),
+          responses: { 200: { description: 'Producto actualizado' }, 404: { description: 'No existe' } },
+        },
+      },
       '/piezas': {
+        post: {
+          operationId: 'crearPieza',
+          summary: 'Crea un producto de inventario (pieza). Completa marca, categoria y familia desde una pieza similar para que aparezca en el catalogo de la app.',
+          requestBody: body({
+            type: 'object',
+            required: ['nombre', 'precio'],
+            properties: {
+              nombre: { type: 'string' }, marca: { type: 'string' }, modelo: { type: 'string' }, categoria: { type: 'string' },
+              costo: { type: 'number' }, precio: { type: 'number' }, stock: { type: 'number' }, stock_minimo: { type: 'number' },
+              suplidor: { type: 'string' },
+            },
+          }),
+          responses: { 200: { description: 'Producto creado' }, 409: { description: 'Ya existe uno con ese nombre' } },
+        },
         get: {
           operationId: 'catalogoPiezas',
           summary: 'Catalogo de piezas con stock actual',
@@ -1039,8 +1894,14 @@ export async function jaimeHandler(req, res) {
       if (m === 'POST' && b && c === 'fotos') return await addPhoto(req, res, b);
       if (m === 'GET' && b && c === 'piezas') return await listPieces(req, res, b);
       if (m === 'POST' && b && c === 'piezas') return await addPiece(req, res, b);
+      if (m === 'POST' && !b) return await createTicket(req, res);
+      if (m === 'POST' && b && c === 'pagos') return await addPayment(req, res, b);
+      if (m === 'DELETE' && b && c === 'piezas' && parts[3]) return await removePiece(req, res, b, parts[3]);
+      if (m === 'PATCH' && b && c === 'piezas' && parts[3]) return await updatePieceCost(req, res, b, parts[3]);
     }
     if (m === 'GET' && a === 'estatus' && !b) return await statuses(req, res);
+    if (m === 'POST' && a === 'piezas' && !b) return await createProduct(req, res);
+    if (m === 'PATCH' && a === 'piezas' && b && !c) return await patchProduct(req, res, b);
     if (m === 'GET' && a === 'piezas' && !b) return await catalog(req, res);
     if (m === 'GET' && a === 'ordenes-compra' && !b) return await purchaseOrders(req, res);
     if (m === 'GET' && a === 'resumen' && !b) return await dailySummary(req, res);
