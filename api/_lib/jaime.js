@@ -898,6 +898,25 @@ function productShape(p) {
 
 const PRODUCT_SHAPE_COLUMNS = 'id,name,stock,min_stock,cost,price,supplier_name,device_brand,device_model_tag,category';
 
+const PRODUCT_CATEGORIES = [
+  'accesorios_puertodecarga', 'battery', 'cable', 'case', 'charger', 'consola_de_juegos_servicio', 'diagnostic',
+  'laptop_servicio', 'other', 'screen', 'smartphone_puertodecarga', 'smartphone_servicio', 'tablet_servicio',
+];
+
+function mapCategory(label) {
+  const key = normalizeKey(label);
+  if (!key) return null;
+  if (PRODUCT_CATEGORIES.includes(key)) return key;
+  if (/pantalla|screen|lcd|oled|display/.test(key)) return 'screen';
+  if (/bateria|battery/.test(key)) return 'battery';
+  if (/cargador|charger/.test(key)) return 'charger';
+  if (/cable/.test(key)) return 'cable';
+  if (/case|funda|cover|forro/.test(key)) return 'case';
+  if (/puerto/.test(key) && /carga/.test(key)) return 'smartphone_puertodecarga';
+  if (/diagnostic/.test(key)) return 'diagnostic';
+  return 'other';
+}
+
 function readNumber(value, label, { min = 0, max = 100000 } = {}) {
   const n = Number(value);
   if (!Number.isFinite(n) || n < min || n > max) {
@@ -1051,12 +1070,21 @@ async function createProduct(req, res) {
     active: true,
     ...chain,
   };
-  if (categoria) row.category = categoria;
+  let categoriaAviso = null;
+  if (categoria) {
+    const mapped = mapCategory(categoria);
+    row.category = mapped;
+    if (normalizeKey(categoria) !== mapped) {
+      row.description = categoria;
+      categoriaAviso = `La categoria "${categoria}" no existe en el sistema; se guardo como "${mapped}" y el nombre original quedo en la descripcion.`;
+    }
+  }
   if (suplidor) row.supplier_name = suplidor;
   const inserted = await sb('product', { method: 'POST', body: row, prefer: 'return=representation' });
   const created = Array.isArray(inserted) ? inserted[0] : inserted;
   if (created && stock > 0) await logStockMovement({ ...created, cost: costo }, 0, stock, 'api_create', null);
-  return res.status(200).json({ ok: true, pieza: productShape({ ...row, ...created }), ...(aviso ? { aviso } : {}) });
+  const avisosProducto = [aviso, categoriaAviso].filter(Boolean);
+  return res.status(200).json({ ok: true, pieza: productShape({ ...row, ...created }), ...(avisosProducto.length ? { avisos: avisosProducto } : {}) });
 }
 
 async function patchProduct(req, res, id) {
@@ -1066,11 +1094,18 @@ async function patchProduct(req, res, id) {
   if (!current) return fail(res, 404, 'Pieza no encontrada', 'not_found');
   const b = req.body || {};
   const patch = {};
+  const avisosPatch = [];
   try {
     if (b.nombre !== undefined) patch.name = readText(b.nombre, 'nombre', { required: true });
     if (b.marca !== undefined) patch.device_brand = readText(b.marca, 'marca', { max: 60 }) || null;
     if (b.modelo !== undefined) patch.device_model_tag = readText(b.modelo, 'modelo', { max: 100 }) || null;
-    if (b.categoria !== undefined) patch.category = readText(b.categoria, 'categoria', { max: 60 }) || null;
+    if (b.categoria !== undefined) {
+      const label = readText(b.categoria, 'categoria', { max: 60 });
+      patch.category = label ? mapCategory(label) : null;
+      if (label && normalizeKey(label) !== patch.category) {
+        avisosPatch.push(`La categoria "${label}" no existe en el sistema; se guardo como "${patch.category}".`);
+      }
+    }
     if (b.suplidor !== undefined) patch.supplier_name = readText(b.suplidor, 'suplidor', { max: 100 }) || null;
     if (b.costo !== undefined) patch.cost = money(readNumber(b.costo, 'costo'));
     if (b.precio !== undefined) patch.price = money(readNumber(b.precio, 'precio'));
@@ -1080,6 +1115,20 @@ async function patchProduct(req, res, id) {
     return fail(res, e.status || 400, e.message, 'invalid_body');
   }
   if (Object.keys(patch).length === 0) return fail(res, 400, 'No hay campos para actualizar', 'invalid_body');
+  if (patch.device_brand || patch.device_model_tag) {
+    const { chain } = await deviceChain(
+      patch.device_brand || current.device_brand || '',
+      patch.device_model_tag || current.device_model_tag || ''
+    );
+    if (chain.device_brand) {
+      patch.device_brand = chain.device_brand;
+      patch.device_category = chain.device_category;
+      patch.device_family = chain.device_family;
+      patch.device_model_tag = chain.device_model_tag;
+    } else {
+      avisosPatch.push('No habia una pieza similar para completar categoria y familia; puede no aparecer en el catalogo por marca de la app.');
+    }
+  }
   const updated = await sb(`product?id=eq.${id}&tenant_id=eq.${TENANT_ID}`, {
     method: 'PATCH',
     body: patch,
@@ -1089,7 +1138,11 @@ async function patchProduct(req, res, id) {
   if (patch.stock !== undefined && Number(current.stock) !== patch.stock) {
     await logStockMovement({ ...current, cost: patch.cost ?? current.cost }, Number(current.stock) || 0, patch.stock, 'api_adjustment', null);
   }
-  return res.status(200).json({ ok: true, pieza: productShape({ ...current, ...patch, ...(next || {}) }) });
+  return res.status(200).json({
+    ok: true,
+    pieza: productShape({ ...current, ...patch, ...(next || {}) }),
+    ...(avisosPatch.length ? { avisos: avisosPatch } : {}),
+  });
 }
 
 async function findCustomer(telefono, email, cliente) {
