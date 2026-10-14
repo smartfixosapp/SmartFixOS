@@ -53,6 +53,12 @@ function fail(res, status, error, code) {
   return res.status(status).json({ ok: false, error, code: code || 'error' });
 }
 
+function exactNameFilter(name) {
+  const t = String(name || '').trim();
+  if (!t || /[*%\\]/.test(t)) return null;
+  return encodeURIComponent(t);
+}
+
 function normalizeKey(s) {
   return String(s || '')
     .toLowerCase()
@@ -503,10 +509,10 @@ async function registerPiece(order, body) {
     producto = rows?.[0] || null;
     if (!producto) return rfail(404, 'Producto no encontrado en el inventario', 'not_found');
   } else if (nombre) {
-    const exact = cleanFilter(nombre);
-    if (exact && exact === nombre) {
+    const exact = exactNameFilter(nombre);
+    if (exact) {
       const rows = await sb(
-        `product?tenant_id=eq.${TENANT_ID}&active=eq.true&type=eq.product&name=ilike.${encodeURIComponent(exact)}&select=${productCols}&limit=2`
+        `product?tenant_id=eq.${TENANT_ID}&active=eq.true&type=eq.product&name=ilike.${exact}&select=${productCols}&limit=2`
       );
       if (Array.isArray(rows) && rows.length === 1) {
         producto = rows[0];
@@ -1039,10 +1045,10 @@ async function createProduct(req, res) {
   const categoria = readText(b.categoria, 'categoria', { max: 60 });
   const suplidor = readText(b.suplidor, 'suplidor', { max: 100 });
 
-  const exact = cleanFilter(nombre);
+  const exact = exactNameFilter(nombre);
   if (exact) {
     const dup = await sb(
-      `product?tenant_id=eq.${TENANT_ID}&name=ilike.${encodeURIComponent(exact)}&select=${PRODUCT_SHAPE_COLUMNS}&limit=1`
+      `product?tenant_id=eq.${TENANT_ID}&name=ilike.${exact}&select=${PRODUCT_SHAPE_COLUMNS}&limit=1`
     );
     if (dup && dup.length > 0) {
       return res.status(409).json({
@@ -1111,6 +1117,10 @@ async function patchProduct(req, res, id) {
     if (b.precio !== undefined) patch.price = money(readNumber(b.precio, 'precio'));
     if (b.stock !== undefined) patch.stock = readNumber(b.stock, 'stock');
     if (b.stock_minimo !== undefined) patch.min_stock = readNumber(b.stock_minimo, 'stock_minimo');
+    if (b.activo !== undefined) {
+      if (typeof b.activo !== 'boolean') throw Object.assign(new Error('activo debe ser true o false'), { status: 400 });
+      patch.active = b.activo;
+    }
   } catch (e) {
     return fail(res, e.status || 400, e.message, 'invalid_body');
   }
@@ -1866,6 +1876,7 @@ function openapi() {
               nombre: { type: 'string' }, marca: { type: 'string' }, modelo: { type: 'string' }, categoria: { type: 'string' },
               costo: { type: 'number' }, precio: { type: 'number' }, stock: { type: 'number' }, stock_minimo: { type: 'number' },
               suplidor: { type: 'string' },
+              activo: { type: 'boolean', description: 'false oculta la pieza del inventario sin borrarla' },
             },
           }),
           responses: { 200: { description: 'Producto actualizado' }, 404: { description: 'No existe' } },
