@@ -250,7 +250,7 @@ async function buildTicketDetail(order) {
   const [piezas, pagos] = await Promise.all([
     ticketPieces(order),
     sb(
-      `transaction?tenant_id=eq.${TENANT_ID}&order_id=eq.${order.id}&is_deleted=eq.false&select=type,amount,payment_method,description,created_at&order=created_at.desc&limit=50`
+      `transaction?tenant_id=eq.${TENANT_ID}&order_id=eq.${order.id}&is_deleted=eq.false&select=id,type,amount,payment_method,description,created_at&order=created_at.desc&limit=50`
     ),
   ]);
   const photos = Array.isArray(order.photos_metadata) ? order.photos_metadata : [];
@@ -281,6 +281,7 @@ async function buildTicketDetail(order) {
       piezas,
       fotos,
       pagos: (pagos || []).map((t) => ({
+        id: t.id,
         tipo: t.type,
         monto: money(t.amount),
         metodo: t.payment_method || null,
@@ -1484,6 +1485,91 @@ async function addPayment(req, res, ref) {
   });
 }
 
+async function voidPayment(req, res, ref, pagoId) {
+  if (!UUID_RE.test(String(pagoId))) return fail(res, 400, 'pagoId invalido', 'invalid_id');
+  const b = req.body || {};
+  const motivo = typeof b.motivo === 'string' ? b.motivo.trim() : '';
+  if (motivo.length < 3) return fail(res, 400, 'motivo es requerido (minimo 3 caracteres)', 'invalid_body');
+  if (motivo.length > 300) return fail(res, 400, 'motivo demasiado largo (max 300)', 'invalid_body');
+  const order = await findOrder(ref);
+  if (!order) return fail(res, 404, 'Boleto no encontrado', 'not_found');
+  if (TERMINAL.includes(order.status)) {
+    return fail(res, 409, 'El boleto esta cerrado; reversa el pago desde la app.', 'closed');
+  }
+  const rows = await sb(
+    `transaction?tenant_id=eq.${TENANT_ID}&order_id=eq.${order.id}&id=eq.${pagoId}&select=id,type,category,amount,payment_method,description,is_deleted&limit=1`
+  );
+  const tx = rows?.[0];
+  if (!tx) return fail(res, 404, 'Pago no encontrado en este boleto', 'not_found');
+  if (tx.type !== 'revenue') return fail(res, 409, 'Solo se pueden reversar cobros, no devoluciones ni gastos.', 'not_a_payment');
+  if (tx.is_deleted) return fail(res, 409, 'Ese pago ya fue anulado.', 'already_voided');
+
+  const nowIso = new Date().toISOString();
+  const voided = await sb(`transaction?id=eq.${tx.id}&tenant_id=eq.${TENANT_ID}&is_deleted=eq.false`, {
+    method: 'PATCH',
+    body: { is_deleted: true, deleted_at: nowIso, delete_reason: `Anulado por ${ACTOR}: ${motivo}` },
+    prefer: 'return=representation',
+  });
+  if (!Array.isArray(voided) || voided.length === 0) {
+    return fail(res, 409, 'Ese pago ya fue anulado.', 'already_voided');
+  }
+
+  const amount = Math.abs(Number(tx.amount) || 0);
+  const total = Number(order.cost_estimate ?? order.labor_cost ?? 0) || 0;
+  const hasEstimate = total > 0;
+  const newPaid = Math.max(0, (Number(order.amount_paid) || 0) - amount);
+  const newBalance = hasEstimate ? Math.max(0, total - newPaid) : 0;
+  const history = Array.isArray(order.status_history) ? order.status_history : [];
+  const patchBody = {
+    amount_paid: money(newPaid),
+    balance_due: money(newBalance),
+    paid: hasEstimate && newBalance <= 0.004,
+    status_history: [
+      ...history,
+      {
+        status: null,
+        timestamp: nowIso,
+        changed_by: ACTOR,
+        note: `Pago anulado: $${money(amount).toFixed(2)} (${tx.payment_method || 'sin metodo'}) - ${motivo}`,
+        visible_to_customer: false,
+        kind: 'note',
+      },
+    ],
+    updated_date: nowIso,
+  };
+  try {
+    await sb(`order?id=eq.${order.id}&tenant_id=eq.${TENANT_ID}`, { method: 'PATCH', body: patchBody, prefer: 'return=minimal' });
+  } catch (e) {
+    try {
+      await sb(`transaction?id=eq.${tx.id}&tenant_id=eq.${TENANT_ID}`, {
+        method: 'PATCH',
+        body: { is_deleted: false, deleted_at: null, delete_reason: null },
+        prefer: 'return=minimal',
+      });
+    } catch {}
+    throw e;
+  }
+  let puntos = { revertidos: 0 };
+  if (order.customer_id && Math.round(amount) >= 1) {
+    try {
+      await sb('rpc/increment_loyalty_points', {
+        method: 'POST',
+        body: { p_customer_id: order.customer_id, p_tenant_id: TENANT_ID, p_delta: -Math.round(amount) },
+      });
+      puntos = { revertidos: Math.round(amount) };
+    } catch {
+      puntos = { revertidos: 0, aviso: 'No se pudieron revertir los puntos de lealtad.' };
+    }
+  }
+  const fresh = await findOrder(order.id);
+  return res.status(200).json({
+    ok: true,
+    anulado: { id: tx.id, monto: money(amount), metodo: tx.payment_method || null, motivo },
+    puntos_lealtad: puntos,
+    ticket: ticketResumen(fresh || order),
+  });
+}
+
 function findLine(order, piezaId) {
   const items = Array.isArray(order.order_items) ? order.order_items : [];
   const index = items.findIndex((i) => i && String(i.id) === String(piezaId));
@@ -1759,6 +1845,19 @@ function openapi() {
           responses: { 200: { description: 'Pago registrado' }, 409: { description: 'Boleto cerrado o ya saldado' } },
         },
       },
+      '/tickets/{id}/pagos/{pagoId}/reversar': {
+        post: {
+          operationId: 'reversarPago',
+          summary: 'Anula un cobro registrado por error: lo marca como anulado en Finanzas (no se borra), baja cobrado, recalcula el balance, revierte los puntos de lealtad y deja rastro con el motivo.',
+          parameters: [idParam, { name: 'pagoId', in: 'path', required: true, description: 'id del pago (campo id en GET /tickets/{id}, seccion pagos)', schema: { type: 'string' } }],
+          requestBody: body({
+            type: 'object',
+            required: ['motivo'],
+            properties: { motivo: { type: 'string', description: 'Obligatorio. Por que se anula el pago' } },
+          }),
+          responses: { 200: { description: 'Pago anulado' }, 404: { description: 'No existe' }, 409: { description: 'Ya anulado, no es un cobro o boleto cerrado' } },
+        },
+      },
       '/tickets/{id}/piezas/{piezaId}': {
         delete: {
           operationId: 'quitarPieza',
@@ -1973,7 +2072,8 @@ export async function jaimeHandler(req, res) {
       if (m === 'GET' && b && c === 'piezas') return await listPieces(req, res, b);
       if (m === 'POST' && b && c === 'piezas') return await addPiece(req, res, b);
       if (m === 'POST' && !b) return await createTicket(req, res);
-      if (m === 'POST' && b && c === 'pagos') return await addPayment(req, res, b);
+      if (m === 'POST' && b && c === 'pagos' && !parts[3]) return await addPayment(req, res, b);
+      if (m === 'POST' && b && c === 'pagos' && parts[3] && parts[4] === 'reversar') return await voidPayment(req, res, b, parts[3]);
       if (m === 'DELETE' && b && c === 'piezas' && parts[3]) return await removePiece(req, res, b, parts[3]);
       if (m === 'PATCH' && b && c === 'piezas' && parts[3]) return await updatePieceCost(req, res, b, parts[3]);
     }
