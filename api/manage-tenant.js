@@ -325,6 +325,44 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, message: `📧 Enlace de restablecimiento enviado a ${email}` });
     }
 
+    if (action === 'login_code') {
+      const email = String(extra.email || '').trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ success: false, error: 'email invalido' });
+      if (!reason || reason.length < 3) return res.status(400).json({ success: false, error: 'La razon es obligatoria' });
+
+      const tid = encodeURIComponent(tenantId);
+      const [tenantRows, staffRows] = await Promise.all([
+        sbList('tenant', `select=email&${filter}&limit=1`),
+        sbList('app_employee', `select=id&tenant_id=eq.${tid}&email=eq.${encodeURIComponent(email)}&limit=1`).catch(() => []),
+      ]);
+      if (!tenantRows[0]) return res.status(404).json({ success: false, error: 'Tienda no encontrada' });
+      const ownerEmail = String(tenantRows[0].email || '').trim().toLowerCase();
+      if (email !== ownerEmail && staffRows.length === 0) {
+        return res.status(403).json({ success: false, error: 'Ese correo no pertenece a esta tienda' });
+      }
+
+      const linkRes = await fetch(`${SB_URL}/auth/v1/admin/generate_link`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` },
+        body: JSON.stringify({ type: 'magiclink', email }),
+      });
+      const linkData = await linkRes.json().catch(() => ({}));
+      const code = String(linkData?.email_otp || linkData?.properties?.email_otp || '');
+      if (!linkRes.ok || !/^\d{6,8}$/.test(code)) {
+        return res.status(502).json({ success: false, error: 'No se pudo generar el codigo. Intenta de nuevo.' });
+      }
+
+      await audit(admin, tenantId, 'tenant.login_code', 'high', { reason, email });
+      res.setHeader('Cache-Control', 'no-store');
+      return res.status(200).json({
+        success: true,
+        message: 'Codigo generado',
+        code,
+        email,
+        expires_in_minutes: 60,
+      });
+    }
+
     // ── create_first_user ────────────────────────────────────────────────────
     if (action === 'create_first_user') {
       const { email, full_name, phone, pin: userPin } = extra;
