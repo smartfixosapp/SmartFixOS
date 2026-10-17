@@ -1593,10 +1593,11 @@ async function addIncome(req, res) {
     fecha = b.fecha;
   }
 
+  const descripcion = `Venta de mostrador · ${concepto}`;
   const since = new Date(Date.now() - 10 * 60_000).toISOString();
   const dupes = await sb(
-    `transaction?tenant_id=eq.${TENANT_ID}&type=eq.revenue&category=eq.other_income&recorded_by=eq.${ACTOR}` +
-    `&amount=eq.${monto}&payment_method=eq.${metodo}&description=eq.${encodeURIComponent(concepto)}` +
+    `transaction?tenant_id=eq.${TENANT_ID}&type=eq.revenue&category=eq.repair_payment&recorded_by=eq.${ACTOR}` +
+    `&amount=eq.${monto}&payment_method=eq.${metodo}&description=eq.${encodeURIComponent(descripcion)}` +
     `&created_at=gte.${since}&is_deleted=eq.false&select=id&limit=1`
   );
   if (dupes && dupes.length > 0) {
@@ -1611,9 +1612,9 @@ async function addIncome(req, res) {
   const row = {
     tenant_id: TENANT_ID,
     type: 'revenue',
-    category: 'other_income',
+    category: 'repair_payment',
     amount: monto,
-    description: concepto,
+    description: descripcion,
     payment_method: metodo,
     recorded_by: ACTOR,
     is_settled: metodo !== 'card',

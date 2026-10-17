@@ -44,7 +44,7 @@ export const STATUS_MESSAGES = {
   cancelled: 'Tu orden fue cancelada.',
   not_repairable: 'Después de evaluar tu equipo, no fue posible repararlo.',
 };
-const EXPENSE_CATEGORIES = ['parts', 'supplies', 'rent', 'utilities', 'marketing', 'repairs', 'taxes', 'other'];
+const EXPENSE_CATEGORIES = ['parts', 'supplies', 'rent', 'utilities', 'marketing', 'repairs', 'taxes', 'other', 'other_expense'];
 const PAYMENT_METHODS = ['cash', 'card', 'ath_movil'];
 export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ORDER_COLUMNS = [
@@ -410,9 +410,9 @@ async function recordMoney(req, res, kind) {
 
   let category;
   if (kind === 'income') {
-    category = 'other_income';
+    category = 'repair_payment';
   } else {
-    category = body.category ? String(body.category) : (orderNumber ? 'parts' : 'other');
+    category = body.category ? String(body.category) : (orderNumber ? 'parts' : 'other_expense');
     if (!EXPENSE_CATEGORIES.includes(category)) return fail(res, 400, `category invalida. Validas: ${EXPENSE_CATEGORIES.join(', ')}`, 'invalid_body');
   }
   const type = kind === 'income' ? 'revenue' : 'expense';
