@@ -1570,6 +1570,64 @@ async function voidPayment(req, res, ref, pagoId) {
   });
 }
 
+async function addIncome(req, res) {
+  const b = req.body || {};
+  const metodo = PAYMENT_METHODS[normalizeKey(b.metodo)];
+  if (!metodo) return fail(res, 400, 'metodo invalido. Validos: efectivo, ath_movil, tarjeta, transferencia', 'invalid_body');
+  let monto;
+  let concepto;
+  try {
+    monto = money(readNumber(b.monto, 'monto', { min: 0.01, max: 100000 }));
+    concepto = readText(b.concepto, 'concepto', { required: true, max: 200 });
+  } catch (e) {
+    return fail(res, 400, e.message, 'invalid_body');
+  }
+  if (concepto.length < 3) return fail(res, 400, 'concepto demasiado corto', 'invalid_body');
+  const today = prDayRange().day;
+  let fecha = today;
+  if (b.fecha !== undefined && b.fecha !== null && b.fecha !== '') {
+    if (!validDate(b.fecha)) return fail(res, 400, 'fecha debe ser YYYY-MM-DD', 'invalid_body');
+    if (b.fecha > today) return fail(res, 400, 'la fecha no puede ser futura', 'invalid_body');
+    const oldest = new Date(Date.now() - 366 * 86_400_000).toISOString().slice(0, 10);
+    if (b.fecha < oldest) return fail(res, 400, 'la fecha no puede tener mas de un ano', 'invalid_body');
+    fecha = b.fecha;
+  }
+
+  const since = new Date(Date.now() - 10 * 60_000).toISOString();
+  const dupes = await sb(
+    `transaction?tenant_id=eq.${TENANT_ID}&type=eq.revenue&category=eq.other_income&recorded_by=eq.${ACTOR}` +
+    `&amount=eq.${monto}&payment_method=eq.${metodo}&description=eq.${encodeURIComponent(concepto)}` +
+    `&created_at=gte.${since}&is_deleted=eq.false&select=id&limit=1`
+  );
+  if (dupes && dupes.length > 0) {
+    return res.status(200).json({
+      ok: true,
+      duplicado: true,
+      id: dupes[0].id,
+      nota: 'Ya existia un ingreso identico de los ultimos 10 minutos; no se duplico.',
+    });
+  }
+
+  const row = {
+    tenant_id: TENANT_ID,
+    type: 'revenue',
+    category: 'other_income',
+    amount: monto,
+    description: concepto,
+    payment_method: metodo,
+    recorded_by: ACTOR,
+    is_settled: metodo !== 'card',
+    deductible_tax: false,
+  };
+  if (fecha !== today) row.created_at = `${fecha}T12:00:00-04:00`;
+  const inserted = await sb('transaction', { method: 'POST', body: row, prefer: 'return=representation' });
+  const tx = Array.isArray(inserted) ? inserted[0] : inserted;
+  return res.status(200).json({
+    ok: true,
+    ingreso: { id: tx?.id || null, monto, metodo, concepto, fecha },
+  });
+}
+
 function findLine(order, piezaId) {
   const items = Array.isArray(order.order_items) ? order.order_items : [];
   const index = items.findIndex((i) => i && String(i.id) === String(piezaId));
@@ -2022,6 +2080,23 @@ function openapi() {
           responses: { 200: { description: 'Ordenes y lineas' } },
         },
       },
+      '/finanzas/ingresos': {
+        post: {
+          operationId: 'registrarIngreso',
+          summary: 'Registra una venta de mostrador o ingreso que no es el pago de un boleto. Aparece en Finanzas como el resto de los cobros. Confirma monto, metodo y concepto con el dueno.',
+          requestBody: body({
+            type: 'object',
+            required: ['monto', 'metodo', 'concepto'],
+            properties: {
+              monto: { type: 'number', description: 'Monto cobrado, ej. 44.58' },
+              metodo: { type: 'string', enum: ['efectivo', 'ath_movil', 'tarjeta', 'transferencia'] },
+              concepto: { type: 'string', description: 'Ej. Protector de pantalla + cover' },
+              fecha: { type: 'string', description: 'YYYY-MM-DD, hora de PR. Por defecto hoy; no puede ser futura.' },
+            },
+          }),
+          responses: { 200: { description: 'Ingreso registrado (o duplicado ignorado)' } },
+        },
+      },
       '/resumen': {
         get: {
           operationId: 'resumenDelDia',
@@ -2077,6 +2152,7 @@ export async function jaimeHandler(req, res) {
       if (m === 'DELETE' && b && c === 'piezas' && parts[3]) return await removePiece(req, res, b, parts[3]);
       if (m === 'PATCH' && b && c === 'piezas' && parts[3]) return await updatePieceCost(req, res, b, parts[3]);
     }
+    if (m === 'POST' && a === 'finanzas' && b === 'ingresos' && !c) return await addIncome(req, res);
     if (m === 'GET' && a === 'estatus' && !b) return await statuses(req, res);
     if (m === 'POST' && a === 'piezas' && !b) return await createProduct(req, res);
     if (m === 'PATCH' && a === 'piezas' && b && !c) return await patchProduct(req, res, b);
