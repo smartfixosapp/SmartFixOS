@@ -1890,6 +1890,103 @@ async function posSale(req, res) {
   });
 }
 
+async function posVoidSale(req, res, ref) {
+  const b = req.body || {};
+  const motivo = typeof b.motivo === 'string' ? b.motivo.trim() : '';
+  if (motivo.length < 3) return fail(res, 400, 'motivo es requerido (minimo 3 caracteres)', 'invalid_body');
+  if (motivo.length > 300) return fail(res, 400, 'motivo demasiado largo (max 300)', 'invalid_body');
+  const restoreStock = b.restaurar_stock !== false;
+  const value = decodeURIComponent(String(ref || '')).trim();
+  const key = UUID_RE.test(value) ? `id=eq.${value}` : `sale_number=eq.${encodeURIComponent(value)}`;
+  const rows = await sb(
+    `sale?tenant_id=eq.${TENANT_ID}&${key}&select=id,sale_number,total,payment_method,items,voided,is_deleted,employee&limit=1`
+  );
+  const sale = rows?.[0];
+  if (!sale) return fail(res, 404, 'Venta no encontrada', 'not_found');
+  if (sale.voided || sale.is_deleted) return fail(res, 409, 'Esa venta ya fue anulada.', 'already_voided');
+  if (sale.employee !== ACTOR) {
+    return fail(res, 409, 'Solo se pueden anular desde la API las ventas registradas por la API. Anula esta desde la app.', 'not_api_sale');
+  }
+
+  const nowIso = new Date().toISOString();
+  const voided = await sb(`sale?id=eq.${sale.id}&tenant_id=eq.${TENANT_ID}&voided=eq.false`, {
+    method: 'PATCH',
+    body: { voided: true, is_deleted: true, voided_at: nowIso, void_reason: `Anulada por ${ACTOR}: ${motivo}`, voided_by: ACTOR },
+    prefer: 'return=representation',
+  });
+  if (!Array.isArray(voided) || voided.length === 0) return fail(res, 409, 'Esa venta ya fue anulada.', 'already_voided');
+
+  try {
+    await sb('transaction', {
+      method: 'POST',
+      body: {
+        tenant_id: TENANT_ID,
+        type: 'refund',
+        amount: -money(sale.total),
+        category: 'refund',
+        payment_method: sale.payment_method || 'cash',
+        description: `Venta ${sale.sale_number} anulada`,
+        recorded_by: ACTOR,
+      },
+      prefer: 'return=minimal',
+    });
+  } catch (e) {
+    try {
+      await sb(`sale?id=eq.${sale.id}&tenant_id=eq.${TENANT_ID}`, {
+        method: 'PATCH',
+        body: { voided: false, is_deleted: false, voided_at: null, void_reason: null, voided_by: null },
+        prefer: 'return=minimal',
+      });
+    } catch {}
+    throw e;
+  }
+
+  const inventario = [];
+  if (restoreStock) {
+    const items = Array.isArray(sale.items) ? sale.items : [];
+    for (const item of items) {
+      if (!item || !UUID_RE.test(String(item.product_id || ''))) continue;
+      const qty = parseInt(item.quantity, 10) || 0;
+      if (qty < 1) continue;
+      const rowsP = await sb(`product?tenant_id=eq.${TENANT_ID}&id=eq.${item.product_id}&select=id,name,stock&limit=1`);
+      const product = rowsP?.[0];
+      if (!product || product.stock === null || product.stock === undefined || Number(product.stock) < 0) continue;
+      const prev = Number(product.stock) || 0;
+      const next = prev + qty;
+      const upd = await sb(`product?id=eq.${product.id}&tenant_id=eq.${TENANT_ID}&stock=eq.${prev}`, {
+        method: 'PATCH',
+        body: { stock: next },
+        prefer: 'return=representation',
+      });
+      if (!Array.isArray(upd) || upd.length === 0) {
+        inventario.push({ producto: product.name, restaurado: false, aviso: 'El stock cambio durante la anulacion; ajustalo con PATCH /pos/productos/{id}.' });
+        continue;
+      }
+      inventario.push({ producto: product.name, restaurado: true, stock_anterior: prev, stock_nuevo: next });
+      sb('transaction', {
+        method: 'POST',
+        body: {
+          tenant_id: TENANT_ID,
+          type: 'stock_adjustment',
+          category: 'stock_in',
+          amount: qty,
+          description: `[${product.name}] Venta ${sale.sale_number} anulada`,
+          recorded_by: ACTOR,
+        },
+        prefer: 'return=minimal',
+      }).catch(() => {});
+    }
+  }
+
+  return res.status(200).json({
+    ok: true,
+    anulada: { id: sale.id, numero: sale.sale_number, total: money(sale.total), metodo: sale.payment_method, motivo },
+    reembolso_registrado: true,
+    stock_restaurado: restoreStock,
+    inventario,
+  });
+}
+
 async function posAdjustStock(req, res, id) {
   if (!UUID_RE.test(String(id))) return fail(res, 400, 'id de producto invalido', 'invalid_id');
   const b = req.body || {};
@@ -2418,6 +2515,22 @@ function openapi() {
           responses: { 200: { description: 'Stock ajustado' }, 409: { description: 'Producto sin control de stock' } },
         },
       },
+      '/pos/ventas/{id}/anular': {
+        post: {
+          operationId: 'posAnularVenta',
+          summary: 'Anula una venta registrada por la API (no borra: queda marcada como anulada, se registra el reembolso en Finanzas y se devuelve el stock). Motivo obligatorio. Las ventas hechas desde la app se anulan desde la app.',
+          parameters: [{ name: 'id', in: 'path', required: true, description: 'Id de la venta o su numero POS-XXXXXXXX', schema: { type: 'string' } }],
+          requestBody: body({
+            type: 'object',
+            required: ['motivo'],
+            properties: {
+              motivo: { type: 'string' },
+              restaurar_stock: { type: 'boolean', default: true, description: 'false si el stock ya se corrigio a mano' },
+            },
+          }),
+          responses: { 200: { description: 'Venta anulada' }, 409: { description: 'Ya anulada o no fue registrada por la API' } },
+        },
+      },
       '/pos/ventas': {
         post: {
           operationId: 'posVenta',
@@ -2524,6 +2637,7 @@ export async function jaimeHandler(req, res) {
     if (a === 'pos') {
       if (m === 'GET' && b === 'productos' && !c) return await posProducts(req, res);
       if (m === 'POST' && b === 'ventas' && !c) return await posSale(req, res);
+      if (m === 'POST' && b === 'ventas' && c && parts[3] === 'anular') return await posVoidSale(req, res, c);
       if (m === 'PATCH' && b === 'productos' && c && !parts[3]) return await posAdjustStock(req, res, c);
     }
     if (m === 'GET' && a === 'estatus' && !b) return await statuses(req, res);
