@@ -311,15 +311,122 @@ function wantsNotification(value, fallback = true) {
   return value === undefined || value === null ? fallback : value !== false;
 }
 
+async function changeDevice(order, body) {
+  let equipoIn;
+  let marcaIn;
+  let modeloIn;
+  let motivoIn;
+  try {
+    equipoIn = readText(body.equipo, 'equipo', { max: 120 });
+    marcaIn = readText(body.marca, 'marca', { max: 60 });
+    modeloIn = readText(body.modelo, 'modelo', { max: 100 });
+    motivoIn = readText(body.motivo, 'motivo', { max: 200 });
+  } catch (e) {
+    return { status: 400, error: e.message, code: 'invalid_body' };
+  }
+  if (!equipoIn && !marcaIn && !modeloIn) return { status: 400, error: 'Envia equipo, marca o modelo con un valor', code: 'invalid_body' };
+
+  const patch = {};
+  const newModel = modeloIn || equipoIn;
+  if (marcaIn) patch.device_brand = marcaIn;
+  if (newModel) {
+    let type = null;
+    let family = null;
+    const exact = exactNameFilter(newModel);
+    if (exact) {
+      const sib = await sb(
+        `order?tenant_id=eq.${TENANT_ID}&device_model=ilike.${exact}&device_type=not.is.null&device_type=neq.temporary&select=device_type,device_family,device_brand&limit=1`
+      );
+      if (sib && sib[0]) {
+        type = sib[0].device_type;
+        family = sib[0].device_family || null;
+        if (!marcaIn && sib[0].device_brand) patch.device_brand = sib[0].device_brand;
+      }
+    }
+    if (!type) {
+      const { chain } = await deviceChain(marcaIn || order.device_brand || '', newModel);
+      if (chain.device_category) {
+        type = chain.device_category;
+        family = chain.device_family || null;
+      }
+    }
+    if (type) {
+      patch.device_type = type;
+      patch.device_family = family;
+      patch.device_model = newModel;
+    } else {
+      patch.device_type = 'temporary';
+      patch.device_family = null;
+      patch.device_model = `TEMPORAL: ${newModel}`;
+    }
+  }
+  const labelOf = (brand, model, color, type) => [brand, model, color].filter(Boolean).join(' ') || type || 'sin equipo';
+  const antes = labelOf(order.device_brand, order.device_model, order.device_color, order.device_type);
+  const despues = labelOf(
+    patch.device_brand !== undefined ? patch.device_brand : order.device_brand,
+    patch.device_model !== undefined ? patch.device_model : order.device_model,
+    order.device_color,
+    patch.device_type !== undefined ? patch.device_type : order.device_type
+  );
+  if (antes === despues) return { order, cambio: null };
+
+  const nowIso = new Date().toISOString();
+  const history = Array.isArray(order.status_history) ? order.status_history : [];
+  await sb(`order?id=eq.${order.id}&tenant_id=eq.${TENANT_ID}`, {
+    method: 'PATCH',
+    body: {
+      ...patch,
+      status_history: [
+        ...history,
+        {
+          status: null,
+          timestamp: nowIso,
+          changed_by: ACTOR,
+          note: `Equipo cambiado por ${ACTOR}: ${antes} → ${despues}${motivoIn ? ` (${motivoIn})` : ''}`,
+          visible_to_customer: false,
+          kind: 'internal_note',
+        },
+      ],
+      updated_date: nowIso,
+    },
+    prefer: 'return=minimal',
+  });
+  const fresh = await findOrder(order.id);
+  return { order: fresh || order, cambio: { antes, despues } };
+}
+
 async function changeStatus(req, res, ref) {
   const body = req.body || {};
+  const hasDevice = ['equipo', 'marca', 'modelo'].some((k) => body[k] !== undefined);
+  if (body.estatus === undefined && !hasDevice) return fail(res, 400, 'Envia estatus y/o equipo, marca o modelo', 'invalid_body');
+  let order = await findOrder(ref);
+  if (!order) return fail(res, 404, 'Boleto no encontrado', 'not_found');
+  let cambioEquipo = null;
+  if (hasDevice) {
+    if (body.estatus !== undefined) {
+      const pre = resolveStatus(body.estatus);
+      if (!pre) return fail(res, 400, 'estatus invalido. Consulta GET /estatus', 'invalid_status');
+      if (BLOCKED_STATUSES.includes(pre)) return fail(res, 409, 'Este estatus requiere un flujo con motivo y fotos. Hazlo desde la app.', 'requires_app');
+    }
+    const r = await changeDevice(order, body);
+    if (r.error) return fail(res, r.status, r.error, r.code);
+    order = r.order;
+    cambioEquipo = r.cambio;
+    if (body.estatus === undefined) {
+      return res.status(200).json({
+        ok: true,
+        cambio_equipo: cambioEquipo,
+        ...(cambioEquipo ? {} : { sin_cambios: true }),
+        ticket: ticketResumen(order),
+        ...notificationFields({ enviada: false, motivo: 'cambio de equipo: no se notifica al cliente' }),
+      });
+    }
+  }
   const status = resolveStatus(body.estatus);
   if (!status) return fail(res, 400, 'estatus invalido. Consulta GET /estatus', 'invalid_status');
   if (BLOCKED_STATUSES.includes(status)) {
     return fail(res, 409, 'Este estatus requiere un flujo con motivo y fotos. Hazlo desde la app.', 'requires_app');
   }
-  const order = await findOrder(ref);
-  if (!order) return fail(res, 404, 'Boleto no encontrado', 'not_found');
   if (order.status === status) {
     if (body.notificar_cliente === true) {
       if (NON_MAILABLE.includes(status)) {
@@ -367,6 +474,7 @@ async function changeStatus(req, res, ref) {
   return res.status(200).json({
     ok: true,
     estatus_anterior: order.status,
+    ...(cambioEquipo ? { cambio_equipo: cambioEquipo } : {}),
     ticket: ticketResumen(fresh || order),
     ...notificationFields(notification),
   });
@@ -2423,12 +2531,15 @@ function openapi() {
         },
         patch: {
           operationId: 'cambiarEstatus',
-          summary: 'Cambia el estatus del boleto',
+          summary: 'Cambia el estatus del boleto y/o corrige el equipo (equipo, marca, modelo). El cambio de equipo deja una nota interna automatica y nunca notifica al cliente.',
           parameters: [idParam],
           requestBody: body({
             type: 'object',
-            required: ['estatus'],
             properties: {
+              equipo: { type: 'string', description: 'Descripcion del equipo, ej. Apple iPhone 15 Plus' },
+              marca: { type: 'string' },
+              modelo: { type: 'string' },
+              motivo: { type: 'string', description: 'Opcional, se agrega a la nota interna del cambio de equipo' },
               estatus: { type: 'string', description: 'id o nombre exacto (ver GET /estatus), ej. ready_for_pickup' },
               nota: { type: 'string', description: 'Mensaje del taller guardado en el boleto' },
               notificar_cliente: { type: 'boolean', default: true, description: 'Por defecto se envia el correo de actualizacion al cliente (como en la app). false lo omite; true con el mismo estatus reenvia el correo.' },
