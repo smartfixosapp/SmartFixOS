@@ -1629,6 +1629,311 @@ async function addIncome(req, res) {
   });
 }
 
+const IVU_RATE = 0.115;
+
+function posProductShape(p) {
+  const tracked = p.stock !== null && p.stock !== undefined && Number(p.stock) >= 0;
+  return {
+    id: p.id,
+    nombre: p.name,
+    precio: money(p.price),
+    costo: money(p.cost),
+    stock: tracked ? Number(p.stock) : null,
+    stock_minimo: Number(p.min_stock) || 0,
+    tipo: p.type === 'service' ? 'servicio' : 'producto',
+    gravable: p.taxable !== false,
+    sku: p.sku || null,
+    codigo_barras: p.barcode || null,
+    marca: p.device_brand || null,
+    modelo: p.device_model_tag || null,
+    categoria: p.category || null,
+  };
+}
+
+const POS_COLUMNS = 'id,name,price,cost,stock,min_stock,type,taxable,sku,barcode,device_brand,device_model_tag,category,active';
+
+async function posProducts(req, res) {
+  const q = req.query || {};
+  const limit = Math.min(Math.max(parseInt(q.limite, 10) || 30, 1), 100);
+  const page = Math.max(parseInt(q.pagina, 10) || 1, 1);
+  let url = `product?tenant_id=eq.${TENANT_ID}&active=eq.true&select=${POS_COLUMNS}&order=name.asc&limit=${limit}&offset=${(page - 1) * limit}`;
+  const term = cleanFilter(q.q);
+  if (term) url += `&or=(name.ilike.*${term}*,sku.ilike.*${term}*,barcode.ilike.*${term}*)`;
+  if (q.tipo === 'servicio') url += '&type=eq.service';
+  else if (q.tipo === 'producto') url += '&type=eq.product';
+  let rows = (await sb(url)) || [];
+  if (String(q.bajo_stock) === 'true') rows = rows.filter((p) => p.stock !== null && Number(p.stock) >= 0 && Number(p.stock) <= Number(p.min_stock || 0));
+  if (String(q.con_stock) === 'true') rows = rows.filter((p) => p.stock === null || Number(p.stock) < 0 || Number(p.stock) > 0);
+  return res.status(200).json({ ok: true, pagina: page, cantidad: rows.length, productos: rows.map(posProductShape) });
+}
+
+async function resolveSaleLine(raw, index) {
+  if (!raw || typeof raw !== 'object') return { error: `items[${index}] invalido` };
+  const cantidad = raw.cantidad === undefined ? 1 : parseInt(raw.cantidad, 10);
+  if (!Number.isInteger(cantidad) || cantidad < 1 || cantidad > 100) return { error: `items[${index}].cantidad debe ser un entero entre 1 y 100` };
+  const descuento = raw.descuento_pct === undefined ? 0 : Number(raw.descuento_pct);
+  if (!Number.isFinite(descuento) || descuento < 0 || descuento > 100) return { error: `items[${index}].descuento_pct debe estar entre 0 y 100` };
+  let product = null;
+  const productoId = typeof raw.producto_id === 'string' ? raw.producto_id.trim() : '';
+  const nombreIn = typeof raw.nombre === 'string' ? raw.nombre.trim().slice(0, 140) : '';
+  if (productoId) {
+    if (!UUID_RE.test(productoId)) return { error: `items[${index}].producto_id invalido` };
+    const rows = await sb(`product?tenant_id=eq.${TENANT_ID}&active=eq.true&id=eq.${productoId}&select=${POS_COLUMNS}&limit=1`);
+    product = rows?.[0] || null;
+    if (!product) return { error: `items[${index}]: producto no encontrado en el inventario`, status: 404 };
+  } else if (nombreIn) {
+    const exact = exactNameFilter(nombreIn);
+    if (exact) {
+      const rows = await sb(`product?tenant_id=eq.${TENANT_ID}&active=eq.true&name=ilike.${exact}&select=${POS_COLUMNS}&limit=2`);
+      if (Array.isArray(rows) && rows.length === 1) product = rows[0];
+    }
+  }
+  if (product) {
+    const variants = await sb(`product_variant?product_id=eq.${product.id}&select=id&limit=1`).catch(() => []);
+    if (variants && variants.length > 0) {
+      return { error: `items[${index}]: "${product.name}" tiene variantes; vendelo desde la app`, status: 409 };
+    }
+  }
+  const nombre = nombreIn || (product ? product.name : '');
+  if (!nombre) return { error: `items[${index}] necesita producto_id o nombre` };
+  let precio = raw.precio === undefined || raw.precio === null ? null : Number(raw.precio);
+  if (precio === null && product) precio = Number(product.price) || 0;
+  if (precio === null || !Number.isFinite(precio) || precio < 0 || precio > 100000) return { error: `items[${index}].precio debe ser un numero entre 0 y 100000` };
+  const gravable = raw.gravable === undefined ? (product ? product.taxable !== false : true) : raw.gravable === true;
+  return { product, nombre: product && !nombreIn ? product.name : nombre, cantidad, precio: money(precio), descuento, gravable };
+}
+
+async function posSale(req, res) {
+  const b = req.body || {};
+  const metodo = PAYMENT_METHODS[normalizeKey(b.metodo)];
+  if (!metodo) return fail(res, 400, 'metodo invalido. Validos: efectivo, ath_movil, tarjeta, transferencia', 'invalid_body');
+  const rawItems = Array.isArray(b.items) ? b.items : [];
+  if (rawItems.length < 1 || rawItems.length > 30) return fail(res, 400, 'items debe tener entre 1 y 30 lineas', 'invalid_body');
+  const notas = typeof b.notas === 'string' ? b.notas.trim().slice(0, 300) : '';
+
+  const lines = [];
+  for (let i = 0; i < rawItems.length; i += 1) {
+    const l = await resolveSaleLine(rawItems[i], i);
+    if (l.error) return fail(res, l.status || 400, l.error, l.status === 404 ? 'not_found' : l.status === 409 ? 'has_variants' : 'invalid_body');
+    lines.push(l);
+  }
+
+  let subtotal = 0;
+  let taxTotal = 0;
+  const saleItems = lines.map((l) => {
+    const gross = money(l.precio * l.cantidad);
+    const discount = money((gross * l.descuento) / 100);
+    const lineTotal = Math.max(0, money(gross - discount));
+    const rate = l.gravable ? IVU_RATE : 0;
+    const tax = money(lineTotal * rate);
+    subtotal = money(subtotal + lineTotal);
+    taxTotal = money(taxTotal + tax);
+    const item = {
+      product_name: l.nombre,
+      quantity: l.cantidad,
+      unit_price: l.precio,
+      tax_rate: rate,
+      tax_amount: tax,
+      total: money(lineTotal + tax),
+    };
+    if (l.descuento > 0) {
+      item.discount_percent = l.descuento;
+      item.discount_amount = discount;
+    }
+    if (l.product) item.product_id = l.product.id;
+    return item;
+  });
+  const total = money(subtotal + taxTotal);
+  if (total <= 0) return fail(res, 400, 'El total de la venta debe ser mayor a cero', 'invalid_body');
+
+  let recibido = total;
+  if (b.monto_recibido !== undefined && b.monto_recibido !== null) {
+    recibido = money(Number(b.monto_recibido));
+    if (!Number.isFinite(recibido) || recibido <= 0) return fail(res, 400, 'monto_recibido invalido', 'invalid_body');
+    if (metodo !== 'cash' && Math.abs(recibido - total) > 0.004) return fail(res, 400, 'monto_recibido solo aplica a efectivo; en otros metodos debe ser igual al total', 'invalid_body');
+    if (recibido + 0.004 < total) return fail(res, 400, `monto_recibido ($${recibido.toFixed(2)}) es menor al total ($${total.toFixed(2)})`, 'invalid_body');
+  }
+  const cambio = money(Math.max(0, recibido - total));
+
+  const registers = await sb(`cash_register?tenant_id=eq.${TENANT_ID}&status=eq.open&select=id&limit=1`);
+  const register = registers?.[0];
+  if (!register) return fail(res, 409, 'No hay una caja abierta. Abre la caja desde la app para registrar ventas de mostrador.', 'no_open_register');
+
+  const since = new Date(Date.now() - 5 * 60_000).toISOString();
+  const recent = (await sb(
+    `sale?tenant_id=eq.${TENANT_ID}&employee=eq.${ACTOR}&created_at=gte.${since}&select=id,sale_number,total,payment_method,items&limit=20`
+  )) || [];
+  const signature = (items) => (Array.isArray(items) ? items : []).map((i) => `${String(i.product_name).toLowerCase()}x${i.quantity}`).sort().join('|');
+  const dupe = recent.find((s) => Math.abs(Number(s.total) - total) < 0.005 && s.payment_method === metodo && signature(s.items) === signature(saleItems));
+  if (dupe) {
+    return res.status(200).json({
+      ok: true,
+      duplicado: true,
+      venta: { id: dupe.id, numero: dupe.sale_number, total },
+      nota: 'Ya existia una venta identica de los ultimos 5 minutos; no se registro otra.',
+    });
+  }
+
+  const avisos = [];
+  const stockChanges = [];
+  const revertStocks = async () => {
+    for (const c of stockChanges) {
+      try {
+        await sb(`product?id=eq.${c.product.id}&tenant_id=eq.${TENANT_ID}&stock=eq.${c.next}`, { method: 'PATCH', body: { stock: c.prev }, prefer: 'return=minimal' });
+      } catch {}
+    }
+  };
+  const perProduct = new Map();
+  for (const l of lines) {
+    if (!l.product) continue;
+    perProduct.set(l.product.id, { product: l.product, qty: (perProduct.get(l.product.id)?.qty || 0) + l.cantidad });
+  }
+  for (const { product, qty } of perProduct.values()) {
+    if (product.stock === null || product.stock === undefined || Number(product.stock) <= 0) {
+      if (product.stock !== null && product.stock !== undefined && Number(product.stock) === 0) avisos.push(`"${product.name}" estaba en stock 0 en el sistema; la venta se registro igual.`);
+      continue;
+    }
+    const prev = Number(product.stock);
+    const next = Math.max(0, prev - qty);
+    const upd = await sb(`product?id=eq.${product.id}&tenant_id=eq.${TENANT_ID}&stock=eq.${prev}`, { method: 'PATCH', body: { stock: next }, prefer: 'return=representation' });
+    if (!Array.isArray(upd) || upd.length === 0) {
+      await revertStocks();
+      return fail(res, 409, `El stock de "${product.name}" cambio mientras se registraba la venta; vuelve a intentar.`, 'stock_conflict');
+    }
+    stockChanges.push({ product, prev, next, qty });
+    if (prev < qty) avisos.push(`Stock insuficiente de "${product.name}" (habia ${prev}, se vendieron ${qty}); quedo en 0.`);
+  }
+
+  const saleNumber = `POS-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
+  let sale;
+  try {
+    const inserted = await sb('sale', {
+      method: 'POST',
+      body: {
+        tenant_id: TENANT_ID,
+        sale_number: saleNumber,
+        items: saleItems,
+        subtotal,
+        tax_amount: taxTotal,
+        total,
+        payment_method: metodo,
+        employee: ACTOR,
+        amount_received: recibido,
+        amount_paid: total,
+        change_due: cambio,
+        customer_id: null,
+        order_id: null,
+        cash_register_id: register.id,
+        is_split_payment: false,
+        notes: notas || null,
+      },
+      prefer: 'return=representation',
+    });
+    sale = Array.isArray(inserted) ? inserted[0] : inserted;
+    await sb('transaction', {
+      method: 'POST',
+      body: {
+        tenant_id: TENANT_ID,
+        type: 'revenue',
+        amount: total,
+        category: 'repair_payment',
+        payment_method: metodo,
+        description: 'Venta POS',
+        recorded_by: ACTOR,
+      },
+      prefer: 'return=minimal',
+    });
+  } catch (e) {
+    await revertStocks();
+    if (sale && sale.id) {
+      try {
+        await sb(`sale?id=eq.${sale.id}&tenant_id=eq.${TENANT_ID}`, {
+          method: 'PATCH',
+          body: { voided: true, is_deleted: true, voided_at: new Date().toISOString(), void_reason: 'Error al registrar el ingreso; revertida automaticamente' },
+          prefer: 'return=minimal',
+        });
+      } catch {}
+    }
+    throw e;
+  }
+
+  for (const c of stockChanges) {
+    sb('transaction', {
+      method: 'POST',
+      body: {
+        tenant_id: TENANT_ID,
+        type: 'stock_adjustment',
+        category: 'stock_out',
+        amount: Math.abs(c.prev - c.next),
+        description: `[${c.product.name}] Venta POS`,
+        recorded_by: ACTOR,
+      },
+      prefer: 'return=minimal',
+    }).catch(() => {});
+  }
+
+  return res.status(200).json({
+    ok: true,
+    venta: {
+      id: sale?.id || null,
+      numero: saleNumber,
+      subtotal,
+      iva: taxTotal,
+      total,
+      metodo,
+      recibido,
+      cambio,
+      items: saleItems.map((i) => ({ nombre: i.product_name, cantidad: i.quantity, precio: i.unit_price, total: i.total })),
+    },
+    inventario: stockChanges.map((c) => ({ producto: c.product.name, stock_anterior: c.prev, stock_nuevo: c.next })),
+    avisos,
+  });
+}
+
+async function posAdjustStock(req, res, id) {
+  if (!UUID_RE.test(String(id))) return fail(res, 400, 'id de producto invalido', 'invalid_id');
+  const b = req.body || {};
+  const motivo = typeof b.motivo === 'string' ? b.motivo.trim() : '';
+  if (motivo.length < 3) return fail(res, 400, 'motivo es requerido (minimo 3 caracteres)', 'invalid_body');
+  if (motivo.length > 200) return fail(res, 400, 'motivo demasiado largo (max 200)', 'invalid_body');
+  const hasStock = b.stock !== undefined && b.stock !== null;
+  const hasDelta = b.ajuste !== undefined && b.ajuste !== null;
+  if (hasStock === hasDelta) return fail(res, 400, 'Envia stock (cantidad final) o ajuste (diferencia, puede ser negativa), uno solo', 'invalid_body');
+  const rows = await sb(`product?tenant_id=eq.${TENANT_ID}&id=eq.${id}&select=${POS_COLUMNS}&limit=1`);
+  const product = rows?.[0];
+  if (!product) return fail(res, 404, 'Producto no encontrado', 'not_found');
+  if (product.stock === null || product.stock === undefined || Number(product.stock) < 0) {
+    return fail(res, 409, 'Este producto no lleva control de stock.', 'not_tracked');
+  }
+  const prev = Number(product.stock) || 0;
+  let next;
+  try {
+    next = hasStock ? readNumber(b.stock, 'stock', { max: 100000 }) : Math.max(0, prev + readNumber(b.ajuste, 'ajuste', { min: -100000, max: 100000 }));
+  } catch (e) {
+    return fail(res, 400, e.message, 'invalid_body');
+  }
+  if (next === prev) return res.status(200).json({ ok: true, sin_cambios: true, producto: { id: product.id, nombre: product.name, stock: prev } });
+  const upd = await sb(`product?id=eq.${product.id}&tenant_id=eq.${TENANT_ID}&stock=eq.${prev}`, { method: 'PATCH', body: { stock: next }, prefer: 'return=representation' });
+  if (!Array.isArray(upd) || upd.length === 0) return fail(res, 409, 'El stock cambio mientras se ajustaba; vuelve a intentar.', 'stock_conflict');
+  await sb('transaction', {
+    method: 'POST',
+    body: {
+      tenant_id: TENANT_ID,
+      type: 'stock_adjustment',
+      category: next > prev ? 'stock_in' : 'stock_out',
+      amount: Math.abs(next - prev),
+      description: `[${product.name}] ${motivo}`,
+      recorded_by: ACTOR,
+    },
+    prefer: 'return=minimal',
+  }).catch(() => {});
+  return res.status(200).json({
+    ok: true,
+    producto: { id: product.id, nombre: product.name, stock_anterior: prev, stock_nuevo: next },
+    motivo,
+  });
+}
+
 function findLine(order, piezaId) {
   const items = Array.isArray(order.order_items) ? order.order_items : [];
   const index = items.findIndex((i) => i && String(i.id) === String(piezaId));
@@ -2081,6 +2386,68 @@ function openapi() {
           responses: { 200: { description: 'Ordenes y lineas' } },
         },
       },
+      '/pos/productos': {
+        get: {
+          operationId: 'posProductos',
+          summary: 'Productos y servicios del POS con precio y stock (stock null = no lleva control)',
+          parameters: [
+            { name: 'q', in: 'query', description: 'Busca por nombre, SKU o codigo de barras', schema: { type: 'string' } },
+            { name: 'tipo', in: 'query', schema: { type: 'string', enum: ['producto', 'servicio'] } },
+            { name: 'bajo_stock', in: 'query', schema: { type: 'boolean' } },
+            { name: 'con_stock', in: 'query', description: 'true oculta los que tienen stock 0', schema: { type: 'boolean' } },
+            { name: 'limite', in: 'query', schema: { type: 'integer', default: 30, maximum: 100 } },
+            { name: 'pagina', in: 'query', schema: { type: 'integer', default: 1 } },
+          ],
+          responses: { 200: { description: 'Lista de productos' } },
+        },
+      },
+      '/pos/productos/{id}': {
+        patch: {
+          operationId: 'posAjustarStock',
+          summary: 'Corrige el stock de un producto con motivo obligatorio. Envia stock (cantidad final) o ajuste (diferencia).',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          requestBody: body({
+            type: 'object',
+            required: ['motivo'],
+            properties: {
+              stock: { type: 'number', description: 'Cantidad final' },
+              ajuste: { type: 'number', description: 'Diferencia, negativa para restar' },
+              motivo: { type: 'string' },
+            },
+          }),
+          responses: { 200: { description: 'Stock ajustado' }, 409: { description: 'Producto sin control de stock' } },
+        },
+      },
+      '/pos/ventas': {
+        post: {
+          operationId: 'posVenta',
+          summary: 'Registra una venta de mostrador en una sola llamada: descuenta stock, registra el ingreso en Finanzas y la deja en el historial del POS. Requiere caja abierta. Confirma items, metodo y total con el dueno.',
+          requestBody: body({
+            type: 'object',
+            required: ['items', 'metodo'],
+            properties: {
+              items: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    producto_id: { type: 'string', description: 'Id del producto (de GET /pos/productos)' },
+                    nombre: { type: 'string', description: 'Sin producto_id: nombre exacto del producto o descripcion de una venta libre' },
+                    cantidad: { type: 'integer', default: 1 },
+                    precio: { type: 'number', description: 'Precio unitario sin IVU; obligatorio en venta libre, por defecto el del producto' },
+                    descuento_pct: { type: 'number', description: '0 a 100' },
+                    gravable: { type: 'boolean', description: 'Aplica IVU 11.5%. Por defecto el del producto, o true en venta libre' },
+                  },
+                },
+              },
+              metodo: { type: 'string', enum: ['efectivo', 'ath_movil', 'tarjeta', 'transferencia'] },
+              monto_recibido: { type: 'number', description: 'Solo efectivo: lo que entrego el cliente, para calcular el cambio' },
+              notas: { type: 'string' },
+            },
+          }),
+          responses: { 200: { description: 'Venta registrada' }, 409: { description: 'No hay caja abierta o el producto tiene variantes' } },
+        },
+      },
       '/finanzas/ingresos': {
         post: {
           operationId: 'registrarIngreso',
@@ -2154,6 +2521,11 @@ export async function jaimeHandler(req, res) {
       if (m === 'PATCH' && b && c === 'piezas' && parts[3]) return await updatePieceCost(req, res, b, parts[3]);
     }
     if (m === 'POST' && a === 'finanzas' && b === 'ingresos' && !c) return await addIncome(req, res);
+    if (a === 'pos') {
+      if (m === 'GET' && b === 'productos' && !c) return await posProducts(req, res);
+      if (m === 'POST' && b === 'ventas' && !c) return await posSale(req, res);
+      if (m === 'PATCH' && b === 'productos' && c && !parts[3]) return await posAdjustStock(req, res, c);
+    }
     if (m === 'GET' && a === 'estatus' && !b) return await statuses(req, res);
     if (m === 'POST' && a === 'piezas' && !b) return await createProduct(req, res);
     if (m === 'PATCH' && a === 'piezas' && b && !c) return await patchProduct(req, res, b);
