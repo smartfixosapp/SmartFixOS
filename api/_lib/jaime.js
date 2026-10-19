@@ -15,6 +15,8 @@ import {
   cleanFilter,
   prDayRange,
   sendCustomerEmail,
+  sendSimpleEmail,
+  shopInfo,
   validEmail,
 } from './muse.js';
 
@@ -291,6 +293,24 @@ async function buildTicketDetail(order) {
   };
 }
 
+async function notifyCustomer(order, { subject, message }) {
+  if (!validEmail(order.customer_email)) return { enviada: false, motivo: 'el cliente no tiene un email valido' };
+  try {
+    await sendCustomerEmail({ order, subject, message });
+    return { enviada: true, destinatario: order.customer_email };
+  } catch (e) {
+    return { enviada: false, motivo: String(e.message || e) };
+  }
+}
+
+function notificationFields(n) {
+  return { notificacion_enviada: n.enviada === true, notificacion: n };
+}
+
+function wantsNotification(value, fallback = true) {
+  return value === undefined || value === null ? fallback : value !== false;
+}
+
 async function changeStatus(req, res, ref) {
   const body = req.body || {};
   const status = resolveStatus(body.estatus);
@@ -301,12 +321,22 @@ async function changeStatus(req, res, ref) {
   const order = await findOrder(ref);
   if (!order) return fail(res, 404, 'Boleto no encontrado', 'not_found');
   if (order.status === status) {
-    return res.status(200).json({ ok: true, sin_cambios: true, ticket: ticketResumen(order) });
+    if (body.notificar_cliente === true) {
+      if (NON_MAILABLE.includes(status)) {
+        return res.status(200).json({ ok: true, sin_cambios: true, ticket: ticketResumen(order), ...notificationFields({ enviada: false, motivo: 'estatus interno, no se notifica' }) });
+      }
+      const forced = await notifyCustomer(order, {
+        subject: `${STATUS_LABELS[status]} · Orden ${order.order_number}`,
+        message: STATUS_MESSAGES[status] || `Tu orden está en estado: ${STATUS_LABELS[status]}.`,
+      });
+      return res.status(200).json({ ok: true, sin_cambios: true, notificacion_forzada: true, ticket: ticketResumen(order), ...notificationFields(forced) });
+    }
+    return res.status(200).json({ ok: true, sin_cambios: true, ticket: ticketResumen(order), ...notificationFields({ enviada: false, motivo: 'sin cambio de estatus; envia notificar_cliente:true para reenviar el correo' }) });
   }
   if (status === 'delivered' && money(order.balance_due) > 0.005) {
     return fail(res, 409, `El boleto tiene balance pendiente de $${money(order.balance_due).toFixed(2)}. Cobra primero desde la app.`, 'balance_due');
   }
-  const notify = body.notificar_cliente === true;
+  const notify = wantsNotification(body.notificar_cliente);
   const note = typeof body.nota === 'string' ? body.nota.trim().slice(0, 500) : '';
 
   await sb('rpc/update_order_status', {
@@ -321,22 +351,16 @@ async function changeStatus(req, res, ref) {
     });
   }
 
-  const email = { solicitado: notify, enviado: false, motivo: null };
+  let notification = { enviada: false, motivo: 'notificacion desactivada (notificar_cliente:false)' };
   if (notify) {
-    if (NON_MAILABLE.includes(status)) email.motivo = 'estatus interno, no se notifica';
-    else if (!validEmail(order.customer_email)) email.motivo = 'cliente sin email valido';
-    else {
-      try {
-        const base = STATUS_MESSAGES[status] || `El estado de tu orden cambio a: ${STATUS_LABELS[status]}.`;
-        await sendCustomerEmail({
-          order: { ...order, status },
-          subject: `${STATUS_LABELS[status]} · Orden ${order.order_number}`,
-          message: note ? `${base}\n\n${note}` : base,
-        });
-        email.enviado = true;
-      } catch (e) {
-        email.motivo = String(e.message || e);
-      }
+    if (NON_MAILABLE.includes(status)) {
+      notification = { enviada: false, motivo: 'estatus interno, no se notifica' };
+    } else {
+      const base = STATUS_MESSAGES[status] || `El estado de tu orden cambió a: ${STATUS_LABELS[status]}.`;
+      notification = await notifyCustomer({ ...order, status }, {
+        subject: `${STATUS_LABELS[status]} · Orden ${order.order_number}`,
+        message: note ? `${base}\n\n${note}` : base,
+      });
     }
   }
   const fresh = await findOrder(order.id);
@@ -344,7 +368,7 @@ async function changeStatus(req, res, ref) {
     ok: true,
     estatus_anterior: order.status,
     ticket: ticketResumen(fresh || order),
-    email,
+    ...notificationFields(notification),
   });
 }
 
@@ -372,7 +396,14 @@ async function addNote(req, res, ref) {
     body: { status_history: [...history, entry], updated_date: new Date().toISOString() },
     prefer: 'return=minimal',
   });
-  return res.status(200).json({ ok: true, ticket: order.order_number, nota: { tipo, texto: text, fecha: entry.timestamp } });
+  let notification = { enviada: false, motivo: tipo === 'cliente' ? 'notificacion desactivada (notificar_cliente:false)' : 'las notas internas no se envian al cliente; usa tipo cliente o notificar_cliente:true' };
+  if (wantsNotification(body.notificar_cliente, tipo === 'cliente')) {
+    notification = await notifyCustomer(order, {
+      subject: `Mensaje sobre tu orden ${order.order_number}`,
+      message: text,
+    });
+  }
+  return res.status(200).json({ ok: true, ticket: order.order_number, nota: { tipo, texto: text, fecha: entry.timestamp }, ...notificationFields(notification) });
 }
 
 function privateAddress(addr) {
@@ -1250,6 +1281,7 @@ async function createTicket(req, res) {
       duplicado: true,
       nota: 'Ya existia un boleto identico creado en los ultimos 10 minutos; no se duplico.',
       ticket: await buildTicketDetail(dup),
+      ...notificationFields({ enviada: false, motivo: 'boleto duplicado; no se envio otra notificacion' }),
     });
   }
 
@@ -1352,6 +1384,14 @@ async function createTicket(req, res) {
     order = (await findOrder(inserted.id)) || order;
   }
 
+  let notification = { enviada: false, motivo: 'notificacion desactivada (notificar_cliente:false)' };
+  if (wantsNotification(b.notificar_cliente)) {
+    const total = money(order.cost_estimate ?? order.labor_cost ?? 0);
+    const lines = [`Recibimos tu equipo (${equipo}) y ya está en nuestra lista de trabajo.`, `Problema reportado: ${problema}`];
+    if (total > 0) lines.push(`Total estimado: $${total.toFixed(2)}.`);
+    lines.push('Te avisaremos por este medio en cada paso de la reparación.');
+    notification = await notifyCustomer(order, { subject: `Recibimos tu equipo · Orden ${order.order_number}`, message: lines.join('\n\n') });
+  }
   return res.status(200).json({
     ok: true,
     creado: true,
@@ -1360,6 +1400,7 @@ async function createTicket(req, res) {
     avisos,
     piezas_resultado: piezasResultado,
     ticket: await buildTicketDetail(order),
+    ...notificationFields(notification),
   });
 }
 
@@ -1420,6 +1461,7 @@ async function addPayment(req, res, ref) {
       duplicado: true,
       nota: 'Ya habia un pago identico en los ultimos 2 minutos; no se registro otro.',
       ticket: ticketResumen(order),
+      ...notificationFields({ enviada: false, motivo: 'pago duplicado; no se envio otro recibo' }),
     });
   }
 
@@ -1478,10 +1520,21 @@ async function addPayment(req, res, ref) {
     }).catch(() => {});
   }
   const fresh = await findOrder(order.id);
+  let notification = { enviada: false, motivo: 'notificacion desactivada (notificar_cliente:false)' };
+  if (wantsNotification(b.notificar_cliente)) {
+    const target = fresh || order;
+    const methodLabel = { cash: 'efectivo', card: 'tarjeta', ath_movil: 'ATH Móvil', transferencia: 'transferencia' }[metodo] || metodo;
+    const lines = [paidNow
+      ? `Recibimos tu pago de $${money(applied).toFixed(2)} (${methodLabel}) y tu orden quedó saldada. Gracias por tu confianza.`
+      : `Recibimos tu pago de $${money(applied).toFixed(2)} (${methodLabel}) para tu orden.`];
+    if (!paidNow && hasEstimate) lines.push(`Pagado a la fecha: $${money(newPaid).toFixed(2)}. Saldo pendiente: $${money(newBalance).toFixed(2)}.`);
+    notification = await notifyCustomer(target, { subject: `Recibo de pago · Orden ${order.order_number}`, message: lines.join('\n\n') });
+  }
   return res.status(200).json({
     ok: true,
     pago: { monto: money(applied), metodo, saldado: paidNow, recibido: monto },
     ticket: ticketResumen(fresh || order),
+    ...notificationFields(notification),
   });
 }
 
@@ -1710,6 +1763,8 @@ async function posSale(req, res) {
   const rawItems = Array.isArray(b.items) ? b.items : [];
   if (rawItems.length < 1 || rawItems.length > 30) return fail(res, 400, 'items debe tener entre 1 y 30 lineas', 'invalid_body');
   const notas = typeof b.notas === 'string' ? b.notas.trim().slice(0, 300) : '';
+  const emailCliente = typeof b.email_cliente === 'string' ? b.email_cliente.trim().toLowerCase() : '';
+  if (emailCliente && (!validEmail(emailCliente) || /[^\x00-\x7F]/.test(emailCliente))) return fail(res, 400, 'email_cliente invalido', 'invalid_body');
 
   const lines = [];
   for (let i = 0; i < rawItems.length; i += 1) {
@@ -1771,6 +1826,7 @@ async function posSale(req, res) {
       duplicado: true,
       venta: { id: dupe.id, numero: dupe.sale_number, total },
       nota: 'Ya existia una venta identica de los ultimos 5 minutos; no se registro otra.',
+      ...notificationFields({ enviada: false, motivo: 'venta duplicada; no se envio otro recibo' }),
     });
   }
 
@@ -1872,8 +1928,22 @@ async function posSale(req, res) {
     }).catch(() => {});
   }
 
+  let notification = { enviada: false, motivo: emailCliente ? 'notificacion desactivada (notificar_cliente:false)' : 'sin email_cliente; envialo para mandar el recibo' };
+  if (emailCliente && wantsNotification(b.notificar_cliente)) {
+    const methodLabel = { cash: 'efectivo', card: 'tarjeta', ath_movil: 'ATH Móvil', transferencia: 'transferencia' }[metodo] || metodo;
+    const detail = saleItems.map((i) => `${i.quantity} x ${i.product_name}: $${i.total.toFixed(2)}`).join('\n');
+    const text = [`Gracias por tu compra. Este es el recibo de tu venta ${saleNumber}.`, detail, `Subtotal: $${subtotal.toFixed(2)}\nIVU: $${taxTotal.toFixed(2)}\nTotal: $${total.toFixed(2)} (${methodLabel})`].join('\n\n');
+    try {
+      const shop = await shopInfo();
+      await sendSimpleEmail({ to: emailCliente, name: '', subject: `Recibo de venta · ${shop.name}`, message: text });
+      notification = { enviada: true, destinatario: emailCliente };
+    } catch (e) {
+      notification = { enviada: false, motivo: String(e.message || e) };
+    }
+  }
   return res.status(200).json({
     ok: true,
+    ...notificationFields(notification),
     venta: {
       id: sale?.id || null,
       numero: saleNumber,
@@ -2230,7 +2300,9 @@ function openapi() {
       description:
         'Acceso exclusivo a los datos de la tienda 911SmartFix. Autenticacion: header Authorization: Bearer <llave>. ' +
         'La llave esta atada al tenant de la tienda; no puede leer ni escribir datos de otras tiendas. ' +
-        'Sin webhooks por ahora: consulta periodicamente GET /tickets?actualizado_desde=<ISO> y GET /alertas.',
+        'Sin webhooks por ahora: consulta periodicamente GET /tickets?actualizado_desde=<ISO> y GET /alertas. ' +
+        'Paridad con la app: crear boletos, cambiar estatus, registrar pagos y notas al cliente envian el correo al cliente por defecto; ' +
+        'cada respuesta de escritura trae notificacion_enviada (true/false) y notificacion con el detalle. Usa notificar_cliente:false para omitirlo.',
     },
     servers: [{ url: PUBLIC_BASE }],
     security: bearer,
@@ -2253,6 +2325,7 @@ function openapi() {
               problema: { type: 'string' },
               tecnico: { type: 'string', description: 'Nombre del empleado a asignar' },
               fecha_prometida: { type: 'string', description: 'YYYY-MM-DD' },
+              notificar_cliente: { type: 'boolean', default: true, description: 'Envia por correo la confirmacion de recepcion al cliente (si tiene email). false la omite.' },
               notas: { type: 'array', items: { type: 'string' } },
               piezas: {
                 type: 'array',
@@ -2301,6 +2374,7 @@ function openapi() {
               monto: { type: 'number' },
               metodo: { type: 'string', enum: ['efectivo', 'ath_movil', 'tarjeta', 'transferencia'] },
               nota: { type: 'string' },
+              notificar_cliente: { type: 'boolean', default: true, description: 'Envia el recibo de pago por correo al cliente. false lo omite.' },
             },
           }),
           responses: { 200: { description: 'Pago registrado' }, 409: { description: 'Boleto cerrado o ya saldado' } },
@@ -2357,7 +2431,7 @@ function openapi() {
             properties: {
               estatus: { type: 'string', description: 'id o nombre exacto (ver GET /estatus), ej. ready_for_pickup' },
               nota: { type: 'string', description: 'Mensaje del taller guardado en el boleto' },
-              notificar_cliente: { type: 'boolean', default: false, description: 'true envia el correo de actualizacion' },
+              notificar_cliente: { type: 'boolean', default: true, description: 'Por defecto se envia el correo de actualizacion al cliente (como en la app). false lo omite; true con el mismo estatus reenvia el correo.' },
             },
           }),
           responses: { 200: { description: 'Boleto actualizado' }, 409: { description: 'Debe hacerse desde la app (balance pendiente, garantia, abandono)' } },
@@ -2374,6 +2448,7 @@ function openapi() {
             properties: {
               texto: { type: 'string' },
               tipo: { type: 'string', enum: ['interna', 'cliente', 'nota'], default: 'interna' },
+              notificar_cliente: { type: 'boolean', description: 'Por defecto true en notas tipo cliente (se le envia por correo) y false en las demas' },
             },
           }),
           responses: { 200: { description: 'Nota agregada' } },
@@ -2555,6 +2630,8 @@ function openapi() {
               },
               metodo: { type: 'string', enum: ['efectivo', 'ath_movil', 'tarjeta', 'transferencia'] },
               monto_recibido: { type: 'number', description: 'Solo efectivo: lo que entrego el cliente, para calcular el cambio' },
+              email_cliente: { type: 'string', description: 'Si se envia, el recibo de la venta le llega por correo' },
+              notificar_cliente: { type: 'boolean', default: true, description: 'false no envia el recibo aunque haya email_cliente' },
               notas: { type: 'string' },
             },
           }),

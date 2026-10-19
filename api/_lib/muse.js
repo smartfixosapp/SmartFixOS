@@ -167,7 +167,7 @@ async function findOrder(ref) {
   return rows?.[0] || null;
 }
 
-async function shopInfo() {
+export async function shopInfo() {
   let name = process.env.MUSE_SHOP_NAME || '';
   let replyTo = null;
   try {
@@ -217,6 +217,13 @@ export async function sendCustomerEmail({ order, subject, message }) {
     fromName: shop.name,
     replyTo: shop.replyTo || undefined,
   });
+}
+
+export async function sendSimpleEmail({ to, name, subject, message }) {
+  ensureResendConfigured();
+  const shop = await shopInfo();
+  const html = emailHtml({ shop: shop.name, greetingName: name || 'cliente', message, order: null });
+  await sendResendEmail({ to, subject, html, fromName: shop.name, replyTo: shop.replyTo || undefined });
 }
 
 export function validEmail(s) {
