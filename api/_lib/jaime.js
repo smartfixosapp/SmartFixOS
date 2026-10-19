@@ -350,6 +350,7 @@ async function changeDevice(order, body) {
         family = chain.device_family || null;
       }
     }
+    if (!marcaIn && patch.device_brand === undefined) patch.device_brand = null;
     if (type) {
       patch.device_type = type;
       patch.device_family = family;
