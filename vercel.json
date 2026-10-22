@@ -25,6 +25,10 @@
       "destination": "/api/seed-email-templates?jaime=:path*"
     },
     {
+      "source": "/api/assistant/:path*",
+      "destination": "/api/seed-email-templates?assistant=:path*"
+    },
+    {
       "source": "/edge/owner-pin",
       "destination": "https://idntuvtabecwubzswpwi.supabase.co/functions/v1/owner-pin"
     },
@@ -86,5 +90,10 @@
         }
       ]
     }
-  ]
+  ],
+  "functions": {
+    "api/seed-email-templates.js": {
+      "maxDuration": 60
+    }
+  }
 }

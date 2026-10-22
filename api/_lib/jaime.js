@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import dns from 'node:dns/promises';
 import net from 'node:net';
 import {
@@ -23,7 +24,11 @@ import {
 const API_TOKEN = process.env.JAIME_API_TOKEN || '';
 const TENANT_ID = process.env.JAIME_TENANT_ID || process.env.MUSE_TENANT_ID || '';
 const PUBLIC_BASE = 'https://archillaos.com/api/jaime';
-const ACTOR = 'Jaime';
+export const actorStore = new AsyncLocalStorage();
+
+function actorName() {
+  return actorStore.getStore()?.actor || 'Jaime';
+}
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const ORDER_COLUMNS = [
   'id', 'customer_id', 'order_number', 'status', 'status_note', 'status_history', 'customer_name', 'customer_phone',
@@ -382,8 +387,8 @@ async function changeDevice(order, body) {
         {
           status: null,
           timestamp: nowIso,
-          changed_by: ACTOR,
-          note: `Equipo cambiado por ${ACTOR}: ${antes} → ${despues}${motivoIn ? ` (${motivoIn})` : ''}`,
+          changed_by: actorName(),
+          note: `Equipo cambiado por ${actorName()}: ${antes} → ${despues}${motivoIn ? ` (${motivoIn})` : ''}`,
           visible_to_customer: false,
           kind: 'internal_note',
         },
@@ -449,7 +454,7 @@ async function changeStatus(req, res, ref) {
 
   await sb('rpc/update_order_status', {
     method: 'POST',
-    body: { p_order_id: order.id, p_new_status: status, p_changed_by: ACTOR, p_visible_to_customer: true },
+    body: { p_order_id: order.id, p_new_status: status, p_changed_by: actorName(), p_visible_to_customer: true },
   });
   if (note) {
     await sb(`order?id=eq.${order.id}&tenant_id=eq.${TENANT_ID}`, {
@@ -495,7 +500,7 @@ async function addNote(req, res, ref) {
   const entry = {
     status: null,
     timestamp: new Date().toISOString(),
-    changed_by: ACTOR,
+    changed_by: actorName(),
     note: text,
     visible_to_customer: false,
     kind: kinds[tipo],
@@ -572,10 +577,14 @@ async function addPhoto(req, res, ref) {
   const body = req.body || {};
   const order = await findOrder(ref);
   if (!order) return fail(res, 404, 'Boleto no encontrado', 'not_found');
+  const ownPrefix = `${SB_URL}/storage/v1/object/public/uploads/`;
   let buf;
   let type;
+  let ownUrl = null;
   try {
-    if (typeof body.url === 'string' && body.url.trim()) {
+    if (typeof body.url === 'string' && body.url.trim().startsWith(ownPrefix)) {
+      ownUrl = body.url.trim();
+    } else if (typeof body.url === 'string' && body.url.trim()) {
       ({ buf, type } = await fetchImage(body.url.trim()));
     } else if (typeof body.imagen_base64 === 'string' && body.imagen_base64.trim()) {
       const raw = body.imagen_base64.replace(/^data:([^;]+);base64,/, '');
@@ -591,14 +600,17 @@ async function addPhoto(req, res, ref) {
   } catch (e) {
     return fail(res, e.status || 400, e.message || 'imagen invalida', 'invalid_image');
   }
-  const path = `tenants/${TENANT_ID}/orders/${order.order_number}/photo_api_${crypto.randomUUID()}.${extFor(type)}`;
-  const up = await fetch(`${SB_URL}/storage/v1/object/uploads/${path}`, {
-    method: 'POST',
-    headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, 'Content-Type': type },
-    body: buf,
-  });
-  if (!up.ok) return fail(res, 502, 'No se pudo guardar la imagen', 'storage_failed');
-  const publicUrl = `${SB_URL}/storage/v1/object/public/uploads/${path}`;
+  let publicUrl = ownUrl;
+  if (!ownUrl) {
+    const path = `tenants/${TENANT_ID}/orders/${order.order_number}/photo_api_${crypto.randomUUID()}.${extFor(type)}`;
+    const up = await fetch(`${SB_URL}/storage/v1/object/uploads/${path}`, {
+      method: 'POST',
+      headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, 'Content-Type': type },
+      body: buf,
+    });
+    if (!up.ok) return fail(res, 502, 'No se pudo guardar la imagen', 'storage_failed');
+    publicUrl = `${SB_URL}/storage/v1/object/public/uploads/${path}`;
+  }
   const nowIso = new Date().toISOString();
   const photos = Array.isArray(order.device_photos) ? order.device_photos : [];
   const meta = Array.isArray(order.photos_metadata) ? order.photos_metadata : [];
@@ -608,13 +620,13 @@ async function addPhoto(req, res, ref) {
     method: 'PATCH',
     body: {
       device_photos: [...photos, publicUrl],
-      photos_metadata: [...meta, { url: publicUrl, status: order.status, by: ACTOR, taken_at: nowIso }],
+      photos_metadata: [...meta, { url: publicUrl, status: order.status, by: actorName(), taken_at: nowIso }],
       status_history: [
         ...history,
         {
           status: null,
           timestamp: nowIso,
-          changed_by: ACTOR,
+          changed_by: actorName(),
           note: caption || 'Foto subida',
           visible_to_customer: false,
           kind: 'photo',
@@ -766,7 +778,7 @@ async function registerPiece(order, body) {
           {
             status: null,
             timestamp: nowIso,
-            changed_by: ACTOR,
+            changed_by: actorName(),
             note: `Pieza agregada: ${nombre} x${cantidad} a $${money(precio).toFixed(2)}`,
             visible_to_customer: false,
             kind: 'note',
@@ -795,7 +807,7 @@ async function registerPiece(order, body) {
         reference_type: 'work_order',
         reference_id: order.id,
         reference_number: order.order_number,
-        performed_by: ACTOR,
+        performed_by: actorName(),
       },
       prefer: 'return=minimal',
     }).catch(() => {});
@@ -1158,7 +1170,7 @@ async function logStockMovement(product, prev, next, reason, number) {
         total_amount: money(Math.abs(next - prev) * (Number(product.cost) || 0)),
         reference_type: reason,
         reference_number: number || null,
-        performed_by: ACTOR,
+        performed_by: actorName(),
       },
       prefer: 'return=minimal',
     });
@@ -1368,6 +1380,9 @@ async function createTicket(req, res) {
   }
   if (email && (!validEmail(email) || /[^\x00-\x7F]/.test(email))) return fail(res, 400, 'email invalido (solo caracteres basicos, sin acentos)', 'invalid_body');
   if (fechaPrometida && !validDate(fechaPrometida)) return fail(res, 400, 'fecha_prometida debe ser YYYY-MM-DD', 'invalid_body');
+  const photoPrefix = `${SB_URL}/storage/v1/object/public/uploads/`;
+  const fotos = Array.isArray(b.fotos) ? b.fotos.filter((u) => typeof u === 'string' && u.trim()).map((u) => u.trim()).slice(0, 10) : [];
+  if (fotos.some((u) => !u.startsWith(photoPrefix))) return fail(res, 400, 'fotos debe contener URLs de fotos subidas al sistema', 'invalid_body');
   const notas = Array.isArray(b.notas) ? b.notas.filter((n) => typeof n === 'string' && n.trim()).map((n) => n.trim().slice(0, 500)).slice(0, 10) : [];
   const piezas = Array.isArray(b.piezas) ? b.piezas.slice(0, 20) : [];
   const avisos = [];
@@ -1442,7 +1457,7 @@ async function createTicket(req, res) {
     customer_name: cliente,
     status: 'intake',
     priority: 'normal',
-    created_by_name: ACTOR,
+    created_by_name: actorName(),
     created_date: nowIso,
     updated_date: nowIso,
     is_quick_service: false,
@@ -1472,11 +1487,15 @@ async function createTicket(req, res) {
     row.assigned_to_name = employee.full_name;
   }
   if (fechaPrometida) row.promised_date = `${fechaPrometida}T12:00:00-04:00`;
+  if (fotos.length > 0) {
+    row.device_photos = fotos;
+    row.photos_metadata = fotos.map((url) => ({ url, status: 'intake', by: actorName(), taken_at: nowIso }));
+  }
   if (notas.length > 0) {
     row.status_history = notas.map((n) => ({
       status: null,
       timestamp: nowIso,
-      changed_by: ACTOR,
+      changed_by: actorName(),
       note: n,
       visible_to_customer: false,
       kind: 'note',
@@ -1584,7 +1603,7 @@ async function addPayment(req, res, ref) {
       amount: money(applied),
       description,
       payment_method: metodo,
-      recorded_by: ACTOR,
+      recorded_by: actorName(),
       order_id: order.id,
       order_number: order.order_number,
       is_settled: metodo !== 'card',
@@ -1603,7 +1622,7 @@ async function addPayment(req, res, ref) {
       {
         status: null,
         timestamp: nowIso,
-        changed_by: ACTOR,
+        changed_by: actorName(),
         note: `Pago registrado: $${money(applied).toFixed(2)} (${metodo})${nota ? ` - ${nota}` : ''}`,
         visible_to_customer: false,
         kind: 'note',
@@ -1669,7 +1688,7 @@ async function voidPayment(req, res, ref, pagoId) {
   const nowIso = new Date().toISOString();
   const voided = await sb(`transaction?id=eq.${tx.id}&tenant_id=eq.${TENANT_ID}&is_deleted=eq.false`, {
     method: 'PATCH',
-    body: { is_deleted: true, deleted_at: nowIso, delete_reason: `Anulado por ${ACTOR}: ${motivo}` },
+    body: { is_deleted: true, deleted_at: nowIso, delete_reason: `Anulado por ${actorName()}: ${motivo}` },
     prefer: 'return=representation',
   });
   if (!Array.isArray(voided) || voided.length === 0) {
@@ -1691,7 +1710,7 @@ async function voidPayment(req, res, ref, pagoId) {
       {
         status: null,
         timestamp: nowIso,
-        changed_by: ACTOR,
+        changed_by: actorName(),
         note: `Pago anulado: $${money(amount).toFixed(2)} (${tx.payment_method || 'sin metodo'}) - ${motivo}`,
         visible_to_customer: false,
         kind: 'note',
@@ -1758,7 +1777,7 @@ async function addIncome(req, res) {
   const descripcion = `Venta de mostrador · ${concepto}`;
   const since = new Date(Date.now() - 10 * 60_000).toISOString();
   const dupes = await sb(
-    `transaction?tenant_id=eq.${TENANT_ID}&type=eq.revenue&category=eq.repair_payment&recorded_by=eq.${ACTOR}` +
+    `transaction?tenant_id=eq.${TENANT_ID}&type=eq.revenue&category=eq.repair_payment&recorded_by=eq.${actorName()}` +
     `&amount=eq.${monto}&payment_method=eq.${metodo}&description=eq.${encodeURIComponent(descripcion)}` +
     `&created_at=gte.${since}&is_deleted=eq.false&select=id&limit=1`
   );
@@ -1778,7 +1797,7 @@ async function addIncome(req, res) {
     amount: monto,
     description: descripcion,
     payment_method: metodo,
-    recorded_by: ACTOR,
+    recorded_by: actorName(),
     is_settled: metodo !== 'card',
     deductible_tax: false,
   };
@@ -1925,7 +1944,7 @@ async function posSale(req, res) {
 
   const since = new Date(Date.now() - 5 * 60_000).toISOString();
   const recent = (await sb(
-    `sale?tenant_id=eq.${TENANT_ID}&employee=eq.${ACTOR}&created_at=gte.${since}&select=id,sale_number,total,payment_method,items&limit=20`
+    `sale?tenant_id=eq.${TENANT_ID}&employee=eq.${actorName()}&created_at=gte.${since}&select=id,sale_number,total,payment_method,items&limit=20`
   )) || [];
   const signature = (items) => (Array.isArray(items) ? items : []).map((i) => `${String(i.product_name).toLowerCase()}x${i.quantity}`).sort().join('|');
   const dupe = recent.find((s) => Math.abs(Number(s.total) - total) < 0.005 && s.payment_method === metodo && signature(s.items) === signature(saleItems));
@@ -1982,7 +2001,7 @@ async function posSale(req, res) {
         tax_amount: taxTotal,
         total,
         payment_method: metodo,
-        employee: ACTOR,
+        employee: actorName(),
         amount_received: recibido,
         amount_paid: total,
         change_due: cambio,
@@ -2004,7 +2023,7 @@ async function posSale(req, res) {
         category: 'repair_payment',
         payment_method: metodo,
         description: 'Venta POS',
-        recorded_by: ACTOR,
+        recorded_by: actorName(),
       },
       prefer: 'return=minimal',
     });
@@ -2031,7 +2050,7 @@ async function posSale(req, res) {
         category: 'stock_out',
         amount: Math.abs(c.prev - c.next),
         description: `[${c.product.name}] Venta POS`,
-        recorded_by: ACTOR,
+        recorded_by: actorName(),
       },
       prefer: 'return=minimal',
     }).catch(() => {});
@@ -2083,14 +2102,14 @@ async function posVoidSale(req, res, ref) {
   const sale = rows?.[0];
   if (!sale) return fail(res, 404, 'Venta no encontrada', 'not_found');
   if (sale.voided || sale.is_deleted) return fail(res, 409, 'Esa venta ya fue anulada.', 'already_voided');
-  if (sale.employee !== ACTOR) {
+  if (sale.employee !== actorName()) {
     return fail(res, 409, 'Solo se pueden anular desde la API las ventas registradas por la API. Anula esta desde la app.', 'not_api_sale');
   }
 
   const nowIso = new Date().toISOString();
   const voided = await sb(`sale?id=eq.${sale.id}&tenant_id=eq.${TENANT_ID}&voided=eq.false`, {
     method: 'PATCH',
-    body: { voided: true, is_deleted: true, voided_at: nowIso, void_reason: `Anulada por ${ACTOR}: ${motivo}`, voided_by: ACTOR },
+    body: { voided: true, is_deleted: true, voided_at: nowIso, void_reason: `Anulada por ${actorName()}: ${motivo}`, voided_by: actorName() },
     prefer: 'return=representation',
   });
   if (!Array.isArray(voided) || voided.length === 0) return fail(res, 409, 'Esa venta ya fue anulada.', 'already_voided');
@@ -2105,7 +2124,7 @@ async function posVoidSale(req, res, ref) {
         category: 'refund',
         payment_method: sale.payment_method || 'cash',
         description: `Venta ${sale.sale_number} anulada`,
-        recorded_by: ACTOR,
+        recorded_by: actorName(),
       },
       prefer: 'return=minimal',
     });
@@ -2150,7 +2169,7 @@ async function posVoidSale(req, res, ref) {
           category: 'stock_in',
           amount: qty,
           description: `[${product.name}] Venta ${sale.sale_number} anulada`,
-          recorded_by: ACTOR,
+          recorded_by: actorName(),
         },
         prefer: 'return=minimal',
       }).catch(() => {});
@@ -2199,7 +2218,7 @@ async function posAdjustStock(req, res, id) {
       category: next > prev ? 'stock_in' : 'stock_out',
       amount: Math.abs(next - prev),
       description: `[${product.name}] ${motivo}`,
-      recorded_by: ACTOR,
+      recorded_by: actorName(),
     },
     prefer: 'return=minimal',
   }).catch(() => {});
@@ -2269,7 +2288,7 @@ async function removePiece(req, res, ref, piezaId) {
           {
             status: null,
             timestamp: nowIso,
-            changed_by: ACTOR,
+            changed_by: actorName(),
             note: `Pieza eliminada por Jaime: ${line.name} x${quantity}`,
             visible_to_customer: false,
             kind: 'note',
@@ -2334,7 +2353,7 @@ async function updatePieceCost(req, res, ref, piezaId) {
   const note = {
     status: null,
     timestamp: nowIso,
-    changed_by: ACTOR,
+    changed_by: actorName(),
     note: `Costo de pieza actualizado por Jaime: ${line.name}${costo !== null ? ` costo $${money(costo).toFixed(2)} c/u` : ''}${suplidor ? ` (${suplidor})` : ''}`,
     visible_to_customer: false,
     kind: 'note',
@@ -2435,6 +2454,7 @@ function openapi() {
               tecnico: { type: 'string', description: 'Nombre del empleado a asignar' },
               fecha_prometida: { type: 'string', description: 'YYYY-MM-DD' },
               notificar_cliente: { type: 'boolean', default: true, description: 'Envia por correo la confirmacion de recepcion al cliente (si tiene email). false la omite.' },
+              fotos: { type: 'array', items: { type: 'string' }, description: 'URLs de fotos ya subidas al almacenamiento del sistema (maximo 10)' },
               notas: { type: 'array', items: { type: 'string' } },
               piezas: {
                 type: 'array',
