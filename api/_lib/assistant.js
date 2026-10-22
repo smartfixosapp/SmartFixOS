@@ -530,7 +530,7 @@ export function trimHistory(messages) {
   return messages.slice(start);
 }
 
-export async function runAgent({ config, apiKey, messages, decisions, actor, shopName, deps }) {
+export async function runAgent({ config, apiKey, messages, decisions, actor, shopName, deps, extraText = '' }) {
   const history = [...trimHistory(messages)];
   const produced = [];
   const executed = [];
@@ -556,6 +556,7 @@ export async function runAgent({ config, apiKey, messages, decisions, actor, sho
       }
       results.push({ type: 'tool_result', tool_use_id: tu.id, content: trimResult(payload) });
     }
+    if (extraText) results.push({ type: 'text', text: extraText });
     const resultMsg = { role: 'user', content: results };
     history.push(resultMsg);
     produced.push(resultMsg);
@@ -713,6 +714,7 @@ export async function assistantHandler(req, res) {
           apiKey,
           messages: b.messages,
           decisions: Array.isArray(b.decisions) ? b.decisions : [],
+          extraText: typeof b.texto === 'string' ? b.texto.trim().slice(0, 4000) : '',
           actor: auth.label,
           shopName,
           deps: { provider: providerCall, callApi },
