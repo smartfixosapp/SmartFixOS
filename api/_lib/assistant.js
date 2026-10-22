@@ -14,6 +14,7 @@ const MAX_TOOL_RESULT_CHARS = 6000;
 const PROVIDERS = {
   anthropic: { label: 'Anthropic (Claude)', baseUrl: 'https://api.anthropic.com', models: ['claude-sonnet-5-5', 'claude-opus-5-5', 'claude-haiku-5-5'] },
   openai: { label: 'OpenAI (ChatGPT)', baseUrl: 'https://api.openai.com/v1', models: ['gpt-4.1', 'gpt-4.1-mini'] },
+  meta: { label: 'Meta (Muse)', baseUrl: 'https://api.meta.ai/v1', models: ['muse-spark-1.3'] },
   openai_compatible: { label: 'Compatible con OpenAI (Ollama, Gemini, otros)', baseUrl: '', models: [] },
 };
 
@@ -196,7 +197,7 @@ async function providerCall(config, apiKey, system, messages, tools) {
       },
     };
   }
-  const base = (config.base_url || PROVIDERS.openai.baseUrl).replace(/\/$/, '');
+  const base = (config.base_url || PROVIDERS[provider]?.baseUrl || PROVIDERS.openai.baseUrl).replace(/\/$/, '');
   const headers = { 'content-type': 'application/json' };
   if (apiKey) headers.authorization = `Bearer ${apiKey}`;
   const res = await fetch(`${base}/chat/completions`, {
