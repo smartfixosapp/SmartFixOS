@@ -17,6 +17,18 @@ const PROVIDERS = {
   openai_compatible: { label: 'Compatible con OpenAI (Ollama, Gemini, otros)', baseUrl: '', models: [] },
 };
 
+const PRICES = [
+  { match: /opus-5-5/, entrada: 4, salida: 20, cacheLectura: 0.2, cacheEscritura: 5 },
+  { match: /sonnet-5/, entrada: 2, salida: 10, cacheLectura: 0.1, cacheEscritura: 2.5 },
+  { match: /haiku-5-5/, entrada: 0.1, salida: 0.5, cacheLectura: 0.01, cacheEscritura: 0.125 },
+];
+
+export function costUsd(model, u) {
+  const price = PRICES.find((p) => p.match.test(String(model || '')));
+  if (!price) return 0;
+  return ((u.entrada || 0) * price.entrada + (u.salida || 0) * price.salida + (u.cache_lectura || 0) * price.cacheLectura + (u.cache_escritura || 0) * price.cacheEscritura) / 1_000_000;
+}
+
 function withIvu(n) {
   return money(Number(n) * (1 + IVU));
 }
@@ -69,28 +81,40 @@ async function loadUsage(tenantId) {
 
 async function addUsage(tenantId, delta) {
   const { slug, row, usage } = await loadUsage(tenantId);
-  const next = { entrada: (usage.entrada || 0) + delta.entrada, salida: (usage.salida || 0) + delta.salida, llamadas: (usage.llamadas || 0) + delta.llamadas };
+  const next = {
+    entrada: (usage.entrada || 0) + delta.entrada,
+    salida: (usage.salida || 0) + delta.salida,
+    cache_lectura: (usage.cache_lectura || 0) + (delta.cache_lectura || 0),
+    cache_escritura: (usage.cache_escritura || 0) + (delta.cache_escritura || 0),
+    usd: Math.round(((usage.usd || 0) + (delta.usd || 0)) * 1_000_000) / 1_000_000,
+    llamadas: (usage.llamadas || 0) + delta.llamadas,
+  };
   if (row) await sb(`app_settings?id=eq.${row.id}`, { method: 'PATCH', body: { payload: next }, prefer: 'return=minimal' });
   else await sb('app_settings', { method: 'POST', body: { slug, payload: next }, prefer: 'return=minimal' });
   return next;
 }
 
-function meter(usage, tope) {
-  const total = (usage.entrada || 0) + (usage.salida || 0);
-  const limit = Number(tope) || 0;
-  const pct = limit > 0 ? Math.min(100, Math.round((total / limit) * 100)) : null;
+function meter(usage, config) {
+  const total = (usage.entrada || 0) + (usage.salida || 0) + (usage.cache_lectura || 0) + (usage.cache_escritura || 0);
+  const topeTokens = Number(config?.tope_tokens_mes) || 0;
+  const topeUsd = Number(config?.tope_usd_mes) || 0;
+  const usd = Math.round((usage.usd || 0) * 10000) / 10000;
+  let pct = null;
+  if (topeUsd > 0) pct = Math.min(100, Math.round((usd / topeUsd) * 100));
+  else if (topeTokens > 0) pct = Math.min(100, Math.round((total / topeTokens) * 100));
   let aviso = null;
   if (pct !== null && pct >= 100) aviso = 'Llegaste al tope mensual de consumo de IA.';
   else if (pct !== null && pct >= 80) aviso = `Llevas ${pct}% de tu tope mensual de consumo de IA.`;
   return {
     periodo: prDayRange().day.slice(0, 7),
-    tokens_entrada: usage.entrada || 0,
-    tokens_salida: usage.salida || 0,
     tokens_total: total,
     llamadas: usage.llamadas || 0,
-    tope_tokens_mes: limit,
+    usd_usado: usd,
+    tope_usd_mes: topeUsd,
+    usd_restante: topeUsd > 0 ? Math.max(0, Math.round((topeUsd - usd) * 100) / 100) : null,
+    tope_tokens_mes: topeTokens,
+    tokens_restantes: topeTokens > 0 ? Math.max(0, topeTokens - total) : null,
     porcentaje_usado: pct,
-    tokens_restantes: limit > 0 ? Math.max(0, limit - total) : null,
     aviso,
   };
 }
@@ -102,6 +126,7 @@ function publicConfig(config) {
     base_url: config?.base_url || '',
     tiene_llave: Boolean(config?.key_enc),
     tope_tokens_mes: Number(config?.tope_tokens_mes) || 0,
+    tope_usd_mes: Number(config?.tope_usd_mes) || 0,
     proveedores: Object.entries(PROVIDERS).map(([id, p]) => ({ id, nombre: p.label, modelos_sugeridos: p.models, requiere_base_url: id === 'openai_compatible' })),
   };
 }
@@ -154,7 +179,7 @@ async function providerCall(config, apiKey, system, messages, tools) {
       body: JSON.stringify({
         model: config.model,
         max_tokens: 2048,
-        system,
+        system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
         messages,
         tools: tools.map((t) => ({ name: t.name, description: t.description, input_schema: t.input_schema })),
       }),
@@ -163,7 +188,12 @@ async function providerCall(config, apiKey, system, messages, tools) {
     if (!res.ok) throw Object.assign(new Error(data?.error?.message || `Anthropic ${res.status}`), { provider: true, status: res.status });
     return {
       blocks: (data.content || []).filter((b) => b.type === 'text' || b.type === 'tool_use').map((b) => (b.type === 'text' ? { type: 'text', text: b.text } : { type: 'tool_use', id: b.id, name: b.name, input: b.input || {} })),
-      usage: { entrada: Number(data.usage?.input_tokens) || 0, salida: Number(data.usage?.output_tokens) || 0 },
+      usage: {
+        entrada: Number(data.usage?.input_tokens) || 0,
+        salida: Number(data.usage?.output_tokens) || 0,
+        cache_lectura: Number(data.usage?.cache_read_input_tokens) || 0,
+        cache_escritura: Number(data.usage?.cache_creation_input_tokens) || 0,
+      },
     };
   }
   const base = (config.base_url || PROVIDERS.openai.baseUrl).replace(/\/$/, '');
@@ -499,7 +529,7 @@ export async function runAgent({ config, apiKey, messages, decisions, actor, sho
   const history = [...trimHistory(messages)];
   const produced = [];
   const executed = [];
-  const usage = { entrada: 0, salida: 0, llamadas: 0 };
+  const usage = { entrada: 0, salida: 0, cache_lectura: 0, cache_escritura: 0, usd: 0, llamadas: 0 };
   const system = systemPrompt(shopName, actor);
   const last = history[history.length - 1];
 
@@ -530,6 +560,9 @@ export async function runAgent({ config, apiKey, messages, decisions, actor, sho
     const resp = await deps.provider(config, apiKey, system, history, TOOLS);
     usage.entrada += resp.usage?.entrada || 0;
     usage.salida += resp.usage?.salida || 0;
+    usage.cache_lectura += resp.usage?.cache_lectura || 0;
+    usage.cache_escritura += resp.usage?.cache_escritura || 0;
+    usage.usd += costUsd(config.model, resp.usage || {});
     usage.llamadas += 1;
     const assistantMsg = { role: 'assistant', content: resp.blocks.length ? resp.blocks : [{ type: 'text', text: '' }] };
     history.push(assistantMsg);
@@ -614,7 +647,7 @@ export async function assistantHandler(req, res) {
   try {
     if (route === 'config' && req.method === 'GET') {
       const { config } = await loadConfig(auth.tenantId);
-      const consumo = enabledFor(auth) ? meter((await loadUsage(auth.tenantId)).usage, config?.tope_tokens_mes) : null;
+      const consumo = enabledFor(auth) ? meter((await loadUsage(auth.tenantId)).usage, config) : null;
       return res.status(200).json({ ok: true, habilitado: enabledFor(auth), ...publicConfig(config), consumo });
     }
     if (!enabledFor(auth)) return fail(res, 403, 'El asistente no esta habilitado para esta cuenta', 'not_enabled');
@@ -631,11 +664,13 @@ export async function assistantHandler(req, res) {
       const { config: current } = await loadConfig(auth.tenantId);
       const tope = b.tope_tokens_mes === undefined ? Number(current?.tope_tokens_mes) || 0 : Number(b.tope_tokens_mes);
       if (!Number.isFinite(tope) || tope < 0 || tope > 1_000_000_000) return fail(res, 400, 'tope_tokens_mes debe ser un numero entre 0 y 1000000000 (0 = sin tope)', 'invalid_body');
-      const payload = { provider, model, base_url: baseUrl, tope_tokens_mes: Math.round(tope), key_enc: current?.key_enc || null, updated_at: new Date().toISOString(), updated_by: auth.label };
+      const topeUsd = b.tope_usd_mes === undefined ? Number(current?.tope_usd_mes) || 0 : Number(b.tope_usd_mes);
+      if (!Number.isFinite(topeUsd) || topeUsd < 0 || topeUsd > 100000) return fail(res, 400, 'tope_usd_mes debe ser un numero entre 0 y 100000 (0 = sin tope)', 'invalid_body');
+      const payload = { provider, model, base_url: baseUrl, tope_tokens_mes: Math.round(tope), tope_usd_mes: topeUsd, key_enc: current?.key_enc || null, updated_at: new Date().toISOString(), updated_by: auth.label };
       if (typeof b.api_key === 'string' && b.api_key.trim()) payload.key_enc = encryptKey(b.api_key.trim());
       if (!payload.key_enc && provider !== 'openai_compatible') return fail(res, 400, 'api_key es requerida', 'invalid_body');
       await saveConfig(auth.tenantId, payload);
-      return res.status(200).json({ ok: true, habilitado: true, ...publicConfig(payload), consumo: meter((await loadUsage(auth.tenantId)).usage, payload.tope_tokens_mes) });
+      return res.status(200).json({ ok: true, habilitado: true, ...publicConfig(payload), consumo: meter((await loadUsage(auth.tenantId)).usage, payload) });
     }
 
     if (route === 'config/test' && req.method === 'POST') {
@@ -657,7 +692,7 @@ export async function assistantHandler(req, res) {
       const { config } = await loadConfig(auth.tenantId);
       if (!config) return fail(res, 409, 'Configura el proveedor de IA primero', 'not_configured');
       const apiKey = config.key_enc ? decryptKey(config.key_enc) : '';
-      const before = meter((await loadUsage(auth.tenantId)).usage, config.tope_tokens_mes);
+      const before = meter((await loadUsage(auth.tenantId)).usage, config);
       if (before.porcentaje_usado !== null && before.porcentaje_usado >= 100) {
         return res.status(429).json({ ok: false, error: 'Llegaste al tope mensual de consumo de IA. Sube el tope en la configuracion del asistente.', code: 'usage_limit', consumo: before });
       }
@@ -678,7 +713,7 @@ export async function assistantHandler(req, res) {
           deps: { provider: providerCall, callApi },
         });
         const total = await addUsage(auth.tenantId, out.usage).catch(() => null);
-        const consumo = total ? meter(total, config.tope_tokens_mes) : before;
+        const consumo = total ? meter(total, config) : before;
         return res.status(200).json({ ok: true, mensajes: out.produced, pendientes: out.pending, ejecutadas: out.executed, consumo, ...(out.truncado ? { aviso: 'La respuesta se corto por limite de pasos' } : {}) });
       } catch (e) {
         if (e.provider) return fail(res, 502, `El proveedor de IA respondio con error: ${e.message}`, 'provider_error');
