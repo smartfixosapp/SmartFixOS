@@ -2,11 +2,34 @@ import crypto from 'node:crypto';
 import { requireMember } from '../../lib/server/requireMember.js';
 import { jaimeHandler, actorStore } from './jaime.js';
 import { SB_URL, SB_KEY, sb, money, prDayRange } from './muse.js';
+import {
+  loadConnections,
+  publicConnections,
+  saveWhatsAppConfig,
+  testWhatsApp,
+  sendWhatsApp,
+  readWhatsAppInbox,
+  whatsAppWebhook,
+  normalizePhone,
+  savePlaidConfig,
+  createPlaidLink,
+  finishPlaidLink,
+  removePlaidItem,
+  bankAccounts,
+  bankTransactions,
+  saveSuppliers,
+  listSuppliers,
+  verifySetup,
+  searchSupplier,
+  supplierLoginWindow,
+  workerConfigured,
+} from './connections.js';
 
 const TENANT_ID = process.env.MUSE_TENANT_ID || '';
 const SECRET = process.env.ASSISTANT_KEY_SECRET || '';
 const SERVICE_TOKEN = process.env.JAIME_API_TOKEN || '';
 const IVU = 0.115;
+const WEB_BASE = process.env.PUBLIC_BASE_URL || 'https://archillaos.com';
 const MAX_ITERATIONS = 8;
 const MAX_HISTORY = 60;
 const MAX_TOOL_RESULT_CHARS = 6000;
@@ -128,6 +151,7 @@ function publicConfig(config) {
     tiene_llave: Boolean(config?.key_enc),
     tope_tokens_mes: Number(config?.tope_tokens_mes) || 0,
     tope_usd_mes: Number(config?.tope_usd_mes) || 0,
+    autonomia: config?.autonomia === 'preguntar' ? 'preguntar' : 'inteligente',
     proveedores: Object.entries(PROVIDERS).map(([id, p]) => ({ id, nombre: p.label, modelos_sugeridos: p.models, requiere_base_url: id === 'openai_compatible' })),
   };
 }
@@ -154,7 +178,12 @@ export function toOpenAiMessages(system, messages) {
       const results = blocks.filter((b) => b.type === 'tool_result');
       for (const r of results) out.push({ role: 'tool', tool_call_id: r.tool_use_id, content: typeof r.content === 'string' ? r.content : JSON.stringify(r.content) });
       const text = textOf(blocks);
-      if (text) out.push({ role: 'user', content: text });
+      const images = blocks.filter((b) => b.type === 'image');
+      if (images.length) {
+        out.push({ role: 'user', content: [{ type: 'text', text: text || 'Foto' }, ...images.map((b) => ({ type: 'image_url', image_url: { url: b.url } }))] });
+      } else if (text) {
+        out.push({ role: 'user', content: text });
+      }
     }
   }
   return out;
@@ -171,6 +200,44 @@ export function fromOpenAiMessage(message) {
   return blocks;
 }
 
+
+const IMAGE_URL_RE = () => new RegExp(`${SB_URL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/storage/v1/object/public/uploads/[^\\s,\\]]+`, 'g');
+const MAX_VISION_IMAGES = 8;
+
+export function prepareMessages(messages) {
+  const matcher = IMAGE_URL_RE();
+  let budget = MAX_VISION_IMAGES;
+  const out = messages.map((m) => ({ ...m }));
+  for (let i = out.length - 1; i >= 0 && budget > 0; i -= 1) {
+    const m = out[i];
+    if (m.role !== 'user' || !Array.isArray(m.content)) continue;
+    const blocks = [];
+    for (const b of m.content) {
+      if (b.type === 'text' && typeof b.text === 'string') {
+        const urls = (b.text.match(matcher) || []).filter((u) => /\.(jpe?g|png|webp|heic)$/i.test(u));
+        blocks.push(b);
+        for (const url of urls.slice(0, budget)) {
+          blocks.push({ type: 'image', url });
+          budget -= 1;
+        }
+      } else {
+        blocks.push(b);
+      }
+    }
+    out[i] = { ...m, content: blocks };
+  }
+  return out;
+}
+
+function toAnthropicMessages(messages) {
+  return prepareMessages(messages).map((m) => ({
+    ...m,
+    content: Array.isArray(m.content)
+      ? m.content.map((b) => (b.type === 'image' ? { type: 'image', source: { type: 'url', url: b.url } } : b))
+      : m.content,
+  }));
+}
+
 async function providerCall(config, apiKey, system, messages, tools) {
   const provider = config.provider;
   if (provider === 'anthropic') {
@@ -181,7 +248,7 @@ async function providerCall(config, apiKey, system, messages, tools) {
         model: config.model,
         max_tokens: 2048,
         system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
-        messages,
+        messages: toAnthropicMessages(messages),
         tools: tools.map((t) => ({ name: t.name, description: t.description, input_schema: t.input_schema })),
       }),
     });
@@ -205,7 +272,7 @@ async function providerCall(config, apiKey, system, messages, tools) {
     headers,
     body: JSON.stringify({
       model: config.model,
-      messages: toOpenAiMessages(system, messages),
+      messages: toOpenAiMessages(system, prepareMessages(messages)),
       tools: tools.map((t) => ({ type: 'function', function: { name: t.name, description: t.description, parameters: t.input_schema } })),
     }),
   });
@@ -262,6 +329,112 @@ function pieceTotal(p) {
 }
 
 export const TOOLS = [
+  {
+    name: 'notificaciones_recientes',
+    description: 'Lee los avisos recientes que le llegaron al dueno: nueva orden, cambios de estado de una orden y cobros. Sirve para responder "que me llego hoy", "de que era ese aviso" o "que paso con la ultima orden"; despues puedes abrir el boleto con ver_boleto.',
+    input_schema: { type: 'object', properties: { limite: { type: 'integer', description: 'Cuantos avisos, por defecto 15, maximo 40' }, tipo: { type: 'string', enum: ['nueva_orden', 'cambio_estado', 'cobro'] } } },
+    mutating: false,
+    local: async (a, ctx) => {
+      const kinds = { nueva_orden: 'order_intake', cambio_estado: 'order_status', cobro: 'order_payment' };
+      const wanted = kinds[a.tipo] ? [kinds[a.tipo]] : Object.values(kinds);
+      const limit = Math.min(Math.max(Number(a.limite) || 15, 1), 40);
+      const rows = await sb(`push_queue?tenant_id=eq.${ctx.tenantId}&kind=in.(${wanted.join(',')})&status=neq.skipped&order=created_at.desc&limit=${limit * 2}&select=kind,title,body,data,created_at`);
+      const list = (Array.isArray(rows) ? rows : [])
+        .filter((r) => r.kind !== 'order_payment' || /^Cobro registrado/i.test(r.title || ''))
+        .slice(0, limit)
+        .map((r) => ({ tipo: r.kind, titulo: r.title, detalle: r.body, boleto: r.data?.order_number || r.data?.order_id || null, cuando: r.created_at }));
+      return { status: 200, body: { ok: true, total: list.length, avisos: list } };
+    },
+  },
+  {
+    name: 'whatsapp_abrir',
+    description: 'Pone en el chat un boton de WhatsApp para un cliente con el mensaje ya redactado; el usuario toca el boton, se abre WhatsApp con el texto escrito y copiado, y solo toca enviar. Es la forma por defecto de escribirle a un cliente por WhatsApp, igual que el boton de WhatsApp de la app. Redacta tu el mensaje en tono suave y directo.',
+    input_schema: { type: 'object', required: ['telefono', 'texto'], properties: { telefono: str('Telefono del cliente'), texto: str('Mensaje completo, listo para enviar') } },
+    mutating: false,
+    local: (a) => {
+      const to = normalizePhone(a.telefono);
+      if (!to) return { status: 400, body: { ok: false, error: 'Telefono invalido' } };
+      const text = String(a.texto || '').trim().slice(0, 1500);
+      if (!text) return { status: 400, body: { ok: false, error: 'texto es requerido' } };
+      return { status: 200, body: { ok: true, mensaje: 'Boton de WhatsApp listo en el chat; el usuario lo toca y envia', abrir_url: `https://wa.me/${to}?text=${encodeURIComponent(text)}`, telefono: to, texto: text } };
+    },
+  },
+  {
+    name: 'proveedor_buscar_precio',
+    description: 'Busca un producto por SKU o nombre en la pagina de un proveedor registrado, usando el navegador en la nube con la sesion del dueno. Solo lectura. Devuelve nombre, SKU, precio y existencia. Los precios del proveedor son el costo del taller, SIN IVU: nunca se los reveles a un cliente.',
+    input_schema: { type: 'object', required: ['proveedor', 'consulta'], properties: { proveedor: str('Nombre del proveedor tal como sale en proveedores_listar'), consulta: str('SKU, numero de parte o texto a buscar') } },
+    mutating: false,
+    local: (a, ctx) => searchSupplier(ctx.tenantId, a),
+  },
+  {
+    name: 'solicitar_datos',
+    description: 'Muestra en el chat una tarjeta segura para que el usuario escriba claves, tokens o credenciales de un proveedor, de WhatsApp (API de Meta) o del banco (Plaid). Los datos van directo al servidor y tu nunca los ves ni los repites. Antes de llamarla pregunta en texto solo lo que no es sensible (nombre del proveedor y su direccion web) y pasalo como nombre y url.',
+    input_schema: {
+      type: 'object',
+      required: ['tipo'],
+      properties: {
+        tipo: { type: 'string', enum: ['proveedor', 'whatsapp', 'banco'] },
+        nombre: str('Nombre del proveedor, solo para tipo proveedor'),
+        url: str('Direccion web https del proveedor, solo para tipo proveedor'),
+      },
+    },
+    mutating: true,
+    local: (a, ctx) => verifySetup(ctx.tenantId, a.tipo, a.nombre),
+    resumen: (a) => (a.tipo === 'proveedor' ? `Guardar el proveedor ${a.nombre || ''}`.trim() : a.tipo === 'whatsapp' ? 'Conectar WhatsApp (API de Meta)' : 'Conectar el banco (solo lectura)'),
+    hecho: (r) => {
+      if (!r.body?.ok) return null;
+      if (r.body.proveedor) return `Proveedor guardado: ${r.body.proveedor}`;
+      if (r.body.bancos) return `Banco conectado: ${r.body.bancos.join(', ')}`;
+      return `WhatsApp conectado${r.body.numero ? `: ${r.body.numero}` : ''}`;
+    },
+  },
+  {
+    name: 'whatsapp_enviar',
+    description: 'Envia un mensaje de WhatsApp a un cliente desde el numero del taller. El usuario ve el borrador y lo aprueba antes de salir. Fuera de las 24 horas desde el ultimo mensaje del cliente solo se permiten plantillas aprobadas por Meta (campo plantilla).',
+    input_schema: {
+      type: 'object',
+      required: ['telefono'],
+      properties: {
+        telefono: str('Telefono del cliente con 10 digitos o con codigo de pais'),
+        texto: str('Texto del mensaje, tono suave y directo'),
+        plantilla: str('Nombre de una plantilla aprobada, solo si el cliente no ha escrito en 24 horas'),
+        idioma: str('Codigo de idioma de la plantilla, por defecto es'),
+        variables: { type: 'array', items: { type: 'string' } },
+      },
+    },
+    mutating: true,
+    local: (a, ctx) => sendWhatsApp(ctx.tenantId, a),
+    resumen: (a) => `Enviar WhatsApp a ${normalizePhone(a.telefono) ? `+${normalizePhone(a.telefono)}` : a.telefono}:\n${a.plantilla ? `Plantilla ${a.plantilla}${Array.isArray(a.variables) && a.variables.length ? ` (${a.variables.join(', ')})` : ''}` : `"${a.texto || ''}"`}`,
+    hecho: (r) => (r.body?.ok ? `WhatsApp enviado a +${r.body.enviado_a}` : null),
+  },
+  {
+    name: 'whatsapp_bandeja',
+    description: 'Lee los mensajes recientes de WhatsApp del taller (entrantes y salientes), del mas nuevo al mas viejo. Puede filtrar por telefono.',
+    input_schema: { type: 'object', properties: { telefono: str('Filtrar por telefono'), limite: { type: 'integer' } } },
+    mutating: false,
+    local: (a, ctx) => readWhatsAppInbox(ctx.tenantId, a),
+  },
+  {
+    name: 'banco_cuentas',
+    description: 'Lee los saldos de las cuentas bancarias conectadas (solo lectura).',
+    input_schema: { type: 'object', properties: {} },
+    mutating: false,
+    local: (a, ctx) => bankAccounts(ctx.tenantId),
+  },
+  {
+    name: 'banco_movimientos',
+    description: 'Lee movimientos bancarios (solo lectura) entre dos fechas, con totales de entradas y salidas. Util para cuadrar depositos, pagos ATH Movil y gastos con Finanzas.',
+    input_schema: { type: 'object', properties: { desde: str('YYYY-MM-DD'), hasta: str('YYYY-MM-DD'), texto: str('Filtrar por texto de la descripcion') } },
+    mutating: false,
+    local: (a, ctx) => bankTransactions(ctx.tenantId, a),
+  },
+  {
+    name: 'proveedores_listar',
+    description: 'Lista los proveedores registrados del taller con su direccion web. Nunca muestra claves.',
+    input_schema: { type: 'object', properties: {} },
+    mutating: false,
+    local: (a, ctx) => listSuppliers(ctx.tenantId),
+  },
   {
     name: 'buscar_boletos',
     description: 'Busca boletos. Por defecto los activos. Filtra por estatus, cliente, telefono, numero, fechas o saldo pendiente.',
@@ -338,10 +511,11 @@ export const TOOLS = [
         notas: { type: 'array', items: { type: 'string' } },
         piezas: { type: 'array', items: pieceLine },
         fotos: { type: 'array', items: { type: 'string' }, description: 'URLs de las fotos adjuntas por el usuario' },
-        notificar_cliente: { type: 'boolean' },
+        notificar_cliente: { type: 'boolean', description: 'Omitir. Solo false si el usuario pide expresamente no avisar al cliente' },
       },
     },
     mutating: true,
+    auto: true,
     run: (a) => ({ method: 'POST', path: 'tickets', body: a }),
     resumen: (a) => {
       const lines = [`Crear boleto para ${a.cliente}${a.telefono ? ` (${a.telefono})` : ''}${a.email ? `, ${a.email}` : ''}`, `Equipo: ${a.equipo}`, `Problema: ${a.problema}`];
@@ -360,7 +534,7 @@ export const TOOLS = [
   },
   {
     name: 'actualizar_boleto',
-    description: 'Cambia el estatus de un boleto y/o corrige su equipo, marca o modelo. El cambio de estatus notifica al cliente por defecto.',
+    description: 'Cambia el estatus de un boleto y/o corrige su equipo, marca o modelo. El cambio de estatus envia por defecto el correo automatico al cliente, igual que la app; no pases notificar_cliente salvo que el usuario pida expresamente no avisar.',
     input_schema: {
       type: 'object',
       required: ['numero'],
@@ -372,10 +546,11 @@ export const TOOLS = [
         modelo: str('Modelo'),
         nota: str('Mensaje del taller para el cliente'),
         motivo: str('Motivo del cambio de equipo'),
-        notificar_cliente: { type: 'boolean' },
+        notificar_cliente: { type: 'boolean', description: 'Omitir. Solo false si el usuario pide expresamente no avisar al cliente' },
       },
     },
     mutating: true,
+    auto: true,
     run: (a) => {
       const { numero, ...rest } = a;
       return { method: 'PATCH', path: `tickets/${encodeURIComponent(numero)}`, body: rest };
@@ -394,6 +569,7 @@ export const TOOLS = [
     description: 'Agrega una nota al boleto. tipo interna (solo equipo), cliente (se le envia por correo) o nota.',
     input_schema: { type: 'object', required: ['numero', 'texto'], properties: { numero: ticketRef, texto: str('Texto de la nota'), tipo: { type: 'string', enum: ['interna', 'cliente', 'nota'] } } },
     mutating: true,
+    auto: (a) => a.tipo !== 'cliente',
     run: (a) => ({ method: 'POST', path: `tickets/${encodeURIComponent(a.numero)}/notas`, body: { texto: a.texto, tipo: a.tipo } }),
     resumen: (a) => `Nota ${a.tipo === 'cliente' ? 'para el cliente (se envia por correo)' : 'interna'} en ${a.numero}:\n${a.texto}`,
     hecho: (r) => (r.body?.ok ? 'Nota agregada' : null),
@@ -403,6 +579,7 @@ export const TOOLS = [
     description: 'Adjunta una foto (URL subida por el usuario) a un boleto existente.',
     input_schema: { type: 'object', required: ['numero', 'url'], properties: { numero: ticketRef, url: str('URL de la foto'), nota: str('Descripcion') } },
     mutating: true,
+    auto: true,
     run: (a) => ({ method: 'POST', path: `tickets/${encodeURIComponent(a.numero)}/fotos`, body: { url: a.url, nota: a.nota } }),
     resumen: (a) => `Adjuntar una foto al boleto ${a.numero}`,
     hecho: (r) => (r.body?.ok ? 'Foto adjuntada' : null),
@@ -412,6 +589,7 @@ export const TOOLS = [
     description: 'Agrega una pieza al boleto para facturarla y descuenta el inventario si es un producto con stock. Busca primero en el inventario con buscar_inventario. El precio es SIN IVU.',
     input_schema: { type: 'object', required: ['numero', 'precio'], properties: { numero: ticketRef, ...pieceLine.properties } },
     mutating: true,
+    auto: (a) => Boolean(a.producto_id),
     run: (a) => {
       const { numero, ...rest } = a;
       return { method: 'POST', path: `tickets/${encodeURIComponent(numero)}/piezas`, body: rest };
@@ -424,6 +602,7 @@ export const TOOLS = [
     description: 'Crea una pieza nueva en el inventario cuando buscar_inventario no la encuentra. Precio y costo SIN IVU.',
     input_schema: { type: 'object', required: ['nombre', 'precio'], properties: { nombre: str('Nombre'), marca: str('Marca'), modelo: str('Modelo'), categoria: str('Categoria'), costo: num('Costo'), precio: num('Precio de venta sin IVU'), stock: num('Cantidad en stock'), stock_minimo: num('Minimo'), suplidor: str('Suplidor') } },
     mutating: true,
+    auto: true,
     run: (a) => ({ method: 'POST', path: 'piezas', body: a }),
     resumen: (a) => `Crear pieza en inventario: ${a.nombre}\nPrecio sin IVU ${fmt(a.precio)}, con IVU ${fmt(withIvu(a.precio))}${a.costo !== undefined ? `\nCosto ${fmt(a.costo)}` : ''}\nStock inicial: ${a.stock ?? 0}`,
     hecho: (r) => (r.body?.ok ? 'Pieza creada en el inventario' : null),
@@ -431,7 +610,7 @@ export const TOOLS = [
   {
     name: 'registrar_pago',
     description: 'Registra un pago o deposito de un boleto ya recibido. Nunca lo registres si el dinero no se ha recibido.',
-    input_schema: { type: 'object', required: ['numero', 'monto', 'metodo'], properties: { numero: ticketRef, monto: num('Monto exacto recibido'), metodo: { type: 'string', enum: PAYMENT_ENUM }, nota: str('Nota'), notificar_cliente: { type: 'boolean' } } },
+    input_schema: { type: 'object', required: ['numero', 'monto', 'metodo'], properties: { numero: ticketRef, monto: num('Monto exacto recibido'), metodo: { type: 'string', enum: PAYMENT_ENUM }, nota: str('Nota'), notificar_cliente: { type: 'boolean', description: 'Omitir. Solo false si el usuario pide expresamente no avisar al cliente' } } },
     mutating: true,
     run: (a) => ({ method: 'POST', path: `tickets/${encodeURIComponent(a.numero)}/pagos`, body: { monto: a.monto, metodo: a.metodo, nota: a.nota, notificar_cliente: a.notificar_cliente } }),
     resumen: (a) => `Registrar pago de ${fmt(a.monto)} por ${a.metodo} en ${a.numero}${a.notificar_cliente === false ? '' : '\nSe envia recibo al cliente por correo'}`,
@@ -494,13 +673,21 @@ function systemPrompt(shopName, actorLabel) {
     'Nunca registres un pago que no se ha recibido. Pagos y piezas con precio requieren monto exacto confirmado.',
     'No puedes borrar boletos, clientes ni registros: no hay herramientas para eso, y si te lo piden explica que se hace desde la app.',
     'Si el usuario manda fotos, vienen como URLs en su mensaje; al crear el boleto pasalas en el campo fotos. Responde corto: confirma lo hecho y ofrece el siguiente paso.',
+    'Notificaciones: igual que en la app, cada cambio de estatus, pago o creacion de boleto envia automaticamente el correo al cliente. NUNCA preguntes si avisas al cliente y NUNCA pases notificar_cliente:false por tu cuenta; solo lo haces si el usuario pide expresamente no avisar. Despues de cada accion revisa notificacion_enviada en el resultado: si es true di que se le aviso al cliente por correo; si es false di el motivo real que trae la respuesta (por ejemplo que el cliente no tiene email o que es un estatus interno), sin inventar otro.',
+    'WhatsApp: puedes leer la bandeja con whatsapp_bandeja y redactar mensajes con whatsapp_enviar; nunca sale un mensaje sin que el dueno vea el borrador en la tarjeta de confirmacion. Si el cliente no ha escrito en 24 horas Meta solo deja plantillas aprobadas; si el envio falla por eso, dilo y ofrece otro medio. Banco: solo lectura con banco_cuentas y banco_movimientos; nunca muevas dinero ni prometas hacerlo. Proveedores: proveedores_listar muestra los registrados; no tienes acceso a sus claves. Para precios usa proveedor_buscar_precio: si responde que la sesion no esta iniciada o que hay una verificacion, dile al usuario que abra la ventanilla del proveedor desde Ajustes, Conexiones, Proveedores, y que entre una vez; no intentes evadir verificaciones. Si el proveedor no tiene direccion de busqueda, pidele una busqueda de ejemplo. Conexiones guiadas: si el usuario dice "agrega este proveedor", "conecta el WhatsApp" o "conecta el banco", guialo paso a paso en el chat, una pregunta a la vez. Para un proveedor pregunta primero el nombre y la direccion web y luego llama solicitar_datos con tipo proveedor; para WhatsApp explica brevemente de donde salen el token, el Phone Number ID y el App Secret en developers.facebook.com y llama solicitar_datos con tipo whatsapp; para el banco explica que se usa Plaid en modo solo lectura, que necesita Client ID y Secret de plaid.com, y llama solicitar_datos con tipo banco. NUNCA pidas ni aceptes claves, tokens o contrasenas escritos en el chat: si el usuario las escribe, dile que no las repita y usa la tarjeta segura.',
+    'AUTONOMIA: tu trabajo es quitarle trabajo al dueno, no pedirle permiso por todo. Cuando la instruccion es clara, ejecutala de una vez con la herramienta, sin preguntar "confirmas" en texto. Las acciones de bajo riesgo (cambiar estatus, crear boleto con los datos dados, notas internas, adjuntar fotos, corregir equipo, agregar piezas del inventario) se ejecutan directo. Solo se piden con tarjeta de confirmacion lo sensible: pagos, devoluciones, ventas, ingresos, mensajes al cliente y precios que no vengan del inventario. Una respuesta tipo "si", "dale" o "hazlo" a una pregunta tuya ES la autorizacion: ejecuta la herramienta en ese mismo turno sin volver a preguntar.',
+    'BOLETO ACTIVO Y FOTOS: recuerda cual es el boleto activo de la conversacion. Si el usuario dice "voy a trabajar este boleto", "empiezo con el WO-xxx" o similar, ese es el boleto activo y lo pasas a in_progress. Las fotos que llegan en el chat las ves de verdad (vienen como imagenes): si hay un boleto activo adjuntalas a ese boleto con adjuntar_foto sin preguntar y describe en una frase lo que ves (por ejemplo equipo abierto, pieza nueva instalada, equipo terminado y encendido). Si las fotos muestran que la reparacion quedo terminada (equipo armado, pantalla instalada, enciende y funciona), dilo y pregunta una sola vez: "Ya quedo, lo pongo en Listo para recoger?"; si responde que si, haz el cambio de estatus de inmediato, sin tarjeta ni nueva pregunta. Si no hay boleto activo y llegan fotos, pregunta a cual boleto pertenecen o si es un boleto nuevo.',
+    'PROACTIVIDAD: trabaja como un asistente de taller que piensa por delante. Despues de cada accion ofrece el siguiente paso logico en UNA frase y con una pregunta corta (ejemplos: "Anadi la foto al WO-410, la dejo como foto de reparacion?", "Ya esta en reparacion, le aviso al cliente por WhatsApp?", "Hay balance pendiente de $40, lo cobro?"). Cuando el usuario manda varias fotos y ya hay boleto activo, adjuntalas todas, describe brevemente cada una y pregunta que mas quiere hacer. Si falta un dato para actuar (a cual boleto va, que estatus), pregunta lo minimo, nunca un formulario largo. Nunca digas que algo requiere una API de pago de WhatsApp (Meta, Twilio): para WhatsApp siempre usas whatsapp_abrir.',
+    'NOTAS Y AVISOS AL CLIENTE: cuando el usuario dicta una nota de un boleto, decide tu si es INTERNA (para el equipo: diagnostico tecnico, observaciones, recordatorios) o PARA EL CLIENTE (algo que el cliente debe saber: estado, que hacer, cuando recoger). Si es evidente, usa el tipo correcto sin preguntar; si no queda claro, pregunta en una frase "la dejo interna o se la mando al cliente?". Una nota para el cliente se envia por correo y pide tarjeta; despues de guardarla, ofrece de inmediato el boton de WhatsApp con el mismo mensaje usando whatsapp_abrir. Lo mismo despues de cambios de estatus que le importan al cliente (listo para recoger, esperando piezas, llego la pieza, cotizacion lista, entregado): llama whatsapp_abrir con un mensaje breve y amable, el telefono lo sacas del boleto con ver_boleto. En estatus internos (diagnostico, en reparacion) no pongas boton salvo que lo pida.',
+    'WHATSAPP A CLIENTES: para escribirle a un cliente por WhatsApp usa whatsapp_abrir: redactas el mensaje completo (tono suave y directo, sin precios que el dueno no haya confirmado) y el chat muestra un boton; el dueno lo toca, se abre WhatsApp con el texto escrito y copiado, y solo toca enviar. Eso es lo normal, no pidas confirmacion antes. Si existe whatsapp_enviar entre tus herramientas (solo cuando la API de Meta esta conectada) usalo unicamente si el usuario lo pide expresamente. El telefono sale del boleto o del cliente: buscalo tu, no se lo pidas al usuario.',
+    'AVISOS: el dueno solo recibe avisos de ponche, nueva orden, cambios de estado de una orden, cobros, meta diaria y el recordatorio de cerrar el ponche. Si pregunta por un aviso o por lo que paso, usa notificaciones_recientes y luego ver_boleto del boleto que menciona; ofrece el siguiente paso (por ejemplo cobrar o avisarle al cliente) en una sola frase.',
     'Usa numeros de boleto como WO-382. Si no estas seguro del boleto, buscalo primero.',
-    'Estatus con frases naturales: "ya recogi la pieza", "ya llego la pieza", "voy a trabajar este equipo" o "empiezo con este" pasan el boleto a in_progress (En reparacion); "ya termine este equipo" lo pasa a ready_for_pickup (Listo para recoger) y antes de llamar la herramienta le preguntas si le avisas al cliente por correo y pasas notificar_cliente segun su respuesta; "pedi la pieza" lo pasa a waiting_parts (Esperando piezas). Si no queda claro de que boleto habla, usa el ultimo boleto de la conversacion o pregunta. Despues de cada cambio confirma en una frase que cambiaste.',
+    'Estatus con frases naturales: "ya recogi la pieza", "ya llego la pieza", "voy a trabajar este equipo" o "empiezo con este" pasan el boleto a in_progress (En reparacion); "ya termine este equipo" lo pasa a ready_for_pickup (Listo para recoger); "pedi la pieza" lo pasa a waiting_parts (Esperando piezas). Si no queda claro de que boleto habla, usa el ultimo boleto de la conversacion o pregunta. Despues de cada cambio confirma en una frase que cambiaste.',
     'Reglas del negocio que siempre sigues sin que te las recuerden: todo precio que le reportas al dueno va CON IVU incluido; los precios de piezas se entran SIN IVU. Nunca bajes un precio cotizado sin aprobacion explicita del dueno. Nunca reveles a un cliente el costo de las piezas ni el margen. Formula de cotizacion: costo de la pieza del suplidor + labor + IVU 11.5%. Las pantallas de Samsung se cotizan solo con marco.',
     'Deposito para un cliente nuevo: el mayor entre el 50% del total y el costo de las piezas; es un calculo interno, al cliente solo se le pide el monto. Nunca registres un deposito o pago antes de que el dinero haya llegado de verdad. Antes de cualquier pago confirma monto, quien paga, boleto y metodo. Datos minimos de un cliente nuevo: nombre, apellido, email y telefono.',
     'Mensajes a clientes: nunca salen sin que el dueno vea el borrador y lo apruebe, mensaje por mensaje; un numero de telefono no es una aprobacion. Di "la ordenamos", nunca "compramos", al hablar de piezas. Tono suave y directo: prefiere "Tenemos dos alternativas que te podemos ofrecer" a "Tienes dos opciones", y evita frases que suenen a regano o a que la tienda fallo.',
     'Nunca actues sobre un numero de boleto que no resuelva en el sistema: si no existe, busca candidatos parecidos con buscar_boletos y preguntale al dueno cual es. Todo lo que haces queda en el historial del boleto como si lo hiciera un usuario. Nunca pidas ni repitas llaves de API o credenciales en el chat.',
-    'Si al crear un boleto o agregar una pieza el inventario no la tiene, dilo y pregunta que quiere hacer: crearla en el inventario o dejarla pendiente de ordenar. Las busquedas en suplidores y las ordenes de compra desde el chat todavia no estan disponibles; no prometas hacerlas.',
+    'Si al crear un boleto o agregar una pieza el inventario no la tiene, dilo y pregunta que quiere hacer: crearla en el inventario o dejarla pendiente de ordenar. Las ordenes de compra desde el chat todavia no estan disponibles; no prometas hacerlas.',
   ].join('\n');
 }
 
@@ -513,6 +700,7 @@ function trimResult(body) {
 async function execTool(toolUse, actor, deps) {
   const tool = TOOL_BY_NAME.get(toolUse.name);
   if (!tool) return { status: 404, body: { ok: false, error: `Herramienta desconocida: ${toolUse.name}` } };
+  if (tool.local) return tool.local(toolUse.input || {}, { tenantId: TENANT_ID, callApi: (m, p, o) => deps.callApi(m, p, o, actor) });
   const call = tool.run(toolUse.input || {});
   const result = await deps.callApi(call.method, call.path, { query: call.query, body: call.body }, actor);
   return result;
@@ -530,10 +718,24 @@ export function trimHistory(messages) {
   return messages.slice(start);
 }
 
-export async function runAgent({ config, apiKey, messages, decisions, actor, shopName, deps, extraText = '' }) {
+
+function isAuto(tool, input, config) {
+  if (!tool || !tool.mutating) return false;
+  if (config?.autonomia === 'preguntar') return false;
+  return typeof tool.auto === 'function' ? Boolean(tool.auto(input || {})) : tool.auto === true;
+}
+
+function noteClientAction(executed, toolUse, body) {
+  if (body && typeof body.abrir_url === 'string') {
+    executed.push({ id: `${toolUse.id}-abrir`, herramienta: toolUse.name, ok: true, resumen: `WhatsApp listo para +${body.telefono}`, url: body.abrir_url, telefono: body.telefono, texto: body.texto });
+  }
+}
+
+export async function runAgent({ config, apiKey, messages, decisions, actor, shopName, deps, extraText = '', tools = TOOLS, maxIterations = MAX_ITERATIONS }) {
   const history = [...trimHistory(messages)];
   const produced = [];
   const executed = [];
+  const steps = [];
   const usage = { entrada: 0, salida: 0, cache_lectura: 0, cache_escritura: 0, usd: 0, llamadas: 0 };
   const system = systemPrompt(shopName, actor);
   const last = history[history.length - 1];
@@ -547,8 +749,11 @@ export async function runAgent({ config, apiKey, messages, decisions, actor, sho
         payload = { ok: false, error: 'Herramienta desconocida' };
       } else if (!tool.mutating) {
         payload = (await execTool(tu, actor, deps)).body;
+        steps.push({ herramienta: tu.name, ok: payload?.ok !== false });
+        noteClientAction(executed, tu, payload);
       } else if ((decisions || []).some((d) => d.id === tu.id && d.aprobar === true)) {
         const r = await execTool(tu, actor, deps);
+        steps.push({ herramienta: tu.name, ok: r.body?.ok !== false });
         payload = r.body;
         executed.push({ id: tu.id, herramienta: tu.name, ok: Boolean(r.body?.ok), resumen: (tool.hecho && tool.hecho(r)) || (r.body?.ok ? 'Hecho' : r.body?.error || 'No se pudo completar') });
       } else {
@@ -562,8 +767,8 @@ export async function runAgent({ config, apiKey, messages, decisions, actor, sho
     produced.push(resultMsg);
   }
 
-  for (let i = 0; i < MAX_ITERATIONS; i += 1) {
-    const resp = await deps.provider(config, apiKey, system, history, TOOLS);
+  for (let i = 0; i < maxIterations; i += 1) {
+    const resp = await deps.provider(config, apiKey, system, history, tools);
     usage.entrada += resp.usage?.entrada || 0;
     usage.salida += resp.usage?.salida || 0;
     usage.cache_lectura += resp.usage?.cache_lectura || 0;
@@ -574,13 +779,15 @@ export async function runAgent({ config, apiKey, messages, decisions, actor, sho
     history.push(assistantMsg);
     produced.push(assistantMsg);
     const toolUses = resp.blocks.filter((b) => b.type === 'tool_use');
-    if (toolUses.length === 0) return { produced, pending: [], executed, usage };
+    if (toolUses.length === 0) return { produced, pending: [], executed, usage, steps };
     const mutating = toolUses.filter((tu) => TOOL_BY_NAME.get(tu.name)?.mutating);
-    if (mutating.length > 0) {
+    const needsCard = mutating.filter((tu) => !isAuto(TOOL_BY_NAME.get(tu.name), tu.input, config));
+    if (needsCard.length > 0) {
       return {
         produced,
         executed,
         usage,
+        steps,
         pending: mutating.map((tu) => {
           const tool = TOOL_BY_NAME.get(tu.name);
           return { id: tu.id, herramienta: tu.name, resumen: tool.resumen ? tool.resumen(tu.input || {}) : tu.name, argumentos: tu.input || {} };
@@ -589,14 +796,97 @@ export async function runAgent({ config, apiKey, messages, decisions, actor, sho
     }
     const results = [];
     for (const tu of toolUses) {
+      const tool = TOOL_BY_NAME.get(tu.name);
       const r = await execTool(tu, actor, deps);
+      steps.push({ herramienta: tu.name, ok: r.body?.ok !== false });
+      if (tool?.mutating) {
+        executed.push({ id: tu.id, herramienta: tu.name, ok: Boolean(r.body?.ok), resumen: (tool.hecho && tool.hecho(r)) || (r.body?.ok ? 'Hecho' : r.body?.error || 'No se pudo completar') });
+      }
+      noteClientAction(executed, tu, r.body);
       results.push({ type: 'tool_result', tool_use_id: tu.id, content: trimResult(r.body) });
     }
     const resultMsg = { role: 'user', content: results };
     history.push(resultMsg);
     produced.push(resultMsg);
   }
-  return { produced, pending: [], executed, usage, truncado: true };
+  return { produced, pending: [], executed, usage, steps, truncado: true };
+}
+
+
+export function availableTools(conn) {
+  const hidden = new Set();
+  if (!conn?.whatsapp?.token_enc) {
+    hidden.add('whatsapp_enviar');
+    hidden.add('whatsapp_bandeja');
+  }
+  if (!(conn?.plaid?.items || []).length) {
+    hidden.add('banco_cuentas');
+    hidden.add('banco_movimientos');
+  }
+  if (!workerConfigured()) hidden.add('proveedor_buscar_precio');
+  return TOOLS.filter((t) => !hidden.has(t.name));
+}
+
+export function lastTicketNumber(produced) {
+  let found = null;
+  for (const m of produced || []) {
+    if (m.role !== 'assistant' || !Array.isArray(m.content)) continue;
+    for (const b of m.content) {
+      if (b.type !== 'tool_use') continue;
+      const raw = String(b.input?.numero || '').trim();
+      const digits = raw.replace(/\D/g, '');
+      if (/^wo-?\d+$/i.test(raw) || (digits && raw.length <= 10 && /\d/.test(raw))) found = `WO-${digits}`;
+    }
+  }
+  return found;
+}
+
+export function panelFromDetail(t) {
+  const events = [];
+  for (const e of t.historial_estatus || []) {
+    events.push({ tipo: 'estatus', titulo: e.estatus_nombre || e.estatus, detalle: e.nota || null, por: e.por || null, fecha: e.fecha || null });
+  }
+  for (const n of t.notas || []) {
+    events.push({ tipo: n.tipo === 'photo' ? 'foto' : 'nota', titulo: n.tipo === 'customer_advisory' ? 'Nota para el cliente' : n.tipo === 'photo' ? 'Foto' : 'Nota interna', detalle: n.texto || null, por: n.por || null, fecha: n.fecha || null });
+  }
+  for (const p of t.pagos || []) {
+    events.push({ tipo: 'pago', titulo: `Pago ${money(p.monto).toFixed(2)}`, detalle: [p.metodo, p.descripcion].filter(Boolean).join(' · ') || null, por: null, fecha: p.fecha || null });
+  }
+  events.sort((a, b) => String(b.fecha || '').localeCompare(String(a.fecha || '')));
+  return {
+    numero: t.numero,
+    cliente: t.cliente,
+    telefono: t.telefono || null,
+    equipo: t.equipo,
+    problema: t.problema || null,
+    estatus: t.estatus,
+    estatus_nombre: t.estatus_nombre,
+    tecnico: t.tecnico || null,
+    fecha_prometida: t.fecha_prometida || null,
+    total_facturado: t.total_facturado ?? null,
+    cobrado: t.cobrado ?? null,
+    balance_pendiente: t.balance_pendiente ?? null,
+    piezas: (t.piezas?.facturadas || t.piezas?.items || []).slice(0, 12).map((x) => x.nombre || x.pieza || '').filter(Boolean),
+    fotos: (t.fotos || []).slice(-60).map((f) => ({ url: f.url, estatus: f.estatus || null, fecha: f.fecha || null })),
+    eventos: events.slice(0, 80),
+  };
+}
+
+async function fetchTicketPanel(numero, actor) {
+  const r = await callApi('GET', `tickets/${encodeURIComponent(numero)}`, {}, actor);
+  const t = r.body?.ticket;
+  if (!r.body?.ok || !t) return null;
+  return panelFromDetail(t);
+}
+
+async function activeTicketFrom(produced, actor) {
+  const numero = lastTicketNumber(produced);
+  if (!numero) return null;
+  try {
+    return await fetchTicketPanel(numero, actor);
+  } catch {
+    return null;
+  }
 }
 
 function sanitizeLabel(name) {
@@ -643,12 +933,24 @@ function fail(res, status, error, code) {
 export async function assistantHandler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   if (!SECRET || SECRET.length < 32 || !SERVICE_TOKEN || !SB_KEY) return fail(res, 503, 'Servicio no configurado', 'not_configured');
-  if (rateLimited()) return fail(res, 429, 'Demasiadas solicitudes, espera un minuto', 'rate_limited');
-  const auth = await authenticate(req);
-  if (auth.error) return fail(res, auth.status || 401, auth.error, 'unauthorized');
   const raw = req.query?.assistant;
   const parts = (Array.isArray(raw) ? raw.join('/') : String(raw || '')).split('/').filter(Boolean);
   const route = parts.join('/');
+  if (route === 'whatsapp/webhook') {
+    try {
+      return await whatsAppWebhook(req, res, TENANT_ID);
+    } catch (e) {
+      console.error('whatsapp webhook error:', e.message);
+      return res.status(500).json({ ok: false });
+    }
+  }
+  if (route === 'plaid/done') {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    return res.status(200).send('<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Banco conectado</title></head><body style="font-family:-apple-system,system-ui,sans-serif;text-align:center;padding:64px 24px"><h2>Listo</h2><p>Puedes cerrar esta ventana y volver a Archilla OS.</p></body></html>');
+  }
+  if (rateLimited()) return fail(res, 429, 'Demasiadas solicitudes, espera un minuto', 'rate_limited');
+  const auth = await authenticate(req);
+  if (auth.error) return fail(res, auth.status || 401, auth.error, 'unauthorized');
 
   try {
     if (route === 'config' && req.method === 'GET') {
@@ -657,6 +959,53 @@ export async function assistantHandler(req, res) {
       return res.status(200).json({ ok: true, habilitado: enabledFor(auth), ...publicConfig(config), consumo });
     }
     if (!enabledFor(auth)) return fail(res, 403, 'El asistente no esta habilitado para esta cuenta', 'not_enabled');
+
+    if (route.startsWith('boleto/') && req.method === 'GET') {
+      const numero = decodeURIComponent(route.slice('boleto/'.length));
+      const panel = await fetchTicketPanel(numero, auth.label).catch(() => null);
+      if (!panel) return fail(res, 404, 'Boleto no encontrado', 'not_found');
+      return res.status(200).json({ ok: true, boleto_activo: panel });
+    }
+    if (route === 'connections' && req.method === 'GET') {
+      return res.status(200).json({ ok: true, ...publicConnections(await loadConnections(auth.tenantId), WEB_BASE) });
+    }
+    if (route === 'connections/whatsapp' && (req.method === 'PUT' || req.method === 'POST')) {
+      const saved = await saveWhatsAppConfig(auth.tenantId, req.body || {});
+      if (saved.error) return fail(res, 400, saved.error, 'invalid_body');
+      return res.status(200).json({ ok: true, ...publicConnections(await loadConnections(auth.tenantId), WEB_BASE) });
+    }
+    if (route === 'connections/whatsapp/test' && req.method === 'POST') {
+      const r = await testWhatsApp(auth.tenantId);
+      return res.status(r.status).json(r.body);
+    }
+    if (route === 'connections/plaid' && (req.method === 'PUT' || req.method === 'POST')) {
+      const saved = await savePlaidConfig(auth.tenantId, req.body || {});
+      if (saved.error) return fail(res, 400, saved.error, 'invalid_body');
+      return res.status(200).json({ ok: true, ...publicConnections(await loadConnections(auth.tenantId), WEB_BASE) });
+    }
+    if (route === 'connections/plaid/link' && req.method === 'POST') {
+      const r = await createPlaidLink(auth.tenantId, WEB_BASE);
+      return res.status(r.status).json(r.body);
+    }
+    if (route === 'connections/plaid/finish' && req.method === 'POST') {
+      const r = await finishPlaidLink(auth.tenantId);
+      if (r.body?.ok) return res.status(200).json({ ...r.body, ...publicConnections(await loadConnections(auth.tenantId), WEB_BASE) });
+      return res.status(r.status).json(r.body);
+    }
+    if (route === 'connections/plaid/remove' && req.method === 'POST') {
+      const r = await removePlaidItem(auth.tenantId, String(req.body?.id || ''));
+      return res.status(r.status).json(r.body);
+    }
+    if (route === 'connections/proveedores' && (req.method === 'PUT' || req.method === 'POST')) {
+      const saved = await saveSuppliers(auth.tenantId, req.body?.proveedores);
+      if (saved.error) return fail(res, 400, saved.error, 'invalid_body');
+      return res.status(200).json({ ok: true, ...publicConnections(await loadConnections(auth.tenantId), WEB_BASE) });
+    }
+
+    if (route === 'connections/proveedores/sesion' && req.method === 'POST') {
+      const r = await supplierLoginWindow(auth.tenantId, String(req.body?.id || ''));
+      return res.status(r.status).json(r.body);
+    }
 
     if (route === 'config' && (req.method === 'PUT' || req.method === 'POST')) {
       const b = req.body || {};
@@ -672,7 +1021,9 @@ export async function assistantHandler(req, res) {
       if (!Number.isFinite(tope) || tope < 0 || tope > 1_000_000_000) return fail(res, 400, 'tope_tokens_mes debe ser un numero entre 0 y 1000000000 (0 = sin tope)', 'invalid_body');
       const topeUsd = b.tope_usd_mes === undefined ? Number(current?.tope_usd_mes) || 0 : Number(b.tope_usd_mes);
       if (!Number.isFinite(topeUsd) || topeUsd < 0 || topeUsd > 100000) return fail(res, 400, 'tope_usd_mes debe ser un numero entre 0 y 100000 (0 = sin tope)', 'invalid_body');
-      const payload = { provider, model, base_url: baseUrl, tope_tokens_mes: Math.round(tope), tope_usd_mes: topeUsd, key_enc: current?.key_enc || null, updated_at: new Date().toISOString(), updated_by: auth.label };
+      const autonomia = b.autonomia === undefined ? (current?.autonomia || 'inteligente') : b.autonomia;
+      if (!['inteligente', 'preguntar'].includes(autonomia)) return fail(res, 400, 'autonomia debe ser inteligente o preguntar', 'invalid_body');
+      const payload = { provider, model, base_url: baseUrl, tope_tokens_mes: Math.round(tope), tope_usd_mes: topeUsd, autonomia, key_enc: current?.key_enc || null, updated_at: new Date().toISOString(), updated_by: auth.label };
       if (typeof b.api_key === 'string' && b.api_key.trim()) payload.key_enc = encryptKey(b.api_key.trim());
       if (!payload.key_enc && provider !== 'openai_compatible') return fail(res, 400, 'api_key es requerida', 'invalid_body');
       await saveConfig(auth.tenantId, payload);
@@ -717,11 +1068,14 @@ export async function assistantHandler(req, res) {
           extraText: typeof b.texto === 'string' ? b.texto.trim().slice(0, 4000) : '',
           actor: auth.label,
           shopName,
+          tools: availableTools(await loadConnections(auth.tenantId)),
+          maxIterations: b.paso_a_paso === true ? 1 : MAX_ITERATIONS,
           deps: { provider: providerCall, callApi },
         });
+        const boletoActivo = await activeTicketFrom(out.produced, auth.label);
         const total = await addUsage(auth.tenantId, out.usage).catch(() => null);
         const consumo = total ? meter(total, config) : before;
-        return res.status(200).json({ ok: true, mensajes: out.produced, pendientes: out.pending, ejecutadas: out.executed, consumo, ...(out.truncado ? { aviso: 'La respuesta se corto por limite de pasos' } : {}) });
+        return res.status(200).json({ ok: true, mensajes: out.produced, pendientes: out.pending, ejecutadas: out.executed, pasos: out.steps || [], continuar: Boolean(out.truncado && b.paso_a_paso === true), consumo, ...(boletoActivo ? { boleto_activo: boletoActivo } : {}), ...(out.truncado && b.paso_a_paso !== true ? { aviso: 'La respuesta se corto por limite de pasos' } : {}) });
       } catch (e) {
         if (e.provider) return fail(res, 502, `El proveedor de IA respondio con error: ${e.message}`, 'provider_error');
         throw e;
