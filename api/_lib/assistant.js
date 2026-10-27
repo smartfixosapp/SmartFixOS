@@ -889,6 +889,31 @@ async function activeTicketFrom(produced, actor) {
   }
 }
 
+
+const GEMINI_KEY = process.env.GEMINI_API_KEY || '';
+const GEMINI_MODEL = process.env.GEMINI_TRANSCRIBE_MODEL || 'gemini-2.5-flash';
+const MAX_AUDIO_B64 = 4_000_000;
+
+export async function transcribeAudio({ audioBase64, mimeType }, fetchImpl = fetch) {
+  if (!GEMINI_KEY) return { status: 503, body: { ok: false, error: 'La transcripcion no esta configurada', code: 'not_configured' } };
+  const audio = String(audioBase64 || '').replace(/^data:[^;]+;base64,/, '');
+  if (!audio) return { status: 400, body: { ok: false, error: 'audio_base64 es requerido', code: 'invalid_body' } };
+  if (audio.length > MAX_AUDIO_B64) return { status: 413, body: { ok: false, error: 'El audio es demasiado largo', code: 'too_large' } };
+  const prompt = 'Transcribe literalmente este audio en espanol de Puerto Rico. Es alguien del taller de reparacion de celulares y computadoras dandole instrucciones a un asistente: boletos como WO-410, iPhone, Samsung, pantalla, bateria, OLED, LCD, IVU, ATH Movil, nombres de clientes. Usa puntuacion natural y respeta cada palabra, incluso si habla rapido o hace pausas. Devuelve SOLO la transcripcion, sin comillas ni comentarios. Si no hay voz humana clara, devuelve una cadena vacia.';
+  const res = await fetchImpl(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ role: 'user', parts: [{ text: prompt }, { inline_data: { mime_type: mimeType || 'audio/wav', data: audio } }] }],
+      generationConfig: { temperature: 0, maxOutputTokens: 2048, thinkingConfig: { thinkingBudget: 0 } },
+    }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) return { status: 502, body: { ok: false, error: `La transcripcion fallo: ${data?.error?.message || res.status}`, code: 'provider_error' } };
+  const text = (data?.candidates?.[0]?.content?.parts || []).map((p) => p.text || '').join('').trim();
+  return { status: 200, body: { ok: true, texto: text } };
+}
+
 function sanitizeLabel(name) {
   return String(name || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 20);
 }
@@ -960,6 +985,10 @@ export async function assistantHandler(req, res) {
     }
     if (!enabledFor(auth)) return fail(res, 403, 'El asistente no esta habilitado para esta cuenta', 'not_enabled');
 
+    if (route === 'transcribe' && req.method === 'POST') {
+      const r = await transcribeAudio({ audioBase64: req.body?.audio_base64, mimeType: req.body?.mime_type });
+      return res.status(r.status).json(r.body);
+    }
     if (route.startsWith('boleto/') && req.method === 'GET') {
       const numero = decodeURIComponent(route.slice('boleto/'.length));
       const panel = await fetchTicketPanel(numero, auth.label).catch(() => null);
