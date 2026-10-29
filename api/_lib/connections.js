@@ -7,7 +7,10 @@ const PLAID_HOSTS = { sandbox: 'https://sandbox.plaid.com', production: 'https:/
 const INBOX_LIMIT = 200;
 const WORKER_URL = (process.env.BROWSER_WORKER_URL || '').replace(/\/$/, '');
 const WORKER_TOKEN = process.env.BROWSER_WORKER_TOKEN || '';
-const SEARCH_TEMPLATES = { 'mobilesentrix.com': 'https://www.mobilesentrix.com/catalogsearch/result/?q={q}' };
+const SEARCH_TEMPLATES = {
+  'mobilesentrix.com': 'https://www.mobilesentrix.com/catalogsearch/result/?q={q}',
+  'phonelcdparts.com': 'https://www.phonelcdparts.com/catalogsearch/result/?q={q}',
+};
 
 function secretKey() {
   return crypto.createHash('sha256').update(SECRET).digest();
@@ -83,6 +86,7 @@ export function publicConnections(conn, webhookBase) {
           conexiones: (plaid.items || []).map((i) => ({ id: i.item_id, institucion: i.institution || 'Banco', cuentas: (i.accounts || []).map((a) => ({ nombre: a.name, mascara: a.mask })) })),
         }
       : { configurado: false, client_id: '', entorno: 'sandbox', conexiones: [] },
+    ebay: { configurado: Boolean(conn.ebay?.client_id && conn.ebay?.secret_enc), client_id: conn.ebay?.client_id || '' },
     proveedores: (conn.proveedores || []).map((p) => ({ id: p.id, nombre: p.nombre, url: p.url, busqueda: p.busqueda || '', usuario: p.usuario || '', tiene_clave: Boolean(p.clave_enc), notas: p.notas || '' })),
     navegador_configurado: Boolean(WORKER_URL && WORKER_TOKEN),
   };
@@ -418,6 +422,10 @@ export async function verifySetup(tenantId, tipo, nombre) {
     if (!found) return { status: 409, body: { ok: false, error: 'El usuario no guardo el proveedor' } };
     return { status: 200, body: { ok: true, proveedor: found.nombre, url: found.url, tiene_acceso: Boolean(found.usuario && found.clave_enc) } };
   }
+  if (tipo === 'ebay') {
+    if (conn.ebay?.secret_enc) return { status: 200, body: { ok: true, ebay: 'conectado' } };
+    return { status: 409, body: { ok: false, error: 'El usuario no guardo las credenciales de eBay' } };
+  }
   if (tipo === 'banco') {
     const items = conn.plaid?.items || [];
     if (items.length) return { status: 200, body: { ok: true, bancos: items.map((i) => i.institution || 'Banco') } };
@@ -468,6 +476,10 @@ export async function searchSupplier(tenantId, { proveedor, consulta } = {}) {
   if (!supplier) return { status: 404, body: { ok: false, error: 'Proveedor no encontrado. Revisa proveedores_listar.' } };
   const template = searchTemplate(supplier);
   if (!template) return { status: 409, body: { ok: false, error: `Falta la direccion de busqueda de ${supplier.nombre}. Pidele al usuario la direccion de una busqueda de ejemplo en su pagina para guardarla.` } };
+  if (hostOf(supplier.url) === 'phonelcdparts.com' || hostOf(template) === 'phonelcdparts.com') {
+    const direct = await searchPhoneLcdParts(query, template);
+    return { status: direct.status, body: { ...direct.body, proveedor: supplier.nombre } };
+  }
   const r = await worker('/search', { url: template.replace('{q}', encodeURIComponent(query)), consulta: query, limite: 8 }, 58_000);
   if (r.body?.ok) return { status: 200, body: { ...r.body, proveedor: supplier.nombre } };
   return { status: r.status, body: { ok: false, proveedor: supplier.nombre, estado: r.body?.estado || null, error: r.body?.error || 'No se pudo consultar el proveedor' } };
@@ -485,4 +497,114 @@ export async function supplierLoginWindow(tenantId, id) {
 
 export function workerConfigured() {
   return Boolean(WORKER_URL && WORKER_TOKEN);
+}
+
+function decodeEntities(text) {
+  return String(text || '')
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;|&#039;|&apos;/g, "'")
+    .replace(/&#x20;/g, ' ')
+    .replace(/&#x28;/g, '(')
+    .replace(/&#x29;/g, ')')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+export function parsePhoneLcdParts(html, limit = 8) {
+  const cards = String(html || '').split('class="item product product-item').slice(1);
+  const out = [];
+  for (const card of cards) {
+    const price = /data-price-amount="([\d.]+)"/.exec(card);
+    const link = /class="product-item-link[^"]*"[^>]*href="([^"]+)"[^>]*title="([^"]*)"/.exec(card) || /<a class="product-item-link[^>]*href="([^"]+)"[\s\S]*?>\s*([^<]+?)\s*<\/a>/.exec(card);
+    if (!price || !link) continue;
+    const sku = /data-sku="\s*([^"]+?)\s*"/.exec(card);
+    const stock = /out of stock|sold out|agotado/i.test(card) ? 'agotado' : /add to cart|in stock/i.test(card) ? 'disponible' : '';
+    out.push({ nombre: decodeEntities(link[2]), url: link[1], sku: sku ? decodeEntities(sku[1]) : '', precio: Number(price[1]), existencia: stock });
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
+export async function searchPhoneLcdParts(query, template = SEARCH_TEMPLATES['phonelcdparts.com'], fetchImpl = fetch) {
+  try {
+    const res = await fetchImpl(template.replace('{q}', encodeURIComponent(query)), {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15', Accept: 'text/html' },
+      redirect: 'follow',
+    });
+    if (res.status === 403 || res.status === 429) return { status: 502, body: { ok: false, estado: 'bloqueado', error: 'PhoneLCDParts bloqueo la consulta desde el servidor. Hay que consultarla con el navegador en la nube.' } };
+    if (!res.ok) return { status: 502, body: { ok: false, error: `PhoneLCDParts respondio ${res.status}` } };
+    const productos = parsePhoneLcdParts(await res.text());
+    return { status: 200, body: { ok: true, consulta: query, total: productos.length, productos, nota: 'Precios publicos de PhoneLCDParts sin envio; el envio de pantallas de laptop es Ground (unas 2 semanas, gratis sobre $350).' } };
+  } catch (e) {
+    return { status: 502, body: { ok: false, error: `No se pudo consultar PhoneLCDParts: ${e.message}` } };
+  }
+}
+
+export async function saveEbayConfig(tenantId, b) {
+  const conn = await loadConnections(tenantId);
+  const current = conn.ebay || {};
+  const next = { ...current, client_id: clip(b.client_id ?? current.client_id, 120), updated_at: new Date().toISOString() };
+  if (typeof b.client_secret === 'string' && b.client_secret.trim()) next.secret_enc = encryptSecret(b.client_secret.trim());
+  if (!next.client_id) return { error: 'client_id es requerido' };
+  if (!next.secret_enc) return { error: 'client_secret es requerido' };
+  delete next.token_enc;
+  delete next.token_exp;
+  conn.ebay = next;
+  await saveConnections(tenantId, conn);
+  return { ok: true };
+}
+
+async function ebayToken(conn, tenantId, fetchImpl = fetch) {
+  const cfg = conn.ebay;
+  if (cfg?.token_enc && Number(cfg.token_exp) > Date.now() + 60_000) return decryptSecret(cfg.token_enc);
+  const basic = Buffer.from(`${cfg.client_id}:${decryptSecret(cfg.secret_enc)}`).toString('base64');
+  const res = await fetchImpl('https://api.ebay.com/identity/v1/oauth2/token', {
+    method: 'POST',
+    headers: { Authorization: `Basic ${basic}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'grant_type=client_credentials&scope=https%3A%2F%2Fapi.ebay.com%2Foauth%2Fapi_scope',
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok || !json.access_token) throw new Error(json.error_description || `eBay ${res.status}`);
+  conn.ebay = { ...cfg, token_enc: encryptSecret(json.access_token), token_exp: Date.now() + (Number(json.expires_in) || 7200) * 1000 };
+  await saveConnections(tenantId, conn);
+  return json.access_token;
+}
+
+export async function searchEbay(tenantId, { consulta, limite, solo_nuevos } = {}, fetchImpl = fetch) {
+  const q = clip(consulta, 120);
+  if (!q) return { status: 400, body: { ok: false, error: 'consulta es requerida' } };
+  const conn = await loadConnections(tenantId);
+  if (!conn.ebay?.secret_enc) return { status: 409, body: { ok: false, error: 'eBay no esta conectado. Conectalo desde el chat.' } };
+  try {
+    const token = await ebayToken(conn, tenantId, fetchImpl);
+    const filters = ['itemLocationCountry:US', 'deliveryCountry:US', 'buyingOptions:{FIXED_PRICE}'];
+    if (solo_nuevos) filters.push('conditions:{NEW}');
+    const n = Math.min(Math.max(Number(limite) || 8, 1), 15);
+    const url = `https://api.ebay.com/buy/browse/v1/item_summary/search?q=${encodeURIComponent(q)}&filter=${encodeURIComponent(filters.join(','))}&sort=price&limit=${n}`;
+    const res = await fetchImpl(url, { headers: { Authorization: `Bearer ${token}`, 'X-EBAY-C-MARKETPLACE-ID': 'EBAY_US' } });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) return { status: 502, body: { ok: false, error: `eBay respondio: ${json?.errors?.[0]?.message || res.status}` } };
+    const items = (json.itemSummaries || []).map((i) => {
+      const price = Number(i.price?.value) || 0;
+      const ship = Number(i.shippingOptions?.[0]?.shippingCost?.value);
+      const shipKnown = Number.isFinite(ship);
+      return {
+        titulo: i.title,
+        precio: money(price),
+        envio: shipKnown ? money(ship) : null,
+        total: shipKnown ? money(price + ship) : null,
+        condicion: i.condition || null,
+        vendedor_pais: i.itemLocation?.country || null,
+        vendedor: i.seller?.username || null,
+        url: i.itemWebUrl,
+        numero_articulo: i.legacyItemId || i.itemId,
+      };
+    });
+    return { status: 200, body: { ok: true, consulta: q, total: items.length, articulos: items, nota: 'Solo vendedores de EE. UU. con envio a EE. UU. y precio fijo. Verifica la compatibilidad exacta del modelo en la descripcion antes de comprar. total = precio + envio.' } };
+  } catch (e) {
+    return { status: 502, body: { ok: false, error: `No se pudo consultar eBay: ${e.message}` } };
+  }
 }

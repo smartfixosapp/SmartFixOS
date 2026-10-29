@@ -23,6 +23,8 @@ import {
   searchSupplier,
   supplierLoginWindow,
   workerConfigured,
+  searchEbay,
+  saveEbayConfig,
 } from './connections.js';
 
 const TENANT_ID = process.env.MUSE_TENANT_ID || '';
@@ -330,6 +332,13 @@ function pieceTotal(p) {
 
 export const TOOLS = [
   {
+    name: 'ebay_buscar',
+    description: 'Busca una pieza en eBay con la API oficial: solo vendedores de EE. UU. con envio a EE. UU. y precio fijo, ordenado de menor a mayor precio, con precio, envio y total. Solo lectura. Verifica siempre el modelo y la generacion exactos (por ejemplo tipo de maquina o FRU) en la descripcion antes de recomendar comprar.',
+    input_schema: { type: 'object', required: ['consulta'], properties: { consulta: str('Pieza o numero de parte, por ejemplo "A2337 logic board" o "FRU 5B20Z"'), limite: { type: 'integer' }, solo_nuevos: { type: 'boolean' } } },
+    mutating: false,
+    local: (a, ctx) => searchEbay(ctx.tenantId, a),
+  },
+  {
     name: 'notificaciones_recientes',
     description: 'Lee los avisos recientes que le llegaron al dueno: nueva orden, cambios de estado de una orden y cobros. Sirve para responder "que me llego hoy", "de que era ese aviso" o "que paso con la ultima orden"; despues puedes abrir el boleto con ver_boleto.',
     input_schema: { type: 'object', properties: { limite: { type: 'integer', description: 'Cuantos avisos, por defecto 15, maximo 40' }, tipo: { type: 'string', enum: ['nueva_orden', 'cambio_estado', 'cobro'] } } },
@@ -373,18 +382,19 @@ export const TOOLS = [
       type: 'object',
       required: ['tipo'],
       properties: {
-        tipo: { type: 'string', enum: ['proveedor', 'whatsapp', 'banco'] },
+        tipo: { type: 'string', enum: ['proveedor', 'whatsapp', 'banco', 'ebay'] },
         nombre: str('Nombre del proveedor, solo para tipo proveedor'),
         url: str('Direccion web https del proveedor, solo para tipo proveedor'),
       },
     },
     mutating: true,
     local: (a, ctx) => verifySetup(ctx.tenantId, a.tipo, a.nombre),
-    resumen: (a) => (a.tipo === 'proveedor' ? `Guardar el proveedor ${a.nombre || ''}`.trim() : a.tipo === 'whatsapp' ? 'Conectar WhatsApp (API de Meta)' : 'Conectar el banco (solo lectura)'),
+    resumen: (a) => (a.tipo === 'proveedor' ? `Guardar el proveedor ${a.nombre || ''}`.trim() : a.tipo === 'whatsapp' ? 'Conectar WhatsApp (API de Meta)' : a.tipo === 'ebay' ? 'Conectar eBay (API oficial, solo lectura)' : 'Conectar el banco (solo lectura)'),
     hecho: (r) => {
       if (!r.body?.ok) return null;
       if (r.body.proveedor) return `Proveedor guardado: ${r.body.proveedor}`;
       if (r.body.bancos) return `Banco conectado: ${r.body.bancos.join(', ')}`;
+      if (r.body.ebay) return 'eBay conectado';
       return `WhatsApp conectado${r.body.numero ? `: ${r.body.numero}` : ''}`;
     },
   },
@@ -791,6 +801,7 @@ function systemPrompt(shopName, actorLabel) {
     'BOLETO ACTIVO Y FOTOS: recuerda cual es el boleto activo de la conversacion. Si el usuario dice "voy a trabajar este boleto", "empiezo con el WO-xxx" o similar, ese es el boleto activo y lo pasas a in_progress. Las fotos que llegan en el chat las ves de verdad (vienen como imagenes): si hay un boleto activo adjuntalas a ese boleto con adjuntar_foto sin preguntar y describe en una frase lo que ves (por ejemplo equipo abierto, pieza nueva instalada, equipo terminado y encendido). Si las fotos muestran que la reparacion quedo terminada (equipo armado, pantalla instalada, enciende y funciona), dilo y pregunta una sola vez: "Ya quedo, lo pongo en Listo para recoger?"; si responde que si, haz el cambio de estatus de inmediato, sin tarjeta ni nueva pregunta. Si no hay boleto activo y llegan fotos, pregunta a cual boleto pertenecen o si es un boleto nuevo.',
     'ALCANCE COMPLETO: tienes casi todo lo que hace el dueno en la app y la API del taller: boletos, fotos, piezas e inventario, clientes (buscar_clientes, ver_cliente, editar_cliente), cobros y reversos, ventas de mostrador y anulaciones, ingresos y gastos, resumen del dia o de un rango, tareas (crear_tarea), WhatsApp y avisos. Usa cada herramienta sin pedirle al usuario que lo haga en la app. Solo di que algo se hace desde la app cuando de verdad no tienes herramienta (abrir o cerrar caja, nomina, ponches, cotizaciones formales, citas).',
     'CREAR UN BOLETO NUEVO: cuando el usuario diga "crear boleto" o "llego un cliente", esto es un flujo aparte que puede ocurrir en medio de otro trabajo: NO toques el boleto activo, y no mezcles sus datos. Pregunta UNA cosa a la vez, corta y amable, en este orden: nombre, apellido, telefono, email (o que no tiene), equipo y problema; luego pide las fotos del equipo ("mandame las fotos aqui mismo"). Si el usuario manda varios datos juntos, no los vuelvas a pedir. Cuando tengas lo minimo (nombre, apellido, telefono, equipo y problema) crea el boleto sin pedir otra confirmacion, adjunta las fotos que lleguen y ofrece volver al boleto anterior en una frase ("Listo el WO-xxx. Seguimos con el WO-yyy?"). Si el cliente ya existe (busca con buscar_clientes por telefono), usalo en vez de duplicarlo.',
+    'COMPRAS Y PRECIOS DE PROVEEDORES: cuando cotices una pieza o compares proveedores aplica las reglas que ya conoce el dueno. Verifica el modelo y la generacion exactos en la ficha (hay fichas casi iguales con precios muy distintos, como iPad Pro 3 y 4 gen contra 5 y 6 gen). En MobileSentrix toma el precio de la variante exacta (calidad, version y color) y cuidado con la coma decimal ($344,45 es $344.45). El precio del proveedor no incluye envio: reporta precio mas envio cuando lo sepas. En eBay solo vendedores de EE. UU. con envio domestico y descarta anuncios con envio internacional. Las pantallas de laptop de PhoneLCDParts tardan unas 2 semanas: dilo en la cotizacion. Los correos de ETA no son fiables, manda el rastreo del transportista. Los costos del proveedor son internos: nunca se los digas a un cliente. Nunca compres ni pagues nada; solo cotizas y preparas.',
     'AYUDA PROACTIVA: ademas de obedecer, propone. Al empezar el dia o si dicen "briefing", "que tengo hoy" o "que hay pendiente": usa resumen_del_dia, alertas y buscar_boletos y da una lista priorizada y corta (cobros pendientes, listos sin recoger, esperando al cliente, piezas que llegaron). Para cobranza o seguimientos arma los mensajes de WhatsApp uno por cliente con whatsapp_abrir. Al ver un gasto, un recibo o una factura en una foto, ofrece registrarlo con registrar_gasto. Si el usuario dicta algo que suena a recordatorio ("recuerdame llamar a X el jueves") usa crear_tarea. Nunca inventes datos: si no los encuentras con las herramientas, dilo.',
     'PROACTIVIDAD: trabaja como un asistente de taller que piensa por delante. Despues de cada accion ofrece el siguiente paso logico en UNA frase y con una pregunta corta (ejemplos: "Anadi la foto al WO-410, la dejo como foto de reparacion?", "Ya esta en reparacion, le aviso al cliente por WhatsApp?", "Hay balance pendiente de $40, lo cobro?"). Cuando el usuario manda varias fotos y ya hay boleto activo, adjuntalas todas, describe brevemente cada una y pregunta que mas quiere hacer. Si falta un dato para actuar (a cual boleto va, que estatus), pregunta lo minimo, nunca un formulario largo. Nunca digas que algo requiere una API de pago de WhatsApp (Meta, Twilio): para WhatsApp siempre usas whatsapp_abrir.',
     'NOTAS Y AVISOS AL CLIENTE: cuando el usuario dicta una nota de un boleto, decide tu si es INTERNA (para el equipo: diagnostico tecnico, observaciones, recordatorios) o PARA EL CLIENTE (algo que el cliente debe saber: estado, que hacer, cuando recoger). Si es evidente, usa el tipo correcto sin preguntar; si no queda claro, pregunta en una frase "la dejo interna o se la mando al cliente?". Una nota para el cliente se envia por correo y pide tarjeta; despues de guardarla, ofrece de inmediato el boton de WhatsApp con el mismo mensaje usando whatsapp_abrir. Lo mismo despues de cambios de estatus que le importan al cliente (listo para recoger, esperando piezas, llego la pieza, cotizacion lista, entregado): llama whatsapp_abrir con un mensaje breve y amable, el telefono lo sacas del boleto con ver_boleto. En estatus internos (diagnostico, en reparacion) no pongas boton salvo que lo pida.',
@@ -938,7 +949,8 @@ export function availableTools(conn) {
     hidden.add('banco_cuentas');
     hidden.add('banco_movimientos');
   }
-  if (!workerConfigured()) hidden.add('proveedor_buscar_precio');
+  if (!workerConfigured() && !(conn?.proveedores || []).some((p) => /phonelcdparts\.com/i.test(p.url || ''))) hidden.add('proveedor_buscar_precio');
+  if (!conn?.ebay?.secret_enc) hidden.add('ebay_buscar');
   return TOOLS.filter((t) => !hidden.has(t.name));
 }
 
@@ -1192,6 +1204,11 @@ export async function assistantHandler(req, res) {
       return res.status(200).json({ ok: true, ...publicConnections(await loadConnections(auth.tenantId), WEB_BASE) });
     }
 
+    if (route === 'connections/ebay' && (req.method === 'PUT' || req.method === 'POST')) {
+      const saved = await saveEbayConfig(auth.tenantId, req.body || {});
+      if (saved.error) return fail(res, 400, saved.error, 'invalid_body');
+      return res.status(200).json({ ok: true, ...publicConnections(await loadConnections(auth.tenantId), WEB_BASE) });
+    }
     if (route === 'connections/proveedores/sesion' && req.method === 'POST') {
       const r = await supplierLoginWindow(auth.tenantId, String(req.body?.id || ''));
       return res.status(r.status).json(r.body);
