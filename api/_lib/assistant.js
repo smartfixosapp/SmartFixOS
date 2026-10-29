@@ -914,6 +914,42 @@ export async function transcribeAudio({ audioBase64, mimeType }, fetchImpl = fet
   return { status: 200, body: { ok: true, texto: text } };
 }
 
+
+const MAX_HISTORY_DOC = 900_000;
+
+function historySlug(auth) {
+  const user = String(auth.userId || '').replace(/[^A-Za-z0-9-]/g, '').slice(0, 64);
+  return user ? `ai-chat-${auth.tenantId}-${user}` : null;
+}
+
+export async function loadHistory(auth) {
+  const slug = historySlug(auth);
+  if (!slug) return { status: 400, body: { ok: false, error: 'No se pudo identificar tu usuario', code: 'no_user' } };
+  const rows = await sb(`app_settings?slug=eq.${slug}&select=payload&limit=1`);
+  const doc = rows?.[0]?.payload;
+  return { status: 200, body: { ok: true, rev: Number(doc?.rev) || 0, estado: doc?.estado || null } };
+}
+
+export async function saveHistory(auth, { rev, estado }) {
+  const slug = historySlug(auth);
+  if (!slug) return { status: 400, body: { ok: false, error: 'No se pudo identificar tu usuario', code: 'no_user' } };
+  const newRev = Number(rev);
+  if (!Number.isFinite(newRev) || newRev <= 0) return { status: 400, body: { ok: false, error: 'rev invalido', code: 'invalid_body' } };
+  if (!estado || typeof estado !== 'object' || !Array.isArray(estado.messages) || !Array.isArray(estado.timeline)) {
+    return { status: 400, body: { ok: false, error: 'estado invalido', code: 'invalid_body' } };
+  }
+  const trimmed = { ...estado, messages: estado.messages.slice(-80), timeline: estado.timeline.slice(-300), pending: Array.isArray(estado.pending) ? estado.pending.slice(0, 10) : [] };
+  const text = JSON.stringify(trimmed);
+  if (text.length > MAX_HISTORY_DOC) return { status: 413, body: { ok: false, error: 'La conversacion es demasiado grande', code: 'too_large' } };
+  const rows = await sb(`app_settings?slug=eq.${slug}&select=id,payload&limit=1`);
+  const row = rows?.[0];
+  if (row && Number(row.payload?.rev) > newRev) return { status: 409, body: { ok: false, error: 'Hay una version mas reciente', code: 'stale', rev: Number(row.payload.rev) } };
+  const payload = { rev: newRev, estado: trimmed, updated_at: new Date().toISOString() };
+  if (row) await sb(`app_settings?id=eq.${row.id}`, { method: 'PATCH', body: { payload }, prefer: 'return=minimal' });
+  else await sb('app_settings', { method: 'POST', body: { slug, payload }, prefer: 'return=minimal' });
+  return { status: 200, body: { ok: true, rev: newRev } };
+}
+
 function sanitizeLabel(name) {
   return String(name || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 20);
 }
@@ -933,18 +969,20 @@ async function authenticate(req) {
   if (token && SERVICE_TOKEN && token.length >= 32) {
     const a = crypto.createHash('sha256').update(token).digest();
     const b = crypto.createHash('sha256').update(SERVICE_TOKEN).digest();
-    if (crypto.timingSafeEqual(a, b)) return { tenantId: TENANT_ID, role: 'owner', label: 'Asistente IA - prueba' };
+    if (crypto.timingSafeEqual(a, b)) return { tenantId: TENANT_ID, role: 'owner', label: 'Asistente IA - prueba', userId: 'servicio' };
   }
   const member = await requireMember(req);
   if (member.error) return member;
   let label = 'Asistente IA';
+  let userId = '';
   try {
     const res = await fetch(`${SB_URL}/auth/v1/user`, { headers: { apikey: SB_KEY, Authorization: `Bearer ${token}` } });
     const user = await res.json().catch(() => ({}));
     const first = sanitizeLabel(String(user?.email || '').split('@')[0]);
     if (first) label = `Asistente IA - ${first}`;
+    userId = String(user?.id || '');
   } catch {}
-  return { tenantId: member.tenantId, role: member.role, label };
+  return { tenantId: member.tenantId, role: member.role, label, userId };
 }
 
 function enabledFor(auth) {
@@ -985,6 +1023,14 @@ export async function assistantHandler(req, res) {
     }
     if (!enabledFor(auth)) return fail(res, 403, 'El asistente no esta habilitado para esta cuenta', 'not_enabled');
 
+    if (route === 'history' && req.method === 'GET') {
+      const r = await loadHistory(auth);
+      return res.status(r.status).json(r.body);
+    }
+    if (route === 'history' && (req.method === 'PUT' || req.method === 'POST')) {
+      const r = await saveHistory(auth, { rev: req.body?.rev, estado: req.body?.estado });
+      return res.status(r.status).json(r.body);
+    }
     if (route === 'transcribe' && req.method === 'POST') {
       const r = await transcribeAudio({ audioBase64: req.body?.audio_base64, mimeType: req.body?.mime_type });
       return res.status(r.status).json(r.body);
