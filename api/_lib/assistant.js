@@ -471,8 +471,8 @@ export const TOOLS = [
   },
   {
     name: 'resumen_del_dia',
-    description: 'Cobrado, devoluciones, gastos, ganancia estimada y boletos creados de un dia.',
-    input_schema: { type: 'object', properties: { fecha: str('YYYY-MM-DD, por defecto hoy') } },
+    description: 'Cobrado, devoluciones, gastos, ganancia estimada y boletos creados de un dia o de un rango (desde y hasta, para la semana o el mes).',
+    input_schema: { type: 'object', properties: { fecha: str('YYYY-MM-DD, por defecto hoy'), desde: str('YYYY-MM-DD inicio de un rango (maximo 92 dias), junto con hasta'), hasta: str('YYYY-MM-DD fin del rango') } },
     run: (a) => ({ method: 'GET', path: 'resumen', query: a }),
   },
   {
@@ -658,6 +658,118 @@ export const TOOLS = [
     resumen: (a) => `Ajustar stock del producto ${a.producto_id}: ${a.stock !== undefined ? `dejar en ${a.stock}` : `sumar ${a.ajuste}`}\nMotivo: ${a.motivo}`,
     hecho: (r) => (r.body?.ok ? 'Stock ajustado' : null),
   },
+  {
+    name: 'catalogo_piezas',
+    description: 'Catalogo de piezas del inventario con filtro por texto o por bajo stock. Sirve para "que piezas estan bajo el minimo" y para obtener el id de un producto.',
+    input_schema: { type: 'object', properties: { q: str('Texto a buscar'), bajo_stock: { type: 'boolean' }, todos: { type: 'boolean', description: 'true incluye todo el inventario y no solo piezas' }, limite: { type: 'integer' }, pagina: { type: 'integer' } } },
+    mutating: false,
+    run: (a) => ({ method: 'GET', path: 'piezas', query: a }),
+  },
+  {
+    name: 'buscar_clientes',
+    description: 'Busca clientes por nombre, telefono o email.',
+    input_schema: { type: 'object', required: ['q'], properties: { q: str('Nombre, telefono o email'), limite: { type: 'integer' } } },
+    mutating: false,
+    run: (a) => ({ method: 'GET', path: 'clientes', query: a }),
+  },
+  {
+    name: 'ver_cliente',
+    description: 'Datos de un cliente, sus boletos recientes y cuanto debe en total. Usa el id que devuelve buscar_clientes.',
+    input_schema: { type: 'object', required: ['cliente_id'], properties: { cliente_id: str('Id del cliente') } },
+    mutating: false,
+    run: (a) => ({ method: 'GET', path: `clientes/${encodeURIComponent(a.cliente_id)}` }),
+  },
+  {
+    name: 'editar_cliente',
+    description: 'Corrige el nombre, telefono o email de un cliente.',
+    input_schema: { type: 'object', required: ['cliente_id'], properties: { cliente_id: str('Id del cliente'), nombre: str('Nombre completo'), telefono: str('Telefono'), email: str('Email, sin acentos') } },
+    mutating: true,
+    auto: true,
+    run: (a) => ({ method: 'PATCH', path: `clientes/${encodeURIComponent(a.cliente_id)}`, body: { nombre: a.nombre, telefono: a.telefono, email: a.email } }),
+    resumen: (a) => `Corregir cliente: ${[a.nombre, a.telefono, a.email].filter(Boolean).join(' · ')}`,
+    hecho: (r) => (r.body?.ok ? `Cliente actualizado: ${r.body.cliente?.nombre || ''}` : null),
+  },
+  {
+    name: 'actualizar_costo_pieza',
+    description: 'Corrige el costo interno o el suplidor de una pieza ya agregada a un boleto. No cambia el precio al cliente. Usa el id de piezas_del_boleto.',
+    input_schema: { type: 'object', required: ['numero', 'pieza_id'], properties: { numero: ticketRef, pieza_id: str('Id de la pieza dentro del boleto'), costo: num('Costo unitario del taller'), suplidor: str('Suplidor') } },
+    mutating: true,
+    auto: true,
+    run: (a) => ({ method: 'PATCH', path: `tickets/${encodeURIComponent(a.numero)}/piezas/${encodeURIComponent(a.pieza_id)}`, body: { costo: a.costo, suplidor: a.suplidor } }),
+    resumen: (a) => `Corregir costo de la pieza en ${a.numero}${a.costo !== undefined ? `: ${fmt(a.costo)}` : ''}${a.suplidor ? ` (${a.suplidor})` : ''}`,
+    hecho: (r) => (r.body?.ok ? 'Costo de la pieza actualizado' : null),
+  },
+  {
+    name: 'editar_pieza',
+    description: 'Edita un producto del inventario: nombre, marca, modelo, categoria, costo, stock minimo o suplidor. Cambiar el precio de venta, el stock o desactivarlo pide confirmacion. Precios SIN IVU.',
+    input_schema: { type: 'object', required: ['producto_id'], properties: { producto_id: str('Id del producto'), nombre: str('Nombre'), marca: str('Marca'), modelo: str('Modelo'), categoria: str('Categoria'), costo: num('Costo'), precio: num('Precio de venta sin IVU'), stock: num('Cantidad en stock'), stock_minimo: num('Minimo'), suplidor: str('Suplidor'), activo: { type: 'boolean' } } },
+    mutating: true,
+    auto: (a) => a.precio === undefined && a.stock === undefined && a.activo === undefined,
+    run: (a) => {
+      const { producto_id, ...rest } = a;
+      return { method: 'PATCH', path: `piezas/${encodeURIComponent(producto_id)}`, body: rest };
+    },
+    resumen: (a) => `Editar producto ${a.producto_id}:\n${Object.entries(a).filter(([k]) => k !== 'producto_id').map(([k, v]) => `${k}: ${v}`).join('\n')}${a.precio !== undefined ? `\nPrecio con IVU: ${fmt(withIvu(a.precio))}` : ''}`,
+    hecho: (r) => (r.body?.ok ? `Producto actualizado${r.body.pieza?.nombre ? `: ${r.body.pieza.nombre}` : ''}` : null),
+  },
+  {
+    name: 'quitar_pieza_de_boleto',
+    description: 'Quita una pieza de un boleto abierto y devuelve el stock. Baja el total facturado. Usa el id de piezas_del_boleto.',
+    input_schema: { type: 'object', required: ['numero', 'pieza_id'], properties: { numero: ticketRef, pieza_id: str('Id de la pieza dentro del boleto') } },
+    mutating: true,
+    run: (a) => ({ method: 'DELETE', path: `tickets/${encodeURIComponent(a.numero)}/piezas/${encodeURIComponent(a.pieza_id)}` }),
+    resumen: (a) => `Quitar una pieza del boleto ${a.numero} (baja el total facturado y devuelve el stock)`,
+    hecho: (r) => (r.body?.ok ? 'Pieza quitada del boleto' : null),
+  },
+  {
+    name: 'reversar_pago',
+    description: 'Anula un cobro registrado en un boleto (no borra: queda el reembolso en Finanzas). Requiere el id del pago de ver_boleto y un motivo.',
+    input_schema: { type: 'object', required: ['numero', 'pago_id', 'motivo'], properties: { numero: ticketRef, pago_id: str('Id del pago'), motivo: str('Motivo, minimo 3 caracteres') } },
+    mutating: true,
+    run: (a) => ({ method: 'POST', path: `tickets/${encodeURIComponent(a.numero)}/pagos/${encodeURIComponent(a.pago_id)}/reversar`, body: { motivo: a.motivo } }),
+    resumen: (a) => `Reversar un pago del boleto ${a.numero}\nMotivo: ${a.motivo}\nBaja lo cobrado y deja el reembolso en Finanzas`,
+    hecho: (r) => (r.body?.ok ? 'Pago reversado' : null),
+  },
+  {
+    name: 'anular_venta',
+    description: 'Anula una venta de mostrador hecha por el asistente o la API (no borra: queda el reembolso y se devuelve el stock). Las ventas hechas desde la app se anulan en la app.',
+    input_schema: { type: 'object', required: ['venta', 'motivo'], properties: { venta: str('Id o numero POS-XXXXXXXX de la venta'), motivo: str('Motivo'), restaurar_stock: { type: 'boolean' } } },
+    mutating: true,
+    run: (a) => ({ method: 'POST', path: `pos/ventas/${encodeURIComponent(a.venta)}/anular`, body: { motivo: a.motivo, restaurar_stock: a.restaurar_stock } }),
+    resumen: (a) => `Anular la venta ${a.venta}\nMotivo: ${a.motivo}${a.restaurar_stock === false ? '\nNo se devuelve el stock' : '\nSe devuelve el stock'}`,
+    hecho: (r) => (r.body?.ok ? 'Venta anulada' : null),
+  },
+  {
+    name: 'registrar_gasto',
+    description: 'Registra un gasto del taller en Finanzas (piezas, suministros, renta, utilidades, mercadeo, reparaciones, impuestos u otro). Monto exacto ya pagado.',
+    input_schema: { type: 'object', required: ['monto', 'concepto', 'categoria'], properties: { monto: num('Monto exacto'), concepto: str('Concepto'), categoria: { type: 'string', enum: ['parts', 'supplies', 'rent', 'utilities', 'marketing', 'repairs', 'taxes', 'other'] }, metodo: { type: 'string', enum: PAYMENT_ENUM }, fecha: str('YYYY-MM-DD, por defecto hoy') } },
+    mutating: true,
+    run: (a) => ({ method: 'POST', path: 'finanzas/gastos', body: a }),
+    resumen: (a) => `Registrar gasto de ${fmt(a.monto)}\nConcepto: ${a.concepto}\nCategoria: ${a.categoria}${a.metodo ? `\nMetodo: ${a.metodo}` : ''}${a.fecha ? `\nFecha: ${a.fecha}` : ''}`,
+    hecho: (r) => (r.body?.ok ? `Gasto registrado: ${fmt(r.body.gasto?.monto)}` : null),
+  },
+  {
+    name: 'crear_tarea',
+    description: 'Crea una tarea o recordatorio para el dueno en la lista de tareas del taller, opcionalmente con fecha y hora.',
+    input_schema: { type: 'object', required: ['titulo'], properties: { titulo: str('Titulo corto'), notas: str('Detalle'), fecha_hora: str('Fecha y hora ISO 8601 con zona, por ejemplo 2026-10-30T14:00:00-04:00') } },
+    mutating: true,
+    auto: true,
+    local: async (a, ctx) => {
+      const title = String(a.titulo || '').trim().slice(0, 200);
+      if (title.length < 3) return { status: 400, body: { ok: false, error: 'titulo demasiado corto' } };
+      let due = null;
+      if (a.fecha_hora) {
+        const d = new Date(a.fecha_hora);
+        if (Number.isNaN(d.getTime())) return { status: 400, body: { ok: false, error: 'fecha_hora invalida' } };
+        due = d.toISOString();
+      }
+      const body = { id: crypto.randomUUID(), tenant_id: ctx.tenantId, title, created_by: 'Asistente IA', notes: a.notas ? String(a.notas).slice(0, 1000) : null, due_at: due, notify_at: due };
+      await sb('workshop_task', { method: 'POST', body, prefer: 'return=minimal' });
+      return { status: 200, body: { ok: true, tarea: { titulo: title, para: due } } };
+    },
+    resumen: (a) => `Crear tarea: ${a.titulo}${a.fecha_hora ? `\nPara: ${a.fecha_hora}` : ''}`,
+    hecho: (r) => (r.body?.ok ? `Tarea creada: ${r.body.tarea?.titulo}` : null),
+  },
 ];
 
 const TOOL_BY_NAME = new Map(TOOLS.map((t) => [t.name, t]));
@@ -677,6 +789,9 @@ function systemPrompt(shopName, actorLabel) {
     'WhatsApp: puedes leer la bandeja con whatsapp_bandeja y redactar mensajes con whatsapp_enviar; nunca sale un mensaje sin que el dueno vea el borrador en la tarjeta de confirmacion. Si el cliente no ha escrito en 24 horas Meta solo deja plantillas aprobadas; si el envio falla por eso, dilo y ofrece otro medio. Banco: solo lectura con banco_cuentas y banco_movimientos; nunca muevas dinero ni prometas hacerlo. Proveedores: proveedores_listar muestra los registrados; no tienes acceso a sus claves. Para precios usa proveedor_buscar_precio: si responde que la sesion no esta iniciada o que hay una verificacion, dile al usuario que abra la ventanilla del proveedor desde Ajustes, Conexiones, Proveedores, y que entre una vez; no intentes evadir verificaciones. Si el proveedor no tiene direccion de busqueda, pidele una busqueda de ejemplo. Conexiones guiadas: si el usuario dice "agrega este proveedor", "conecta el WhatsApp" o "conecta el banco", guialo paso a paso en el chat, una pregunta a la vez. Para un proveedor pregunta primero el nombre y la direccion web y luego llama solicitar_datos con tipo proveedor; para WhatsApp explica brevemente de donde salen el token, el Phone Number ID y el App Secret en developers.facebook.com y llama solicitar_datos con tipo whatsapp; para el banco explica que se usa Plaid en modo solo lectura, que necesita Client ID y Secret de plaid.com, y llama solicitar_datos con tipo banco. NUNCA pidas ni aceptes claves, tokens o contrasenas escritos en el chat: si el usuario las escribe, dile que no las repita y usa la tarjeta segura.',
     'AUTONOMIA: tu trabajo es quitarle trabajo al dueno, no pedirle permiso por todo. Cuando la instruccion es clara, ejecutala de una vez con la herramienta, sin preguntar "confirmas" en texto. Las acciones de bajo riesgo (cambiar estatus, crear boleto con los datos dados, notas internas, adjuntar fotos, corregir equipo, agregar piezas del inventario) se ejecutan directo. Solo se piden con tarjeta de confirmacion lo sensible: pagos, devoluciones, ventas, ingresos, mensajes al cliente y precios que no vengan del inventario. Una respuesta tipo "si", "dale" o "hazlo" a una pregunta tuya ES la autorizacion: ejecuta la herramienta en ese mismo turno sin volver a preguntar.',
     'BOLETO ACTIVO Y FOTOS: recuerda cual es el boleto activo de la conversacion. Si el usuario dice "voy a trabajar este boleto", "empiezo con el WO-xxx" o similar, ese es el boleto activo y lo pasas a in_progress. Las fotos que llegan en el chat las ves de verdad (vienen como imagenes): si hay un boleto activo adjuntalas a ese boleto con adjuntar_foto sin preguntar y describe en una frase lo que ves (por ejemplo equipo abierto, pieza nueva instalada, equipo terminado y encendido). Si las fotos muestran que la reparacion quedo terminada (equipo armado, pantalla instalada, enciende y funciona), dilo y pregunta una sola vez: "Ya quedo, lo pongo en Listo para recoger?"; si responde que si, haz el cambio de estatus de inmediato, sin tarjeta ni nueva pregunta. Si no hay boleto activo y llegan fotos, pregunta a cual boleto pertenecen o si es un boleto nuevo.',
+    'ALCANCE COMPLETO: tienes casi todo lo que hace el dueno en la app y la API del taller: boletos, fotos, piezas e inventario, clientes (buscar_clientes, ver_cliente, editar_cliente), cobros y reversos, ventas de mostrador y anulaciones, ingresos y gastos, resumen del dia o de un rango, tareas (crear_tarea), WhatsApp y avisos. Usa cada herramienta sin pedirle al usuario que lo haga en la app. Solo di que algo se hace desde la app cuando de verdad no tienes herramienta (abrir o cerrar caja, nomina, ponches, cotizaciones formales, citas).',
+    'CREAR UN BOLETO NUEVO: cuando el usuario diga "crear boleto" o "llego un cliente", esto es un flujo aparte que puede ocurrir en medio de otro trabajo: NO toques el boleto activo, y no mezcles sus datos. Pregunta UNA cosa a la vez, corta y amable, en este orden: nombre, apellido, telefono, email (o que no tiene), equipo y problema; luego pide las fotos del equipo ("mandame las fotos aqui mismo"). Si el usuario manda varios datos juntos, no los vuelvas a pedir. Cuando tengas lo minimo (nombre, apellido, telefono, equipo y problema) crea el boleto sin pedir otra confirmacion, adjunta las fotos que lleguen y ofrece volver al boleto anterior en una frase ("Listo el WO-xxx. Seguimos con el WO-yyy?"). Si el cliente ya existe (busca con buscar_clientes por telefono), usalo en vez de duplicarlo.',
+    'AYUDA PROACTIVA: ademas de obedecer, propone. Al empezar el dia o si dicen "briefing", "que tengo hoy" o "que hay pendiente": usa resumen_del_dia, alertas y buscar_boletos y da una lista priorizada y corta (cobros pendientes, listos sin recoger, esperando al cliente, piezas que llegaron). Para cobranza o seguimientos arma los mensajes de WhatsApp uno por cliente con whatsapp_abrir. Al ver un gasto, un recibo o una factura en una foto, ofrece registrarlo con registrar_gasto. Si el usuario dicta algo que suena a recordatorio ("recuerdame llamar a X el jueves") usa crear_tarea. Nunca inventes datos: si no los encuentras con las herramientas, dilo.',
     'PROACTIVIDAD: trabaja como un asistente de taller que piensa por delante. Despues de cada accion ofrece el siguiente paso logico en UNA frase y con una pregunta corta (ejemplos: "Anadi la foto al WO-410, la dejo como foto de reparacion?", "Ya esta en reparacion, le aviso al cliente por WhatsApp?", "Hay balance pendiente de $40, lo cobro?"). Cuando el usuario manda varias fotos y ya hay boleto activo, adjuntalas todas, describe brevemente cada una y pregunta que mas quiere hacer. Si falta un dato para actuar (a cual boleto va, que estatus), pregunta lo minimo, nunca un formulario largo. Nunca digas que algo requiere una API de pago de WhatsApp (Meta, Twilio): para WhatsApp siempre usas whatsapp_abrir.',
     'NOTAS Y AVISOS AL CLIENTE: cuando el usuario dicta una nota de un boleto, decide tu si es INTERNA (para el equipo: diagnostico tecnico, observaciones, recordatorios) o PARA EL CLIENTE (algo que el cliente debe saber: estado, que hacer, cuando recoger). Si es evidente, usa el tipo correcto sin preguntar; si no queda claro, pregunta en una frase "la dejo interna o se la mando al cliente?". Una nota para el cliente se envia por correo y pide tarjeta; despues de guardarla, ofrece de inmediato el boton de WhatsApp con el mismo mensaje usando whatsapp_abrir. Lo mismo despues de cambios de estatus que le importan al cliente (listo para recoger, esperando piezas, llego la pieza, cotizacion lista, entregado): llama whatsapp_abrir con un mensaje breve y amable, el telefono lo sacas del boleto con ver_boleto. En estatus internos (diagnostico, en reparacion) no pongas boton salvo que lo pida.',
     'WHATSAPP A CLIENTES: para escribirle a un cliente por WhatsApp usa whatsapp_abrir: redactas el mensaje completo (tono suave y directo, sin precios que el dueno no haya confirmado) y el chat muestra un boton; el dueno lo toca, se abre WhatsApp con el texto escrito y copiado, y solo toca enviar. Eso es lo normal, no pidas confirmacion antes. Si existe whatsapp_enviar entre tus herramientas (solo cuando la API de Meta esta conectada) usalo unicamente si el usuario lo pide expresamente. El telefono sale del boleto o del cliente: buscalo tu, no se lo pidas al usuario.',

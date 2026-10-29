@@ -957,7 +957,18 @@ async function statuses(req, res) {
 }
 
 async function dailySummary(req, res) {
-  const { day, from, to } = prDayRange(req.query?.fecha);
+  let { day, from, to } = prDayRange(req.query?.fecha);
+  const desde = req.query?.desde;
+  const hasta = req.query?.hasta;
+  let rango = null;
+  if (desde || hasta) {
+    if (!validDate(desde) || !validDate(hasta) || desde > hasta) return fail(res, 400, 'desde y hasta deben ser fechas YYYY-MM-DD y desde no puede ser posterior a hasta', 'invalid_query');
+    if ((new Date(hasta) - new Date(desde)) / 86_400_000 > 92) return fail(res, 400, 'El rango maximo es de 92 dias', 'invalid_query');
+    from = prDayRange(desde).from;
+    to = prDayRange(hasta).to;
+    rango = { desde, hasta };
+    day = `${desde} a ${hasta}`;
+  }
   const [txs, created] = await Promise.all([
     sb(
       `transaction?tenant_id=eq.${TENANT_ID}&is_deleted=eq.false&created_at=gte.${from}&created_at=lt.${to}` +
@@ -991,6 +1002,7 @@ async function dailySummary(req, res) {
   return res.status(200).json({
     ok: true,
     fecha: day,
+    ...(rango ? { rango } : {}),
     zona_horaria: 'America/Puerto_Rico',
     cobrado: money(cobrado),
     devoluciones: money(devoluciones),
@@ -1808,6 +1820,122 @@ async function addIncome(req, res) {
     ok: true,
     ingreso: { id: tx?.id || null, monto, metodo, concepto, fecha },
   });
+}
+
+
+const EXPENSE_CATS = ['parts', 'supplies', 'rent', 'utilities', 'marketing', 'repairs', 'taxes', 'other'];
+
+async function addExpense(req, res) {
+  const b = req.body || {};
+  const metodo = b.metodo === undefined || b.metodo === null || b.metodo === '' ? null : PAYMENT_METHODS[normalizeKey(b.metodo)];
+  if (b.metodo && !metodo) return fail(res, 400, 'metodo invalido. Validos: efectivo, ath_movil, tarjeta, transferencia', 'invalid_body');
+  const categoria = String(b.categoria || 'other').toLowerCase();
+  if (!EXPENSE_CATS.includes(categoria)) return fail(res, 400, `categoria invalida. Validas: ${EXPENSE_CATS.join(', ')}`, 'invalid_body');
+  let monto;
+  let concepto;
+  try {
+    monto = money(readNumber(b.monto, 'monto', { min: 0.01, max: 100000 }));
+    concepto = readText(b.concepto, 'concepto', { required: true, max: 200 });
+  } catch (e) {
+    return fail(res, 400, e.message, 'invalid_body');
+  }
+  if (concepto.length < 3) return fail(res, 400, 'concepto demasiado corto', 'invalid_body');
+  const today = prDayRange().day;
+  let fecha = today;
+  if (b.fecha !== undefined && b.fecha !== null && b.fecha !== '') {
+    if (!validDate(b.fecha)) return fail(res, 400, 'fecha debe ser YYYY-MM-DD', 'invalid_body');
+    if (b.fecha > today) return fail(res, 400, 'la fecha no puede ser futura', 'invalid_body');
+    const oldest = new Date(Date.now() - 366 * 86_400_000).toISOString().slice(0, 10);
+    if (b.fecha < oldest) return fail(res, 400, 'la fecha no puede tener mas de un ano', 'invalid_body');
+    fecha = b.fecha;
+  }
+  const descripcion = `Gasto · ${concepto}`;
+  const since = new Date(Date.now() - 10 * 60_000).toISOString();
+  const dupes = await sb(
+    `transaction?tenant_id=eq.${TENANT_ID}&type=eq.expense&category=eq.${categoria}&recorded_by=eq.${actorName()}` +
+    `&amount=eq.${monto}&description=eq.${encodeURIComponent(descripcion)}&created_at=gte.${since}&is_deleted=eq.false&select=id&limit=1`
+  );
+  if (dupes && dupes.length > 0) {
+    return res.status(200).json({ ok: true, duplicado: true, id: dupes[0].id, nota: 'Ya existia un gasto identico de los ultimos 10 minutos; no se duplico.' });
+  }
+  const row = {
+    tenant_id: TENANT_ID,
+    type: 'expense',
+    category: categoria,
+    amount: monto,
+    description: descripcion,
+    recorded_by: actorName(),
+    is_settled: true,
+    deductible_tax: false,
+    ...(metodo ? { payment_method: metodo } : {}),
+  };
+  if (fecha !== today) row.created_at = `${fecha}T12:00:00-04:00`;
+  const inserted = await sb('transaction', { method: 'POST', body: row, prefer: 'return=representation' });
+  const tx = Array.isArray(inserted) ? inserted[0] : inserted;
+  return res.status(200).json({ ok: true, gasto: { id: tx?.id || null, monto, categoria, concepto, fecha } });
+}
+
+function customerShape(c) {
+  return {
+    id: c.id,
+    nombre: c.name || null,
+    telefono: c.phone || null,
+    email: c.email || null,
+    puntos: c.loyalty_points ?? null,
+    total_gastado: c.total_spent !== undefined && c.total_spent !== null ? money(c.total_spent) : null,
+    creado: c.created_date || c.created_at || null,
+  };
+}
+
+async function listCustomers(req, res) {
+  const q = cleanFilter(String(req.query?.q || '').trim());
+  if (!q || q.length < 2) return fail(res, 400, 'q es requerido (minimo 2 caracteres): nombre, telefono o email', 'invalid_query');
+  const digits = q.replace(/\D/g, '');
+  const clauses = [`name.ilike.*${q}*`, `email.ilike.*${q}*`];
+  if (digits.length >= 4) clauses.push(`phone.ilike.*${digits.split('').join('*')}*`);
+  const limit = Math.min(Math.max(parseInt(req.query?.limite, 10) || 10, 1), 30);
+  const rows = await sb(`customer?tenant_id=eq.${TENANT_ID}&or=(${clauses.join(',')})&select=*&order=created_date.desc&limit=${limit}`);
+  return res.status(200).json({ ok: true, cantidad: (rows || []).length, clientes: (rows || []).map(customerShape) });
+}
+
+async function customerDetail(req, res, id) {
+  if (!UUID_RE.test(String(id))) return fail(res, 400, 'id de cliente invalido', 'invalid_id');
+  const rows = await sb(`customer?tenant_id=eq.${TENANT_ID}&id=eq.${id}&select=*&limit=1`);
+  const c = rows?.[0];
+  if (!c) return fail(res, 404, 'Cliente no encontrado', 'not_found');
+  const orders = await sb(
+    `order?tenant_id=eq.${TENANT_ID}&is_deleted=eq.false&customer_id=eq.${id}` +
+    `&select=${ORDER_COLUMNS}&order=created_date.desc&limit=25`
+  );
+  const boletos = (orders || []).map((o) => ticketResumen(o));
+  const balance = boletos.reduce((s, t) => s + (Number(t.balance_pendiente) || 0), 0);
+  return res.status(200).json({ ok: true, cliente: customerShape(c), boletos_recientes: boletos, balance_pendiente_total: money(balance) });
+}
+
+async function patchCustomer(req, res, id) {
+  if (!UUID_RE.test(String(id))) return fail(res, 400, 'id de cliente invalido', 'invalid_id');
+  const b = req.body || {};
+  const patch = {};
+  try {
+    if (b.nombre !== undefined) patch.name = readText(b.nombre, 'nombre', { required: true, max: 120 });
+    if (b.telefono !== undefined) {
+      const digits = String(b.telefono || '').replace(/\D/g, '');
+      if (digits.length < 10 || digits.length > 15) return fail(res, 400, 'telefono invalido', 'invalid_body');
+      patch.phone = digits.length === 10 ? `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}` : digits;
+    }
+    if (b.email !== undefined) {
+      const email = String(b.email || '').trim();
+      if (email && (!validEmail(email) || /[^\x00-\x7F]/.test(email))) return fail(res, 400, 'email invalido (solo caracteres basicos, sin acentos)', 'invalid_body');
+      patch.email = email || null;
+    }
+  } catch (e) {
+    return fail(res, 400, e.message, 'invalid_body');
+  }
+  if (Object.keys(patch).length === 0) return fail(res, 400, 'Envia nombre, telefono o email', 'invalid_body');
+  const updated = await sb(`customer?tenant_id=eq.${TENANT_ID}&id=eq.${id}`, { method: 'PATCH', body: patch, prefer: 'return=representation' });
+  const row = Array.isArray(updated) ? updated[0] : updated;
+  if (!row) return fail(res, 404, 'Cliente no encontrado', 'not_found');
+  return res.status(200).json({ ok: true, cliente: customerShape(row) });
 }
 
 const IVU_RATE = 0.115;
@@ -2843,6 +2971,12 @@ export async function jaimeHandler(req, res) {
       if (m === 'PATCH' && b && c === 'piezas' && parts[3]) return await updatePieceCost(req, res, b, parts[3]);
     }
     if (m === 'POST' && a === 'finanzas' && b === 'ingresos' && !c) return await addIncome(req, res);
+    if (m === 'POST' && a === 'finanzas' && b === 'gastos' && !c) return await addExpense(req, res);
+    if (a === 'clientes') {
+      if (m === 'GET' && !b) return await listCustomers(req, res);
+      if (m === 'GET' && b && !c) return await customerDetail(req, res, b);
+      if (m === 'PATCH' && b && !c) return await patchCustomer(req, res, b);
+    }
     if (a === 'pos') {
       if (m === 'GET' && b === 'productos' && !c) return await posProducts(req, res);
       if (m === 'POST' && b === 'ventas' && !c) return await posSale(req, res);
