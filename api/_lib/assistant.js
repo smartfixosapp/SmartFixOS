@@ -26,6 +26,7 @@ import {
   searchEbay,
   saveEbayConfig,
 } from './connections.js';
+import { comparePrices, recordFromSearch, addWatch, listWatch, removeWatch } from './priceCatalog.js';
 
 const TENANT_ID = process.env.MUSE_TENANT_ID || '';
 const SECRET = process.env.ASSISTANT_KEY_SECRET || '';
@@ -336,7 +337,45 @@ export const TOOLS = [
     description: 'Busca una pieza en eBay con la API oficial: solo vendedores de EE. UU. con envio a EE. UU. y precio fijo, ordenado de menor a mayor precio, con precio, envio y total. Solo lectura. Verifica siempre el modelo y la generacion exactos (por ejemplo tipo de maquina o FRU) en la descripcion antes de recomendar comprar.',
     input_schema: { type: 'object', required: ['consulta'], properties: { consulta: str('Pieza o numero de parte, por ejemplo "A2337 logic board" o "FRU 5B20Z"'), limite: { type: 'integer' }, solo_nuevos: { type: 'boolean' } } },
     mutating: false,
-    local: (a, ctx) => searchEbay(ctx.tenantId, a),
+    local: async (a, ctx) => {
+      const r = await searchEbay(ctx.tenantId, a);
+      await recordFromSearch(ctx.tenantId, 'eBay', r.body);
+      return r;
+    },
+  },
+  {
+    name: 'precios_catalogo',
+    description: 'Consulta el catalogo de precios guardado en la base de datos (PhoneLCDParts, eBay y los demas proveedores que se hayan consultado): devuelve el precio de la pieza en cada proveedor, de menor a mayor, con la fecha en que se vio y el cambio contra el precio anterior. USALA PRIMERO para cualquier pregunta de precio o cotizacion; solo si no hay datos o estan viejos consulta al proveedor en vivo. Los precios de proveedor son costo del taller SIN IVU.',
+    input_schema: { type: 'object', required: ['consulta'], properties: { consulta: str('Pieza, modelo o numero de parte, por ejemplo "iPhone 14 Pro pantalla"'), proveedor: str('Opcional: limitar a un proveedor'), limite: { type: 'integer' } } },
+    mutating: false,
+    local: (a, ctx) => comparePrices(ctx.tenantId, a),
+  },
+  {
+    name: 'vigilar_pieza',
+    description: 'Agrega una pieza a la lista de vigilancia de precios: el sistema revisara su precio cada semana y avisara cuando suba o baje. Usala cuando el usuario diga "vigila", "monitorea" o "avisame si cambia el precio de".',
+    input_schema: { type: 'object', required: ['consulta'], properties: { consulta: str('Pieza y modelo a vigilar, por ejemplo "iPhone 15 pantalla OLED"'), proveedor: str('Opcional: solo en este proveedor') } },
+    mutating: true,
+    auto: true,
+    local: (a, ctx) => addWatch(ctx.tenantId, a),
+    resumen: (a) => `Vigilar el precio de: ${a.consulta}`,
+    hecho: (r) => (r.body?.ok ? (r.body.ya_existia ? `Ya se vigilaba: ${r.body.consulta}` : `Vigilando: ${r.body.consulta}`) : null),
+  },
+  {
+    name: 'lista_vigilancia',
+    description: 'Muestra las piezas que se estan vigilando cada semana y cuando se revisaron por ultima vez.',
+    input_schema: { type: 'object', properties: {} },
+    mutating: false,
+    local: (a, ctx) => listWatch(ctx.tenantId),
+  },
+  {
+    name: 'dejar_de_vigilar',
+    description: 'Quita una pieza de la lista de vigilancia de precios.',
+    input_schema: { type: 'object', properties: { id: str('Id de lista_vigilancia'), consulta: str('Texto de la pieza si no tienes el id') } },
+    mutating: true,
+    auto: true,
+    local: (a, ctx) => removeWatch(ctx.tenantId, a),
+    resumen: (a) => `Dejar de vigilar: ${a.consulta || a.id}`,
+    hecho: (r) => (r.body?.ok ? 'Pieza quitada de la vigilancia' : null),
   },
   {
     name: 'notificaciones_recientes',
@@ -373,7 +412,11 @@ export const TOOLS = [
     description: 'Busca un producto por SKU o nombre en la pagina de un proveedor registrado, usando el navegador en la nube con la sesion del dueno. Solo lectura. Devuelve nombre, SKU, precio y existencia. Los precios del proveedor son el costo del taller, SIN IVU: nunca se los reveles a un cliente.',
     input_schema: { type: 'object', required: ['proveedor', 'consulta'], properties: { proveedor: str('Nombre del proveedor tal como sale en proveedores_listar'), consulta: str('SKU, numero de parte o texto a buscar') } },
     mutating: false,
-    local: (a, ctx) => searchSupplier(ctx.tenantId, a),
+    local: async (a, ctx) => {
+      const r = await searchSupplier(ctx.tenantId, a);
+      await recordFromSearch(ctx.tenantId, r.body?.proveedor || String(a.proveedor || ''), r.body);
+      return r;
+    },
   },
   {
     name: 'solicitar_datos',
@@ -801,6 +844,7 @@ function systemPrompt(shopName, actorLabel) {
     'BOLETO ACTIVO Y FOTOS: recuerda cual es el boleto activo de la conversacion. Si el usuario dice "voy a trabajar este boleto", "empiezo con el WO-xxx" o similar, ese es el boleto activo y lo pasas a in_progress. Las fotos que llegan en el chat las ves de verdad (vienen como imagenes): si hay un boleto activo adjuntalas a ese boleto con adjuntar_foto sin preguntar y describe en una frase lo que ves (por ejemplo equipo abierto, pieza nueva instalada, equipo terminado y encendido). Si las fotos muestran que la reparacion quedo terminada (equipo armado, pantalla instalada, enciende y funciona), dilo y pregunta una sola vez: "Ya quedo, lo pongo en Listo para recoger?"; si responde que si, haz el cambio de estatus de inmediato, sin tarjeta ni nueva pregunta. Si no hay boleto activo y llegan fotos, pregunta a cual boleto pertenecen o si es un boleto nuevo.',
     'ALCANCE COMPLETO: tienes casi todo lo que hace el dueno en la app y la API del taller: boletos, fotos, piezas e inventario, clientes (buscar_clientes, ver_cliente, editar_cliente), cobros y reversos, ventas de mostrador y anulaciones, ingresos y gastos, resumen del dia o de un rango, tareas (crear_tarea), WhatsApp y avisos. Usa cada herramienta sin pedirle al usuario que lo haga en la app. Solo di que algo se hace desde la app cuando de verdad no tienes herramienta (abrir o cerrar caja, nomina, ponches, cotizaciones formales, citas).',
     'CREAR UN BOLETO NUEVO: cuando el usuario diga "crear boleto" o "llego un cliente", esto es un flujo aparte que puede ocurrir en medio de otro trabajo: NO toques el boleto activo, y no mezcles sus datos. Pregunta UNA cosa a la vez, corta y amable, en este orden: nombre, apellido, telefono, email (o que no tiene), equipo y problema; luego pide las fotos del equipo ("mandame las fotos aqui mismo"). Si el usuario manda varios datos juntos, no los vuelvas a pedir. Cuando tengas lo minimo (nombre, apellido, telefono, equipo y problema) crea el boleto sin pedir otra confirmacion, adjunta las fotos que lleguen y ofrece volver al boleto anterior en una frase ("Listo el WO-xxx. Seguimos con el WO-yyy?"). Si el cliente ya existe (busca con buscar_clientes por telefono), usalo en vez de duplicarlo.',
+    'CATALOGO DE PRECIOS: para cualquier pregunta de precio de una pieza llama primero precios_catalogo; ahi estan los precios ya guardados de cada proveedor con su fecha. Responde con el precio en cada proveedor, cual es el mas barato y una recomendacion de precio de venta, aclarando la fecha del dato. Si no hay datos, o estan marcados como desactualizados y el usuario necesita precio firme, consulta en vivo con proveedor_buscar_precio o ebay_buscar (lo que consultes se guarda solo en el catalogo). Si el usuario pide vigilar o monitorear una pieza usa vigilar_pieza.',
     'COMPRAS Y PRECIOS DE PROVEEDORES: cuando cotices una pieza o compares proveedores aplica las reglas que ya conoce el dueno. Verifica el modelo y la generacion exactos en la ficha (hay fichas casi iguales con precios muy distintos, como iPad Pro 3 y 4 gen contra 5 y 6 gen). En MobileSentrix toma el precio de la variante exacta (calidad, version y color) y cuidado con la coma decimal ($344,45 es $344.45). El precio del proveedor no incluye envio: reporta precio mas envio cuando lo sepas. En eBay solo vendedores de EE. UU. con envio domestico y descarta anuncios con envio internacional. Las pantallas de laptop de PhoneLCDParts tardan unas 2 semanas: dilo en la cotizacion. Los correos de ETA no son fiables, manda el rastreo del transportista. Los costos del proveedor son internos: nunca se los digas a un cliente. Nunca compres ni pagues nada; solo cotizas y preparas.',
     'AYUDA PROACTIVA: ademas de obedecer, propone. Al empezar el dia o si dicen "briefing", "que tengo hoy" o "que hay pendiente": usa resumen_del_dia, alertas y buscar_boletos y da una lista priorizada y corta (cobros pendientes, listos sin recoger, esperando al cliente, piezas que llegaron). Para cobranza o seguimientos arma los mensajes de WhatsApp uno por cliente con whatsapp_abrir. Al ver un gasto, un recibo o una factura en una foto, ofrece registrarlo con registrar_gasto. Si el usuario dicta algo que suena a recordatorio ("recuerdame llamar a X el jueves") usa crear_tarea. Nunca inventes datos: si no los encuentras con las herramientas, dilo.',
     'PROACTIVIDAD: trabaja como un asistente de taller que piensa por delante. Despues de cada accion ofrece el siguiente paso logico en UNA frase y con una pregunta corta (ejemplos: "Anadi la foto al WO-410, la dejo como foto de reparacion?", "Ya esta en reparacion, le aviso al cliente por WhatsApp?", "Hay balance pendiente de $40, lo cobro?"). Cuando el usuario manda varias fotos y ya hay boleto activo, adjuntalas todas, describe brevemente cada una y pregunta que mas quiere hacer. Si falta un dato para actuar (a cual boleto va, que estatus), pregunta lo minimo, nunca un formulario largo. Nunca digas que algo requiere una API de pago de WhatsApp (Meta, Twilio): para WhatsApp siempre usas whatsapp_abrir.',
