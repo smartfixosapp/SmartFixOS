@@ -27,6 +27,7 @@ import {
   saveEbayConfig,
 } from './connections.js';
 import { comparePrices, recordFromSearch, addWatch, listWatch, removeWatch } from './priceCatalog.js';
+import { searchCustomers, createTicketFromForm } from './ticketForm.js';
 
 const TENANT_ID = process.env.MUSE_TENANT_ID || '';
 const SECRET = process.env.ASSISTANT_KEY_SECRET || '';
@@ -876,6 +877,10 @@ async function execTool(toolUse, actor, deps) {
   return result;
 }
 
+export function crearBoleto(input, actor, deps = { callApi }) {
+  return execTool({ name: 'crear_boleto', input }, actor, deps);
+}
+
 export function trimHistory(messages) {
   if (messages.length <= MAX_HISTORY) return messages;
   let start = messages.length - MAX_HISTORY;
@@ -1126,12 +1131,17 @@ function sanitizeLabel(name) {
 }
 
 const hits = [];
+const searchHits = [];
 
-function rateLimited() {
+function overLimit(list, max) {
   const now = Date.now();
-  while (hits.length && hits[0] < now - 60_000) hits.shift();
-  hits.push(now);
-  return hits.length > 40;
+  while (list.length && list[0] < now - 60_000) list.shift();
+  list.push(now);
+  return list.length > max;
+}
+
+function rateLimited(route) {
+  return route === 'clientes' ? overLimit(searchHits, 120) : overLimit(hits, 40);
 }
 
 async function authenticate(req) {
@@ -1182,7 +1192,7 @@ export async function assistantHandler(req, res) {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     return res.status(200).send('<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Banco conectado</title></head><body style="font-family:-apple-system,system-ui,sans-serif;text-align:center;padding:64px 24px"><h2>Listo</h2><p>Puedes cerrar esta ventana y volver a Archilla OS.</p></body></html>');
   }
-  if (rateLimited()) return fail(res, 429, 'Demasiadas solicitudes, espera un minuto', 'rate_limited');
+  if (rateLimited(route)) return fail(res, 429, 'Demasiadas solicitudes, espera un minuto', 'rate_limited');
   const auth = await authenticate(req);
   if (auth.error) return fail(res, auth.status || 401, auth.error, 'unauthorized');
 
@@ -1204,6 +1214,15 @@ export async function assistantHandler(req, res) {
     }
     if (route === 'transcribe' && req.method === 'POST') {
       const r = await transcribeAudio({ audioBase64: req.body?.audio_base64, mimeType: req.body?.mime_type });
+      return res.status(r.status).json(r.body);
+    }
+    if (route === 'clientes' && req.method === 'GET') {
+      const q = Array.isArray(req.query?.q) ? req.query.q[0] : req.query?.q;
+      const r = await searchCustomers({ q, actor: auth.label, tenantId: auth.tenantId }, { callApi, sb });
+      return res.status(r.status).json(r.body);
+    }
+    if (route === 'boleto/nuevo' && req.method === 'POST') {
+      const r = await createTicketFromForm({ body: req.body, label: auth.label, tenantId: auth.tenantId }, { sb, crearBoleto: (input, actor) => crearBoleto(input, actor) });
       return res.status(r.status).json(r.body);
     }
     if (route.startsWith('boleto/') && req.method === 'GET') {

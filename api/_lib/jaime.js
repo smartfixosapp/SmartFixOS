@@ -1373,6 +1373,8 @@ async function createTicket(req, res) {
   let modelo;
   let tecnico;
   let fechaPrometida;
+  let color;
+  let codigoEquipo;
   try {
     cliente = normalizeName(readText(b.cliente, 'cliente', { required: true, max: 120 }));
     equipo = readText(b.equipo, 'equipo', { required: true, max: 120 });
@@ -1383,9 +1385,13 @@ async function createTicket(req, res) {
     modelo = readText(b.modelo, 'modelo', { max: 100 });
     tecnico = readText(b.tecnico, 'tecnico', { max: 80 });
     fechaPrometida = readText(b.fecha_prometida, 'fecha_prometida', { max: 10 });
+    color = readText(b.color, 'color', { max: 40 });
+    codigoEquipo = readText(b.codigo_equipo, 'codigo_equipo', { max: 60 });
   } catch (e) {
     return fail(res, e.status || 400, e.message, 'invalid_body');
   }
+  const clienteId = b.cliente_id === undefined || b.cliente_id === null || b.cliente_id === '' ? '' : String(b.cliente_id).trim();
+  if (clienteId && !UUID_RE.test(clienteId)) return fail(res, 400, 'cliente_id invalido', 'invalid_body');
   if (telefono) {
     const d = telefono.replace(/\D/g, '');
     if (d.length < 7 || d.length > 15) return fail(res, 400, 'telefono invalido', 'invalid_body');
@@ -1416,6 +1422,7 @@ async function createTicket(req, res) {
       creado: false,
       duplicado: true,
       nota: 'Ya existia un boleto identico creado en los ultimos 10 minutos; no se duplico.',
+      cliente_id: dup.customer_id || null,
       ticket: await buildTicketDetail(dup),
       ...notificationFields({ enviada: false, motivo: 'boleto duplicado; no se envio otra notificacion' }),
     });
@@ -1423,7 +1430,13 @@ async function createTicket(req, res) {
 
   let customer = null;
   let clienteNuevo = false;
-  customer = await findCustomer(telefono, email, cliente);
+  if (clienteId) {
+    const rows = await sb(`customer?tenant_id=eq.${TENANT_ID}&id=eq.${clienteId}&select=id,name,phone,email&limit=1`);
+    customer = rows?.[0] || null;
+    if (!customer) return fail(res, 404, 'Cliente no encontrado', 'not_found');
+  } else {
+    customer = await findCustomer(telefono, email, cliente);
+  }
   if (!customer) {
     const payload = { tenant_id: TENANT_ID, name: cliente, preferred_language: 'es', risk_flag: false };
     if (telefono) payload.phone = telefono;
@@ -1481,6 +1494,8 @@ async function createTicket(req, res) {
   row.customer_phone = telefono || (customer && customer.phone) || '';
   row.customer_email = email || (customer && customer.email) || '';
   if (marca) row.device_brand = marca;
+  if (color) row.device_color = color;
+  if (codigoEquipo) row.device_security = /^\d+$/.test(codigoEquipo) ? { device_pin: codigoEquipo } : { device_password: codigoEquipo };
   if (!deviceType && (marca || modelo)) {
     const { chain } = await deviceChain(marca, modelo);
     if (chain.device_category) deviceType = chain.device_category;
@@ -1536,6 +1551,7 @@ async function createTicket(req, res) {
     ok: true,
     creado: true,
     numero: order.order_number,
+    cliente_id: (customer && customer.id) || null,
     cliente_nuevo: clienteNuevo,
     avisos,
     piezas_resultado: piezasResultado,
