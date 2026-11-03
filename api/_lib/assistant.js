@@ -49,14 +49,35 @@ const PROVIDERS = {
 
 const PRICES = [
   { match: /opus-5-5/, entrada: 4, salida: 20, cacheLectura: 0.2, cacheEscritura: 5 },
-  { match: /sonnet-5/, entrada: 2, salida: 10, cacheLectura: 0.1, cacheEscritura: 2.5 },
-  { match: /haiku-5-5/, entrada: 0.1, salida: 0.5, cacheLectura: 0.01, cacheEscritura: 0.125 },
+  { match: /sonnet-5-5/, entrada: 2, salida: 10, cacheLectura: 0.1, cacheEscritura: 2.5 },
+  { match: /sonnet-5/, entrada: 2, salida: 10, cacheLectura: 0.2, cacheEscritura: 2.5 },
+  { match: /haiku-5-5/, entrada: 0.1, salida: 0.5, cacheLectura: 0.01, cacheEscritura: 0.125, largo: { desde: 100_000, factor: 5 } },
 ];
 
-export function costUsd(model, u) {
+export const AHORRO_MODEL = 'claude-haiku-5-5';
+const AHORRO_PCT = 80;
+const HISTORY_WINDOW = 30;
+const OLD_RESULT_CHARS = 1500;
+const IMAGE_TURNS = 2;
+
+function priceFor(model, u) {
   const price = PRICES.find((p) => p.match.test(String(model || '')));
+  if (!price) return null;
+  const prompt = (u.entrada || 0) + (u.cache_lectura || 0) + (u.cache_escritura || 0);
+  const f = price.largo && prompt > price.largo.desde ? price.largo.factor : 1;
+  return { entrada: price.entrada * f, salida: price.salida * f, cacheLectura: price.cacheLectura * f, cacheEscritura: price.cacheEscritura * f };
+}
+
+export function costUsd(model, u) {
+  const price = priceFor(model, u);
   if (!price) return 0;
   return ((u.entrada || 0) * price.entrada + (u.salida || 0) * price.salida + (u.cache_lectura || 0) * price.cacheLectura + (u.cache_escritura || 0) * price.cacheEscritura) / 1_000_000;
+}
+
+export function cacheSavingsUsd(model, u) {
+  const price = priceFor(model, u);
+  if (!price) return 0;
+  return ((u.cache_lectura || 0) * (price.entrada - price.cacheLectura) - (u.cache_escritura || 0) * (price.cacheEscritura - price.entrada)) / 1_000_000;
 }
 
 function withIvu(n) {
@@ -109,9 +130,12 @@ async function loadUsage(tenantId) {
   return { slug, row: rows?.[0] || null, usage: rows?.[0]?.payload || { entrada: 0, salida: 0, llamadas: 0 } };
 }
 
-async function addUsage(tenantId, delta) {
+async function addUsage(tenantId, delta, extra) {
   const { slug, row, usage } = await loadUsage(tenantId);
   const next = {
+    ...usage,
+    ...(extra || {}),
+    usd_ahorrado_cache: Math.round(((usage.usd_ahorrado_cache || 0) + (delta.usd_ahorrado_cache || 0)) * 1_000_000) / 1_000_000,
     entrada: (usage.entrada || 0) + delta.entrada,
     salida: (usage.salida || 0) + delta.salida,
     cache_lectura: (usage.cache_lectura || 0) + (delta.cache_lectura || 0),
@@ -146,7 +170,22 @@ function meter(usage, config) {
     tokens_restantes: topeTokens > 0 ? Math.max(0, topeTokens - total) : null,
     porcentaje_usado: pct,
     aviso,
+    usd_ahorrado_cache: Math.max(0, Math.round((usage.usd_ahorrado_cache || 0) * 10000) / 10000),
   };
+}
+
+function savingsSetting(config) {
+  return ['siempre', 'apagado'].includes(config?.modo_ahorro) ? config.modo_ahorro : 'auto';
+}
+
+export function savingsMode(config, consumo) {
+  if (config?.provider !== 'anthropic' || config?.model === AHORRO_MODEL) return null;
+  const mode = savingsSetting(config);
+  if (mode === 'apagado') return null;
+  if (mode === 'siempre') return { activo: true, modelo: AHORRO_MODEL, motivo: 'Modo ahorro siempre activo en la configuracion' };
+  const pct = consumo?.porcentaje_usado;
+  if (pct === null || pct === undefined || pct < AHORRO_PCT) return null;
+  return { activo: true, modelo: AHORRO_MODEL, motivo: `Llevas ${pct}% del tope mensual de consumo de IA` };
 }
 
 function publicConfig(config) {
@@ -158,6 +197,7 @@ function publicConfig(config) {
     tope_tokens_mes: Number(config?.tope_tokens_mes) || 0,
     tope_usd_mes: Number(config?.tope_usd_mes) || 0,
     autonomia: config?.autonomia === 'preguntar' ? 'preguntar' : 'inteligente',
+    modo_ahorro: savingsSetting(config),
     proveedores: Object.entries(PROVIDERS).map(([id, p]) => ({ id, nombre: p.label, modelos_sugeridos: p.models, requiere_base_url: id === 'openai_compatible' })),
   };
 }
@@ -210,38 +250,171 @@ export function fromOpenAiMessage(message) {
 const IMAGE_URL_RE = () => new RegExp(`${SB_URL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/storage/v1/object/public/uploads/[^\\s,\\]]+`, 'g');
 const MAX_VISION_IMAGES = 8;
 
-export function prepareMessages(messages) {
+function hasUserText(m) {
+  if (m?.role !== 'user') return false;
+  if (typeof m.content === 'string') return Boolean(m.content.trim());
+  return Array.isArray(m.content) && m.content.some((b) => b.type === 'text' && typeof b.text === 'string' && b.text.trim());
+}
+
+function isTurnStart(m) {
+  return hasUserText(m) && (typeof m.content === 'string' || !m.content.some((b) => b.type === 'tool_result'));
+}
+
+function asBlocks(content) {
+  return typeof content === 'string' ? [{ type: 'text', text: content }] : Array.isArray(content) ? content : [];
+}
+
+export function prepareMessages(messages, { imageTurns = Infinity } = {}) {
   const matcher = IMAGE_URL_RE();
   let budget = MAX_VISION_IMAGES;
   const out = messages.map((m) => ({ ...m }));
-  for (let i = out.length - 1; i >= 0 && budget > 0; i -= 1) {
+  let turns = 0;
+  for (let i = out.length - 1; i >= 0; i -= 1) {
     const m = out[i];
     if (m.role !== 'user' || !Array.isArray(m.content)) continue;
+    const isTurn = hasUserText(m);
+    if (isTurn) turns += 1;
+    const recent = turns <= imageTurns;
+    if (recent && budget <= 0) continue;
     const blocks = [];
+    let hidden = 0;
     for (const b of m.content) {
       if (b.type === 'text' && typeof b.text === 'string') {
         const urls = (b.text.match(matcher) || []).filter((u) => /\.(jpe?g|png|webp|heic)$/i.test(u));
         blocks.push(b);
-        for (const url of urls.slice(0, budget)) {
-          blocks.push({ type: 'image', url });
-          budget -= 1;
+        if (recent) {
+          for (const url of urls.slice(0, budget)) {
+            blocks.push({ type: 'image', url });
+            budget -= 1;
+          }
+        } else {
+          hidden += urls.length;
         }
+      } else if (b.type === 'image' && !recent) {
+        hidden += 1;
       } else {
         blocks.push(b);
       }
     }
+    if (hidden > 0) blocks.push({ type: 'text', text: hidden === 1 ? '[foto enviada]' : `[${hidden} fotos enviadas]` });
     out[i] = { ...m, content: blocks };
   }
   return out;
 }
 
+export function slimHistory(messages) {
+  let last = -1;
+  for (let i = messages.length - 1; i >= 0; i -= 1) {
+    if (hasUserText(messages[i])) { last = i; break; }
+  }
+  if (last < 0) return messages;
+  let start = 0;
+  if (last + 1 > HISTORY_WINDOW) {
+    start = last + 1 - HISTORY_WINDOW;
+    while (start <= last && !isTurnStart(messages[start])) start += 1;
+    if (start > last) {
+      start = last;
+      while (start > 0 && !isTurnStart(messages[start])) start -= 1;
+    }
+  }
+  const out = messages.slice(start).map((m, idx) => {
+    if (start + idx >= last || !Array.isArray(m.content)) return m;
+    let changed = false;
+    const content = m.content.map((b) => {
+      if (b.type !== 'tool_result' || typeof b.content !== 'string' || b.content.length <= OLD_RESULT_CHARS) return b;
+      changed = true;
+      return { ...b, content: `${b.content.slice(0, OLD_RESULT_CHARS)} ...[resultado recortado]` };
+    });
+    return changed ? { ...m, content } : m;
+  });
+  if (start > 0) {
+    const dropped = messages.slice(0, start);
+    const first = dropped.find(hasUserText);
+    const firstText = first ? asBlocks(first.content).filter((b) => b.type === 'text').map((b) => b.text).join(' ').replace(/\s+/g, ' ').trim().slice(0, 300) : '';
+    const tickets = [...new Set(JSON.stringify(dropped).match(/\bWO-\d+\b/g) || [])].slice(-3);
+    const parts = ['[Conversacion anterior recortada para ahorrar.'];
+    if (firstText) parts.push(`Primer mensaje: "${firstText}".`);
+    if (tickets.length) parts.push(`Boletos mencionados antes: ${tickets.join(', ')}.`);
+    const note = { type: 'text', text: `${parts.join(' ')}]` };
+    out[0] = { ...out[0], content: [note, ...asBlocks(out[0].content)] };
+  }
+  return out;
+}
+
+function canonical(value) {
+  if (Array.isArray(value)) return value.map(canonical);
+  if (value && typeof value === 'object') {
+    const out = {};
+    for (const k of Object.keys(value).sort()) out[k] = canonical(value[k]);
+    return out;
+  }
+  return value;
+}
+
+function anthropicBlock(b) {
+  if (b.type === 'text') return { type: 'text', text: b.text };
+  if (b.type === 'image') return b.url ? { type: 'image', source: { type: 'url', url: b.url } } : b;
+  if (b.type === 'tool_use') return { type: 'tool_use', id: b.id, name: b.name, input: canonical(b.input || {}) };
+  if (b.type === 'tool_result') {
+    const r = { type: 'tool_result', tool_use_id: b.tool_use_id, content: b.content };
+    if (b.is_error !== undefined) r.is_error = b.is_error;
+    return r;
+  }
+  return b;
+}
+
 function toAnthropicMessages(messages) {
-  return prepareMessages(messages).map((m) => ({
-    ...m,
-    content: Array.isArray(m.content)
-      ? m.content.map((b) => (b.type === 'image' ? { type: 'image', source: { type: 'url', url: b.url } } : b))
-      : m.content,
+  return prepareMessages(slimHistory(messages), { imageTurns: IMAGE_TURNS }).map((m) => ({
+    role: m.role,
+    content: Array.isArray(m.content) ? m.content.map(anthropicBlock) : m.content,
   }));
+}
+
+function markLastBlock(message) {
+  if (!message) return false;
+  if (typeof message.content === 'string') {
+    if (!message.content.trim()) return false;
+    message.content = [{ type: 'text', text: message.content, cache_control: { type: 'ephemeral' } }];
+    return true;
+  }
+  const blocks = Array.isArray(message.content) ? message.content : [];
+  for (let i = blocks.length - 1; i >= 0; i -= 1) {
+    const b = blocks[i];
+    if (b.type === 'text' && !String(b.text || '').trim()) continue;
+    if (!['text', 'image', 'tool_use', 'tool_result', 'document'].includes(b.type)) continue;
+    blocks[i] = { ...b, cache_control: { type: 'ephemeral' } };
+    return true;
+  }
+  return false;
+}
+
+function systemText(system) {
+  return typeof system === 'string' ? system : `${system.variable}\n${system.fijo}`;
+}
+
+function systemBlocks(system) {
+  if (typeof system === 'string') return [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }];
+  return [{ type: 'text', text: system.fijo, cache_control: { type: 'ephemeral' } }, { type: 'text', text: system.variable }];
+}
+
+export function anthropicBody(config, system, messages, tools) {
+  const msgs = toAnthropicMessages(messages);
+  let marks = 0;
+  if (markLastBlock(msgs[msgs.length - 1])) marks += 1;
+  for (let i = msgs.length - 2; i >= 0 && marks < 2; i -= 1) {
+    if (msgs[i].role !== 'user') continue;
+    markLastBlock(msgs[i]);
+    break;
+  }
+  const toolDefs = tools.map((t) => ({ name: t.name, description: t.description, input_schema: t.input_schema }));
+  if (toolDefs.length) toolDefs[toolDefs.length - 1] = { ...toolDefs[toolDefs.length - 1], cache_control: { type: 'ephemeral' } };
+  return {
+    model: config.model,
+    max_tokens: 2048,
+    system: systemBlocks(system),
+    messages: msgs,
+    tools: toolDefs,
+  };
 }
 
 async function providerCall(config, apiKey, system, messages, tools) {
@@ -250,13 +423,7 @@ async function providerCall(config, apiKey, system, messages, tools) {
     const res = await fetch(`${(config.base_url || PROVIDERS.anthropic.baseUrl).replace(/\/$/, '')}/v1/messages`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({
-        model: config.model,
-        max_tokens: 2048,
-        system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
-        messages: toAnthropicMessages(messages),
-        tools: tools.map((t) => ({ name: t.name, description: t.description, input_schema: t.input_schema })),
-      }),
+      body: JSON.stringify(anthropicBody(config, system, messages, tools)),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw Object.assign(new Error(data?.error?.message || `Anthropic ${res.status}`), { provider: true, status: res.status });
@@ -278,7 +445,7 @@ async function providerCall(config, apiKey, system, messages, tools) {
     headers,
     body: JSON.stringify({
       model: config.model,
-      messages: toOpenAiMessages(system, prepareMessages(messages)),
+      messages: toOpenAiMessages(systemText(system), prepareMessages(messages)),
       tools: tools.map((t) => ({ type: 'function', function: { name: t.name, description: t.description, parameters: t.input_schema } })),
     }),
   });
@@ -830,39 +997,43 @@ export const TOOLS = [
 
 const TOOL_BY_NAME = new Map(TOOLS.map((t) => [t.name, t]));
 
-function systemPrompt(shopName, actorLabel) {
+export function systemPrompt(shopName, actorLabel) {
   const today = prDayRange().day;
-  return [
-    `Eres el Asistente IA de ${shopName}, un taller de reparacion de celulares y electronicos en Puerto Rico. Trabajas dentro de Archilla OS para ${actorLabel}. Hoy es ${today} (hora de Puerto Rico). Hablas en espanol, claro, breve y amable.`,
-    'Tu trabajo es ejecutar tareas del sistema con las herramientas disponibles y reducir el trabajo de botones. Si falta informacion para una tarea, preguntala como lo haria una persona, UNA pregunta corta a la vez, sin pedir todo junto.',
-    'Para crear un boleto, si solo te dicen "crea un boleto", pregunta en este orden: nombre del cliente, apellido, telefono, email (puede no tener), equipo y cual es el problema. Despues pregunta si quiere tomar fotos del equipo con la camara del chat. No inventes datos del cliente.',
-    'Cuando tengas todo para una accion que escribe datos, llama la herramienta directamente: la app le muestra al usuario un resumen y espera su confirmacion, no preguntes en texto "confirmas?".',
-    'Los precios de piezas y servicios se manejan SIN IVU; el sistema suma el 11.5%. Siempre que menciones un precio al usuario di el total CON IVU incluido. Antes de agregar una pieza a un boleto busca en el inventario con buscar_inventario; si no existe, pregunta el precio sin IVU y el costo, y ofrece crearla con crear_pieza_inventario.',
-    'Nunca registres un pago que no se ha recibido. Pagos y piezas con precio requieren monto exacto confirmado.',
-    'No puedes borrar boletos, clientes ni registros: no hay herramientas para eso, y si te lo piden explica que se hace desde la app.',
-    'Si el usuario manda fotos, vienen como URLs en su mensaje; al crear el boleto pasalas en el campo fotos. Responde corto: confirma lo hecho y ofrece el siguiente paso.',
-    'Notificaciones: igual que en la app, cada cambio de estatus, pago o creacion de boleto envia automaticamente el correo al cliente. NUNCA preguntes si avisas al cliente y NUNCA pases notificar_cliente:false por tu cuenta; solo lo haces si el usuario pide expresamente no avisar. Despues de cada accion revisa notificacion_enviada en el resultado: si es true di que se le aviso al cliente por correo; si es false di el motivo real que trae la respuesta (por ejemplo que el cliente no tiene email o que es un estatus interno), sin inventar otro.',
-    'WhatsApp: puedes leer la bandeja con whatsapp_bandeja y redactar mensajes con whatsapp_enviar; nunca sale un mensaje sin que el dueno vea el borrador en la tarjeta de confirmacion. Si el cliente no ha escrito en 24 horas Meta solo deja plantillas aprobadas; si el envio falla por eso, dilo y ofrece otro medio. Banco: solo lectura con banco_cuentas y banco_movimientos; nunca muevas dinero ni prometas hacerlo. Proveedores: proveedores_listar muestra los registrados; no tienes acceso a sus claves. Para precios usa proveedor_buscar_precio: si responde que la sesion no esta iniciada o que hay una verificacion, dile al usuario que abra la ventanilla del proveedor desde Ajustes, Conexiones, Proveedores, y que entre una vez; no intentes evadir verificaciones. Si el proveedor no tiene direccion de busqueda, pidele una busqueda de ejemplo. Conexiones guiadas: si el usuario dice "agrega este proveedor", "conecta el WhatsApp" o "conecta el banco", guialo paso a paso en el chat, una pregunta a la vez. Para un proveedor pregunta primero el nombre y la direccion web y luego llama solicitar_datos con tipo proveedor; para WhatsApp explica brevemente de donde salen el token, el Phone Number ID y el App Secret en developers.facebook.com y llama solicitar_datos con tipo whatsapp; para el banco explica que se usa Plaid en modo solo lectura, que necesita Client ID y Secret de plaid.com, y llama solicitar_datos con tipo banco. NUNCA pidas ni aceptes claves, tokens o contrasenas escritos en el chat: si el usuario las escribe, dile que no las repita y usa la tarjeta segura.',
-    'AUTONOMIA: tu trabajo es quitarle trabajo al dueno, no pedirle permiso por todo. Cuando la instruccion es clara, ejecutala de una vez con la herramienta, sin preguntar "confirmas" en texto. Las acciones de bajo riesgo (cambiar estatus, crear boleto con los datos dados, notas internas, adjuntar fotos, corregir equipo, agregar piezas del inventario) se ejecutan directo. Solo se piden con tarjeta de confirmacion lo sensible: pagos, devoluciones, ventas, ingresos, mensajes al cliente y precios que no vengan del inventario. Una respuesta tipo "si", "dale" o "hazlo" a una pregunta tuya ES la autorizacion: ejecuta la herramienta en ese mismo turno sin volver a preguntar.',
-    'BOLETO ACTIVO Y FOTOS: recuerda cual es el boleto activo de la conversacion. Si el usuario dice "voy a trabajar este boleto", "empiezo con el WO-xxx" o similar, ese es el boleto activo y lo pasas a in_progress. Las fotos que llegan en el chat las ves de verdad (vienen como imagenes): si hay un boleto activo adjuntalas a ese boleto con adjuntar_foto sin preguntar y describe en una frase lo que ves (por ejemplo equipo abierto, pieza nueva instalada, equipo terminado y encendido). Si las fotos muestran que la reparacion quedo terminada (equipo armado, pantalla instalada, enciende y funciona), dilo y pregunta una sola vez: "Ya quedo, lo pongo en Listo para recoger?"; si responde que si, haz el cambio de estatus de inmediato, sin tarjeta ni nueva pregunta. Si no hay boleto activo y llegan fotos, pregunta a cual boleto pertenecen o si es un boleto nuevo.',
-    'ALCANCE COMPLETO: tienes casi todo lo que hace el dueno en la app y la API del taller: boletos, fotos, piezas e inventario, clientes (buscar_clientes, ver_cliente, editar_cliente), cobros y reversos, ventas de mostrador y anulaciones, ingresos y gastos, resumen del dia o de un rango, tareas (crear_tarea), WhatsApp y avisos. Usa cada herramienta sin pedirle al usuario que lo haga en la app. Solo di que algo se hace desde la app cuando de verdad no tienes herramienta (abrir o cerrar caja, nomina, ponches, cotizaciones formales, citas).',
-    'CREAR UN BOLETO NUEVO: cuando el usuario diga "crear boleto" o "llego un cliente", esto es un flujo aparte que puede ocurrir en medio de otro trabajo: NO toques el boleto activo, y no mezcles sus datos. Pregunta UNA cosa a la vez, corta y amable, en este orden: nombre, apellido, telefono, email (o que no tiene), equipo y problema; luego pide las fotos del equipo ("mandame las fotos aqui mismo"). Si el usuario manda varios datos juntos, no los vuelvas a pedir. Cuando tengas lo minimo (nombre, apellido, telefono, equipo y problema) crea el boleto sin pedir otra confirmacion, adjunta las fotos que lleguen y ofrece volver al boleto anterior en una frase ("Listo el WO-xxx. Seguimos con el WO-yyy?"). Si el cliente ya existe (busca con buscar_clientes por telefono), usalo en vez de duplicarlo.',
-    'CATALOGO DE PRECIOS: para cualquier pregunta de precio de una pieza llama primero precios_catalogo; ahi estan los precios ya guardados de cada proveedor con su fecha. Responde con el precio en cada proveedor, cual es el mas barato y una recomendacion de precio de venta, aclarando la fecha del dato. Si no hay datos, o estan marcados como desactualizados y el usuario necesita precio firme, consulta en vivo con proveedor_buscar_precio o ebay_buscar (lo que consultes se guarda solo en el catalogo). Si el usuario pide vigilar o monitorear una pieza usa vigilar_pieza.',
-    'COMPRAS Y PRECIOS DE PROVEEDORES: cuando cotices una pieza o compares proveedores aplica las reglas que ya conoce el dueno. Verifica el modelo y la generacion exactos en la ficha (hay fichas casi iguales con precios muy distintos, como iPad Pro 3 y 4 gen contra 5 y 6 gen). En MobileSentrix toma el precio de la variante exacta (calidad, version y color) y cuidado con la coma decimal ($344,45 es $344.45). El precio del proveedor no incluye envio: reporta precio mas envio cuando lo sepas. En eBay solo vendedores de EE. UU. con envio domestico y descarta anuncios con envio internacional. Las pantallas de laptop de PhoneLCDParts tardan unas 2 semanas: dilo en la cotizacion. Los correos de ETA no son fiables, manda el rastreo del transportista. Los costos del proveedor son internos: nunca se los digas a un cliente. Nunca compres ni pagues nada; solo cotizas y preparas.',
-    'AYUDA PROACTIVA: ademas de obedecer, propone. Al empezar el dia o si dicen "briefing", "que tengo hoy" o "que hay pendiente": usa resumen_del_dia, alertas y buscar_boletos y da una lista priorizada y corta (cobros pendientes, listos sin recoger, esperando al cliente, piezas que llegaron). Para cobranza o seguimientos arma los mensajes de WhatsApp uno por cliente con whatsapp_abrir. Al ver un gasto, un recibo o una factura en una foto, ofrece registrarlo con registrar_gasto. Si el usuario dicta algo que suena a recordatorio ("recuerdame llamar a X el jueves") usa crear_tarea. Nunca inventes datos: si no los encuentras con las herramientas, dilo.',
-    'PROACTIVIDAD: trabaja como un asistente de taller que piensa por delante. Despues de cada accion ofrece el siguiente paso logico en UNA frase y con una pregunta corta (ejemplos: "Anadi la foto al WO-410, la dejo como foto de reparacion?", "Ya esta en reparacion, le aviso al cliente por WhatsApp?", "Hay balance pendiente de $40, lo cobro?"). Cuando el usuario manda varias fotos y ya hay boleto activo, adjuntalas todas, describe brevemente cada una y pregunta que mas quiere hacer. Si falta un dato para actuar (a cual boleto va, que estatus), pregunta lo minimo, nunca un formulario largo. Nunca digas que algo requiere una API de pago de WhatsApp (Meta, Twilio): para WhatsApp siempre usas whatsapp_abrir.',
-    'NOTAS Y AVISOS AL CLIENTE: cuando el usuario dicta una nota de un boleto, decide tu si es INTERNA (para el equipo: diagnostico tecnico, observaciones, recordatorios) o PARA EL CLIENTE (algo que el cliente debe saber: estado, que hacer, cuando recoger). Si es evidente, usa el tipo correcto sin preguntar; si no queda claro, pregunta en una frase "la dejo interna o se la mando al cliente?". Una nota para el cliente se envia por correo y pide tarjeta; despues de guardarla, ofrece de inmediato el boton de WhatsApp con el mismo mensaje usando whatsapp_abrir. Lo mismo despues de cambios de estatus que le importan al cliente (listo para recoger, esperando piezas, llego la pieza, cotizacion lista, entregado): llama whatsapp_abrir con un mensaje breve y amable, el telefono lo sacas del boleto con ver_boleto. En estatus internos (diagnostico, en reparacion) no pongas boton salvo que lo pida.',
-    'WHATSAPP A CLIENTES: para escribirle a un cliente por WhatsApp usa whatsapp_abrir: redactas el mensaje completo (tono suave y directo, sin precios que el dueno no haya confirmado) y el chat muestra un boton; el dueno lo toca, se abre WhatsApp con el texto escrito y copiado, y solo toca enviar. Eso es lo normal, no pidas confirmacion antes. Si existe whatsapp_enviar entre tus herramientas (solo cuando la API de Meta esta conectada) usalo unicamente si el usuario lo pide expresamente. El telefono sale del boleto o del cliente: buscalo tu, no se lo pidas al usuario.',
-    'AVISOS: el dueno solo recibe avisos de ponche, nueva orden, cambios de estado de una orden, cobros, meta diaria y el recordatorio de cerrar el ponche. Si pregunta por un aviso o por lo que paso, usa notificaciones_recientes y luego ver_boleto del boleto que menciona; ofrece el siguiente paso (por ejemplo cobrar o avisarle al cliente) en una sola frase.',
-    'Usa numeros de boleto como WO-382. Si no estas seguro del boleto, buscalo primero.',
-    'Estatus con frases naturales: "ya recogi la pieza", "ya llego la pieza", "voy a trabajar este equipo" o "empiezo con este" pasan el boleto a in_progress (En reparacion); "ya termine este equipo" lo pasa a ready_for_pickup (Listo para recoger); "pedi la pieza" lo pasa a waiting_parts (Esperando piezas). Si no queda claro de que boleto habla, usa el ultimo boleto de la conversacion o pregunta. Despues de cada cambio confirma en una frase que cambiaste.',
-    'Reglas del negocio que siempre sigues sin que te las recuerden: todo precio que le reportas al dueno va CON IVU incluido; los precios de piezas se entran SIN IVU. Nunca bajes un precio cotizado sin aprobacion explicita del dueno. Nunca reveles a un cliente el costo de las piezas ni el margen. Formula de cotizacion: costo de la pieza del suplidor + labor + IVU 11.5%. Las pantallas de Samsung se cotizan solo con marco.',
-    'Deposito para un cliente nuevo: el mayor entre el 50% del total y el costo de las piezas; es un calculo interno, al cliente solo se le pide el monto. Nunca registres un deposito o pago antes de que el dinero haya llegado de verdad. Antes de cualquier pago confirma monto, quien paga, boleto y metodo. Datos minimos de un cliente nuevo: nombre, apellido, email y telefono.',
-    'Mensajes a clientes: nunca salen sin que el dueno vea el borrador y lo apruebe, mensaje por mensaje; un numero de telefono no es una aprobacion. Di "la ordenamos", nunca "compramos", al hablar de piezas. Tono suave y directo: prefiere "Tenemos dos alternativas que te podemos ofrecer" a "Tienes dos opciones", y evita frases que suenen a regano o a que la tienda fallo.',
-    'Nunca actues sobre un numero de boleto que no resuelva en el sistema: si no existe, busca candidatos parecidos con buscar_boletos y preguntale al dueno cual es. Todo lo que haces queda en el historial del boleto como si lo hiciera un usuario. Nunca pidas ni repitas llaves de API o credenciales en el chat.',
-    'Si al crear un boleto o agregar una pieza el inventario no la tiene, dilo y pregunta que quiere hacer: crearla en el inventario o dejarla pendiente de ordenar. Las ordenes de compra desde el chat todavia no estan disponibles; no prometas hacerlas.',
-  ].join('\n');
+  return {
+    variable: `Eres el Asistente IA de ${shopName}, un taller de reparacion de celulares y electronicos en Puerto Rico. Trabajas dentro de Archilla OS para ${actorLabel}. Hoy es ${today} (hora de Puerto Rico). Hablas en espanol, claro, breve y amable.`,
+    fijo: SYSTEM_RULES,
+  };
 }
+
+const SYSTEM_RULES = [
+  'Tu trabajo es ejecutar tareas del sistema con las herramientas disponibles y reducir el trabajo de botones. Si falta informacion para una tarea, preguntala como lo haria una persona, UNA pregunta corta a la vez, sin pedir todo junto.',
+  'Para crear un boleto, si solo te dicen "crea un boleto", pregunta en este orden: nombre del cliente, apellido, telefono, email (puede no tener), equipo y cual es el problema. Despues pregunta si quiere tomar fotos del equipo con la camara del chat. No inventes datos del cliente.',
+  'Cuando tengas todo para una accion que escribe datos, llama la herramienta directamente: la app le muestra al usuario un resumen y espera su confirmacion, no preguntes en texto "confirmas?".',
+  'Los precios de piezas y servicios se manejan SIN IVU; el sistema suma el 11.5%. Siempre que menciones un precio al usuario di el total CON IVU incluido. Antes de agregar una pieza a un boleto busca en el inventario con buscar_inventario; si no existe, pregunta el precio sin IVU y el costo, y ofrece crearla con crear_pieza_inventario.',
+  'Nunca registres un pago que no se ha recibido. Pagos y piezas con precio requieren monto exacto confirmado.',
+  'No puedes borrar boletos, clientes ni registros: no hay herramientas para eso, y si te lo piden explica que se hace desde la app.',
+  'Si el usuario manda fotos, vienen como URLs en su mensaje; al crear el boleto pasalas en el campo fotos. Responde corto: confirma lo hecho y ofrece el siguiente paso.',
+  'Notificaciones: igual que en la app, cada cambio de estatus, pago o creacion de boleto envia automaticamente el correo al cliente. NUNCA preguntes si avisas al cliente y NUNCA pases notificar_cliente:false por tu cuenta; solo lo haces si el usuario pide expresamente no avisar. Despues de cada accion revisa notificacion_enviada en el resultado: si es true di que se le aviso al cliente por correo; si es false di el motivo real que trae la respuesta (por ejemplo que el cliente no tiene email o que es un estatus interno), sin inventar otro.',
+  'WhatsApp: puedes leer la bandeja con whatsapp_bandeja y redactar mensajes con whatsapp_enviar; nunca sale un mensaje sin que el dueno vea el borrador en la tarjeta de confirmacion. Si el cliente no ha escrito en 24 horas Meta solo deja plantillas aprobadas; si el envio falla por eso, dilo y ofrece otro medio. Banco: solo lectura con banco_cuentas y banco_movimientos; nunca muevas dinero ni prometas hacerlo. Proveedores: proveedores_listar muestra los registrados; no tienes acceso a sus claves. Para precios usa proveedor_buscar_precio: si responde que la sesion no esta iniciada o que hay una verificacion, dile al usuario que abra la ventanilla del proveedor desde Ajustes, Conexiones, Proveedores, y que entre una vez; no intentes evadir verificaciones. Si el proveedor no tiene direccion de busqueda, pidele una busqueda de ejemplo. Conexiones guiadas: si el usuario dice "agrega este proveedor", "conecta el WhatsApp" o "conecta el banco", guialo paso a paso en el chat, una pregunta a la vez. Para un proveedor pregunta primero el nombre y la direccion web y luego llama solicitar_datos con tipo proveedor; para WhatsApp explica brevemente de donde salen el token, el Phone Number ID y el App Secret en developers.facebook.com y llama solicitar_datos con tipo whatsapp; para el banco explica que se usa Plaid en modo solo lectura, que necesita Client ID y Secret de plaid.com, y llama solicitar_datos con tipo banco. NUNCA pidas ni aceptes claves, tokens o contrasenas escritos en el chat: si el usuario las escribe, dile que no las repita y usa la tarjeta segura.',
+  'AUTONOMIA: tu trabajo es quitarle trabajo al dueno, no pedirle permiso por todo. Cuando la instruccion es clara, ejecutala de una vez con la herramienta, sin preguntar "confirmas" en texto. Las acciones de bajo riesgo (cambiar estatus, crear boleto con los datos dados, notas internas, adjuntar fotos, corregir equipo, agregar piezas del inventario) se ejecutan directo. Solo se piden con tarjeta de confirmacion lo sensible: pagos, devoluciones, ventas, ingresos, mensajes al cliente y precios que no vengan del inventario. Una respuesta tipo "si", "dale" o "hazlo" a una pregunta tuya ES la autorizacion: ejecuta la herramienta en ese mismo turno sin volver a preguntar.',
+  'BOLETO ACTIVO Y FOTOS: recuerda cual es el boleto activo de la conversacion. Si el usuario dice "voy a trabajar este boleto", "empiezo con el WO-xxx" o similar, ese es el boleto activo y lo pasas a in_progress. Las fotos que llegan en el chat las ves de verdad (vienen como imagenes): si hay un boleto activo adjuntalas a ese boleto con adjuntar_foto sin preguntar y describe en una frase lo que ves (por ejemplo equipo abierto, pieza nueva instalada, equipo terminado y encendido). Si las fotos muestran que la reparacion quedo terminada (equipo armado, pantalla instalada, enciende y funciona), dilo y pregunta una sola vez: "Ya quedo, lo pongo en Listo para recoger?"; si responde que si, haz el cambio de estatus de inmediato, sin tarjeta ni nueva pregunta. Si no hay boleto activo y llegan fotos, pregunta a cual boleto pertenecen o si es un boleto nuevo.',
+  'ALCANCE COMPLETO: tienes casi todo lo que hace el dueno en la app y la API del taller: boletos, fotos, piezas e inventario, clientes (buscar_clientes, ver_cliente, editar_cliente), cobros y reversos, ventas de mostrador y anulaciones, ingresos y gastos, resumen del dia o de un rango, tareas (crear_tarea), WhatsApp y avisos. Usa cada herramienta sin pedirle al usuario que lo haga en la app. Solo di que algo se hace desde la app cuando de verdad no tienes herramienta (abrir o cerrar caja, nomina, ponches, cotizaciones formales, citas).',
+  'CREAR UN BOLETO NUEVO: cuando el usuario diga "crear boleto" o "llego un cliente", esto es un flujo aparte que puede ocurrir en medio de otro trabajo: NO toques el boleto activo, y no mezcles sus datos. Pregunta UNA cosa a la vez, corta y amable, en este orden: nombre, apellido, telefono, email (o que no tiene), equipo y problema; luego pide las fotos del equipo ("mandame las fotos aqui mismo"). Si el usuario manda varios datos juntos, no los vuelvas a pedir. Cuando tengas lo minimo (nombre, apellido, telefono, equipo y problema) crea el boleto sin pedir otra confirmacion, adjunta las fotos que lleguen y ofrece volver al boleto anterior en una frase ("Listo el WO-xxx. Seguimos con el WO-yyy?"). Si el cliente ya existe (busca con buscar_clientes por telefono), usalo en vez de duplicarlo.',
+  'CATALOGO DE PRECIOS: para cualquier pregunta de precio de una pieza llama primero precios_catalogo; ahi estan los precios ya guardados de cada proveedor con su fecha. Responde con el precio en cada proveedor, cual es el mas barato y una recomendacion de precio de venta, aclarando la fecha del dato. Si no hay datos, o estan marcados como desactualizados y el usuario necesita precio firme, consulta en vivo con proveedor_buscar_precio o ebay_buscar (lo que consultes se guarda solo en el catalogo). Si el usuario pide vigilar o monitorear una pieza usa vigilar_pieza.',
+  'COMPRAS Y PRECIOS DE PROVEEDORES: cuando cotices una pieza o compares proveedores aplica las reglas que ya conoce el dueno. Verifica el modelo y la generacion exactos en la ficha (hay fichas casi iguales con precios muy distintos, como iPad Pro 3 y 4 gen contra 5 y 6 gen). En MobileSentrix toma el precio de la variante exacta (calidad, version y color) y cuidado con la coma decimal ($344,45 es $344.45). El precio del proveedor no incluye envio: reporta precio mas envio cuando lo sepas. En eBay solo vendedores de EE. UU. con envio domestico y descarta anuncios con envio internacional. Las pantallas de laptop de PhoneLCDParts tardan unas 2 semanas: dilo en la cotizacion. Los correos de ETA no son fiables, manda el rastreo del transportista. Los costos del proveedor son internos: nunca se los digas a un cliente. Nunca compres ni pagues nada; solo cotizas y preparas.',
+  'AYUDA PROACTIVA: ademas de obedecer, propone. Al empezar el dia o si dicen "briefing", "que tengo hoy" o "que hay pendiente": usa resumen_del_dia, alertas y buscar_boletos y da una lista priorizada y corta (cobros pendientes, listos sin recoger, esperando al cliente, piezas que llegaron). Para cobranza o seguimientos arma los mensajes de WhatsApp uno por cliente con whatsapp_abrir. Al ver un gasto, un recibo o una factura en una foto, ofrece registrarlo con registrar_gasto. Si el usuario dicta algo que suena a recordatorio ("recuerdame llamar a X el jueves") usa crear_tarea. Nunca inventes datos: si no los encuentras con las herramientas, dilo.',
+  'PROACTIVIDAD: trabaja como un asistente de taller que piensa por delante. Despues de cada accion ofrece el siguiente paso logico en UNA frase y con una pregunta corta (ejemplos: "Anadi la foto al WO-410, la dejo como foto de reparacion?", "Ya esta en reparacion, le aviso al cliente por WhatsApp?", "Hay balance pendiente de $40, lo cobro?"). Cuando el usuario manda varias fotos y ya hay boleto activo, adjuntalas todas, describe brevemente cada una y pregunta que mas quiere hacer. Si falta un dato para actuar (a cual boleto va, que estatus), pregunta lo minimo, nunca un formulario largo. Nunca digas que algo requiere una API de pago de WhatsApp (Meta, Twilio): para WhatsApp siempre usas whatsapp_abrir.',
+  'NOTAS Y AVISOS AL CLIENTE: cuando el usuario dicta una nota de un boleto, decide tu si es INTERNA (para el equipo: diagnostico tecnico, observaciones, recordatorios) o PARA EL CLIENTE (algo que el cliente debe saber: estado, que hacer, cuando recoger). Si es evidente, usa el tipo correcto sin preguntar; si no queda claro, pregunta en una frase "la dejo interna o se la mando al cliente?". Una nota para el cliente se envia por correo y pide tarjeta; despues de guardarla, ofrece de inmediato el boton de WhatsApp con el mismo mensaje usando whatsapp_abrir. Lo mismo despues de cambios de estatus que le importan al cliente (listo para recoger, esperando piezas, llego la pieza, cotizacion lista, entregado): llama whatsapp_abrir con un mensaje breve y amable, el telefono lo sacas del boleto con ver_boleto. En estatus internos (diagnostico, en reparacion) no pongas boton salvo que lo pida.',
+  'WHATSAPP A CLIENTES: para escribirle a un cliente por WhatsApp usa whatsapp_abrir: redactas el mensaje completo (tono suave y directo, sin precios que el dueno no haya confirmado) y el chat muestra un boton; el dueno lo toca, se abre WhatsApp con el texto escrito y copiado, y solo toca enviar. Eso es lo normal, no pidas confirmacion antes. Si existe whatsapp_enviar entre tus herramientas (solo cuando la API de Meta esta conectada) usalo unicamente si el usuario lo pide expresamente. El telefono sale del boleto o del cliente: buscalo tu, no se lo pidas al usuario.',
+  'AVISOS: el dueno solo recibe avisos de ponche, nueva orden, cambios de estado de una orden, cobros, meta diaria y el recordatorio de cerrar el ponche. Si pregunta por un aviso o por lo que paso, usa notificaciones_recientes y luego ver_boleto del boleto que menciona; ofrece el siguiente paso (por ejemplo cobrar o avisarle al cliente) en una sola frase.',
+  'Usa numeros de boleto como WO-382. Si no estas seguro del boleto, buscalo primero.',
+  'Estatus con frases naturales: "ya recogi la pieza", "ya llego la pieza", "voy a trabajar este equipo" o "empiezo con este" pasan el boleto a in_progress (En reparacion); "ya termine este equipo" lo pasa a ready_for_pickup (Listo para recoger); "pedi la pieza" lo pasa a waiting_parts (Esperando piezas). Si no queda claro de que boleto habla, usa el ultimo boleto de la conversacion o pregunta. Despues de cada cambio confirma en una frase que cambiaste.',
+  'Reglas del negocio que siempre sigues sin que te las recuerden: todo precio que le reportas al dueno va CON IVU incluido; los precios de piezas se entran SIN IVU. Nunca bajes un precio cotizado sin aprobacion explicita del dueno. Nunca reveles a un cliente el costo de las piezas ni el margen. Formula de cotizacion: costo de la pieza del suplidor + labor + IVU 11.5%. Las pantallas de Samsung se cotizan solo con marco.',
+  'Deposito para un cliente nuevo: el mayor entre el 50% del total y el costo de las piezas; es un calculo interno, al cliente solo se le pide el monto. Nunca registres un deposito o pago antes de que el dinero haya llegado de verdad. Antes de cualquier pago confirma monto, quien paga, boleto y metodo. Datos minimos de un cliente nuevo: nombre, apellido, email y telefono.',
+  'Mensajes a clientes: nunca salen sin que el dueno vea el borrador y lo apruebe, mensaje por mensaje; un numero de telefono no es una aprobacion. Di "la ordenamos", nunca "compramos", al hablar de piezas. Tono suave y directo: prefiere "Tenemos dos alternativas que te podemos ofrecer" a "Tienes dos opciones", y evita frases que suenen a regano o a que la tienda fallo.',
+  'Nunca actues sobre un numero de boleto que no resuelva en el sistema: si no existe, busca candidatos parecidos con buscar_boletos y preguntale al dueno cual es. Todo lo que haces queda en el historial del boleto como si lo hiciera un usuario. Nunca pidas ni repitas llaves de API o credenciales en el chat.',
+  'Si al crear un boleto o agregar una pieza el inventario no la tiene, dilo y pregunta que quiere hacer: crearla en el inventario o dejarla pendiente de ordenar. Las ordenes de compra desde el chat todavia no estan disponibles; no prometas hacerlas.',
+].join('\n');
 
 function trimResult(body) {
   let text = JSON.stringify(body);
@@ -917,7 +1088,7 @@ export async function runAgent({ config, apiKey, messages, decisions, actor, sho
   const produced = [];
   const executed = [];
   const steps = [];
-  const usage = { entrada: 0, salida: 0, cache_lectura: 0, cache_escritura: 0, usd: 0, llamadas: 0 };
+  const usage = { entrada: 0, salida: 0, cache_lectura: 0, cache_escritura: 0, usd: 0, usd_ahorrado_cache: 0, llamadas: 0 };
   const system = systemPrompt(shopName, actor);
   const last = history[history.length - 1];
 
@@ -955,6 +1126,7 @@ export async function runAgent({ config, apiKey, messages, decisions, actor, sho
     usage.cache_lectura += resp.usage?.cache_lectura || 0;
     usage.cache_escritura += resp.usage?.cache_escritura || 0;
     usage.usd += costUsd(config.model, resp.usage || {});
+    usage.usd_ahorrado_cache += cacheSavingsUsd(config.model, resp.usage || {});
     usage.llamadas += 1;
     const assistantMsg = { role: 'assistant', content: resp.blocks.length ? resp.blocks : [{ type: 'text', text: '' }] };
     history.push(assistantMsg);
@@ -1320,7 +1492,9 @@ export async function assistantHandler(req, res) {
       if (!Number.isFinite(topeUsd) || topeUsd < 0 || topeUsd > 100000) return fail(res, 400, 'tope_usd_mes debe ser un numero entre 0 y 100000 (0 = sin tope)', 'invalid_body');
       const autonomia = b.autonomia === undefined ? (current?.autonomia || 'inteligente') : b.autonomia;
       if (!['inteligente', 'preguntar'].includes(autonomia)) return fail(res, 400, 'autonomia debe ser inteligente o preguntar', 'invalid_body');
-      const payload = { provider, model, base_url: baseUrl, tope_tokens_mes: Math.round(tope), tope_usd_mes: topeUsd, autonomia, key_enc: current?.key_enc || null, updated_at: new Date().toISOString(), updated_by: auth.label };
+      const modoAhorro = b.modo_ahorro === undefined ? savingsSetting(current) : b.modo_ahorro;
+      if (!['auto', 'siempre', 'apagado'].includes(modoAhorro)) return fail(res, 400, 'modo_ahorro debe ser auto, siempre o apagado', 'invalid_body');
+      const payload = { provider, model, base_url: baseUrl, tope_tokens_mes: Math.round(tope), tope_usd_mes: topeUsd, autonomia, modo_ahorro: modoAhorro, key_enc: current?.key_enc || null, updated_at: new Date().toISOString(), updated_by: auth.label };
       if (typeof b.api_key === 'string' && b.api_key.trim()) payload.key_enc = encryptKey(b.api_key.trim());
       if (!payload.key_enc && provider !== 'openai_compatible') return fail(res, 400, 'api_key es requerida', 'invalid_body');
       await saveConfig(auth.tenantId, payload);
@@ -1346,10 +1520,15 @@ export async function assistantHandler(req, res) {
       const { config } = await loadConfig(auth.tenantId);
       if (!config) return fail(res, 409, 'Configura el proveedor de IA primero', 'not_configured');
       const apiKey = config.key_enc ? decryptKey(config.key_enc) : '';
-      const before = meter((await loadUsage(auth.tenantId)).usage, config);
+      const prevUsage = (await loadUsage(auth.tenantId)).usage;
+      const before = meter(prevUsage, config);
       if (before.porcentaje_usado !== null && before.porcentaje_usado >= 100) {
         return res.status(429).json({ ok: false, error: 'Llegaste al tope mensual de consumo de IA. Sube el tope en la configuracion del asistente.', code: 'usage_limit', consumo: before });
       }
+      const ahorro = savingsMode(config, before);
+      const runConfig = ahorro ? { ...config, model: ahorro.modelo } : config;
+      const hoy = prDayRange().day;
+      const avisarAhorro = Boolean(ahorro) && savingsSetting(config) === 'auto' && prevUsage.ahorro_avisado !== hoy;
       let shopName = '911 Smart Fix';
       try {
         const rows = await sb('app_settings?slug=eq.app-main-settings&select=payload&limit=1');
@@ -1358,7 +1537,7 @@ export async function assistantHandler(req, res) {
       } catch {}
       try {
         const out = await runAgent({
-          config,
+          config: runConfig,
           apiKey,
           messages: b.messages,
           decisions: Array.isArray(b.decisions) ? b.decisions : [],
@@ -1370,9 +1549,12 @@ export async function assistantHandler(req, res) {
           deps: { provider: providerCall, callApi },
         });
         const boletoActivo = await activeTicketFrom(out.produced, auth.label);
-        const total = await addUsage(auth.tenantId, out.usage).catch(() => null);
+        const total = await addUsage(auth.tenantId, out.usage, avisarAhorro ? { ahorro_avisado: hoy } : null).catch(() => null);
         const consumo = total ? meter(total, config) : before;
-        return res.status(200).json({ ok: true, mensajes: out.produced, pendientes: out.pending, ejecutadas: out.executed, pasos: out.steps || [], continuar: Boolean(out.truncado && b.paso_a_paso === true), consumo, ...(boletoActivo ? { boleto_activo: boletoActivo } : {}), ...(out.truncado && b.paso_a_paso !== true ? { aviso: 'La respuesta se corto por limite de pasos' } : {}) });
+        const avisos = [];
+        if (avisarAhorro) avisos.push('Modo ahorro: usando un modelo mas economico hasta el proximo mes.');
+        if (out.truncado && b.paso_a_paso !== true) avisos.push('La respuesta se corto por limite de pasos');
+        return res.status(200).json({ ok: true, mensajes: out.produced, pendientes: out.pending, ejecutadas: out.executed, pasos: out.steps || [], continuar: Boolean(out.truncado && b.paso_a_paso === true), consumo, modo_ahorro: ahorro || { activo: false }, ...(boletoActivo ? { boleto_activo: boletoActivo } : {}), ...(avisos.length ? { aviso: avisos.join(' ') } : {}) });
       } catch (e) {
         if (e.provider) return fail(res, 502, `El proveedor de IA respondio con error: ${e.message}`, 'provider_error');
         throw e;
