@@ -32,6 +32,7 @@ import { universalSearch } from './search.js';
 import { posProductList, cashRegisterState, createSaleFromForm, posConfig, posQr } from './posForm.js';
 import { readScreenContext, screenContextText } from './screenContext.js';
 import { ticketCharge, payTicketFromForm } from './ticketPay.js';
+import { routeRequest } from './router.js';
 
 const TENANT_ID = process.env.MUSE_TENANT_ID || '';
 const SECRET = process.env.ASSISTANT_KEY_SECRET || '';
@@ -156,6 +157,7 @@ async function addUsage(tenantId, delta, extra) {
     llamadas: (usage.llamadas || 0) + delta.llamadas,
   };
   if (delta.busquedas_web) next.busquedas_web = (usage.busquedas_web || 0) + delta.busquedas_web;
+  for (const k of ['llamadas_ligero', 'llamadas_completo']) if (delta[k]) next[k] = (usage[k] || 0) + delta[k];
   if (row) await sb(`app_settings?id=eq.${row.id}`, { method: 'PATCH', body: { payload: next }, prefer: 'return=minimal' });
   else await sb('app_settings', { method: 'POST', body: { slug, payload: next }, prefer: 'return=minimal' });
   return next;
@@ -184,7 +186,23 @@ function meter(usage, config) {
     porcentaje_usado: pct,
     aviso,
     usd_ahorrado_cache: Math.max(0, Math.round((usage.usd_ahorrado_cache || 0) * 10000) / 10000),
+    ...(usage.llamadas_ligero !== undefined || usage.llamadas_completo !== undefined ? { llamadas_ligero: usage.llamadas_ligero || 0, llamadas_completo: usage.llamadas_completo || 0 } : {}),
   };
+}
+
+export const MODOS_IA = ['automatico', 'siempre_completo'];
+
+function iaSetting(config) {
+  return config?.modo_ia === 'siempre_completo' ? 'siempre_completo' : 'automatico';
+}
+
+export function planModel(config, ahorro, request) {
+  const modo = iaSetting(config);
+  if (config?.provider !== 'anthropic') return { modo, motivo: 'proveedor', router: null };
+  if (ahorro) return { modo, motivo: 'ahorro', router: null };
+  if (modo === 'siempre_completo') return { modo, motivo: 'siempre_completo', router: null };
+  const r = routeRequest({ ...request, isMutatingTool: (name) => Boolean(TOOL_BY_NAME.get(name)?.mutating) });
+  return { modo, motivo: r.motivo, router: { ligero: AHORRO_MODEL, completo: config.model, inicio: r.nivel } };
 }
 
 function savingsSetting(config) {
@@ -211,6 +229,7 @@ function publicConfig(config) {
     tope_usd_mes: Number(config?.tope_usd_mes) || 0,
     autonomia: config?.autonomia === 'preguntar' ? 'preguntar' : 'inteligente',
     modo_ahorro: savingsSetting(config),
+    modo_ia: iaSetting(config),
     busqueda_web: config?.busqueda_web === true,
     proveedores: Object.entries(PROVIDERS).map(([id, p]) => ({ id, nombre: p.label, modelos_sugeridos: p.models, requiere_base_url: id === 'openai_compatible' })),
   };
@@ -1217,12 +1236,35 @@ function noteClientAction(executed, toolUse, body) {
   }
 }
 
-export async function runAgent({ config, apiKey, messages, decisions, actor, shopName, deps, extraText = '', screenContext = '', tools = TOOLS, maxIterations = MAX_ITERATIONS }) {
+function isMutatingCall(blocks) {
+  return (blocks || []).some((b) => b.type === 'tool_use' && TOOL_BY_NAME.get(b.name)?.mutating);
+}
+
+export async function runAgent({ config, apiKey, messages, decisions, actor, shopName, deps, extraText = '', screenContext = '', tools = TOOLS, maxIterations = MAX_ITERATIONS, router = null }) {
   const history = [...trimHistory(messages)];
   const produced = [];
   const executed = [];
   const steps = [];
   const usage = { entrada: 0, salida: 0, cache_lectura: 0, cache_escritura: 0, usd: 0, usd_ahorrado_cache: 0, llamadas: 0 };
+  const canEscalate = Boolean(router) && router.ligero !== router.completo;
+  let model = canEscalate && router.inicio === 'ligero' ? router.ligero : config.model;
+  let escalado = false;
+  const account = (resp, usedModel) => {
+    usage.entrada += resp.usage?.entrada || 0;
+    usage.salida += resp.usage?.salida || 0;
+    usage.cache_lectura += resp.usage?.cache_lectura || 0;
+    usage.cache_escritura += resp.usage?.cache_escritura || 0;
+    if (resp.usage?.busquedas_web) usage.busquedas_web = (usage.busquedas_web || 0) + resp.usage.busquedas_web;
+    usage.usd += costUsd(usedModel, resp.usage || {});
+    usage.usd_ahorrado_cache += cacheSavingsUsd(usedModel, resp.usage || {});
+    usage.llamadas += 1;
+    if (config.provider === 'anthropic') {
+      const key = usedModel === AHORRO_MODEL ? 'llamadas_ligero' : 'llamadas_completo';
+      usage[key] = (usage[key] || 0) + 1;
+    }
+  };
+  const callModel = (m) => deps.provider(m === config.model ? config : { ...config, model: m }, apiKey, system, history, tools);
+  const done = (out) => ({ ...out, modelo: model, escalado });
   const system = systemPrompt(shopName, actor);
   if (screenContext) system.variable = `${system.variable}\n${screenContext}`;
   const last = history[history.length - 1];
@@ -1255,24 +1297,23 @@ export async function runAgent({ config, apiKey, messages, decisions, actor, sho
   }
 
   for (let i = 0; i < maxIterations; i += 1) {
-    const resp = await deps.provider(config, apiKey, system, history, tools);
-    usage.entrada += resp.usage?.entrada || 0;
-    usage.salida += resp.usage?.salida || 0;
-    usage.cache_lectura += resp.usage?.cache_lectura || 0;
-    usage.cache_escritura += resp.usage?.cache_escritura || 0;
-    if (resp.usage?.busquedas_web) usage.busquedas_web = (usage.busquedas_web || 0) + resp.usage.busquedas_web;
-    usage.usd += costUsd(config.model, resp.usage || {});
-    usage.usd_ahorrado_cache += cacheSavingsUsd(config.model, resp.usage || {});
-    usage.llamadas += 1;
+    let resp = await callModel(model);
+    account(resp, model);
+    if (canEscalate && model === router.ligero && isMutatingCall(resp.blocks)) {
+      model = router.completo;
+      escalado = true;
+      resp = await callModel(model);
+      account(resp, model);
+    }
     const assistantMsg = { role: 'assistant', content: resp.blocks.length ? resp.blocks : [{ type: 'text', text: '' }] };
     history.push(assistantMsg);
     produced.push(assistantMsg);
     const toolUses = resp.blocks.filter((b) => b.type === 'tool_use');
-    if (toolUses.length === 0) return { produced, pending: [], executed, usage, steps };
+    if (toolUses.length === 0) return done({ produced, pending: [], executed, usage, steps });
     const mutating = toolUses.filter((tu) => TOOL_BY_NAME.get(tu.name)?.mutating);
     const needsCard = mutating.filter((tu) => !isAuto(TOOL_BY_NAME.get(tu.name), tu.input, config));
     if (needsCard.length > 0) {
-      return {
+      return done({
         produced,
         executed,
         usage,
@@ -1281,7 +1322,7 @@ export async function runAgent({ config, apiKey, messages, decisions, actor, sho
           const tool = TOOL_BY_NAME.get(tu.name);
           return { id: tu.id, herramienta: tu.name, resumen: tool.resumen ? tool.resumen(tu.input || {}) : tu.name, argumentos: tu.input || {} };
         }),
-      };
+      });
     }
     const results = [];
     for (const tu of toolUses) {
@@ -1298,7 +1339,7 @@ export async function runAgent({ config, apiKey, messages, decisions, actor, sho
     history.push(resultMsg);
     produced.push(resultMsg);
   }
-  return { produced, pending: [], executed, usage, steps, truncado: true };
+  return done({ produced, pending: [], executed, usage, steps, truncado: true });
 }
 
 
@@ -1647,9 +1688,11 @@ export async function assistantHandler(req, res) {
       if (!['inteligente', 'preguntar'].includes(autonomia)) return fail(res, 400, 'autonomia debe ser inteligente o preguntar', 'invalid_body');
       const modoAhorro = b.modo_ahorro === undefined ? savingsSetting(current) : b.modo_ahorro;
       if (!['auto', 'siempre', 'apagado'].includes(modoAhorro)) return fail(res, 400, 'modo_ahorro debe ser auto, siempre o apagado', 'invalid_body');
+      const modoIa = b.modo_ia === undefined ? iaSetting(current) : b.modo_ia;
+      if (!MODOS_IA.includes(modoIa)) return fail(res, 400, 'modo_ia debe ser automatico o siempre_completo', 'invalid_body');
       const busquedaWeb = b.busqueda_web === undefined ? current?.busqueda_web === true : b.busqueda_web;
       if (typeof busquedaWeb !== 'boolean') return fail(res, 400, 'busqueda_web debe ser true o false', 'invalid_body');
-      const payload = { provider, model, base_url: baseUrl, tope_tokens_mes: Math.round(tope), tope_usd_mes: topeUsd, autonomia, modo_ahorro: modoAhorro, busqueda_web: busquedaWeb, key_enc: current?.key_enc || null, updated_at: new Date().toISOString(), updated_by: auth.label };
+      const payload = { provider, model, base_url: baseUrl, tope_tokens_mes: Math.round(tope), tope_usd_mes: topeUsd, autonomia, modo_ahorro: modoAhorro, modo_ia: modoIa, busqueda_web: busquedaWeb, key_enc: current?.key_enc || null, updated_at: new Date().toISOString(), updated_by: auth.label };
       if (typeof b.api_key === 'string' && b.api_key.trim()) payload.key_enc = encryptKey(b.api_key.trim());
       if (!payload.key_enc && provider !== 'openai_compatible') return fail(res, 400, 'api_key es requerida', 'invalid_body');
       await saveConfig(auth.tenantId, payload);
@@ -1693,8 +1736,10 @@ export async function assistantHandler(req, res) {
       } catch {}
       const pantalla = readScreenContext(b.contexto);
       const screenContext = pantalla ? await screenContextText(pantalla, { loadTicket: (numero) => fetchTicketPanel(numero, auth.label) }) : '';
+      const plan = planModel(config, ahorro, { messages: b.messages, decisions: b.decisions, texto: b.texto, pasoAPaso: b.paso_a_paso });
       try {
         const out = await runAgent({
+          router: plan.router,
           screenContext,
           config: runConfig,
           apiKey,
@@ -1713,7 +1758,7 @@ export async function assistantHandler(req, res) {
         const avisos = [];
         if (avisarAhorro) avisos.push('Modo ahorro: usando un modelo mas economico hasta el proximo mes.');
         if (out.truncado && b.paso_a_paso !== true) avisos.push('La respuesta se corto por limite de pasos');
-        return res.status(200).json({ ok: true, mensajes: out.produced, pendientes: out.pending, ejecutadas: out.executed, pasos: out.steps || [], continuar: Boolean(out.truncado && b.paso_a_paso === true), consumo, modo_ahorro: ahorro || { activo: false }, ...(boletoActivo ? { boleto_activo: boletoActivo } : {}), ...(avisos.length ? { aviso: avisos.join(' ') } : {}) });
+        return res.status(200).json({ ok: true, mensajes: out.produced, pendientes: out.pending, ejecutadas: out.executed, pasos: out.steps || [], continuar: Boolean(out.truncado && b.paso_a_paso === true), consumo, modo_ahorro: ahorro || { activo: false }, modo_ia: { modo: plan.modo, modelo: out.modelo || runConfig.model, escalado: out.escalado === true, motivo: plan.motivo }, ...(boletoActivo ? { boleto_activo: boletoActivo } : {}), ...(avisos.length ? { aviso: avisos.join(' ') } : {}) });
       } catch (e) {
         if (e.provider) return fail(res, 502, `El proveedor de IA respondio con error: ${e.message}`, 'provider_error');
         throw e;
