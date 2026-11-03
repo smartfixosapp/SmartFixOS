@@ -1,7 +1,10 @@
 import { UUID_RE, cleanFilter, money } from './muse.js';
 import { ORIGENES, formActor } from './ticketForm.js';
+import { posKind } from './jaime.js';
 
 const PAGE_SIZE = 30;
+const POS_TIPOS = { accesorios: ['accesorio'], dispositivos: ['dispositivo'], ambos: ['accesorio', 'dispositivo'] };
+export const NOT_FOR_POS = 'Este articulo es una pieza o servicio y no se vende en el POS; agregalo al boleto.';
 const MAX_ITEMS = 30;
 const MAX_CANTIDAD = 100;
 const MAX_PRECIO = 100000;
@@ -57,15 +60,24 @@ function present(v) {
   return v !== undefined && v !== null && v !== '';
 }
 
-export async function posProductList({ q, pagina, actor }, deps) {
+export function readPosTipo(raw) {
+  const value = String(Array.isArray(raw) ? raw[0] : raw ?? '').trim().toLowerCase();
+  if (!value) return 'ambos';
+  return POS_TIPOS[value] ? value : null;
+}
+
+export async function posProductList({ q, pagina, tipo, actor }, deps) {
   const rawPage = Array.isArray(pagina) ? pagina[0] : pagina;
   const page = present(rawPage) ? Number(rawPage) : 1;
   if (!Number.isInteger(page) || page < 1 || page > 1000) return bad('pagina debe ser un entero entre 1 y 1000', 'invalid_query');
+  const posTipo = readPosTipo(tipo);
+  if (!posTipo) return bad('tipo invalido. Validos: accesorios, dispositivos, ambos', 'invalid_query');
   const term = cleanFilter(String(Array.isArray(q) ? q[0] : q || '')).replace(/[&#?+]/g, ' ').replace(/\s+/g, ' ').trim();
-  const r = await deps.callApi('GET', 'pos/productos', { query: { q: term, pagina: page, limite: PAGE_SIZE } }, actor);
+  const r = await deps.callApi('GET', 'pos/productos', { query: { q: term, pagina: page, limite: PAGE_SIZE, pos_tipo: posTipo } }, actor);
   if (r.status !== 200 || !r.body?.ok) return upstream(r, 'No se pudo leer el inventario');
   const raw = r.body.productos || [];
-  const list = raw.filter((p) => p.tipo === 'servicio' || p.stock === null || Number(p.stock) > 0);
+  const allowed = POS_TIPOS[posTipo];
+  const list = raw.filter((p) => allowed.includes(p.tipo_pos) && (p.stock === null || Number(p.stock) > 0));
   const withVariants = new Set();
   const ids = list.filter((p) => p.tipo !== 'servicio').map((p) => p.id).filter((id) => UUID_RE.test(String(id)));
   if (ids.length) {
@@ -84,6 +96,7 @@ export async function posProductList({ q, pagina, actor }, deps) {
     stock: p.stock,
     tipo: p.tipo,
     categoria: p.categoria || null,
+    tipo_pos: p.tipo_pos,
     tiene_variantes: withVariants.has(p.id),
   }));
   return { status: 200, body: { ok: true, pagina: page, productos, hay_mas: raw.length >= PAGE_SIZE } };
@@ -288,6 +301,25 @@ export function readSaleForm(b, customMethods = []) {
   return { origen, requestId, metodo, metodoEtiqueta, items, montoRecibido, email, notas };
 }
 
+async function rejectNonPosItems(deps, tenantId, items) {
+  const ids = [...new Set(items.map((i) => i.producto_id))];
+  let rows;
+  try {
+    rows = await deps.sb(`product?tenant_id=eq.${tenantId}&id=in.(${ids.join(',')})&select=id,name,type,tipo_principal,subcategoria&limit=${ids.length}`);
+  } catch (e) {
+    console.warn('no se pudo validar los productos de la venta:', e.message);
+    return { status: 502, body: { ok: false, error: 'No se pudieron validar los productos de la venta; intenta de nuevo', code: 'upstream_error' } };
+  }
+  const byId = new Map((rows || []).map((p) => [String(p.id).toLowerCase(), p]));
+  const rechazados = [];
+  items.forEach((item, indice) => {
+    const p = byId.get(item.producto_id.toLowerCase());
+    if (p && !posKind(p)) rechazados.push({ indice, producto_id: item.producto_id, nombre: p.name || null });
+  });
+  if (!rechazados.length) return null;
+  return { status: 400, body: { ok: false, error: NOT_FOR_POS, code: 'invalid_body', rechazados } };
+}
+
 async function findPosRequest(deps, tenantId, requestId) {
   try {
     const rows = await deps.sb(`assistant_pos_requests?tenant_id=eq.${tenantId}&request_id=eq.${requestId}&select=venta_numero&limit=1`);
@@ -348,6 +380,9 @@ export async function createSaleFromForm({ body, label, tenantId }, deps) {
     idem = await findPosRequest(deps, tenantId, form.requestId);
     if (idem.numero) return { status: 200, body: { ok: true, venta: await existingSale(deps, tenantId, idem.numero), repetido: true } };
   }
+
+  const rejected = await rejectNonPosItems(deps, tenantId, form.items);
+  if (rejected) return rejected;
 
   const input = { items: form.items, metodo: form.metodo };
   if (form.montoRecibido !== undefined) input.monto_recibido = form.montoRecibido;

@@ -14,13 +14,22 @@ const SB = 'https://sb.test.invalid';
 const PID = 'aaaaaaaa-1111-4ccc-8ddd-eeeeeeeeeeee';
 const PID2 = 'aaaaaaaa-2222-4ccc-8ddd-eeeeeeeeeeee';
 const REQUEST_ID = 'eeeeeeee-bbbb-4ccc-8ddd-eeeeeeeeeeee';
-const PRODUCT = { id: PID, name: 'Cargador USB-C', price: 20, cost: 8, stock: 5, min_stock: 1, type: 'product', taxable: true, sku: 'CHG1', barcode: null, device_brand: 'Apple', device_model_tag: null, category: 'Accesorios', active: true };
+const PRODUCT = { id: PID, name: 'Cargador USB-C', price: 20, cost: 8, stock: 5, min_stock: 1, type: 'product', taxable: true, sku: 'CHG1', barcode: null, device_brand: 'Apple', device_model_tag: null, category: 'Accesorios', active: true, tipo_principal: 'accesorios', subcategoria: 'cables' };
+const PIEZA_ID = 'bbbbbbbb-1111-4ccc-8ddd-eeeeeeeeeeee';
+const SERVICIO_ID = 'bbbbbbbb-2222-4ccc-8ddd-eeeeeeeeeeee';
+const EQUIPO_ID = 'bbbbbbbb-3333-4ccc-8ddd-eeeeeeeeeeee';
+const LEGADO_ID = 'bbbbbbbb-4444-4ccc-8ddd-eeeeeeeeeeee';
+const PIEZA = { ...PRODUCT, id: PIEZA_ID, name: 'Pantalla iPhone 13', price: 100, stock: 3, tipo_principal: 'dispositivos', subcategoria: 'piezas_servicios', category: 'Pantallas' };
+const SERVICIO = { ...PRODUCT, id: SERVICIO_ID, name: 'Diagnostico', price: 30, stock: null, type: 'service', taxable: false, tipo_principal: 'servicios', subcategoria: 'servicio', category: 'Servicios' };
+const EQUIPO = { ...PRODUCT, id: EQUIPO_ID, name: 'Samsung A06 5G', price: 151, stock: 1, tipo_principal: 'dispositivos', subcategoria: 'dispositivo_completo', category: 'smartphone' };
+const LEGADO = { ...PRODUCT, id: LEGADO_ID, name: 'iPhone 11 usado', price: 200, stock: 1, type: 'device', tipo_principal: null, subcategoria: null, category: null };
+const CATALOG = [PRODUCT, PIEZA, SERVICIO, EQUIPO, LEGADO];
 
 function jsonResponse(status, data) {
   return new Response(data === undefined ? '' : JSON.stringify(data), { status, headers: { 'content-type': 'application/json' } });
 }
 
-function fakeSupabase({ register = true, requestsTable = 'missing', storedRequest = null, storedSale = null, tenant = null, tenantFail = false, recentSales = [] } = {}) {
+function fakeSupabase({ register = true, requestsTable = 'missing', storedRequest = null, storedSale = null, tenant = null, tenantFail = false, recentSales = [], products = CATALOG } = {}) {
   const calls = [];
   let insertedSale = null;
   const transactions = [];
@@ -40,7 +49,13 @@ function fakeSupabase({ register = true, requestsTable = 'missing', storedReques
     if (path.startsWith('cash_register?')) return jsonResponse(200, register ? [{ id: 'reg-1', status: 'open', opened_by: 'Francis', created_date: '2026-11-03T12:00:00.000Z' }] : []);
     if (path.startsWith('product_variant?')) return jsonResponse(200, []);
     if (path.startsWith('product?') && method === 'PATCH') return jsonResponse(200, [{ ...PRODUCT, stock: body.stock }]);
-    if (path.startsWith('product?') && path.includes(`id=eq.${PID}`)) return jsonResponse(200, [PRODUCT]);
+    if (path.startsWith('product?') && method === 'GET') {
+      const one = /[?&]id=eq\.([0-9a-f-]+)/.exec(path);
+      const many = /[?&]id=in\.\(([^)]*)\)/.exec(path);
+      if (one) return jsonResponse(200, products.filter((p) => p.id === one[1]));
+      if (many) return jsonResponse(200, products.filter((p) => many[1].split(',').includes(p.id)));
+      return jsonResponse(200, products);
+    }
     if (path.startsWith('sale?') && path.includes('sale_number=eq.')) return jsonResponse(200, storedSale ? [storedSale] : []);
     if (path.startsWith('sale?')) return jsonResponse(200, path.includes('created_at=gte.') ? recentSales : []);
     if (path === 'sale' && method === 'POST') {
@@ -61,6 +76,8 @@ const realFetch = globalThis.fetch;
 const { assistantHandler, ventaMostrador, TOOLS } = await import('../api/_lib/assistant.js');
 const pos = await import('../api/_lib/posForm.js');
 const search = await import('../api/_lib/search.js');
+const { sb } = await import('../api/_lib/muse.js');
+const directSale = (body) => pos.createSaleFromForm({ body, label: 'prueba', tenantId: TENANT }, { sb, ventaMostrador: (input, actor, query) => ventaMostrador(input, actor, undefined, query) });
 
 function call(route, { method = 'GET', body, query = {}, token = SERVICE } = {}) {
   return new Promise((resolve) => {
@@ -242,20 +259,22 @@ test('pos/caja: abierta con quien y desde cuando, y cerrada', async () => {
   });
 });
 
-test('pos/productos: solo con stock o servicios, IVU calculado, variantes y hay_mas', async () => {
+test('pos/productos: solo accesorios y dispositivos con stock, IVU calculado, variantes y hay_mas', async () => {
   const productos = [
-    { id: PID, nombre: 'Cargador', precio: 20, stock: 5, tipo: 'producto', gravable: true, categoria: 'Accesorios' },
-    { id: PID2, nombre: 'Cable', precio: 10, stock: 0, tipo: 'producto', gravable: true, categoria: null },
-    { id: 'svc', nombre: 'Diagnostico', precio: 30, stock: null, tipo: 'servicio', gravable: false, categoria: 'Servicios' },
+    { id: PID, nombre: 'Cargador', precio: 20, stock: 5, tipo: 'producto', gravable: true, categoria: 'Accesorios', tipo_pos: 'accesorio' },
+    { id: PID2, nombre: 'Cable', precio: 10, stock: 0, tipo: 'producto', gravable: true, categoria: null, tipo_pos: 'accesorio' },
+    { id: EQUIPO_ID, nombre: 'Samsung A06', precio: 151, stock: null, tipo: 'producto', gravable: true, categoria: null, tipo_pos: 'dispositivo' },
+    { id: 'svc', nombre: 'Diagnostico', precio: 30, stock: null, tipo: 'servicio', gravable: false, categoria: 'Servicios', tipo_pos: null },
+    { id: PIEZA_ID, nombre: 'Pantalla', precio: 100, stock: 3, tipo: 'producto', gravable: true, categoria: 'Pantallas', tipo_pos: null },
   ];
   const deps = {
     callApi: async (m, p, o) => {
       assert.equal(p, 'pos/productos');
-      assert.deepEqual(o.query, { q: 'car', pagina: 2, limite: 30 });
+      assert.deepEqual(o.query, { q: 'car', pagina: 2, limite: 30, pos_tipo: 'ambos' });
       return { status: 200, body: { ok: true, productos } };
     },
     sb: async (path) => {
-      assert.ok(path.startsWith(`product_variant?product_id=in.(${PID})`));
+      assert.ok(path.startsWith(`product_variant?product_id=in.(${PID},${EQUIPO_ID})`));
       return [{ product_id: PID }];
     },
     withIvu,
@@ -264,14 +283,67 @@ test('pos/productos: solo con stock o servicios, IVU calculado, variantes y hay_
   assert.equal(r.status, 200);
   assert.equal(r.body.hay_mas, false);
   assert.deepEqual(r.body.productos, [
-    { id: PID, nombre: 'Cargador', precio_sin_ivu: 20, precio_con_ivu: 22.3, stock: 5, tipo: 'producto', categoria: 'Accesorios', tiene_variantes: true },
-    { id: 'svc', nombre: 'Diagnostico', precio_sin_ivu: 30, precio_con_ivu: 30, stock: null, tipo: 'servicio', categoria: 'Servicios', tiene_variantes: false },
+    { id: PID, nombre: 'Cargador', precio_sin_ivu: 20, precio_con_ivu: 22.3, stock: 5, tipo: 'producto', categoria: 'Accesorios', tipo_pos: 'accesorio', tiene_variantes: true },
+    { id: EQUIPO_ID, nombre: 'Samsung A06', precio_sin_ivu: 151, precio_con_ivu: 168.37, stock: null, tipo: 'producto', categoria: null, tipo_pos: 'dispositivo', tiene_variantes: false },
   ]);
-  const many = await pos.posProductList({ q: '', actor: 'x' }, { ...deps, callApi: async () => ({ status: 200, body: { ok: true, productos: Array.from({ length: 30 }, (_, i) => ({ id: `p${i}`, nombre: 'x', precio: 1, stock: 1, tipo: 'producto' })) } }), sb: async () => [] });
+  const many = await pos.posProductList({ q: '', actor: 'x' }, { ...deps, callApi: async () => ({ status: 200, body: { ok: true, productos: Array.from({ length: 30 }, (_, i) => ({ id: `p${i}`, nombre: 'x', precio: 1, stock: 1, tipo: 'producto', tipo_pos: i % 2 ? 'accesorio' : null })) } }), sb: async () => [] });
   assert.equal(many.body.hay_mas, true);
-  assert.equal(many.body.productos.length, 30);
+  assert.equal(many.body.productos.length, 15);
   const badPage = await pos.posProductList({ pagina: '0' }, deps);
   assert.equal(badPage.status, 400);
+});
+
+test('posKind replica las reglas de iOS (isAccessoryItem / isFullDevice)', async () => {
+  const { posKind } = await import('../api/_lib/jaime.js');
+  const cases = [
+    [{ tipo_principal: 'accesorios', subcategoria: 'covers', type: 'product' }, 'accesorio'],
+    [{ tipo_principal: 'Accesorios', type: 'service' }, 'accesorio'],
+    [{ tipo_principal: 'dispositivos', subcategoria: 'dispositivo_completo', type: 'product' }, 'dispositivo'],
+    [{ tipo_principal: 'DISPOSITIVOS', subcategoria: 'Dispositivo_Completo' }, 'dispositivo'],
+    [{ tipo_principal: 'dispositivos', subcategoria: 'piezas_servicios', type: 'product' }, null],
+    [{ tipo_principal: 'dispositivos', subcategoria: null, type: 'device' }, null],
+    [{ tipo_principal: 'servicios', subcategoria: 'servicio', type: 'service' }, null],
+    [{ tipo_principal: 'servicios', type: 'accessory' }, null],
+    [{ tipo_principal: null, type: 'accessory' }, 'accesorio'],
+    [{ tipo_principal: '', type: 'Device' }, 'dispositivo'],
+    [{ type: 'product' }, null],
+    [{ type: 'service' }, null],
+    [{}, null],
+  ];
+  for (const [row, want] of cases) assert.equal(posKind(row), want, JSON.stringify(row));
+});
+
+test('pos/productos de punta a punta: filtro en la consulta segun tipo y sin piezas ni servicios', async () => {
+  const want = {
+    accesorios: 'and=(or(tipo_principal.ilike.accesorios,and(tipo_principal.is.null,type.ilike.accessory)))',
+    dispositivos: 'and=(or(and(tipo_principal.ilike.dispositivos,subcategoria.ilike.dispositivo_completo),and(tipo_principal.is.null,type.ilike.device)))',
+    ambos: 'and=(or(tipo_principal.ilike.accesorios,and(tipo_principal.is.null,type.ilike.accessory),and(tipo_principal.ilike.dispositivos,subcategoria.ilike.dispositivo_completo),and(tipo_principal.is.null,type.ilike.device)))',
+  };
+  const ids = { accesorios: [PID], dispositivos: [EQUIPO_ID, LEGADO_ID], ambos: [PID, EQUIPO_ID, LEGADO_ID] };
+  for (const [tipo, filter] of Object.entries(want)) {
+    for (const query of tipo === 'ambos' ? [{ tipo }, {}, { tipo: ' AMBOS ' }] : [{ tipo }]) {
+      const fake = fakeSupabase();
+      let r;
+      await withFetch(fake, async () => { r = await call('pos/productos', { query }); });
+      assert.equal(r.status, 200, JSON.stringify(r.body));
+      assert.deepEqual(r.body.productos.map((p) => p.id).sort(), [...ids[tipo]].sort(), tipo);
+      assert.ok(r.body.productos.every((p) => (tipo === 'accesorios' ? p.tipo_pos === 'accesorio' : tipo === 'dispositivos' ? p.tipo_pos === 'dispositivo' : ['accesorio', 'dispositivo'].includes(p.tipo_pos))));
+      const list = fake.calls.find((c) => c.url.includes('/product?') && c.url.includes('order=name.asc'));
+      const url = decodeURIComponent(list.url);
+      assert.ok(url.includes(`&${filter}`), url);
+      assert.ok(url.includes('&limit=30&offset=0'));
+      assert.ok(url.includes('tipo_principal') && url.includes('subcategoria'));
+      assert.equal(fake.calls.filter((c) => c.method !== 'GET').length, 0);
+    }
+  }
+  const fake = fakeSupabase();
+  await withFetch(fake, async () => {
+    const bad = await call('pos/productos', { query: { tipo: 'piezas' } });
+    assert.equal(bad.status, 400);
+    assert.equal(bad.body.code, 'invalid_query');
+    assert.match(bad.body.error, /accesorios, dispositivos, ambos/);
+  });
+  assert.equal(fake.calls.length, 0);
 });
 
 test('buscar: menos de 2 caracteres devuelve listas vacias sin consultar', async () => {
@@ -322,8 +394,8 @@ test('buscar: boletos abiertos primero, WO sin guion, notas, clientes con saldo 
   assert.deepEqual(Object.keys(r.body.boletos[2]).sort(), ['actualizado', 'cliente', 'equipo', 'estatus', 'estatus_nombre', 'id', 'numero', 'telefono']);
   assert.deepEqual(r.body.clientes, [{ id: ids[0], nombre: 'Juan', apellido: 'Perez', telefono: '7875551234', email: null, boletos: 2, saldo_pendiente: 40 }]);
   assert.deepEqual(r.body.piezas, [
-    { id: PID, nombre: 'Pantalla', precio_sin_ivu: 100, precio_con_ivu: 111.5, stock: 2, categoria: 'Pantallas' },
-    { id: PID2, nombre: 'Bateria Apple', precio_sin_ivu: 50, precio_con_ivu: 50, stock: 3, categoria: 'Accesorios' },
+    { id: PID, nombre: 'Pantalla', precio_sin_ivu: 100, precio_con_ivu: 111.5, stock: 2, categoria: 'Pantallas', vendible_pos: false },
+    { id: PID2, nombre: 'Bateria Apple', precio_sin_ivu: 50, precio_con_ivu: 50, stock: 3, categoria: 'Accesorios', vendible_pos: true, tipo_pos: 'accesorio' },
   ]);
   assert.equal('avisos' in r.body, false);
 });
@@ -583,5 +655,82 @@ test('filtro de 5 minutos: POST pos/venta sin id_cliente_solicitud o sin tabla l
     assert.equal(r.body.venta.id, 'old-1');
     assert.equal(fake.sale(), null);
     assert.equal(recentQueries(fake), 1);
+  }
+});
+
+test('buscar piezas: marca vendible_pos y tipo_pos sin quitar piezas ni servicios', async () => {
+  const fake = fakeSupabase();
+  let r;
+  await withFetch(fake, async () => { r = await call('buscar', { query: { q: 'pantalla', tipos: 'piezas' } }); });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  const byId = Object.fromEntries(r.body.piezas.map((p) => [p.id, p]));
+  assert.deepEqual(Object.keys(byId).sort(), CATALOG.map((p) => p.id).sort());
+  assert.equal(byId[PID].vendible_pos, true);
+  assert.equal(byId[PID].tipo_pos, 'accesorio');
+  assert.equal(byId[EQUIPO_ID].tipo_pos, 'dispositivo');
+  assert.equal(byId[LEGADO_ID].tipo_pos, 'dispositivo');
+  for (const id of [PIEZA_ID, SERVICIO_ID]) {
+    assert.equal(byId[id].vendible_pos, false);
+    assert.equal('tipo_pos' in byId[id], false);
+  }
+  const reads = fake.calls.filter((c) => c.url.includes('/product?')).map((c) => decodeURIComponent(c.url));
+  assert.equal(reads.length, 2);
+  assert.ok(reads.every((u) => u.includes('tipo_principal,subcategoria') && !u.includes('and=(')));
+  assert.equal(fake.calls.filter((c) => c.method !== 'GET').length, 0);
+});
+
+test('POST pos/venta rechaza piezas y servicios con 400 invalid_body sin escribir', async () => {
+  for (const ids of [[PIEZA_ID], [SERVICIO_ID], [PID, PIEZA_ID]]) {
+    const fake = fakeSupabase({ requestsTable: 'ok' });
+    let r;
+    await withFetch(fake, async () => {
+      r = await directSale({ ...saleBody(), monto_recibido: 1000, id_cliente_solicitud: REQUEST_ID, items: ids.map((producto_id) => ({ producto_id, cantidad: 1 })) });
+    });
+    assert.equal(r.status, 400, JSON.stringify(r.body));
+    assert.equal(r.body.ok, false);
+    assert.equal(r.body.code, 'invalid_body');
+    assert.equal(r.body.error, 'Este articulo es una pieza o servicio y no se vende en el POS; agregalo al boleto.');
+    const bad = ids.length - 1;
+    assert.deepEqual(r.body.rechazados, [{ indice: bad, producto_id: ids[bad], nombre: CATALOG.find((p) => p.id === ids[bad]).name }]);
+    assert.equal(fake.sale(), null);
+    assert.equal(fake.calls.filter((c) => c.method !== 'GET').length, 0);
+    const check = fake.calls.find((c) => c.url.includes('/product?') && c.url.includes('id=in.'));
+    assert.ok(decodeURIComponent(check.url).includes(`tenant_id=eq.${TENANT}&id=in.(${ids.join(',')})`));
+  }
+});
+
+test('POST pos/venta acepta accesorio, dispositivo completo y legado type device', async () => {
+  const fake = fakeSupabase();
+  let r;
+  await withFetch(fake, async () => {
+    r = await directSale({ ...saleBody(), metodo: 'card', monto_recibido: undefined, items: [{ producto_id: PID, cantidad: 1 }, { producto_id: EQUIPO_ID, cantidad: 1 }, { producto_id: LEGADO_ID, cantidad: 1 }] });
+  });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(r.body.venta.subtotal, 371);
+  assert.deepEqual(fake.sale().items.map((i) => i.product_name), ['Cargador USB-C', 'Samsung A06 5G', 'iPhone 11 usado']);
+});
+
+test('POST pos/venta: si no se pueden validar los productos responde 502 sin escribir', async () => {
+  const fake = fakeSupabase();
+  const fetchImpl = fake.fetchImpl;
+  fake.fetchImpl = async (url, opts) => (String(url).includes('/product?') && String(url).includes('id=in.') ? jsonResponse(500, { message: 'caido' }) : fetchImpl(url, opts));
+  let r;
+  await quiet(() => withFetch(fake, async () => { r = await directSale(saleBody()); }));
+  assert.equal(r.status, 502);
+  assert.equal(r.body.code, 'upstream_error');
+  assert.equal(fake.sale(), null);
+});
+
+test('la herramienta venta_mostrador del asistente sigue vendiendo piezas y servicios como antes', async () => {
+  for (const item of [PIEZA, SERVICIO]) {
+    const fake = fakeSupabase();
+    let r;
+    await withFetch(fake, async () => {
+      r = await ventaMostrador({ items: [{ producto_id: item.id, cantidad: 1 }], metodo: 'tarjeta' }, 'Asistente IA - prueba');
+    });
+    assert.equal(r.status, 200, JSON.stringify(r.body));
+    assert.equal(r.body.ok, true);
+    assert.equal(fake.sale().items[0].product_name, item.name);
+    assert.equal(fake.calls.filter((c) => c.url.includes('id=in.')).length, 0);
   }
 });

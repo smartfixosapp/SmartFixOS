@@ -96,6 +96,8 @@ export function pieceOut(p, withIvu) {
     stock: p.stock,
   };
   if (p.categoria) out.categoria = p.categoria;
+  out.vendible_pos = Boolean(p.tipo_pos);
+  if (p.tipo_pos) out.tipo_pos = p.tipo_pos;
   return out;
 }
 

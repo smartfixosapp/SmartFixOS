@@ -1415,7 +1415,7 @@ export async function assistantHandler(req, res) {
       return res.status(r.status).json(r.body);
     }
     if (route === 'pos/productos' && req.method === 'GET') {
-      const r = await posProductList({ q: req.query?.q, pagina: req.query?.pagina, actor: auth.label }, { callApi, sb, withIvu });
+      const r = await posProductList({ q: req.query?.q, pagina: req.query?.pagina, tipo: req.query?.tipo, actor: auth.label }, { callApi, sb, withIvu });
       return res.status(r.status).json(r.body);
     }
     if (route === 'pos/caja' && req.method === 'GET') {

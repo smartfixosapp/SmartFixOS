@@ -1956,6 +1956,30 @@ async function patchCustomer(req, res, id) {
 
 const IVU_RATE = 0.115;
 
+export function posKind(p) {
+  const bucket = String(p?.tipo_principal || '').toLowerCase();
+  const sub = String(p?.subcategoria || '').toLowerCase();
+  const type = String(p?.type || '').toLowerCase();
+  if (bucket) {
+    if (bucket === 'accesorios') return 'accesorio';
+    if (bucket === 'dispositivos' && sub === 'dispositivo_completo') return 'dispositivo';
+    return null;
+  }
+  if (type === 'accessory') return 'accesorio';
+  if (type === 'device') return 'dispositivo';
+  return null;
+}
+
+const POS_KIND_CLAUSES = {
+  accesorios: ['tipo_principal.ilike.accesorios', 'and(tipo_principal.is.null,type.ilike.accessory)'],
+  dispositivos: ['and(tipo_principal.ilike.dispositivos,subcategoria.ilike.dispositivo_completo)', 'and(tipo_principal.is.null,type.ilike.device)'],
+};
+
+export function posKindFilter(tipo) {
+  const clauses = tipo === 'ambos' ? [...POS_KIND_CLAUSES.accesorios, ...POS_KIND_CLAUSES.dispositivos] : POS_KIND_CLAUSES[tipo];
+  return clauses ? `&and=(or(${clauses.join(',')}))` : '';
+}
+
 export function posProductShape(p) {
   const tracked = p.stock !== null && p.stock !== undefined && Number(p.stock) >= 0;
   return {
@@ -1972,10 +1996,11 @@ export function posProductShape(p) {
     marca: p.device_brand || null,
     modelo: p.device_model_tag || null,
     categoria: p.category || null,
+    tipo_pos: posKind(p),
   };
 }
 
-export const POS_COLUMNS = 'id,name,price,cost,stock,min_stock,type,taxable,sku,barcode,device_brand,device_model_tag,category,active';
+export const POS_COLUMNS = 'id,name,price,cost,stock,min_stock,type,taxable,sku,barcode,device_brand,device_model_tag,category,active,tipo_principal,subcategoria';
 
 async function posProducts(req, res) {
   const q = req.query || {};
@@ -1986,6 +2011,7 @@ async function posProducts(req, res) {
   if (term) url += `&or=(name.ilike.*${term}*,sku.ilike.*${term}*,barcode.ilike.*${term}*)`;
   if (q.tipo === 'servicio') url += '&type=eq.service';
   else if (q.tipo === 'producto') url += '&type=eq.product';
+  url += posKindFilter(q.pos_tipo);
   let rows = (await sb(url)) || [];
   if (String(q.bajo_stock) === 'true') rows = rows.filter((p) => p.stock !== null && Number(p.stock) >= 0 && Number(p.stock) <= Number(p.min_stock || 0));
   if (String(q.con_stock) === 'true') rows = rows.filter((p) => p.stock === null || Number(p.stock) < 0 || Number(p.stock) > 0);
@@ -2850,6 +2876,7 @@ function openapi() {
           parameters: [
             { name: 'q', in: 'query', description: 'Busca por nombre, SKU o codigo de barras', schema: { type: 'string' } },
             { name: 'tipo', in: 'query', schema: { type: 'string', enum: ['producto', 'servicio'] } },
+            { name: 'pos_tipo', in: 'query', description: 'Solo lo que se vende en el POS: accesorios, dispositivos completos o ambos (sin piezas ni servicios)', schema: { type: 'string', enum: ['accesorios', 'dispositivos', 'ambos'] } },
             { name: 'bajo_stock', in: 'query', schema: { type: 'boolean' } },
             { name: 'con_stock', in: 'query', description: 'true oculta los que tienen stock 0', schema: { type: 'boolean' } },
             { name: 'limite', in: 'query', schema: { type: 'integer', default: 30, maximum: 100 } },
