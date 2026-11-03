@@ -30,6 +30,7 @@ import { comparePrices, recordFromSearch, addWatch, listWatch, removeWatch } fro
 import { searchCustomers, createTicketFromForm } from './ticketForm.js';
 import { universalSearch } from './search.js';
 import { posProductList, cashRegisterState, createSaleFromForm, posConfig, posQr } from './posForm.js';
+import { readScreenContext, screenContextText } from './screenContext.js';
 
 const TENANT_ID = process.env.MUSE_TENANT_ID || '';
 const SECRET = process.env.ASSISTANT_KEY_SECRET || '';
@@ -1085,13 +1086,14 @@ function noteClientAction(executed, toolUse, body) {
   }
 }
 
-export async function runAgent({ config, apiKey, messages, decisions, actor, shopName, deps, extraText = '', tools = TOOLS, maxIterations = MAX_ITERATIONS }) {
+export async function runAgent({ config, apiKey, messages, decisions, actor, shopName, deps, extraText = '', screenContext = '', tools = TOOLS, maxIterations = MAX_ITERATIONS }) {
   const history = [...trimHistory(messages)];
   const produced = [];
   const executed = [];
   const steps = [];
   const usage = { entrada: 0, salida: 0, cache_lectura: 0, cache_escritura: 0, usd: 0, usd_ahorrado_cache: 0, llamadas: 0 };
   const system = systemPrompt(shopName, actor);
+  if (screenContext) system.variable = `${system.variable}\n${screenContext}`;
   const last = history[history.length - 1];
 
   if (last && last.role === 'assistant' && Array.isArray(last.content) && last.content.some((b) => b.type === 'tool_use')) {
@@ -1545,8 +1547,11 @@ export async function assistantHandler(req, res) {
         const p = rows?.[0]?.payload || {};
         shopName = p.business_name || p.shop_name || p.name || shopName;
       } catch {}
+      const pantalla = readScreenContext(b.contexto);
+      const screenContext = pantalla ? await screenContextText(pantalla, { loadTicket: (numero) => fetchTicketPanel(numero, auth.label) }) : '';
       try {
         const out = await runAgent({
+          screenContext,
           config: runConfig,
           apiKey,
           messages: b.messages,
