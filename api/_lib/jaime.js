@@ -2037,6 +2037,12 @@ async function posSale(req, res) {
   const notas = typeof b.notas === 'string' ? b.notas.trim().slice(0, 300) : '';
   const emailCliente = typeof b.email_cliente === 'string' ? b.email_cliente.trim().toLowerCase() : '';
   if (emailCliente && (!validEmail(emailCliente) || /[^\x00-\x7F]/.test(emailCliente))) return fail(res, 400, 'email_cliente invalido', 'invalid_body');
+  const q = req.query || {};
+  const tasaIn = typeof q.tasa_ivu === 'string' && q.tasa_ivu.trim() !== '' ? Number(q.tasa_ivu) : NaN;
+  const ivuRate = Number.isFinite(tasaIn) && tasaIn >= 0 && tasaIn <= 0.5 ? tasaIn : IVU_RATE;
+  const etiqueta = typeof q.metodo_etiqueta === 'string' ? q.metodo_etiqueta.trim().replace(/\s+/g, ' ').slice(0, 60) : '';
+  const metodoGuardado = etiqueta && metodo !== 'cash' ? etiqueta.toLowerCase() : metodo;
+  const filtroDuplicados = String(q.sin_filtro_duplicados || '') !== '1';
 
   const lines = [];
   for (let i = 0; i < rawItems.length; i += 1) {
@@ -2051,7 +2057,7 @@ async function posSale(req, res) {
     const gross = money(l.precio * l.cantidad);
     const discount = money((gross * l.descuento) / 100);
     const lineTotal = Math.max(0, money(gross - discount));
-    const rate = l.gravable ? IVU_RATE : 0;
+    const rate = l.gravable ? ivuRate : 0;
     const tax = money(lineTotal * rate);
     subtotal = money(subtotal + lineTotal);
     taxTotal = money(taxTotal + tax);
@@ -2086,12 +2092,15 @@ async function posSale(req, res) {
   const register = registers?.[0];
   if (!register) return fail(res, 409, 'No hay una caja abierta. Abre la caja desde la app para registrar ventas de mostrador.', 'no_open_register');
 
-  const since = new Date(Date.now() - 5 * 60_000).toISOString();
-  const recent = (await sb(
-    `sale?tenant_id=eq.${TENANT_ID}&employee=eq.${actorName()}&created_at=gte.${since}&select=id,sale_number,total,payment_method,items&limit=20`
-  )) || [];
-  const signature = (items) => (Array.isArray(items) ? items : []).map((i) => `${String(i.product_name).toLowerCase()}x${i.quantity}`).sort().join('|');
-  const dupe = recent.find((s) => Math.abs(Number(s.total) - total) < 0.005 && s.payment_method === metodo && signature(s.items) === signature(saleItems));
+  let dupe = null;
+  if (filtroDuplicados) {
+    const since = new Date(Date.now() - 5 * 60_000).toISOString();
+    const recent = (await sb(
+      `sale?tenant_id=eq.${TENANT_ID}&employee=eq.${actorName()}&created_at=gte.${since}&select=id,sale_number,total,payment_method,items&limit=20`
+    )) || [];
+    const signature = (items) => (Array.isArray(items) ? items : []).map((i) => `${String(i.product_name).toLowerCase()}x${i.quantity}`).sort().join('|');
+    dupe = recent.find((s) => Math.abs(Number(s.total) - total) < 0.005 && s.payment_method === metodoGuardado && signature(s.items) === signature(saleItems)) || null;
+  }
   if (dupe) {
     return res.status(200).json({
       ok: true,
@@ -2144,7 +2153,7 @@ async function posSale(req, res) {
         subtotal,
         tax_amount: taxTotal,
         total,
-        payment_method: metodo,
+        payment_method: metodoGuardado,
         employee: actorName(),
         amount_received: recibido,
         amount_paid: total,
@@ -2165,7 +2174,7 @@ async function posSale(req, res) {
         type: 'revenue',
         amount: total,
         category: 'repair_payment',
-        payment_method: metodo,
+        payment_method: metodoGuardado,
         description: 'Venta POS',
         recorded_by: actorName(),
       },
@@ -2202,7 +2211,7 @@ async function posSale(req, res) {
 
   let notification = { enviada: false, motivo: emailCliente ? 'notificacion desactivada (notificar_cliente:false)' : 'sin email_cliente; envialo para mandar el recibo' };
   if (emailCliente && wantsNotification(b.notificar_cliente)) {
-    const methodLabel = { cash: 'efectivo', card: 'tarjeta', ath_movil: 'ATH Móvil', transferencia: 'transferencia' }[metodo] || metodo;
+    const methodLabel = (etiqueta && metodo !== 'cash' ? etiqueta : null) || { cash: 'efectivo', card: 'tarjeta', ath_movil: 'ATH Móvil', transferencia: 'transferencia' }[metodo] || metodo;
     const detail = saleItems.map((i) => `${i.quantity} x ${i.product_name}: $${i.total.toFixed(2)}`).join('\n');
     const text = [`Gracias por tu compra. Este es el recibo de tu venta ${saleNumber}.`, detail, `Subtotal: $${subtotal.toFixed(2)}\nIVU: $${taxTotal.toFixed(2)}\nTotal: $${total.toFixed(2)} (${methodLabel})`].join('\n\n');
     try {
@@ -2222,7 +2231,7 @@ async function posSale(req, res) {
       subtotal,
       iva: taxTotal,
       total,
-      metodo,
+      metodo: metodoGuardado,
       recibido,
       cambio,
       items: saleItems.map((i) => ({ nombre: i.product_name, cantidad: i.quantity, precio: i.unit_price, total: i.total })),

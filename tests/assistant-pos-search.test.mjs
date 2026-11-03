@@ -20,9 +20,10 @@ function jsonResponse(status, data) {
   return new Response(data === undefined ? '' : JSON.stringify(data), { status, headers: { 'content-type': 'application/json' } });
 }
 
-function fakeSupabase({ register = true, requestsTable = 'missing', storedRequest = null, storedSale = null } = {}) {
+function fakeSupabase({ register = true, requestsTable = 'missing', storedRequest = null, storedSale = null, tenant = null, tenantFail = false, recentSales = [] } = {}) {
   const calls = [];
   let insertedSale = null;
+  const transactions = [];
   const fetchImpl = async (url, opts = {}) => {
     const u = String(url);
     const method = opts.method || 'GET';
@@ -35,21 +36,25 @@ function fakeSupabase({ register = true, requestsTable = 'missing', storedReques
       if (method === 'GET') return jsonResponse(200, storedRequest ? [storedRequest] : []);
       return jsonResponse(201);
     }
+    if (path.startsWith('tenant?')) return tenantFail ? jsonResponse(500, { message: 'caido' }) : jsonResponse(200, tenant ? [tenant] : []);
     if (path.startsWith('cash_register?')) return jsonResponse(200, register ? [{ id: 'reg-1', status: 'open', opened_by: 'Francis', created_date: '2026-11-03T12:00:00.000Z' }] : []);
     if (path.startsWith('product_variant?')) return jsonResponse(200, []);
     if (path.startsWith('product?') && method === 'PATCH') return jsonResponse(200, [{ ...PRODUCT, stock: body.stock }]);
     if (path.startsWith('product?') && path.includes(`id=eq.${PID}`)) return jsonResponse(200, [PRODUCT]);
     if (path.startsWith('sale?') && path.includes('sale_number=eq.')) return jsonResponse(200, storedSale ? [storedSale] : []);
-    if (path.startsWith('sale?')) return jsonResponse(200, []);
+    if (path.startsWith('sale?')) return jsonResponse(200, path.includes('created_at=gte.') ? recentSales : []);
     if (path === 'sale' && method === 'POST') {
       insertedSale = { ...body, id: 'sale-1' };
       return jsonResponse(201, [insertedSale]);
     }
-    if (path === 'transaction' && method === 'POST') return jsonResponse(201);
+    if (path === 'transaction' && method === 'POST') {
+      transactions.push(body);
+      return jsonResponse(201);
+    }
     if (method === 'GET') return jsonResponse(200, []);
     return jsonResponse(200, {});
   };
-  return { calls, fetchImpl, sale: () => insertedSale };
+  return { calls, fetchImpl, sale: () => insertedSale, transactions };
 }
 
 const realFetch = globalThis.fetch;
@@ -87,10 +92,10 @@ async function quiet(fn) {
 const withIvu = (n) => Math.round(Number(n) * 1.115 * 100) / 100;
 const saleBody = () => ({ items: [{ producto_id: PID, cantidad: 2 }], metodo: 'cash', monto_recibido: 50, origen: 'android' });
 
-test('sin token responde 401 JSON en las 4 rutas nuevas', async () => {
+test('sin token responde 401 JSON en las rutas nuevas', async () => {
   const fake = fakeSupabase();
   await withFetch(fake, async () => {
-    for (const [route, method] of [['buscar', 'GET'], ['pos/productos', 'GET'], ['pos/caja', 'GET'], ['pos/venta', 'POST']]) {
+    for (const [route, method] of [['buscar', 'GET'], ['pos/productos', 'GET'], ['pos/caja', 'GET'], ['pos/venta', 'POST'], ['pos/config', 'GET'], ['pos/qr', 'GET']]) {
       const r = await call(route, { method, token: '', query: { q: 'ab' }, body: saleBody() });
       assert.equal(r.status, 401, route);
       assert.equal(r.body.ok, false);
@@ -139,7 +144,7 @@ test('POST pos/venta: registra por la misma funcion, atribuida a la app Android,
   assert.equal(r.body.ok, true);
   assert.equal(r.body.repetido, false);
   assert.match(r.body.venta.numero, /^POS-[0-9A-F]{8}$/);
-  assert.deepEqual({ ...r.body.venta, numero: 'x' }, { numero: 'x', total: 44.6, subtotal: 40, ivu: 4.6, cambio: 5.4 });
+  assert.deepEqual({ ...r.body.venta, numero: 'x' }, { id: 'sale-1', numero: 'x', total: 44.6, subtotal: 40, ivu: 4.6, cambio: 5.4 });
   const sale = fake.sale();
   assert.equal(sale.employee, 'prueba - App Android');
   assert.equal(sale.notes, 'mostrador');
@@ -172,11 +177,11 @@ test('POST pos/venta: efectivo con monto menor al total lo rechaza la funcion co
 });
 
 test('id_cliente_solicitud repetido devuelve la venta ya hecha sin registrar otra', async () => {
-  const fake = fakeSupabase({ requestsTable: 'ok', storedRequest: { venta_numero: 'POS-ABCD1234' }, storedSale: { sale_number: 'POS-ABCD1234', subtotal: 40, tax_amount: 4.6, total: 44.6, change_due: 5.4, payment_method: 'cash' } });
+  const fake = fakeSupabase({ requestsTable: 'ok', storedRequest: { venta_numero: 'POS-ABCD1234' }, storedSale: { id: 'sale-9', sale_number: 'POS-ABCD1234', subtotal: 40, tax_amount: 4.6, total: 44.6, change_due: 5.4, payment_method: 'cash' } });
   await withFetch(fake, async () => {
     const r = await call('pos/venta', { method: 'POST', body: { ...saleBody(), id_cliente_solicitud: REQUEST_ID } });
     assert.equal(r.status, 200, JSON.stringify(r.body));
-    assert.deepEqual(r.body, { ok: true, repetido: true, venta: { numero: 'POS-ABCD1234', total: 44.6, subtotal: 40, ivu: 4.6, cambio: 5.4 } });
+    assert.deepEqual(r.body, { ok: true, repetido: true, venta: { id: 'sale-9', numero: 'POS-ABCD1234', total: 44.6, subtotal: 40, ivu: 4.6, cambio: 5.4 } });
   });
   assert.equal(fake.calls.filter((c) => c.method !== 'GET').length, 0);
 });
@@ -352,4 +357,231 @@ test('buscar clientes sin saldo (ruta clientes) no cambia su forma', async () =>
   };
   const r = await form.searchCustomers({ q: 'ana', actor: 'x', tenantId: TENANT }, deps);
   assert.deepEqual(r.body.clientes[0], { id: PID, nombre: 'Ana', apellido: 'Rivera', telefono: null, email: null, boletos: 1 });
+});
+
+const DEFAULT_METODOS = [
+  { id: 'efectivo', etiqueta: 'Efectivo', tipo: 'efectivo', tiene_qr: false, color: '#34C759' },
+  { id: 'tarjeta', etiqueta: 'Tarjeta', tipo: 'tarjeta', tiene_qr: false, color: '#007AFF' },
+  { id: 'ath_movil', etiqueta: 'ATH Móvil', tipo: 'ath_movil', tiene_qr: false, color: '#ED4A17' },
+];
+const SHOP = {
+  name: '911 Smart Fix',
+  admin_phone: '787-555-0000',
+  tax_rate: '10.5',
+  payment_methods: {
+    cash: true,
+    card: false,
+    ath: true,
+    athHidden: true,
+    athQR: { imageBase64: '/9j/athqr' },
+    custom: [
+      { id: 'C-ZELLE', label: 'Zelle', enabled: true, qr: { paymentURL: ' https://zelle.test/pagar ' } },
+      { id: 'C-OFF', label: 'Venmo', enabled: false },
+      { id: 'C-TR', label: 'Transferencia bancaria', enabled: true },
+      { id: 'C-PNG', label: 'ATH Empresarial', enabled: true, qr: { imageBase64: 'iVBORw0K\nGgo=' } },
+      { id: 'C-X', label: 'Cupón', enabled: true },
+    ],
+  },
+  pos_recibo: { sale_subject: 'a', order_subject: 'b', send_email: true, send_whatsapp: false, send_print: false },
+};
+
+test('pos/config sin configuracion del taller usa los valores del iPad', async () => {
+  const fake = fakeSupabase();
+  await withFetch(fake, async () => {
+    const r = await call('pos/config');
+    assert.equal(r.status, 200);
+    assert.deepEqual(r.body, {
+      ok: true,
+      iva_tasa: 0.115,
+      metodos: DEFAULT_METODOS,
+      canales_recibo: { email: true, whatsapp: true, pdf: true },
+      umbral_confirmacion: 500,
+      descuento_max_empleado: 20,
+      tienda: { nombre: 'Mi taller' },
+    });
+  });
+  const read = fake.calls.find((c) => c.url.includes('/tenant?'));
+  assert.ok(decodeURIComponent(read.url).includes(`tenant?id=eq.${TENANT}&select=name,admin_phone,tax_rate:settings->tax_rate,payment_methods:settings->payment_methods,pos_recibo:settings->pos_recibo`));
+  assert.equal(fake.calls.filter((c) => c.method !== 'GET').length, 0);
+});
+
+test('pos/config lee metodos, ATH oculto, personalizados activos en orden, colores, IVU y canales del taller', async () => {
+  const fake = fakeSupabase({ tenant: SHOP });
+  await withFetch(fake, async () => {
+    const r = await call('pos/config');
+    assert.equal(r.status, 200);
+    assert.equal(r.body.iva_tasa, 0.105);
+    assert.deepEqual(r.body.metodos, [
+      { id: 'efectivo', etiqueta: 'Efectivo', tipo: 'efectivo', tiene_qr: false, color: '#34C759' },
+      { id: 'C-ZELLE', etiqueta: 'Zelle', tipo: 'personalizado', tiene_qr: true, color: '#6E1FD4' },
+      { id: 'C-TR', etiqueta: 'Transferencia bancaria', tipo: 'transferencia', tiene_qr: false, color: '#4D73B3' },
+      { id: 'C-PNG', etiqueta: 'ATH Empresarial', tipo: 'personalizado', tiene_qr: true, color: '#F56B0F' },
+      { id: 'C-X', etiqueta: 'Cupón', tipo: 'personalizado', tiene_qr: false, color: '#D9A61A' },
+    ]);
+    assert.deepEqual(r.body.canales_recibo, { email: true, whatsapp: false, pdf: false });
+    assert.deepEqual(r.body.tienda, { nombre: '911 Smart Fix', telefono: '787-555-0000' });
+  });
+  assert.equal(fake.calls.filter((c) => c.method !== 'GET').length, 0);
+});
+
+test('pos/config: valores invalidos caen al valor por defecto como en el iPad', async () => {
+  const cases = [
+    [{ tax_rate: 80, payment_methods: { cash: false, card: false, ath: false }, pos_recibo: { send_email: false } }, 0.115, DEFAULT_METODOS],
+    [{ tax_rate: 'abc', payment_methods: { custom: [{ id: 'A', label: 'Zelle', enabled: true }, { id: 'B', label: 'Venmo' }] } }, 0.115, DEFAULT_METODOS],
+    [{ tax_rate: 0, payment_methods: 'x' }, 0, DEFAULT_METODOS],
+  ];
+  for (const [tenant, iva, metodos] of cases) {
+    const fake = fakeSupabase({ tenant });
+    await withFetch(fake, async () => {
+      const r = await call('pos/config');
+      assert.equal(r.body.iva_tasa, iva);
+      assert.deepEqual(r.body.metodos, metodos);
+      assert.deepEqual(r.body.canales_recibo, { email: true, whatsapp: true, pdf: true });
+    });
+  }
+  const down = fakeSupabase({ tenantFail: true });
+  let r;
+  await quiet(() => withFetch(down, async () => { r = await call('pos/config'); }));
+  assert.equal(r.status, 502);
+  assert.equal(r.body.code, 'upstream_error');
+});
+
+test('pos/qr: imagen como data URL, URL de pago, 404 sin QR o metodo inactivo y 400 sin metodo', async () => {
+  const fake = fakeSupabase({ tenant: SHOP });
+  await withFetch(fake, async () => {
+    const url = await call('pos/qr', { query: { metodo: 'c-zelle' } });
+    assert.deepEqual(url.body, { ok: true, tipo: 'url', url: 'https://zelle.test/pagar', nombre_tienda: '911 Smart Fix' });
+    const png = await call('pos/qr', { query: { metodo: 'C-PNG' } });
+    assert.deepEqual(png.body, { ok: true, tipo: 'imagen', imagen_url: 'data:image/png;base64,iVBORw0KGgo=', mime: 'image/png', nombre_tienda: '911 Smart Fix' });
+    const sinQr = await call('pos/qr', { query: { metodo: 'efectivo' } });
+    assert.equal(sinQr.status, 404);
+    assert.equal(sinQr.body.code, 'not_found');
+    assert.match(sinQr.body.error, /Efectivo no tiene un QR configurado/);
+    for (const metodo of ['ath_movil', 'C-OFF', 'nada']) {
+      const r = await call('pos/qr', { query: { metodo } });
+      assert.equal(r.status, 404, metodo);
+      assert.equal(r.body.code, 'not_found');
+    }
+    const falta = await call('pos/qr');
+    assert.equal(falta.status, 400);
+    assert.equal(falta.body.code, 'invalid_query');
+  });
+  const visible = fakeSupabase({ tenant: { ...SHOP, payment_methods: { ...SHOP.payment_methods, athHidden: false } } });
+  await withFetch(visible, async () => {
+    const r = await call('pos/qr', { query: { metodo: 'ath_movil' } });
+    assert.deepEqual(r.body, { ok: true, tipo: 'imagen', imagen_url: 'data:image/jpeg;base64,/9j/athqr', mime: 'image/jpeg', nombre_tienda: '911 Smart Fix' });
+  });
+  assert.equal(fake.calls.filter((c) => c.method !== 'GET').length, 0);
+});
+
+test('POST pos/venta usa la tasa de IVU del taller solo si es valida', async () => {
+  const fake = fakeSupabase({ tenant: { tax_rate: 7 } });
+  let r;
+  await withFetch(fake, async () => { r = await call('pos/venta', { method: 'POST', body: saleBody() }); });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.deepEqual({ ...r.body.venta, numero: 'x' }, { id: 'sale-1', numero: 'x', total: 42.8, subtotal: 40, ivu: 2.8, cambio: 7.2 });
+  assert.equal(fake.sale().items[0].tax_rate, 0.07);
+  for (const tax_rate of [60, 'abc', null]) {
+    const other = fakeSupabase({ tenant: { tax_rate } });
+    await withFetch(other, async () => { r = await call('pos/venta', { method: 'POST', body: saleBody() }); });
+    assert.equal(r.body.venta.ivu, 4.6, String(tax_rate));
+    assert.equal(other.sale().items[0].tax_rate, 0.115);
+  }
+});
+
+test('la herramienta venta_mostrador del asistente no lee la tasa del taller (IVU 11.5% como antes)', async () => {
+  const fake = fakeSupabase({ tenant: { tax_rate: 7 } });
+  await withFetch(fake, async () => {
+    const r = await ventaMostrador({ items: [{ producto_id: PID, cantidad: 1 }], metodo: 'efectivo', tasa_ivu: 0.07 }, 'Asistente IA - prueba');
+    assert.equal(r.body.venta.iva, 2.3);
+  });
+  assert.equal(fake.calls.filter((c) => c.url.includes('/tenant?')).length, 0);
+});
+
+test('POST pos/venta con metodo personalizado lo graba con su etiqueta en minuscula como el iPad', async () => {
+  const fake = fakeSupabase({ tenant: SHOP });
+  let r;
+  await withFetch(fake, async () => {
+    r = await call('pos/venta', { method: 'POST', body: { ...saleBody(), metodo: 'c-zelle', monto_recibido: undefined } });
+  });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal('cambio' in r.body.venta, false);
+  assert.equal(r.body.venta.ivu, 4.2);
+  const sale = fake.sale();
+  assert.equal(sale.payment_method, 'zelle');
+  assert.equal(sale.amount_received, sale.total);
+  assert.equal(sale.change_due, 0);
+  assert.deepEqual(fake.transactions.filter((t) => t.type === 'revenue').map((t) => t.payment_method), ['zelle']);
+  for (const metodo of ['C-OFF', 'bitcoin']) {
+    const other = fakeSupabase({ tenant: SHOP });
+    await withFetch(other, async () => {
+      const bad = await call('pos/venta', { method: 'POST', body: { ...saleBody(), metodo } });
+      assert.equal(bad.status, 400, metodo);
+      assert.equal(bad.body.code, 'invalid_body');
+      assert.match(bad.body.error, /metodo invalido/);
+    });
+    assert.equal(other.calls.filter((c) => c.method !== 'GET').length, 0);
+  }
+});
+
+test('POST pos/venta si no se puede leer el taller: metodo personalizado 502 sin escribir, metodo normal sigue con IVU por defecto', async () => {
+  const fake = fakeSupabase({ tenantFail: true });
+  let custom;
+  let normal;
+  await quiet(() => withFetch(fake, async () => {
+    custom = await call('pos/venta', { method: 'POST', body: { ...saleBody(), metodo: 'C-ZELLE' } });
+  }));
+  assert.equal(custom.status, 502);
+  assert.equal(custom.body.code, 'upstream_error');
+  assert.equal(fake.calls.filter((c) => c.method !== 'GET').length, 0);
+  await quiet(() => withFetch(fake, async () => {
+    normal = await call('pos/venta', { method: 'POST', body: saleBody() });
+  }));
+  assert.equal(normal.status, 200, JSON.stringify(normal.body));
+  assert.equal(normal.body.venta.ivu, 4.6);
+});
+
+const RECENT = [{ id: 'old-1', sale_number: 'POS-OLD00001', total: 44.6, payment_method: 'cash', items: [{ product_name: 'Cargador USB-C', quantity: 2 }] }];
+const recentQueries = (fake) => fake.calls.filter((c) => c.url.includes('/sale?') && c.url.includes('created_at=gte.')).length;
+
+test('filtro de 5 minutos: la herramienta venta_mostrador del asistente lo mantiene aunque el input traiga banderas', async () => {
+  const fake = fakeSupabase({ recentSales: RECENT });
+  let r;
+  await withFetch(fake, async () => {
+    r = await ventaMostrador({ items: [{ producto_id: PID, cantidad: 2 }], metodo: 'efectivo', monto_recibido: 50, sin_filtro_duplicados: '1' }, 'Asistente IA - prueba');
+  });
+  assert.equal(r.status, 200);
+  assert.equal(r.body.duplicado, true);
+  assert.equal(r.body.venta.id, 'old-1');
+  assert.equal(fake.sale(), null);
+  assert.equal(recentQueries(fake), 1);
+  const tool = TOOLS.find((t) => t.name === 'venta_mostrador');
+  assert.equal(tool.run({ items: [], metodo: 'efectivo' }).query, undefined);
+});
+
+test('filtro de 5 minutos: POST pos/venta con id_cliente_solicitud y tabla disponible lo omite y registra la venta', async () => {
+  const fake = fakeSupabase({ recentSales: RECENT, requestsTable: 'ok' });
+  let r;
+  await withFetch(fake, async () => {
+    r = await call('pos/venta', { method: 'POST', body: { ...saleBody(), id_cliente_solicitud: REQUEST_ID } });
+  });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(r.body.duplicado, false);
+  assert.equal(r.body.venta.id, 'sale-1');
+  assert.ok(fake.sale());
+  assert.equal(recentQueries(fake), 0);
+  assert.equal(fake.calls.filter((c) => c.method === 'POST' && c.url.includes('assistant_pos_requests')).length, 1);
+});
+
+test('filtro de 5 minutos: POST pos/venta sin id_cliente_solicitud o sin tabla lo mantiene como hoy', async () => {
+  for (const [body, requestsTable] of [[saleBody(), 'ok'], [{ ...saleBody(), id_cliente_solicitud: REQUEST_ID }, 'missing']]) {
+    const fake = fakeSupabase({ recentSales: RECENT, requestsTable });
+    let r;
+    await quiet(() => withFetch(fake, async () => { r = await call('pos/venta', { method: 'POST', body }); }));
+    assert.equal(r.status, 200, JSON.stringify(r.body));
+    assert.equal(r.body.duplicado, true, requestsTable);
+    assert.equal(r.body.venta.id, 'old-1');
+    assert.equal(fake.sale(), null);
+    assert.equal(recentQueries(fake), 1);
+  }
 });

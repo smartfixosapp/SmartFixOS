@@ -29,7 +29,7 @@ import {
 import { comparePrices, recordFromSearch, addWatch, listWatch, removeWatch } from './priceCatalog.js';
 import { searchCustomers, createTicketFromForm } from './ticketForm.js';
 import { universalSearch } from './search.js';
-import { posProductList, cashRegisterState, createSaleFromForm } from './posForm.js';
+import { posProductList, cashRegisterState, createSaleFromForm, posConfig, posQr } from './posForm.js';
 
 const TENANT_ID = process.env.MUSE_TENANT_ID || '';
 const SECRET = process.env.ASSISTANT_KEY_SECRET || '';
@@ -1054,8 +1054,10 @@ export function crearBoleto(input, actor, deps = { callApi }) {
   return execTool({ name: 'crear_boleto', input }, actor, deps);
 }
 
-export function ventaMostrador(input, actor, deps = { callApi }) {
-  return execTool({ name: 'venta_mostrador', input }, actor, deps);
+export function ventaMostrador(input, actor, deps = { callApi }, query) {
+  if (!query || !Object.keys(query).length) return execTool({ name: 'venta_mostrador', input }, actor, deps);
+  const call = TOOL_BY_NAME.get('venta_mostrador').run(input || {});
+  return deps.callApi(call.method, call.path, { query, body: call.body }, actor);
 }
 
 export function trimHistory(messages) {
@@ -1421,7 +1423,15 @@ export async function assistantHandler(req, res) {
       return res.status(r.status).json(r.body);
     }
     if (route === 'pos/venta' && req.method === 'POST') {
-      const r = await createSaleFromForm({ body: req.body, label: auth.label, tenantId: auth.tenantId }, { sb, ventaMostrador: (input, actor) => ventaMostrador(input, actor) });
+      const r = await createSaleFromForm({ body: req.body, label: auth.label, tenantId: auth.tenantId }, { sb, ventaMostrador: (input, actor, query) => ventaMostrador(input, actor, undefined, query) });
+      return res.status(r.status).json(r.body);
+    }
+    if (route === 'pos/config' && req.method === 'GET') {
+      const r = await posConfig({ tenantId: auth.tenantId }, { sb });
+      return res.status(r.status).json(r.body);
+    }
+    if (route === 'pos/qr' && req.method === 'GET') {
+      const r = await posQr({ tenantId: auth.tenantId, metodo: req.query?.metodo }, { sb });
       return res.status(r.status).json(r.body);
     }
     if (route.startsWith('boleto/') && req.method === 'GET') {

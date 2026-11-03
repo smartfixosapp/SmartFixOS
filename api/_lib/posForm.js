@@ -7,6 +7,42 @@ const MAX_CANTIDAD = 100;
 const MAX_PRECIO = 100000;
 const METODOS = { efectivo: 'efectivo', cash: 'efectivo', tarjeta: 'tarjeta', card: 'tarjeta', ath_movil: 'ath_movil', transferencia: 'transferencia' };
 const NO_REGISTER = 'No hay una caja abierta. Abre la caja desde otro equipo.';
+export const DEFAULT_IVA = 0.115;
+const UMBRAL_CONFIRMACION = 500;
+const DESCUENTO_MAX_EMPLEADO = 20;
+const CUSTOM_COLOR = '#D9A61A';
+const BUILTIN_METHODS = [
+  { id: 'efectivo', etiqueta: 'Efectivo', tipo: 'efectivo', flag: 'cash', qr: 'cashQR', color: '#34C759', alias: ['efectivo', 'cash'] },
+  { id: 'tarjeta', etiqueta: 'Tarjeta', tipo: 'tarjeta', flag: 'card', qr: 'cardQR', color: '#007AFF', alias: ['tarjeta', 'card'] },
+  { id: 'ath_movil', etiqueta: 'ATH Móvil', tipo: 'ath_movil', flag: 'ath', qr: 'athQR', color: '#ED4A17', alias: ['ath_movil', 'ath'] },
+];
+const BRANDS = [
+  [['applepay'], '#000000'],
+  [['googlepay', 'gpay'], '#4285F5'],
+  [['samsungpay'], '#144FF2'],
+  [['cashapp', 'cash app', '$cashtag'], '#00D633'],
+  [['paypal', 'paypalme'], '#003087'],
+  [['venmo'], '#3D94CF'],
+  [['zelle'], '#6E1FD4'],
+  [['athempresarial', 'athbusiness', 'athbiz'], '#F56B0F'],
+  [['athmovil', 'ath'], '#F58C1A'],
+  [['yappy'], '#1A4DA6'],
+  [['nequi'], '#F20080'],
+  [['daviplata'], '#D91A33'],
+  [['bizum'], '#0FB575'],
+  [['wise', 'transferwise'], '#9EE045'],
+  [['mercadopago', 'mpago'], '#F5C72E'],
+  [['stripe'], '#7357F0'],
+  [['squarecash', 'square'], '#000000'],
+  [['banktech'], '#F56B0F'],
+  [['evertec'], '#0D59A6'],
+  [['revolut'], '#000000'],
+  [['wechatpay', 'wechat'], '#0DC963'],
+  [['alipay'], '#009EE8'],
+  [['bitcoin', 'btc', 'cripto', 'crypto'], '#F5941A'],
+  [['transferencia', 'wire', 'ach'], '#4D73B3', 'transferencia'],
+  [['cheque', 'check'], '#8C8C8C'],
+];
 
 function bad(error, code = 'invalid_body', status = 400) {
   return { status, body: { ok: false, error, code } };
@@ -65,7 +101,132 @@ export async function cashRegisterState({ tenantId }, deps) {
   return { status: 200, body };
 }
 
-export function readSaleForm(b) {
+function obj(v) {
+  return v && typeof v === 'object' && !Array.isArray(v) ? v : null;
+}
+
+function normalizeLabel(s) {
+  return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[ \-_.]/g, '');
+}
+
+function brandFor(label) {
+  const key = normalizeLabel(label);
+  if (!key) return null;
+  const row = BRANDS.find(([needles]) => needles.includes(key) || needles.some((n) => key.includes(n)));
+  return row ? { color: row[1], tipo: row[2] || null } : null;
+}
+
+function validQr(v) {
+  const q = obj(v);
+  if (!q) return false;
+  return ['imageBase64', 'paymentURL'].every((k) => q[k] === undefined || q[k] === null || typeof q[k] === 'string');
+}
+
+function qrOf(v) {
+  if (!validQr(v)) return null;
+  const image = typeof v.imageBase64 === 'string' ? v.imageBase64.replace(/\s+/g, '') : '';
+  if (image) return { image };
+  const url = typeof v.paymentURL === 'string' ? v.paymentURL.trim() : '';
+  if (url) return { url };
+  return null;
+}
+
+function customList(raw) {
+  if (!Array.isArray(raw)) return [];
+  const valid = raw.every((c) => obj(c) && typeof c.id === 'string' && typeof c.label === 'string' && typeof c.enabled === 'boolean' && (c.qr === undefined || c.qr === null || validQr(c.qr)));
+  return valid ? raw : [];
+}
+
+export function taxRateFrom(v) {
+  const n = typeof v === 'number' ? v : typeof v === 'string' && v.trim() !== '' ? Number(v) : NaN;
+  if (!Number.isFinite(n)) return null;
+  const rate = Number((n / 100).toFixed(6));
+  return rate >= 0 && rate <= 0.5 ? rate : null;
+}
+
+function receiptChannels(v) {
+  const r = obj(v);
+  const ok = r && typeof r.sale_subject === 'string' && typeof r.order_subject === 'string' && ['send_email', 'send_whatsapp', 'send_print'].every((k) => typeof r[k] === 'boolean');
+  return ok ? { email: r.send_email, whatsapp: r.send_whatsapp, pdf: r.send_print } : { email: true, whatsapp: true, pdf: true };
+}
+
+export function tenantPosSettings(row) {
+  const pm = obj(row?.payment_methods) || {};
+  const flag = (k) => (typeof pm[k] === 'boolean' ? pm[k] : true);
+  const athHidden = pm.athHidden === true;
+  let builtins = BUILTIN_METHODS.filter((m) => flag(m.flag) && !(m.flag === 'ath' && athHidden));
+  if (!builtins.length) builtins = BUILTIN_METHODS;
+  const metodos = builtins.map((m) => ({ id: m.id, etiqueta: m.etiqueta, tipo: m.tipo, color: m.color, alias: m.alias, qr: qrOf(pm[m.qr]), custom: false }));
+  for (const c of customList(pm.custom)) {
+    if (!c.enabled) continue;
+    const brand = brandFor(c.label);
+    metodos.push({ id: c.id, etiqueta: c.label, tipo: brand?.tipo || 'personalizado', color: brand?.color || CUSTOM_COLOR, alias: [], qr: qrOf(c.qr), custom: true });
+  }
+  const tienda = { nombre: String(row?.name || '').trim() || 'Mi taller' };
+  const telefono = String(row?.admin_phone || '').trim();
+  if (telefono) tienda.telefono = telefono;
+  return { ivaTasa: taxRateFrom(row?.tax_rate), metodos, canales: receiptChannels(row?.pos_recibo), tienda };
+}
+
+export async function loadTenantPos(deps, tenantId) {
+  if (!UUID_RE.test(String(tenantId || ''))) throw new Error('tenant invalido');
+  const rows = await deps.sb(`tenant?id=eq.${tenantId}&select=name,admin_phone,tax_rate:settings->tax_rate,payment_methods:settings->payment_methods,pos_recibo:settings->pos_recibo&limit=1`);
+  return tenantPosSettings(rows?.[0] || null);
+}
+
+function findMethod(metodos, raw) {
+  const key = String(raw || '').trim().toLowerCase();
+  if (!key) return null;
+  return metodos.find((m) => (m.custom ? m.id.toLowerCase() === key : m.alias.includes(key))) || null;
+}
+
+export async function posConfig({ tenantId }, deps) {
+  let cfg;
+  try {
+    cfg = await loadTenantPos(deps, tenantId);
+  } catch (e) {
+    console.warn('configuracion del POS no disponible:', e.message);
+    return { status: 502, body: { ok: false, error: 'No se pudo leer la configuracion del taller', code: 'upstream_error' } };
+  }
+  return {
+    status: 200,
+    body: {
+      ok: true,
+      iva_tasa: cfg.ivaTasa ?? DEFAULT_IVA,
+      metodos: cfg.metodos.map((m) => ({ id: m.id, etiqueta: m.etiqueta, tipo: m.tipo, tiene_qr: Boolean(m.qr), color: m.color })),
+      canales_recibo: cfg.canales,
+      umbral_confirmacion: UMBRAL_CONFIRMACION,
+      descuento_max_empleado: DESCUENTO_MAX_EMPLEADO,
+      tienda: cfg.tienda,
+    },
+  };
+}
+
+function imageMime(b64) {
+  if (b64.startsWith('iVBOR')) return 'image/png';
+  if (b64.startsWith('R0lGOD')) return 'image/gif';
+  if (b64.startsWith('UklGR')) return 'image/webp';
+  return 'image/jpeg';
+}
+
+export async function posQr({ tenantId, metodo }, deps) {
+  const raw = String(Array.isArray(metodo) ? metodo[0] : metodo || '').trim();
+  if (!raw || raw.length > 80) return bad('metodo es requerido (id del metodo de pago)', 'invalid_query');
+  let cfg;
+  try {
+    cfg = await loadTenantPos(deps, tenantId);
+  } catch (e) {
+    console.warn('configuracion del POS no disponible:', e.message);
+    return { status: 502, body: { ok: false, error: 'No se pudo leer la configuracion del taller', code: 'upstream_error' } };
+  }
+  const m = findMethod(cfg.metodos, raw);
+  if (!m) return bad('Ese metodo de pago no existe o no esta activo en el taller', 'not_found', 404);
+  if (!m.qr) return bad(`${m.etiqueta} no tiene un QR configurado. Se configura en Ajustes > Metodos de pago.`, 'not_found', 404);
+  if (m.qr.image) return { status: 200, body: { ok: true, tipo: 'imagen', imagen_url: `data:${imageMime(m.qr.image)};base64,${m.qr.image}`, mime: imageMime(m.qr.image), nombre_tienda: cfg.tienda.nombre } };
+  return { status: 200, body: { ok: true, tipo: 'url', url: m.qr.url, nombre_tienda: cfg.tienda.nombre } };
+}
+
+export function readSaleForm(b, customMethods = []) {
   if (!b || typeof b !== 'object' || Array.isArray(b)) throw bad('Cuerpo JSON requerido');
   const origen = String(b.origen || '').toLowerCase();
   if (!ORIGENES[origen]) throw bad('origen debe ser ios o android');
@@ -74,8 +235,17 @@ export function readSaleForm(b) {
     requestId = String(b.id_cliente_solicitud).trim().toLowerCase();
     if (!UUID_RE.test(requestId)) throw bad('id_cliente_solicitud debe ser un uuid');
   }
-  const metodo = METODOS[String(b.metodo || '').trim().toLowerCase()];
-  if (!metodo) throw bad('metodo invalido. Validos: efectivo, tarjeta, ath_movil, transferencia (o cash, card)');
+  const metodoRaw = String(b.metodo || '').trim().toLowerCase();
+  let metodo = METODOS[metodoRaw];
+  let metodoEtiqueta = '';
+  if (!metodo && metodoRaw) {
+    const custom = customMethods.find((m) => m.custom && m.id.toLowerCase() === metodoRaw);
+    if (custom) {
+      metodo = 'ath_movil';
+      metodoEtiqueta = custom.etiqueta.trim().replace(/\s+/g, ' ').slice(0, 60);
+    }
+  }
+  if (!metodo || (metodoEtiqueta === '' && !METODOS[metodoRaw])) throw bad('metodo invalido. Validos: efectivo, tarjeta, ath_movil, transferencia (o cash, card) o el id de un metodo personalizado activo del taller');
   if (!Array.isArray(b.items) || b.items.length < 1 || b.items.length > MAX_ITEMS) throw bad(`items debe tener entre 1 y ${MAX_ITEMS} lineas`);
   const items = b.items.map((raw, i) => {
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw bad(`items[${i}] invalido`);
@@ -115,7 +285,7 @@ export function readSaleForm(b) {
     notas = b.notas.trim().replace(/\s+/g, ' ');
     if (notas.length > 300) throw bad('notas demasiado largo (max 300)');
   }
-  return { origen, requestId, metodo, items, montoRecibido, email, notas };
+  return { origen, requestId, metodo, metodoEtiqueta, items, montoRecibido, email, notas };
 }
 
 async function findPosRequest(deps, tenantId, requestId) {
@@ -139,9 +309,10 @@ async function savePosRequest(deps, tenantId, requestId, numero) {
 async function existingSale(deps, tenantId, numero) {
   const venta = { numero };
   try {
-    const rows = await deps.sb(`sale?tenant_id=eq.${tenantId}&sale_number=eq.${encodeURIComponent(numero)}&select=sale_number,subtotal,tax_amount,total,change_due,payment_method&limit=1`);
+    const rows = await deps.sb(`sale?tenant_id=eq.${tenantId}&sale_number=eq.${encodeURIComponent(numero)}&select=id,sale_number,subtotal,tax_amount,total,change_due,payment_method&limit=1`);
     const s = rows?.[0];
     if (s) {
+      if (s.id) venta.id = s.id;
       venta.total = money(s.total);
       venta.subtotal = money(s.subtotal);
       venta.ivu = money(s.tax_amount);
@@ -154,9 +325,18 @@ async function existingSale(deps, tenantId, numero) {
 }
 
 export async function createSaleFromForm({ body, label, tenantId }, deps) {
+  let tenantPos = null;
+  try {
+    tenantPos = await loadTenantPos(deps, tenantId);
+  } catch (e) {
+    console.warn('configuracion del taller no disponible, venta con IVU por defecto:', e.message);
+  }
+  if (!tenantPos && body && typeof body === 'object' && present(body.metodo) && !METODOS[String(body.metodo).trim().toLowerCase()]) {
+    return { status: 502, body: { ok: false, error: 'No se pudieron leer los metodos de pago del taller; intenta de nuevo', code: 'upstream_error' } };
+  }
   let form;
   try {
-    form = readSaleForm(body);
+    form = readSaleForm(body, tenantPos ? tenantPos.metodos : []);
   } catch (e) {
     if (e && e.status && e.body) return e;
     throw e;
@@ -174,12 +354,17 @@ export async function createSaleFromForm({ body, label, tenantId }, deps) {
   if (form.email) input.email_cliente = form.email;
   if (form.notas) input.notas = form.notas;
 
-  const r = await deps.ventaMostrador(input, actor);
+  const query = {};
+  if (tenantPos && tenantPos.ivaTasa !== null) query.tasa_ivu = tenantPos.ivaTasa;
+  if (form.metodoEtiqueta) query.metodo_etiqueta = form.metodoEtiqueta;
+  if (form.requestId && idem.available) query.sin_filtro_duplicados = '1';
+
+  const r = Object.keys(query).length ? await deps.ventaMostrador(input, actor, query) : await deps.ventaMostrador(input, actor);
   if (r.status === 409 && r.body?.code === 'no_open_register') return { status: 409, body: { ok: false, code: 'no_open_register', error: NO_REGISTER } };
   if (r.status !== 200 || !r.body?.ok) return upstream(r, 'No se pudo registrar la venta');
   const v = r.body.venta || {};
   if (form.requestId && idem.available && v.numero) await savePosRequest(deps, tenantId, form.requestId, v.numero);
-  const venta = { numero: v.numero, total: v.total };
+  const venta = { id: v.id || null, numero: v.numero, total: v.total };
   if (v.subtotal !== undefined) venta.subtotal = v.subtotal;
   if (v.iva !== undefined) venta.ivu = v.iva;
   if (form.metodo === 'efectivo' && v.cambio !== undefined) venta.cambio = v.cambio;
