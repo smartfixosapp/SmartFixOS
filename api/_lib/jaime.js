@@ -1581,7 +1581,11 @@ async function addPayment(req, res, ref) {
     return fail(res, 400, e.message, 'invalid_body');
   }
   monto = money(monto);
-  const nota = typeof b.nota === 'string' ? b.nota.trim().slice(0, 150) : '';
+  const q = req.query || {};
+  const nota = typeof b.nota === 'string' ? b.nota.trim().slice(0, String(q.nota_larga || '') === '1' ? 300 : 150) : '';
+  const etiqueta = typeof q.metodo_etiqueta === 'string' ? q.metodo_etiqueta.trim().replace(/\s+/g, ' ').slice(0, 60) : '';
+  const metodoGuardado = etiqueta && metodo !== 'cash' ? etiqueta.toLowerCase() : metodo;
+  const filtroDuplicados = String(q.sin_filtro_duplicados || '') !== '1';
   const order = await findOrder(ref);
   if (!order) return fail(res, 404, 'Boleto no encontrado', 'not_found');
   if (TERMINAL.includes(order.status)) {
@@ -1607,7 +1611,7 @@ async function addPayment(req, res, ref) {
     `transaction?tenant_id=eq.${TENANT_ID}&order_id=eq.${order.id}&is_deleted=eq.false&type=eq.refund&select=created_at&order=created_at.desc&limit=1`
   )) || [];
   const lastRefund = refunds[0] ? new Date(refunds[0].created_at).getTime() : 0;
-  const repeated = existing.some((t) => {
+  const repeated = filtroDuplicados && existing.some((t) => {
     const at = new Date(t.created_at).getTime();
     return Math.abs(Number(t.amount) - applied) < 0.005 && at > lastRefund && Date.now() - at < 120_000;
   });
@@ -1622,7 +1626,7 @@ async function addPayment(req, res, ref) {
   }
 
   const description = `Pago orden ${order.order_number} · ${order.customer_name || 'Cliente'}${nota ? ` · ${nota}` : ''}`;
-  await sb('transaction', {
+  const inserted = await sb('transaction', {
     method: 'POST',
     body: {
       tenant_id: TENANT_ID,
@@ -1630,14 +1634,15 @@ async function addPayment(req, res, ref) {
       category: 'repair_payment',
       amount: money(applied),
       description,
-      payment_method: metodo,
+      payment_method: metodoGuardado,
       recorded_by: actorName(),
       order_id: order.id,
       order_number: order.order_number,
       is_settled: metodo !== 'card',
     },
-    prefer: 'return=minimal',
+    prefer: 'return=representation',
   });
+  const txRow = Array.isArray(inserted) ? inserted[0] : inserted && typeof inserted === 'object' ? inserted : null;
 
   const nowIso = new Date().toISOString();
   const history = Array.isArray(order.status_history) ? order.status_history : [];
@@ -1651,7 +1656,7 @@ async function addPayment(req, res, ref) {
         status: null,
         timestamp: nowIso,
         changed_by: actorName(),
-        note: `Pago registrado: $${money(applied).toFixed(2)} (${metodo})${nota ? ` - ${nota}` : ''}`,
+        note: `Pago registrado: $${money(applied).toFixed(2)} (${etiqueta && metodo !== 'cash' ? etiqueta : metodo})${nota ? ` - ${nota}` : ''}`,
         visible_to_customer: false,
         kind: 'note',
       },
@@ -1679,7 +1684,7 @@ async function addPayment(req, res, ref) {
   let notification = { enviada: false, motivo: 'notificacion desactivada (notificar_cliente:false)' };
   if (wantsNotification(b.notificar_cliente)) {
     const target = fresh || order;
-    const methodLabel = { cash: 'efectivo', card: 'tarjeta', ath_movil: 'ATH Móvil', transferencia: 'transferencia' }[metodo] || metodo;
+    const methodLabel = etiqueta && metodo !== 'cash' ? etiqueta : { cash: 'efectivo', card: 'tarjeta', ath_movil: 'ATH Móvil', transferencia: 'transferencia' }[metodo] || metodo;
     const lines = [paidNow
       ? `Recibimos tu pago de $${money(applied).toFixed(2)} (${methodLabel}) y tu orden quedó saldada. Gracias por tu confianza.`
       : `Recibimos tu pago de $${money(applied).toFixed(2)} (${methodLabel}) para tu orden.`];
@@ -1688,7 +1693,7 @@ async function addPayment(req, res, ref) {
   }
   return res.status(200).json({
     ok: true,
-    pago: { monto: money(applied), metodo, saldado: paidNow, recibido: monto },
+    pago: { id: txRow?.id || null, monto: money(applied), metodo: metodoGuardado, saldado: paidNow, recibido: monto, fecha: txRow?.created_at || nowIso },
     ticket: ticketResumen(fresh || order),
     ...notificationFields(notification),
   });

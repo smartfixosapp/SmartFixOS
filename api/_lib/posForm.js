@@ -239,6 +239,18 @@ export async function posQr({ tenantId, metodo }, deps) {
   return { status: 200, body: { ok: true, tipo: 'url', url: m.qr.url, nombre_tienda: cfg.tienda.nombre } };
 }
 
+export const METODO_INVALIDO = 'metodo invalido. Validos: efectivo, tarjeta, ath_movil, transferencia (o cash, card) o el id de un metodo personalizado activo del taller';
+
+export function readMetodo(raw, customMethods = []) {
+  const metodoRaw = String(raw || '').trim().toLowerCase();
+  if (!metodoRaw) return null;
+  if (METODOS[metodoRaw]) return { id: METODOS[metodoRaw], metodo: METODOS[metodoRaw], metodoEtiqueta: '' };
+  const custom = customMethods.find((m) => m.custom && m.id.toLowerCase() === metodoRaw);
+  if (!custom) return null;
+  const metodoEtiqueta = custom.etiqueta.trim().replace(/\s+/g, ' ').slice(0, 60);
+  return metodoEtiqueta ? { id: custom.id, metodo: 'ath_movil', metodoEtiqueta } : null;
+}
+
 export function readSaleForm(b, customMethods = []) {
   if (!b || typeof b !== 'object' || Array.isArray(b)) throw bad('Cuerpo JSON requerido');
   const origen = String(b.origen || '').toLowerCase();
@@ -248,17 +260,9 @@ export function readSaleForm(b, customMethods = []) {
     requestId = String(b.id_cliente_solicitud).trim().toLowerCase();
     if (!UUID_RE.test(requestId)) throw bad('id_cliente_solicitud debe ser un uuid');
   }
-  const metodoRaw = String(b.metodo || '').trim().toLowerCase();
-  let metodo = METODOS[metodoRaw];
-  let metodoEtiqueta = '';
-  if (!metodo && metodoRaw) {
-    const custom = customMethods.find((m) => m.custom && m.id.toLowerCase() === metodoRaw);
-    if (custom) {
-      metodo = 'ath_movil';
-      metodoEtiqueta = custom.etiqueta.trim().replace(/\s+/g, ' ').slice(0, 60);
-    }
-  }
-  if (!metodo || (metodoEtiqueta === '' && !METODOS[metodoRaw])) throw bad('metodo invalido. Validos: efectivo, tarjeta, ath_movil, transferencia (o cash, card) o el id de un metodo personalizado activo del taller');
+  const pago = readMetodo(b.metodo, customMethods);
+  if (!pago) throw bad(METODO_INVALIDO);
+  const { metodo, metodoEtiqueta } = pago;
   if (!Array.isArray(b.items) || b.items.length < 1 || b.items.length > MAX_ITEMS) throw bad(`items debe tener entre 1 y ${MAX_ITEMS} lineas`);
   const items = b.items.map((raw, i) => {
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw bad(`items[${i}] invalido`);

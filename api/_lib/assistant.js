@@ -31,6 +31,7 @@ import { searchCustomers, createTicketFromForm } from './ticketForm.js';
 import { universalSearch } from './search.js';
 import { posProductList, cashRegisterState, createSaleFromForm, posConfig, posQr } from './posForm.js';
 import { readScreenContext, screenContextText } from './screenContext.js';
+import { ticketCharge, payTicketFromForm } from './ticketPay.js';
 
 const TENANT_ID = process.env.MUSE_TENANT_ID || '';
 const SECRET = process.env.ASSISTANT_KEY_SECRET || '';
@@ -1061,6 +1062,12 @@ export function ventaMostrador(input, actor, deps = { callApi }, query) {
   return deps.callApi(call.method, call.path, { query, body: call.body }, actor);
 }
 
+export function registrarPago(input, actor, deps = { callApi }, query) {
+  if (!query || !Object.keys(query).length) return execTool({ name: 'registrar_pago', input }, actor, deps);
+  const call = TOOL_BY_NAME.get('registrar_pago').run(input || {});
+  return deps.callApi(call.method, call.path, { query, body: call.body }, actor);
+}
+
 export function trimHistory(messages) {
   if (messages.length <= MAX_HISTORY) return messages;
   let start = messages.length - MAX_HISTORY;
@@ -1434,6 +1441,14 @@ export async function assistantHandler(req, res) {
     }
     if (route === 'pos/qr' && req.method === 'GET') {
       const r = await posQr({ tenantId: auth.tenantId, metodo: req.query?.metodo }, { sb });
+      return res.status(r.status).json(r.body);
+    }
+    if (parts[0] === 'boleto' && parts.length === 3 && parts[2] === 'cobro' && req.method === 'GET') {
+      const r = await ticketCharge({ numero: parts[1], actor: auth.label }, { callApi });
+      return res.status(r.status).json(r.body);
+    }
+    if (parts[0] === 'boleto' && parts.length === 3 && parts[2] === 'pago' && req.method === 'POST') {
+      const r = await payTicketFromForm({ numero: parts[1], body: req.body, label: auth.label, tenantId: auth.tenantId }, { sb, callApi, registrarPago: (input, actor, query) => registrarPago(input, actor, undefined, query) });
       return res.status(r.status).json(r.body);
     }
     if (route.startsWith('boleto/') && req.method === 'GET') {
