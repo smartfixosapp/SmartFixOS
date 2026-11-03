@@ -28,6 +28,8 @@ import {
 } from './connections.js';
 import { comparePrices, recordFromSearch, addWatch, listWatch, removeWatch } from './priceCatalog.js';
 import { searchCustomers, createTicketFromForm } from './ticketForm.js';
+import { universalSearch } from './search.js';
+import { posProductList, cashRegisterState, createSaleFromForm } from './posForm.js';
 
 const TENANT_ID = process.env.MUSE_TENANT_ID || '';
 const SECRET = process.env.ASSISTANT_KEY_SECRET || '';
@@ -881,6 +883,10 @@ export function crearBoleto(input, actor, deps = { callApi }) {
   return execTool({ name: 'crear_boleto', input }, actor, deps);
 }
 
+export function ventaMostrador(input, actor, deps = { callApi }) {
+  return execTool({ name: 'venta_mostrador', input }, actor, deps);
+}
+
 export function trimHistory(messages) {
   if (messages.length <= MAX_HISTORY) return messages;
   let start = messages.length - MAX_HISTORY;
@@ -1132,6 +1138,8 @@ function sanitizeLabel(name) {
 
 const hits = [];
 const searchHits = [];
+const universalHits = [];
+const productHits = [];
 
 function overLimit(list, max) {
   const now = Date.now();
@@ -1141,7 +1149,10 @@ function overLimit(list, max) {
 }
 
 function rateLimited(route) {
-  return route === 'clientes' ? overLimit(searchHits, 120) : overLimit(hits, 40);
+  if (route === 'clientes') return overLimit(searchHits, 120);
+  if (route === 'buscar') return overLimit(universalHits, 120);
+  if (route === 'pos/productos') return overLimit(productHits, 120);
+  return overLimit(hits, 40);
 }
 
 async function authenticate(req) {
@@ -1223,6 +1234,22 @@ export async function assistantHandler(req, res) {
     }
     if (route === 'boleto/nuevo' && req.method === 'POST') {
       const r = await createTicketFromForm({ body: req.body, label: auth.label, tenantId: auth.tenantId }, { sb, crearBoleto: (input, actor) => crearBoleto(input, actor) });
+      return res.status(r.status).json(r.body);
+    }
+    if (route === 'buscar' && req.method === 'GET') {
+      const r = await universalSearch({ q: req.query?.q, tipos: req.query?.tipos, actor: auth.label, tenantId: auth.tenantId }, { callApi, sb, withIvu });
+      return res.status(r.status).json(r.body);
+    }
+    if (route === 'pos/productos' && req.method === 'GET') {
+      const r = await posProductList({ q: req.query?.q, pagina: req.query?.pagina, actor: auth.label }, { callApi, sb, withIvu });
+      return res.status(r.status).json(r.body);
+    }
+    if (route === 'pos/caja' && req.method === 'GET') {
+      const r = await cashRegisterState({ tenantId: auth.tenantId }, { sb });
+      return res.status(r.status).json(r.body);
+    }
+    if (route === 'pos/venta' && req.method === 'POST') {
+      const r = await createSaleFromForm({ body: req.body, label: auth.label, tenantId: auth.tenantId }, { sb, ventaMostrador: (input, actor) => ventaMostrador(input, actor) });
       return res.status(r.status).json(r.body);
     }
     if (route.startsWith('boleto/') && req.method === 'GET') {

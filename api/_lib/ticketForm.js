@@ -1,8 +1,8 @@
-import { SB_URL, UUID_RE, validEmail } from './muse.js';
+import { SB_URL, UUID_RE, TERMINAL, money, validEmail } from './muse.js';
 
 const MAX_RESULTS = 10;
 const MAX_FOTOS = 10;
-const ORIGENES = { ios: 'iOS', android: 'Android' };
+export const ORIGENES = { ios: 'iOS', android: 'Android' };
 
 function bad(error, code = 'invalid_body', status = 400) {
   return { status, body: { ok: false, error, code } };
@@ -37,25 +37,34 @@ export function formActor(label, origen) {
   return `${user || 'Usuario'} - App ${ORIGENES[origen] || 'movil'}`;
 }
 
-export async function searchCustomers({ q, actor, tenantId }, deps) {
+export async function searchCustomers({ q, actor, tenantId, saldo = false }, deps) {
   const query = String(q || '').trim().slice(0, 60);
   if (query.length < 2) return { status: 200, body: { ok: true, clientes: [] } };
   const r = await deps.callApi('GET', 'clientes', { query: { q: query, limite: MAX_RESULTS } }, actor);
   if (r.status !== 200 || !r.body?.ok) return { status: r.status === 200 ? 502 : r.status, body: { ok: false, error: r.body?.error || 'No se pudo buscar clientes', code: r.body?.code || 'upstream_error' } };
   const list = (r.body.clientes || []).slice(0, MAX_RESULTS);
   const counts = new Map();
+  const balances = new Map();
+  let balancesOk = false;
   if (list.length) {
     try {
       const ids = list.map((c) => c.id).filter((id) => UUID_RE.test(String(id)));
-      const rows = ids.length ? await deps.sb(`order?tenant_id=eq.${tenantId}&is_deleted=eq.false&customer_id=in.(${ids.join(',')})&select=customer_id&limit=5000`) : [];
-      for (const row of rows || []) counts.set(row.customer_id, (counts.get(row.customer_id) || 0) + 1);
+      const select = saldo ? 'customer_id,status,balance_due' : 'customer_id';
+      const rows = ids.length ? await deps.sb(`order?tenant_id=eq.${tenantId}&is_deleted=eq.false&customer_id=in.(${ids.join(',')})&select=${select}&limit=5000`) : [];
+      for (const row of rows || []) {
+        counts.set(row.customer_id, (counts.get(row.customer_id) || 0) + 1);
+        if (saldo && !TERMINAL.includes(row.status)) balances.set(row.customer_id, money((balances.get(row.customer_id) || 0) + (Number(row.balance_due) || 0)));
+      }
+      balancesOk = saldo;
     } catch (e) {
       console.warn('conteo de boletos por cliente fallo:', e.message);
     }
   }
   const clientes = list.map((c) => {
     const { nombre, apellido } = splitName(c.nombre);
-    return { id: c.id, nombre, apellido, telefono: c.telefono || null, email: c.email || null, boletos: counts.get(c.id) || 0 };
+    const out = { id: c.id, nombre, apellido, telefono: c.telefono || null, email: c.email || null, boletos: counts.get(c.id) || 0 };
+    if (balancesOk) out.saldo_pendiente = balances.get(c.id) || 0;
+    return out;
   });
   return { status: 200, body: { ok: true, clientes } };
 }

@@ -88,7 +88,7 @@ function equipo(o) {
   return [o.device_brand, o.device_model, o.device_color].filter(Boolean).join(' ') || o.device_type || null;
 }
 
-function ticketResumen(o) {
+export function ticketResumen(o) {
   const created = o.created_date ? new Date(o.created_date) : null;
   return {
     id: o.id,
@@ -1956,7 +1956,7 @@ async function patchCustomer(req, res, id) {
 
 const IVU_RATE = 0.115;
 
-function posProductShape(p) {
+export function posProductShape(p) {
   const tracked = p.stock !== null && p.stock !== undefined && Number(p.stock) >= 0;
   return {
     id: p.id,
@@ -1975,7 +1975,7 @@ function posProductShape(p) {
   };
 }
 
-const POS_COLUMNS = 'id,name,price,cost,stock,min_stock,type,taxable,sku,barcode,device_brand,device_model_tag,category,active';
+export const POS_COLUMNS = 'id,name,price,cost,stock,min_stock,type,taxable,sku,barcode,device_brand,device_model_tag,category,active';
 
 async function posProducts(req, res) {
   const q = req.query || {};
