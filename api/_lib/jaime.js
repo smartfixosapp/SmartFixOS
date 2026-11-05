@@ -1915,7 +1915,7 @@ async function listCustomers(req, res) {
   const clauses = [`name.ilike.*${q}*`, `email.ilike.*${q}*`];
   if (digits.length >= 4) clauses.push(`phone.ilike.*${digits.split('').join('*')}*`);
   const limit = Math.min(Math.max(parseInt(req.query?.limite, 10) || 10, 1), 30);
-  const rows = await sb(`customer?tenant_id=eq.${TENANT_ID}&or=(${clauses.join(',')})&select=*&order=created_date.desc&limit=${limit}`);
+  const rows = await sb(`customer?tenant_id=eq.${TENANT_ID}&or=(${clauses.join(',')})&select=*&order=name.asc&limit=${limit}`);
   return res.status(200).json({ ok: true, cantidad: (rows || []).length, clientes: (rows || []).map(customerShape) });
 }
 

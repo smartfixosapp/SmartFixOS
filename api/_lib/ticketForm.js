@@ -76,7 +76,7 @@ async function customerById(deps, tenantId, id) {
 
 async function customerByPhone(deps, tenantId, digits) {
   const pattern = `*${digits.slice(0, 3)}*${digits.slice(3, 6)}*${digits.slice(6)}*`;
-  const rows = await deps.sb(`customer?tenant_id=eq.${tenantId}&phone=ilike.${encodeURIComponent(pattern)}&select=id,name,phone,email&order=created_date.desc&limit=10`);
+  const rows = await deps.sb(`customer?tenant_id=eq.${tenantId}&phone=ilike.${encodeURIComponent(pattern)}&select=id,name,phone,email&order=name.asc&limit=10`);
   return (rows || []).find((c) => phoneDigits(c.phone) === digits) || null;
 }
 

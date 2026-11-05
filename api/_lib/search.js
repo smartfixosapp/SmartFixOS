@@ -174,7 +174,7 @@ async function customerBalances(deps, tenantId, ids) {
 async function searchClients(tokens, { tenantId }, deps) {
   const usable = tokens.map((t) => (t.kind === 'order' ? null : t));
   if (usable.some((t) => !t)) return [];
-  const rows = await filtered(deps, `customer?tenant_id=eq.${tenantId}`, usable, { fields: CUSTOMER_TEXT, phone: 'phone', accents: CUSTOMER_ACCENT }, 'id,name,phone,email', 'created_date.desc');
+  const rows = await filtered(deps, `customer?tenant_id=eq.${tenantId}`, usable, { fields: CUSTOMER_TEXT, phone: 'phone', accents: CUSTOMER_ACCENT }, 'id,name,phone,email', 'name.asc');
   const list = rows.slice(0, MAX_PER_GROUP);
   const { counts, balances, ok } = await customerBalances(deps, tenantId, list.map((c) => c.id));
   return list.map((c) => {
