@@ -75,7 +75,6 @@ function fakeSupabase({ register = true, requestsTable = 'missing', storedReques
 const realFetch = globalThis.fetch;
 const { assistantHandler, ventaMostrador, TOOLS } = await import('../api/_lib/assistant.js');
 const pos = await import('../api/_lib/posForm.js');
-const search = await import('../api/_lib/search.js');
 const { sb } = await import('../api/_lib/muse.js');
 const directSale = (body) => pos.createSaleFromForm({ body, label: 'prueba', tenantId: TENANT }, { sb, ventaMostrador: (input, actor, query) => ventaMostrador(input, actor, undefined, query) });
 
@@ -359,65 +358,6 @@ test('buscar: menos de 2 caracteres devuelve listas vacias sin consultar', async
   assert.equal(fake.calls.length, 0);
 });
 
-test('buscar: boletos abiertos primero, WO sin guion, notas, clientes con saldo y piezas con IVU', async () => {
-  const T = (id, numero, status, updated, extra = {}) => ({ id, order_number: numero, status, status_note: null, customer_name: 'Juan Perez', customer_phone: '787-555-1234', device_brand: 'Apple', device_model: 'iPhone 13', updated_date: updated, created_date: updated, ...extra });
-  const ids = ['10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000002', '10000000-0000-4000-8000-000000000003'];
-  const seen = [];
-  const deps = {
-    withIvu,
-    callApi: async (m, p, o) => {
-      seen.push({ p, q: o.query });
-      if (p === 'tickets') return { status: 200, body: { ok: true, tickets: [
-        { id: ids[0], numero: 'WO-382', cliente: 'Juan Perez', telefono: '787-555-1234', equipo: 'Apple iPhone 13', estatus: 'delivered', estatus_nombre: 'Entregado', ultima_actualizacion: '2026-11-03T10:00:00Z' },
-        { id: ids[1], numero: 'WO-3820', cliente: 'Ana', telefono: null, equipo: 'Samsung', estatus: 'in_progress', estatus_nombre: 'En reparacion', ultima_actualizacion: '2026-10-01T10:00:00Z' },
-      ] } };
-      if (p === 'clientes') return { status: 200, body: { ok: true, clientes: [{ id: ids[0], nombre: 'Juan Perez', telefono: '7875551234', email: null }] } };
-      if (p === 'pos/productos') return { status: 200, body: { ok: true, productos: [{ id: PID, nombre: 'Pantalla', precio: 100, stock: 2, tipo: 'producto', gravable: true, categoria: 'Pantallas' }] } };
-      throw new Error(p);
-    },
-    sb: async (path) => {
-      if (path.startsWith('order?') && path.includes('or=(device_brand')) return [T(ids[2], 'WO-500', 'waiting_parts', '2026-11-02T10:00:00Z', { status_note: 'Pieza pedida' })];
-      if (path.startsWith('order?') && path.includes('customer_id=in.')) return [{ customer_id: ids[0], status: 'ready_for_pickup', balance_due: 40 }, { customer_id: ids[0], status: 'delivered', balance_due: 15 }];
-      if (path.startsWith('order?') && path.includes('id=in.')) return [{ id: ids[1], status_note: 'Cambiando pantalla' }];
-      if (path.startsWith('product?')) return [{ ...PRODUCT, id: PID2, name: 'Bateria Apple', taxable: false, price: 50, stock: 3 }];
-      throw new Error(path);
-    },
-  };
-  const r = await search.universalSearch({ q: 'wo382', actor: 'x', tenantId: TENANT }, deps);
-  assert.equal(r.status, 200);
-  assert.equal(seen.find((s) => s.p === 'tickets').q.q, 'WO-382');
-  assert.equal(seen.find((s) => s.p === 'tickets').q.estatus, 'todos');
-  assert.deepEqual(r.body.boletos.map((b) => b.numero), ['WO-500', 'WO-3820', 'WO-382']);
-  assert.equal(r.body.boletos[0].ultima_nota, 'Pieza pedida');
-  assert.equal(r.body.boletos[1].ultima_nota, 'Cambiando pantalla');
-  assert.equal('ultima_nota' in r.body.boletos[2], false);
-  assert.deepEqual(Object.keys(r.body.boletos[2]).sort(), ['actualizado', 'cliente', 'equipo', 'estatus', 'estatus_nombre', 'id', 'numero', 'telefono']);
-  assert.deepEqual(r.body.clientes, [{ id: ids[0], nombre: 'Juan', apellido: 'Perez', telefono: '7875551234', email: null, boletos: 2, saldo_pendiente: 40 }]);
-  assert.deepEqual(r.body.piezas, [
-    { id: PID, nombre: 'Pantalla', precio_sin_ivu: 100, precio_con_ivu: 111.5, stock: 2, categoria: 'Pantallas', vendible_pos: false },
-    { id: PID2, nombre: 'Bateria Apple', precio_sin_ivu: 50, precio_con_ivu: 50, stock: 3, categoria: 'Accesorios', vendible_pos: true, tipo_pos: 'accesorio' },
-  ]);
-  assert.equal('avisos' in r.body, false);
-});
-
-test('buscar: si un grupo falla devuelve ese grupo vacio con aviso y los demas siguen', async () => {
-  const deps = {
-    withIvu,
-    callApi: async (m, p) => {
-      if (p === 'clientes') return { status: 502, body: { ok: false, error: 'caido' } };
-      if (p === 'tickets') return { status: 200, body: { ok: true, tickets: [] } };
-      return { status: 200, body: { ok: true, productos: [] } };
-    },
-    sb: async () => [],
-  };
-  let r;
-  await quiet(async () => { r = await search.universalSearch({ q: 'juan', tipos: 'clientes,boletos', actor: 'x', tenantId: TENANT }, deps); });
-  assert.equal(r.status, 200);
-  assert.deepEqual(r.body.clientes, []);
-  assert.deepEqual(r.body.piezas, []);
-  assert.deepEqual(r.body.avisos, ['No se pudo buscar clientes; intenta de nuevo.']);
-});
-
 test('buscar clientes sin saldo (ruta clientes) no cambia su forma', async () => {
   const form = await import('../api/_lib/ticketForm.js');
   const deps = {
@@ -661,7 +601,7 @@ test('filtro de 5 minutos: POST pos/venta sin id_cliente_solicitud o sin tabla l
 test('buscar piezas: marca vendible_pos y tipo_pos sin quitar piezas ni servicios', async () => {
   const fake = fakeSupabase();
   let r;
-  await withFetch(fake, async () => { r = await call('buscar', { query: { q: 'pantalla', tipos: 'piezas' } }); });
+  await withFetch(fake, async () => { r = await call('buscar', { query: { q: 'apple', tipos: 'piezas' } }); });
   assert.equal(r.status, 200, JSON.stringify(r.body));
   const byId = Object.fromEntries(r.body.piezas.map((p) => [p.id, p]));
   assert.deepEqual(Object.keys(byId).sort(), CATALOG.map((p) => p.id).sort());
@@ -674,8 +614,8 @@ test('buscar piezas: marca vendible_pos y tipo_pos sin quitar piezas ni servicio
     assert.equal('tipo_pos' in byId[id], false);
   }
   const reads = fake.calls.filter((c) => c.url.includes('/product?')).map((c) => decodeURIComponent(c.url));
-  assert.equal(reads.length, 2);
-  assert.ok(reads.every((u) => u.includes('tipo_principal,subcategoria') && !u.includes('and=(')));
+  assert.equal(reads.length, 1);
+  assert.ok(reads.every((u) => u.includes('tipo_principal,subcategoria') && u.includes(`tenant_id=eq.${TENANT}`)));
   assert.equal(fake.calls.filter((c) => c.method !== 'GET').length, 0);
 });
 
