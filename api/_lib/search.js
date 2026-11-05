@@ -4,6 +4,8 @@ import { splitName } from './ticketForm.js';
 
 const MAX_PER_GROUP = 8;
 const FETCH_LIMIT = 60;
+const MAX_PIECES = 40;
+const IMAGE_COLUMNS = 'image_url,photo_urls';
 const MAX_TOKENS = 4;
 const PHONE_MIN = 4;
 const TIPOS = ['boletos', 'clientes', 'piezas'];
@@ -185,6 +187,14 @@ async function searchClients(tokens, { tenantId }, deps) {
   });
 }
 
+export function pieceImage(row) {
+  const main = typeof row.image_url === 'string' ? row.image_url.trim() : '';
+  if (main) return main;
+  const list = Array.isArray(row.photo_urls) ? row.photo_urls : [];
+  const first = list.find((u) => typeof u === 'string' && u.trim());
+  return first ? first.trim() : null;
+}
+
 export function pieceOut(p, withIvu) {
   const out = {
     id: p.id,
@@ -194,6 +204,8 @@ export function pieceOut(p, withIvu) {
     stock: p.stock,
   };
   if (p.categoria) out.categoria = p.categoria;
+  if (p.tipo) out.tipo = p.tipo;
+  if (p.imagen) out.imagen = p.imagen;
   out.vendible_pos = Boolean(p.tipo_pos);
   if (p.tipo_pos) out.tipo_pos = p.tipo_pos;
   return out;
@@ -202,8 +214,16 @@ export function pieceOut(p, withIvu) {
 async function searchPieces(tokens, { tenantId }, deps) {
   const usable = tokens.map((t) => (t.kind === 'order' ? null : t));
   if (usable.some((t) => !t)) return [];
-  const rows = await filtered(deps, `product?tenant_id=eq.${tenantId}&active=eq.true`, usable, { fields: PRODUCT_TEXT, accents: PRODUCT_ACCENT }, POS_COLUMNS, 'name.asc');
-  return rows.slice(0, MAX_PER_GROUP).map((row) => pieceOut(posProductShape(row), deps.withIvu));
+  const base = `product?tenant_id=eq.${tenantId}&active=eq.true`;
+  const spec = { fields: PRODUCT_TEXT, accents: PRODUCT_ACCENT };
+  let rows;
+  try {
+    rows = await filtered(deps, base, usable, spec, `${POS_COLUMNS},${IMAGE_COLUMNS}`, 'name.asc');
+  } catch (e) {
+    if (!missingColumn(e)) throw e;
+    rows = await filtered(deps, base, usable, spec, POS_COLUMNS, 'name.asc');
+  }
+  return rows.slice(0, MAX_PIECES).map((row) => pieceOut({ ...posProductShape(row), imagen: pieceImage(row) }, deps.withIvu));
 }
 
 export async function universalSearch({ q, tipos, tenantId }, deps) {

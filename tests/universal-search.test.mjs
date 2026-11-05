@@ -32,8 +32,8 @@ const CUSTOMERS = [
 ];
 const product = (id, extra) => ({ id, tenant_id: TENANT, active: true, price: 10, cost: 5, stock: 3, min_stock: 0, type: 'product', taxable: true, sku: null, barcode: null, device_brand: null, device_model_tag: null, category: null, tipo_principal: 'dispositivos', subcategoria: 'piezas_servicios', ...extra });
 const PRODUCTS = [
-  product('p0000000-0000-4000-8000-000000000001', { name: 'Pantalla iPhone 13', price: 100, device_brand: 'Apple', device_model_tag: 'iPhone 13', category: 'Pantallas', sku: 'PAN-13' }),
-  product('p0000000-0000-4000-8000-000000000002', { name: 'Batería Moto G Power', price: 45, device_brand: 'Motorola', category: 'Baterías', barcode: '7501234567890' }),
+  product('p0000000-0000-4000-8000-000000000001', { name: 'Pantalla iPhone 13', price: 100, device_brand: 'Apple', device_model_tag: 'iPhone 13', category: 'Pantallas', sku: 'PAN-13', image_url: 'https://img.test/pan13.jpg' }),
+  product('p0000000-0000-4000-8000-000000000002', { name: 'Batería Moto G Power', price: 45, device_brand: 'Motorola', category: 'Baterías', barcode: '7501234567890', photo_urls: ['', 'https://img.test/moto-1.jpg', 'https://img.test/moto-2.jpg'] }),
   product('p0000000-0000-4000-8000-000000000003', { name: 'Funda azul', price: 15, tipo_principal: 'accesorios', subcategoria: 'fundas', category: 'Accesorios' }),
   product('p0000000-0000-4000-8000-000000000004', { name: 'Pantalla vieja', active: false }),
 ];
@@ -239,4 +239,22 @@ test('tokenizador: numeros, WO, telefonos y palabras', () => {
   assert.deepEqual(search.searchTokens('Juan Pérez'), [{ kind: 'text', value: 'juan' }, { kind: 'text', value: 'perez' }]);
   assert.deepEqual(search.accentVariants('pena').includes('peña'), true);
   assert.deepEqual(search.accentVariants('bateria').includes('batería'), true);
+});
+
+test('piezas devuelven imagen principal o la primera foto y el tipo', async () => {
+  const pan = (await find('pantalla')).piezas[0];
+  assert.equal(pan.imagen, 'https://img.test/pan13.jpg');
+  assert.equal(pan.tipo, 'producto');
+  const bat = (await find('bateria moto')).piezas[0];
+  assert.equal(bat.imagen, 'https://img.test/moto-1.jpg');
+  const funda = (await find('funda azul')).piezas[0];
+  assert.equal('imagen' in funda, false);
+});
+
+test('pieceImage ignora vacios y pieceOut incluye tipo de servicio', () => {
+  assert.equal(search.pieceImage({ image_url: '  ', photo_urls: [null, ' https://a.test/x.png '] }), 'https://a.test/x.png');
+  assert.equal(search.pieceImage({ image_url: null, photo_urls: null }), null);
+  const out = search.pieceOut({ id: 's1', nombre: 'Cambio de pantalla', precio: 50, gravable: true, stock: null, tipo: 'servicio', imagen: null }, (n) => n * 1.115);
+  assert.equal(out.tipo, 'servicio');
+  assert.equal('imagen' in out, false);
 });
