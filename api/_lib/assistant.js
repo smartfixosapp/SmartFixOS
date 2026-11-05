@@ -1425,17 +1425,40 @@ const GEMINI_KEY = process.env.GEMINI_API_KEY || '';
 const GEMINI_MODEL = process.env.GEMINI_TRANSCRIBE_MODEL || 'gemini-2.5-flash';
 const MAX_AUDIO_B64 = 4_000_000;
 
-export async function transcribeAudio({ audioBase64, mimeType }, fetchImpl = fetch) {
+const AUDIO_MIMES = ['audio/wav', 'audio/x-wav', 'audio/aac', 'audio/mp4', 'audio/m4a', 'audio/ogg', 'audio/webm', 'audio/flac', 'audio/mpeg', 'audio/mp3'];
+const FIELD_HINTS = {
+  chat: '',
+  nota: 'Es una nota de un boleto de reparacion.',
+  busqueda: 'Es una busqueda corta: numero de boleto, nombre, telefono, marca, modelo o pieza. Escribe los numeros con digitos.',
+  nombre: 'Es solo el nombre o apellido de una persona.',
+  telefono: 'Es solo un numero de telefono de Puerto Rico; escribelo con digitos.',
+  email: 'Es solo una direccion de correo electronico; escribela con arroba y puntos.',
+  equipo: 'Es solo la marca o el modelo de un equipo.',
+  problema: 'Es la descripcion del problema del equipo que trae el cliente.',
+};
+
+export function transcribePrompt(campo, vocabulario) {
+  const base = 'Transcribe literalmente este audio en espanol de Puerto Rico. Es alguien del taller de reparacion de celulares y computadoras dandole instrucciones a un asistente: boletos como WO-410, iPhone, Samsung, pantalla, bateria, OLED, LCD, IVU, ATH Movil, nombres de clientes. Usa puntuacion natural y respeta cada palabra, incluso si habla rapido o hace pausas. Escribe los numeros de boleto como WO-417 y los telefonos con digitos. Devuelve SOLO la transcripcion, sin comillas ni comentarios. Si no hay voz humana clara, devuelve una cadena vacia.';
+  const hint = FIELD_HINTS[String(campo || '').toLowerCase()] || '';
+  const terms = (Array.isArray(vocabulario) ? vocabulario : [])
+    .map((t) => String(t ?? '').replace(/[\u0000-\u001f"<>{}]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 40))
+    .filter(Boolean);
+  const unique = [...new Set(terms)].slice(0, 60);
+  return [base, hint, unique.length ? `Vocabulario frecuente (usa esta ortografia si lo oyes): ${unique.join(', ')}.` : ''].filter(Boolean).join(' ');
+}
+
+export async function transcribeAudio({ audioBase64, mimeType, campo, vocabulario }, fetchImpl = fetch) {
   if (!GEMINI_KEY) return { status: 503, body: { ok: false, error: 'La transcripcion no esta configurada', code: 'not_configured' } };
   const audio = String(audioBase64 || '').replace(/^data:[^;]+;base64,/, '');
   if (!audio) return { status: 400, body: { ok: false, error: 'audio_base64 es requerido', code: 'invalid_body' } };
   if (audio.length > MAX_AUDIO_B64) return { status: 413, body: { ok: false, error: 'El audio es demasiado largo', code: 'too_large' } };
-  const prompt = 'Transcribe literalmente este audio en espanol de Puerto Rico. Es alguien del taller de reparacion de celulares y computadoras dandole instrucciones a un asistente: boletos como WO-410, iPhone, Samsung, pantalla, bateria, OLED, LCD, IVU, ATH Movil, nombres de clientes. Usa puntuacion natural y respeta cada palabra, incluso si habla rapido o hace pausas. Devuelve SOLO la transcripcion, sin comillas ni comentarios. Si no hay voz humana clara, devuelve una cadena vacia.';
+  const mime = AUDIO_MIMES.includes(String(mimeType || '').toLowerCase()) ? String(mimeType).toLowerCase() : 'audio/wav';
+  const prompt = transcribePrompt(campo, vocabulario);
   const res = await fetchImpl(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
-      contents: [{ role: 'user', parts: [{ text: prompt }, { inline_data: { mime_type: mimeType || 'audio/wav', data: audio } }] }],
+      contents: [{ role: 'user', parts: [{ text: prompt }, { inline_data: { mime_type: mime, data: audio } }] }],
       generationConfig: { temperature: 0, maxOutputTokens: 2048, thinkingConfig: { thinkingBudget: 0 } },
     }),
   });
@@ -1573,7 +1596,7 @@ export async function assistantHandler(req, res) {
       return res.status(r.status).json(r.body);
     }
     if (route === 'transcribe' && req.method === 'POST') {
-      const r = await transcribeAudio({ audioBase64: req.body?.audio_base64, mimeType: req.body?.mime_type });
+      const r = await transcribeAudio({ audioBase64: req.body?.audio_base64, mimeType: req.body?.mime_type, campo: req.body?.campo, vocabulario: req.body?.vocabulario });
       return res.status(r.status).json(r.body);
     }
     if (route === 'clientes' && req.method === 'GET') {
