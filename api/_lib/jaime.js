@@ -2023,12 +2023,26 @@ async function posProducts(req, res) {
   return res.status(200).json({ ok: true, pagina: page, cantidad: rows.length, productos: rows.map(posProductShape) });
 }
 
+const MANUAL_NAME_MAX = 120;
+
+function cleanManualName(v) {
+  return String(v ?? '').replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u2028-\u202f\u2060\ufeff<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, MANUAL_NAME_MAX);
+}
+
 async function resolveSaleLine(raw, index) {
   if (!raw || typeof raw !== 'object') return { error: `items[${index}] invalido` };
   const cantidad = raw.cantidad === undefined ? 1 : parseInt(raw.cantidad, 10);
   if (!Number.isInteger(cantidad) || cantidad < 1 || cantidad > 100) return { error: `items[${index}].cantidad debe ser un entero entre 1 y 100` };
   const descuento = raw.descuento_pct === undefined ? 0 : Number(raw.descuento_pct);
   if (!Number.isFinite(descuento) || descuento < 0 || descuento > 100) return { error: `items[${index}].descuento_pct debe estar entre 0 y 100` };
+  if (raw.manual === true) {
+    const nombreManual = cleanManualName(raw.nombre);
+    if (!nombreManual) return { error: `items[${index}].nombre es requerido en un articulo manual` };
+    const precioManual = typeof raw.precio === 'number' ? raw.precio : NaN;
+    if (!Number.isFinite(precioManual) || precioManual <= 0 || precioManual > 100000) return { error: `items[${index}].precio debe ser un numero entre 0.01 y 100000` };
+    if (raw.gravable !== undefined && typeof raw.gravable !== 'boolean') return { error: `items[${index}].gravable debe ser true o false` };
+    return { product: null, manual: true, nombre: nombreManual, cantidad, precio: money(precioManual), descuento, gravable: raw.gravable !== false };
+  }
   let product = null;
   const productoId = typeof raw.producto_id === 'string' ? raw.producto_id.trim() : '';
   const nombreIn = typeof raw.nombre === 'string' ? raw.nombre.trim().slice(0, 140) : '';
@@ -2059,34 +2073,28 @@ async function resolveSaleLine(raw, index) {
   return { product, nombre: product && !nombreIn ? product.name : nombre, cantidad, precio: money(precio), descuento, gravable };
 }
 
-async function posSale(req, res) {
-  const b = req.body || {};
-  const metodo = PAYMENT_METHODS[normalizeKey(b.metodo)];
-  if (!metodo) return fail(res, 400, 'metodo invalido. Validos: efectivo, ath_movil, tarjeta, transferencia', 'invalid_body');
-  const rawItems = Array.isArray(b.items) ? b.items : [];
-  if (rawItems.length < 1 || rawItems.length > 30) return fail(res, 400, 'items debe tener entre 1 y 30 lineas', 'invalid_body');
-  const notas = typeof b.notas === 'string' ? b.notas.trim().slice(0, 300) : '';
-  const emailCliente = typeof b.email_cliente === 'string' ? b.email_cliente.trim().toLowerCase() : '';
-  if (emailCliente && (!validEmail(emailCliente) || /[^\x00-\x7F]/.test(emailCliente))) return fail(res, 400, 'email_cliente invalido', 'invalid_body');
-  const q = req.query || {};
-  const tasaIn = typeof q.tasa_ivu === 'string' && q.tasa_ivu.trim() !== '' ? Number(q.tasa_ivu) : NaN;
-  const ivuRate = Number.isFinite(tasaIn) && tasaIn >= 0 && tasaIn <= 0.5 ? tasaIn : IVU_RATE;
-  const etiqueta = typeof q.metodo_etiqueta === 'string' ? q.metodo_etiqueta.trim().replace(/\s+/g, ' ').slice(0, 60) : '';
-  const metodoGuardado = etiqueta && metodo !== 'cash' ? etiqueta.toLowerCase() : metodo;
-  const filtroDuplicados = String(q.sin_filtro_duplicados || '') !== '1';
+const SALE_FULL_E4 = 1_000_000;
+const SALE_SEARCH = 60;
+const MAX_SPLIT_PAYMENTS = 6;
+const MAX_PAYMENT = 1_000_000;
 
-  const lines = [];
-  for (let i = 0; i < rawItems.length; i += 1) {
-    const l = await resolveSaleLine(rawItems[i], i);
-    if (l.error) return fail(res, l.status || 400, l.error, l.status === 404 ? 'not_found' : l.status === 409 ? 'has_variants' : 'invalid_body');
-    lines.push(l);
-  }
+function e4Of(pct) {
+  return Math.round(Math.min(100, Math.max(0, Number(pct) || 0)) * 10000);
+}
 
+function combineE4(a, b) {
+  const x = Math.min(SALE_FULL_E4, Math.max(0, a));
+  const y = Math.min(SALE_FULL_E4, Math.max(0, b));
+  return SALE_FULL_E4 - Math.floor(((SALE_FULL_E4 - x) * (SALE_FULL_E4 - y) + 500_000) / 1_000_000);
+}
+
+function priceSale(lines, ivuRate, saleE4) {
   let subtotal = 0;
   let taxTotal = 0;
-  const saleItems = lines.map((l) => {
+  const items = lines.map((l) => {
     const gross = money(l.precio * l.cantidad);
-    const discount = money((gross * l.descuento) / 100);
+    const pct = saleE4 > 0 ? combineE4(e4Of(l.descuento), saleE4) / 10000 : l.descuento;
+    const discount = money((gross * pct) / 100);
     const lineTotal = Math.max(0, money(gross - discount));
     const rate = l.gravable ? ivuRate : 0;
     const tax = money(lineTotal * rate);
@@ -2100,24 +2108,164 @@ async function posSale(req, res) {
       tax_amount: tax,
       total: money(lineTotal + tax),
     };
-    if (l.descuento > 0) {
-      item.discount_percent = l.descuento;
+    if (pct > 0) {
+      item.discount_percent = pct;
       item.discount_amount = discount;
     }
     if (l.product) item.product_id = l.product.id;
+    if (l.manual) item.manual = true;
     return item;
   });
-  const total = money(subtotal + taxTotal);
-  if (total <= 0) return fail(res, 400, 'El total de la venta debe ser mayor a cero', 'invalid_body');
+  return { saleItems: items, subtotal, taxTotal, total: money(subtotal + taxTotal) };
+}
 
-  let recibido = total;
-  if (b.monto_recibido !== undefined && b.monto_recibido !== null) {
-    recibido = money(Number(b.monto_recibido));
-    if (!Number.isFinite(recibido) || recibido <= 0) return fail(res, 400, 'monto_recibido invalido', 'invalid_body');
-    if (metodo !== 'cash' && Math.abs(recibido - total) > 0.004) return fail(res, 400, 'monto_recibido solo aplica a efectivo; en otros metodos debe ser igual al total', 'invalid_body');
-    if (recibido + 0.004 < total) return fail(res, 400, `monto_recibido ($${recibido.toFixed(2)}) es menor al total ($${total.toFixed(2)})`, 'invalid_body');
+function centsOf(n) {
+  return Math.round(Number(n) * 100);
+}
+
+function saleE4ForAmount(lines, ivuRate, targetCents) {
+  const baseCents = centsOf(priceSale(lines, ivuRate, 0).total);
+  if (targetCents <= 0 || baseCents <= 0) return 0;
+  if (targetCents >= baseCents) return SALE_FULL_E4;
+  const applied = (e4) => baseCents - centsOf(priceSale(lines, ivuRate, e4).total);
+  const guess = Math.min(SALE_FULL_E4, Math.max(0, Math.floor((targetCents * SALE_FULL_E4 + Math.floor(baseCents / 2)) / baseCents)));
+  let best = guess;
+  let bestError = Math.abs(applied(guess) - targetCents);
+  for (let delta = -SALE_SEARCH; delta <= SALE_SEARCH; delta += 1) {
+    const e4 = Math.min(SALE_FULL_E4, Math.max(0, guess + delta));
+    const error = Math.abs(applied(e4) - targetCents);
+    if (error < bestError || (error === bestError && e4 < best)) {
+      best = e4;
+      bestError = error;
+    }
   }
-  const cambio = money(Math.max(0, recibido - total));
+  return best;
+}
+
+function readSaleDiscount(b, lines, ivuRate) {
+  const hasPct = b.descuento_venta_pct !== undefined && b.descuento_venta_pct !== null;
+  const hasAmount = b.descuento_venta_monto !== undefined && b.descuento_venta_monto !== null;
+  if (!hasPct && !hasAmount) return { e4: 0 };
+  if (hasPct && hasAmount) return { error: 'Envia descuento_venta_pct o descuento_venta_monto, no los dos' };
+  if (hasPct) {
+    const pct = b.descuento_venta_pct;
+    if (typeof pct !== 'number' || !Number.isFinite(pct) || pct < 0 || pct > 100) return { error: 'descuento_venta_pct debe ser un numero entre 0 y 100' };
+    return { e4: e4Of(pct) };
+  }
+  const monto = b.descuento_venta_monto;
+  if (typeof monto !== 'number' || !Number.isFinite(monto) || monto < 0 || monto > MAX_PAYMENT) return { error: 'descuento_venta_monto debe ser un numero mayor o igual a cero' };
+  if (Math.abs(monto * 100 - Math.round(monto * 100)) > 1e-6) return { error: 'descuento_venta_monto no puede tener mas de 2 decimales' };
+  const target = Math.round(monto * 100);
+  if (target > centsOf(priceSale(lines, ivuRate, 0).total)) return { error: 'descuento_venta_monto no puede ser mayor al total de la venta' };
+  return { e4: saleE4ForAmount(lines, ivuRate, target) };
+}
+
+function readSplitPayments(raw, totalCents) {
+  if (!Array.isArray(raw) || raw.length < 1 || raw.length > MAX_SPLIT_PAYMENTS) return { error: `pagos debe tener entre 1 y ${MAX_SPLIT_PAYMENTS} metodos` };
+  const seen = new Set();
+  const list = [];
+  for (let i = 0; i < raw.length; i += 1) {
+    const p = raw[i];
+    if (!p || typeof p !== 'object' || Array.isArray(p)) return { error: `pagos[${i}] invalido` };
+    const tipo = PAYMENT_METHODS[normalizeKey(p.metodo)];
+    if (!tipo) return { error: `pagos[${i}].metodo invalido. Validos: efectivo, ath_movil, tarjeta, transferencia` };
+    const etiqueta = typeof p.etiqueta === 'string' ? p.etiqueta.trim().replace(/\s+/g, ' ').slice(0, 60) : '';
+    const key = etiqueta && tipo !== 'cash' ? etiqueta.toLowerCase() : tipo;
+    if (seen.has(key)) return { error: 'Un metodo de pago no puede repetirse en la misma venta' };
+    seen.add(key);
+    const amount = p.monto;
+    if (typeof amount !== 'number' || !Number.isFinite(amount) || amount <= 0 || amount > MAX_PAYMENT) return { error: `pagos[${i}].monto debe ser un numero mayor a cero` };
+    if (Math.abs(amount * 100 - Math.round(amount * 100)) > 1e-6) return { error: `pagos[${i}].monto no puede tener mas de 2 decimales` };
+    const montoC = Math.round(amount * 100);
+    let recibidoC = montoC;
+    if (p.recibido !== undefined && p.recibido !== null) {
+      const got = p.recibido;
+      if (typeof got !== 'number' || !Number.isFinite(got) || got <= 0 || got > MAX_PAYMENT) return { error: `pagos[${i}].recibido invalido` };
+      if (Math.abs(got * 100 - Math.round(got * 100)) > 1e-6) return { error: `pagos[${i}].recibido no puede tener mas de 2 decimales` };
+      recibidoC = Math.round(got * 100);
+      if (tipo !== 'cash' && recibidoC !== montoC) return { error: `pagos[${i}].recibido solo aplica a efectivo; en otros metodos debe ser igual al monto` };
+      if (recibidoC < montoC) return { error: `pagos[${i}].recibido es menor al monto` };
+    }
+    list.push({ tipo, key, etiqueta: etiqueta && tipo !== 'cash' ? etiqueta : '', montoC, recibidoC });
+  }
+  const sum = list.reduce((s2, x) => s2 + x.montoC, 0);
+  if (sum !== totalCents) return { error: `La suma de los pagos ($${(sum / 100).toFixed(2)}) debe ser igual al total ($${(totalCents / 100).toFixed(2)})` };
+  return { list };
+}
+
+async function posSale(req, res) {
+  const b = req.body || {};
+  const hasPagos = b.pagos !== undefined && b.pagos !== null;
+  const metodo = PAYMENT_METHODS[normalizeKey(b.metodo)];
+  if (!hasPagos && !metodo) return fail(res, 400, 'metodo invalido. Validos: efectivo, ath_movil, tarjeta, transferencia', 'invalid_body');
+  if (hasPagos && b.monto_recibido !== undefined && b.monto_recibido !== null) return fail(res, 400, 'Con pagos no envies monto_recibido; usa recibido dentro de cada pago en efectivo', 'invalid_body');
+  const rawItems = Array.isArray(b.items) ? b.items : [];
+  if (rawItems.length < 1 || rawItems.length > 30) return fail(res, 400, 'items debe tener entre 1 y 30 lineas', 'invalid_body');
+  const notas = typeof b.notas === 'string' ? b.notas.trim().slice(0, 300) : '';
+  const emailCliente = typeof b.email_cliente === 'string' ? b.email_cliente.trim().toLowerCase() : '';
+  if (emailCliente && (!validEmail(emailCliente) || /[^\x00-\x7F]/.test(emailCliente))) return fail(res, 400, 'email_cliente invalido', 'invalid_body');
+  const q = req.query || {};
+  const tasaIn = typeof q.tasa_ivu === 'string' && q.tasa_ivu.trim() !== '' ? Number(q.tasa_ivu) : NaN;
+  const ivuRate = Number.isFinite(tasaIn) && tasaIn >= 0 && tasaIn <= 0.5 ? tasaIn : IVU_RATE;
+  const etiqueta = typeof q.metodo_etiqueta === 'string' ? q.metodo_etiqueta.trim().replace(/\s+/g, ' ').slice(0, 60) : '';
+  const metodoGuardado = etiqueta && metodo !== 'cash' ? etiqueta.toLowerCase() : metodo;
+  const filtroDuplicados = String(q.sin_filtro_duplicados || '') !== '1';
+  let customerId = null;
+  if (b.customer_id !== undefined && b.customer_id !== null && b.customer_id !== '') {
+    const cid = typeof b.customer_id === 'string' ? b.customer_id.trim() : '';
+    if (!UUID_RE.test(cid)) return fail(res, 400, 'customer_id invalido', 'invalid_body');
+    const found = await sb(`customer?tenant_id=eq.${TENANT_ID}&id=eq.${cid}&select=id&limit=1`);
+    if (!found?.[0]) return fail(res, 400, 'customer_id no pertenece a un cliente de este taller', 'invalid_body');
+    customerId = found[0].id || cid;
+  }
+
+  const lines = [];
+  for (let i = 0; i < rawItems.length; i += 1) {
+    const l = await resolveSaleLine(rawItems[i], i);
+    if (l.error) return fail(res, l.status || 400, l.error, l.status === 404 ? 'not_found' : l.status === 409 ? 'has_variants' : 'invalid_body');
+    lines.push(l);
+  }
+
+  const discount = readSaleDiscount(b, lines, ivuRate);
+  if (discount.error) return fail(res, 400, discount.error, 'invalid_body');
+  const baseTotal = priceSale(lines, ivuRate, 0).total;
+  const { saleItems, subtotal, taxTotal, total } = priceSale(lines, ivuRate, discount.e4);
+  if (total <= 0) return fail(res, 400, 'El total de la venta debe ser mayor a cero', 'invalid_body');
+  const saleDiscount = discount.e4 > 0 ? { pct: discount.e4 / 10000, monto: money(baseTotal - total) } : null;
+
+  let payList;
+  let recibido;
+  let cambio;
+  let paymentKey = metodoGuardado;
+  if (hasPagos) {
+    const split = readSplitPayments(b.pagos, centsOf(total));
+    if (split.error) return fail(res, 400, split.error, 'invalid_body');
+    payList = split.list;
+    const primary = payList.reduce((best, x) => (x.montoC > best.montoC ? x : best), payList[0]);
+    paymentKey = primary.key;
+    recibido = money(payList.reduce((s2, x) => s2 + x.recibidoC, 0) / 100);
+    cambio = money(payList.reduce((s2, x) => s2 + (x.tipo === 'cash' ? x.recibidoC - x.montoC : 0), 0) / 100);
+  } else {
+    recibido = total;
+    if (b.monto_recibido !== undefined && b.monto_recibido !== null) {
+      recibido = money(Number(b.monto_recibido));
+      if (!Number.isFinite(recibido) || recibido <= 0) return fail(res, 400, 'monto_recibido invalido', 'invalid_body');
+      if (metodo !== 'cash' && Math.abs(recibido - total) > 0.004) return fail(res, 400, 'monto_recibido solo aplica a efectivo; en otros metodos debe ser igual al total', 'invalid_body');
+      if (recibido + 0.004 < total) return fail(res, 400, `monto_recibido ($${recibido.toFixed(2)}) es menor al total ($${total.toFixed(2)})`, 'invalid_body');
+    }
+    cambio = money(Math.max(0, recibido - total));
+    payList = [{ tipo: metodo, key: metodoGuardado, etiqueta: etiqueta && metodo !== 'cash' ? etiqueta : '', montoC: centsOf(total), recibidoC: centsOf(recibido) }];
+  }
+  const isSplit = payList.length > 1;
+  const paymentsDetail = payList.map((x) => {
+    const d = { metodo: x.key, monto: money(x.montoC / 100) };
+    if (x.etiqueta) d.etiqueta = x.etiqueta;
+    if (x.tipo === 'cash') {
+      d.recibido = money(x.recibidoC / 100);
+      d.cambio = money((x.recibidoC - x.montoC) / 100);
+    }
+    return d;
+  });
 
   const registers = await sb(`cash_register?tenant_id=eq.${TENANT_ID}&status=eq.open&select=id&limit=1`);
   const register = registers?.[0];
@@ -2130,7 +2278,7 @@ async function posSale(req, res) {
       `sale?tenant_id=eq.${TENANT_ID}&employee=eq.${actorName()}&created_at=gte.${since}&select=id,sale_number,total,payment_method,items&limit=20`
     )) || [];
     const signature = (items) => (Array.isArray(items) ? items : []).map((i) => `${String(i.product_name).toLowerCase()}x${i.quantity}`).sort().join('|');
-    dupe = recent.find((s) => Math.abs(Number(s.total) - total) < 0.005 && s.payment_method === metodoGuardado && signature(s.items) === signature(saleItems)) || null;
+    dupe = recent.find((s) => Math.abs(Number(s.total) - total) < 0.005 && s.payment_method === paymentKey && signature(s.items) === signature(saleItems)) || null;
   }
   if (dupe) {
     return res.status(200).json({
@@ -2184,33 +2332,31 @@ async function posSale(req, res) {
         subtotal,
         tax_amount: taxTotal,
         total,
-        payment_method: metodoGuardado,
+        payment_method: paymentKey,
         employee: actorName(),
         amount_received: recibido,
         amount_paid: total,
         change_due: cambio,
-        customer_id: null,
+        customer_id: customerId,
         order_id: null,
         cash_register_id: register.id,
-        is_split_payment: false,
+        is_split_payment: isSplit,
         notes: notas || null,
+        ...(isSplit ? { payments: paymentsDetail } : {}),
       },
       prefer: 'return=representation',
     });
     sale = Array.isArray(inserted) ? inserted[0] : inserted;
-    await sb('transaction', {
-      method: 'POST',
-      body: {
-        tenant_id: TENANT_ID,
-        type: 'revenue',
-        amount: total,
-        category: 'repair_payment',
-        payment_method: metodoGuardado,
-        description: 'Venta POS',
-        recorded_by: actorName(),
-      },
-      prefer: 'return=minimal',
-    });
+    const revenue = payList.map((x) => ({
+      tenant_id: TENANT_ID,
+      type: 'revenue',
+      amount: money(x.montoC / 100),
+      category: 'repair_payment',
+      payment_method: x.key,
+      description: isSplit ? `Venta POS ${saleNumber} (pago dividido)` : 'Venta POS',
+      recorded_by: actorName(),
+    }));
+    await sb('transaction', { method: 'POST', body: isSplit ? revenue : revenue[0], prefer: 'return=minimal' });
   } catch (e) {
     await revertStocks();
     if (sale && sale.id) {
@@ -2242,7 +2388,8 @@ async function posSale(req, res) {
 
   let notification = { enviada: false, motivo: emailCliente ? 'notificacion desactivada (notificar_cliente:false)' : 'sin email_cliente; envialo para mandar el recibo' };
   if (emailCliente && wantsNotification(b.notificar_cliente)) {
-    const methodLabel = (etiqueta && metodo !== 'cash' ? etiqueta : null) || { cash: 'efectivo', card: 'tarjeta', ath_movil: 'ATH Móvil', transferencia: 'transferencia' }[metodo] || metodo;
+    const labelOf = (x) => x.etiqueta || { cash: 'efectivo', card: 'tarjeta', ath_movil: 'ATH Móvil', transferencia: 'transferencia' }[x.tipo] || x.tipo;
+    const methodLabel = payList.map((x) => (isSplit ? `${labelOf(x)} $${(x.montoC / 100).toFixed(2)}` : labelOf(x))).join(' + ');
     const detail = saleItems.map((i) => `${i.quantity} x ${i.product_name}: $${i.total.toFixed(2)}`).join('\n');
     const text = [`Gracias por tu compra. Este es el recibo de tu venta ${saleNumber}.`, detail, `Subtotal: $${subtotal.toFixed(2)}\nIVU: $${taxTotal.toFixed(2)}\nTotal: $${total.toFixed(2)} (${methodLabel})`].join('\n\n');
     try {
@@ -2262,9 +2409,12 @@ async function posSale(req, res) {
       subtotal,
       iva: taxTotal,
       total,
-      metodo: metodoGuardado,
+      metodo: paymentKey,
       recibido,
       cambio,
+      ...(hasPagos ? { dividido: isSplit, pagos: paymentsDetail } : {}),
+      ...(saleDiscount ? { descuento_venta: saleDiscount } : {}),
+      ...(customerId ? { customer_id: customerId } : {}),
       items: saleItems.map((i) => ({ nombre: i.product_name, cantidad: i.quantity, precio: i.unit_price, total: i.total })),
     },
     inventario: stockChanges.map((c) => ({ producto: c.product.name, stock_anterior: c.prev, stock_nuevo: c.next })),
@@ -2280,9 +2430,13 @@ async function posVoidSale(req, res, ref) {
   const restoreStock = b.restaurar_stock !== false;
   const value = decodeURIComponent(String(ref || '')).trim();
   const key = UUID_RE.test(value) ? `id=eq.${value}` : `sale_number=eq.${encodeURIComponent(value)}`;
-  const rows = await sb(
-    `sale?tenant_id=eq.${TENANT_ID}&${key}&select=id,sale_number,total,payment_method,items,voided,is_deleted,employee&limit=1`
-  );
+  const saleSelect = 'id,sale_number,total,payment_method,items,voided,is_deleted,employee';
+  let rows;
+  try {
+    rows = await sb(`sale?tenant_id=eq.${TENANT_ID}&${key}&select=${saleSelect},is_split_payment,payments&limit=1`);
+  } catch {
+    rows = await sb(`sale?tenant_id=eq.${TENANT_ID}&${key}&select=${saleSelect}&limit=1`);
+  }
   const sale = rows?.[0];
   if (!sale) return fail(res, 404, 'Venta no encontrada', 'not_found');
   if (sale.voided || sale.is_deleted) return fail(res, 409, 'Esa venta ya fue anulada.', 'already_voided');
@@ -2298,10 +2452,18 @@ async function posVoidSale(req, res, ref) {
   });
   if (!Array.isArray(voided) || voided.length === 0) return fail(res, 409, 'Esa venta ya fue anulada.', 'already_voided');
 
-  try {
-    await sb('transaction', {
-      method: 'POST',
-      body: {
+  const splitPayments = Array.isArray(sale.payments) ? sale.payments.filter((x) => x && Number(x.monto) > 0 && typeof x.metodo === 'string') : [];
+  const refunds = splitPayments.length > 1
+    ? splitPayments.map((x) => ({
+        tenant_id: TENANT_ID,
+        type: 'refund',
+        amount: -money(x.monto),
+        category: 'refund',
+        payment_method: x.metodo,
+        description: `Venta ${sale.sale_number} anulada (pago dividido)`,
+        recorded_by: actorName(),
+      }))
+    : [{
         tenant_id: TENANT_ID,
         type: 'refund',
         amount: -money(sale.total),
@@ -2309,9 +2471,9 @@ async function posVoidSale(req, res, ref) {
         payment_method: sale.payment_method || 'cash',
         description: `Venta ${sale.sale_number} anulada`,
         recorded_by: actorName(),
-      },
-      prefer: 'return=minimal',
-    });
+      }];
+  try {
+    await sb('transaction', { method: 'POST', body: refunds.length > 1 ? refunds : refunds[0], prefer: 'return=minimal' });
   } catch (e) {
     try {
       await sb(`sale?id=eq.${sale.id}&tenant_id=eq.${TENANT_ID}`, {
@@ -2362,7 +2524,7 @@ async function posVoidSale(req, res, ref) {
 
   return res.status(200).json({
     ok: true,
-    anulada: { id: sale.id, numero: sale.sale_number, total: money(sale.total), metodo: sale.payment_method, motivo },
+    anulada: { id: sale.id, numero: sale.sale_number, total: money(sale.total), metodo: sale.payment_method, motivo, ...(refunds.length > 1 ? { reembolsos: refunds.map((r) => ({ metodo: r.payment_method, monto: -r.amount })) } : {}) },
     reembolso_registrado: true,
     stock_restaurado: restoreStock,
     inventario,
