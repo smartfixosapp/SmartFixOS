@@ -8,6 +8,9 @@ export const NOT_FOR_POS = 'Este articulo es una pieza o servicio y no se vende 
 const MAX_ITEMS = 30;
 const MAX_CANTIDAD = 100;
 const MAX_PRECIO = 100000;
+const MAX_PAGOS = 6;
+const MAX_MONTO = 1000000;
+const MAX_NOMBRE_MANUAL = 120;
 const METODOS = { efectivo: 'efectivo', cash: 'efectivo', tarjeta: 'tarjeta', card: 'tarjeta', ath_movil: 'ath_movil', transferencia: 'transferencia' };
 const NO_REGISTER = 'No hay una caja abierta. Abre la caja desde otro equipo.';
 export const DEFAULT_IVA = 0.115;
@@ -193,6 +196,17 @@ function findMethod(metodos, raw) {
   return metodos.find((m) => (m.custom ? m.id.toLowerCase() === key : m.alias.includes(key))) || null;
 }
 
+async function capabilities(deps) {
+  let splitReady = false;
+  try {
+    await deps.sb('sale?select=payments&limit=1');
+    splitReady = true;
+  } catch (e) {
+    console.warn('pago dividido desactivado, falta la columna sale.payments:', e.message);
+  }
+  return { articulo_manual: true, pago_dividido: splitReady, cliente_en_venta: true, descuento_venta: true };
+}
+
 export async function posConfig({ tenantId }, deps) {
   let cfg;
   try {
@@ -211,6 +225,7 @@ export async function posConfig({ tenantId }, deps) {
       umbral_confirmacion: UMBRAL_CONFIRMACION,
       descuento_max_empleado: DESCUENTO_MAX_EMPLEADO,
       tienda: cfg.tienda,
+      capacidades: await capabilities(deps),
     },
   };
 }
@@ -251,6 +266,39 @@ export function readMetodo(raw, customMethods = []) {
   return metodoEtiqueta ? { id: custom.id, metodo: 'ath_movil', metodoEtiqueta } : null;
 }
 
+function cleanManualName(v) {
+  return String(v).replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u2028-\u202f\u2060\ufeff<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, MAX_NOMBRE_MANUAL);
+}
+
+function exactCents(v) {
+  return Math.abs(v * 100 - Math.round(v * 100)) <= 1e-6;
+}
+
+function readPagos(raw, customMethods) {
+  if (!Array.isArray(raw) || raw.length < 1 || raw.length > MAX_PAGOS) throw bad(`pagos debe tener entre 1 y ${MAX_PAGOS} metodos`);
+  const seen = new Set();
+  return raw.map((p, i) => {
+    if (!p || typeof p !== 'object' || Array.isArray(p)) throw bad(`pagos[${i}] invalido`);
+    const pago = readMetodo(p.metodo, customMethods);
+    if (!pago) throw bad(`pagos[${i}].metodo: ${METODO_INVALIDO}`);
+    if (seen.has(pago.id)) throw bad('Un metodo de pago no puede repetirse en la misma venta');
+    seen.add(pago.id);
+    const monto = p.monto;
+    if (typeof monto !== 'number' || !Number.isFinite(monto) || monto <= 0 || monto > MAX_MONTO) throw bad(`pagos[${i}].monto debe ser un numero mayor a cero`);
+    if (!exactCents(monto)) throw bad(`pagos[${i}].monto no puede tener mas de 2 decimales`);
+    const entry = { metodo: pago.metodo, etiqueta: pago.metodoEtiqueta, monto: money(monto) };
+    if (present(p.recibido)) {
+      const recibido = p.recibido;
+      if (typeof recibido !== 'number' || !Number.isFinite(recibido) || recibido <= 0 || recibido > MAX_MONTO) throw bad(`pagos[${i}].recibido invalido`);
+      if (!exactCents(recibido)) throw bad(`pagos[${i}].recibido no puede tener mas de 2 decimales`);
+      if (pago.metodo !== 'efectivo' && money(recibido) !== entry.monto) throw bad(`pagos[${i}].recibido solo aplica a efectivo`);
+      if (money(recibido) < entry.monto) throw bad(`pagos[${i}].recibido es menor al monto`);
+      entry.recibido = money(recibido);
+    }
+    return entry;
+  });
+}
+
 export function readSaleForm(b, customMethods = []) {
   if (!b || typeof b !== 'object' || Array.isArray(b)) throw bad('Cuerpo JSON requerido');
   const origen = String(b.origen || '').toLowerCase();
@@ -260,18 +308,39 @@ export function readSaleForm(b, customMethods = []) {
     requestId = String(b.id_cliente_solicitud).trim().toLowerCase();
     if (!UUID_RE.test(requestId)) throw bad('id_cliente_solicitud debe ser un uuid');
   }
-  const pago = readMetodo(b.metodo, customMethods);
-  if (!pago) throw bad(METODO_INVALIDO);
-  const { metodo, metodoEtiqueta } = pago;
+  const hasPagos = present(b.pagos);
+  let pagos = null;
+  let metodo = '';
+  let metodoEtiqueta = '';
+  if (hasPagos) {
+    if (present(b.monto_recibido)) throw bad('Con pagos no envies monto_recibido; usa recibido dentro de cada pago en efectivo');
+    pagos = readPagos(b.pagos, customMethods);
+  } else {
+    const pago = readMetodo(b.metodo, customMethods);
+    if (!pago) throw bad(METODO_INVALIDO);
+    metodo = pago.metodo;
+    metodoEtiqueta = pago.metodoEtiqueta;
+  }
   if (!Array.isArray(b.items) || b.items.length < 1 || b.items.length > MAX_ITEMS) throw bad(`items debe tener entre 1 y ${MAX_ITEMS} lineas`);
   const items = b.items.map((raw, i) => {
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw bad(`items[${i}] invalido`);
     const productoId = typeof raw.producto_id === 'string' ? raw.producto_id.trim() : '';
-    if (!UUID_RE.test(productoId)) throw bad(`items[${i}].producto_id debe ser el id del producto`);
+    const manual = !present(raw.producto_id) && present(raw.nombre);
+    if (!manual && !UUID_RE.test(productoId)) throw bad(`items[${i}].producto_id debe ser el id del producto`);
     const cantidad = present(raw.cantidad) ? raw.cantidad : 1;
     if (!Number.isInteger(cantidad) || cantidad < 1 || cantidad > MAX_CANTIDAD) throw bad(`items[${i}].cantidad debe ser un entero entre 1 y ${MAX_CANTIDAD}`);
-    const line = { producto_id: productoId, cantidad };
-    if (present(raw.precio)) {
+    let line;
+    if (manual) {
+      if (typeof raw.nombre !== 'string') throw bad(`items[${i}].nombre debe ser texto`);
+      const nombre = cleanManualName(raw.nombre);
+      if (!nombre) throw bad(`items[${i}].nombre es requerido en un articulo manual`);
+      if (typeof raw.precio !== 'number' || !Number.isFinite(raw.precio) || raw.precio <= 0 || raw.precio > MAX_PRECIO) throw bad(`items[${i}].precio debe ser un numero entre 0.01 y ${MAX_PRECIO}`);
+      if (present(raw.gravable) && typeof raw.gravable !== 'boolean') throw bad(`items[${i}].gravable debe ser true o false`);
+      line = { manual: true, nombre, precio: money(raw.precio), cantidad, gravable: raw.gravable !== false };
+    } else {
+      line = { producto_id: productoId, cantidad };
+    }
+    if (!manual && present(raw.precio)) {
       const precio = Number(raw.precio);
       if (typeof raw.precio === 'boolean' || !Number.isFinite(precio) || precio < 0 || precio > MAX_PRECIO) throw bad(`items[${i}].precio debe ser un numero entre 0 y ${MAX_PRECIO}`);
       line.precio = money(precio);
@@ -284,7 +353,7 @@ export function readSaleForm(b, customMethods = []) {
     return line;
   });
   let montoRecibido;
-  if (metodo === 'efectivo') {
+  if (!hasPagos && metodo === 'efectivo') {
     if (!present(b.monto_recibido)) throw bad('monto_recibido es requerido en efectivo');
     montoRecibido = Number(b.monto_recibido);
     if (typeof b.monto_recibido === 'boolean' || !Number.isFinite(montoRecibido) || montoRecibido <= 0 || montoRecibido > 1000000) throw bad('monto_recibido invalido');
@@ -302,11 +371,32 @@ export function readSaleForm(b, customMethods = []) {
     notas = b.notas.trim().replace(/\s+/g, ' ');
     if (notas.length > 300) throw bad('notas demasiado largo (max 300)');
   }
-  return { origen, requestId, metodo, metodoEtiqueta, items, montoRecibido, email, notas };
+  let customerId = '';
+  if (present(b.customer_id)) {
+    customerId = typeof b.customer_id === 'string' ? b.customer_id.trim().toLowerCase() : '';
+    if (!UUID_RE.test(customerId)) throw bad('customer_id debe ser el id de un cliente');
+  }
+  let descuentoPct;
+  let descuentoMonto;
+  if (present(b.descuento_venta_pct) && present(b.descuento_venta_monto)) throw bad('Envia descuento_venta_pct o descuento_venta_monto, no los dos');
+  if (present(b.descuento_venta_pct)) {
+    const d = b.descuento_venta_pct;
+    if (typeof d !== 'number' || !Number.isFinite(d) || d < 0 || d > 100) throw bad('descuento_venta_pct debe ser un numero entre 0 y 100');
+    if (d > 0) descuentoPct = d;
+  }
+  if (present(b.descuento_venta_monto)) {
+    const d = b.descuento_venta_monto;
+    if (typeof d !== 'number' || !Number.isFinite(d) || d < 0 || d > MAX_MONTO) throw bad('descuento_venta_monto debe ser un numero mayor o igual a cero');
+    if (!exactCents(d)) throw bad('descuento_venta_monto no puede tener mas de 2 decimales');
+    if (d > 0) descuentoMonto = money(d);
+  }
+  const hasCash = hasPagos ? pagos.some((p) => p.metodo === 'efectivo') : metodo === 'efectivo';
+  return { origen, requestId, metodo, metodoEtiqueta, pagos, hasCash, items, montoRecibido, email, notas, customerId, descuentoPct, descuentoMonto };
 }
 
 async function rejectNonPosItems(deps, tenantId, items) {
-  const ids = [...new Set(items.map((i) => i.producto_id))];
+  const ids = [...new Set(items.filter((i) => !i.manual).map((i) => i.producto_id))];
+  if (!ids.length) return null;
   let rows;
   try {
     rows = await deps.sb(`product?tenant_id=eq.${tenantId}&id=in.(${ids.join(',')})&select=id,name,type,tipo_principal,subcategoria&limit=${ids.length}`);
@@ -317,6 +407,7 @@ async function rejectNonPosItems(deps, tenantId, items) {
   const byId = new Map((rows || []).map((p) => [String(p.id).toLowerCase(), p]));
   const rechazados = [];
   items.forEach((item, indice) => {
+    if (item.manual) return;
     const p = byId.get(item.producto_id.toLowerCase());
     if (p && !posKind(p)) rechazados.push({ indice, producto_id: item.producto_id, nombre: p.name || null });
   });
@@ -345,14 +436,26 @@ async function savePosRequest(deps, tenantId, requestId, numero) {
 async function existingSale(deps, tenantId, numero) {
   const venta = { numero };
   try {
-    const rows = await deps.sb(`sale?tenant_id=eq.${tenantId}&sale_number=eq.${encodeURIComponent(numero)}&select=id,sale_number,subtotal,tax_amount,total,change_due,payment_method&limit=1`);
+    const base = 'id,sale_number,subtotal,tax_amount,total,change_due,payment_method';
+    const where = `sale?tenant_id=eq.${tenantId}&sale_number=eq.${encodeURIComponent(numero)}`;
+    let rows;
+    try {
+      rows = await deps.sb(`${where}&select=${base},is_split_payment,payments,customer_id&limit=1`);
+    } catch {
+      rows = await deps.sb(`${where}&select=${base}&limit=1`);
+    }
     const s = rows?.[0];
     if (s) {
       if (s.id) venta.id = s.id;
       venta.total = money(s.total);
       venta.subtotal = money(s.subtotal);
       venta.ivu = money(s.tax_amount);
-      if (s.payment_method === 'cash') venta.cambio = money(s.change_due);
+      const split = s.is_split_payment === true;
+      const payments = Array.isArray(s.payments) ? s.payments : [];
+      if (s.payment_method === 'cash' || (split && (payments.some((p) => p && p.recibido !== undefined) || money(s.change_due) > 0))) venta.cambio = money(s.change_due);
+      if (split) venta.dividido = true;
+      if (split && payments.length) venta.pagos = payments;
+      if (s.customer_id) venta.customer_id = s.customer_id;
     }
   } catch (e) {
     console.warn('no se pudo leer la venta repetida:', e.message);
@@ -367,7 +470,8 @@ export async function createSaleFromForm({ body, label, tenantId }, deps) {
   } catch (e) {
     console.warn('configuracion del taller no disponible, venta con IVU por defecto:', e.message);
   }
-  if (!tenantPos && body && typeof body === 'object' && present(body.metodo) && !METODOS[String(body.metodo).trim().toLowerCase()]) {
+  const wanted = body && typeof body === 'object' ? (Array.isArray(body.pagos) ? body.pagos.map((p) => p && p.metodo) : [body.metodo]) : [];
+  if (!tenantPos && wanted.some((m) => present(m) && !METODOS[String(m).trim().toLowerCase()])) {
     return { status: 502, body: { ok: false, error: 'No se pudieron leer los metodos de pago del taller; intenta de nuevo', code: 'upstream_error' } };
   }
   let form;
@@ -388,14 +492,19 @@ export async function createSaleFromForm({ body, label, tenantId }, deps) {
   const rejected = await rejectNonPosItems(deps, tenantId, form.items);
   if (rejected) return rejected;
 
-  const input = { items: form.items, metodo: form.metodo };
+  const input = { items: form.items };
+  if (form.pagos) input.pagos = form.pagos;
+  else input.metodo = form.metodo;
   if (form.montoRecibido !== undefined) input.monto_recibido = form.montoRecibido;
   if (form.email) input.email_cliente = form.email;
   if (form.notas) input.notas = form.notas;
+  if (form.customerId) input.customer_id = form.customerId;
+  if (form.descuentoPct !== undefined) input.descuento_venta_pct = form.descuentoPct;
+  if (form.descuentoMonto !== undefined) input.descuento_venta_monto = form.descuentoMonto;
 
   const query = {};
   if (tenantPos && tenantPos.ivaTasa !== null) query.tasa_ivu = tenantPos.ivaTasa;
-  if (form.metodoEtiqueta) query.metodo_etiqueta = form.metodoEtiqueta;
+  if (form.metodoEtiqueta && !form.pagos) query.metodo_etiqueta = form.metodoEtiqueta;
   if (form.requestId && idem.available) query.sin_filtro_duplicados = '1';
 
   const r = Object.keys(query).length ? await deps.ventaMostrador(input, actor, query) : await deps.ventaMostrador(input, actor);
@@ -406,7 +515,13 @@ export async function createSaleFromForm({ body, label, tenantId }, deps) {
   const venta = { id: v.id || null, numero: v.numero, total: v.total };
   if (v.subtotal !== undefined) venta.subtotal = v.subtotal;
   if (v.iva !== undefined) venta.ivu = v.iva;
-  if (form.metodo === 'efectivo' && v.cambio !== undefined) venta.cambio = v.cambio;
+  if (form.hasCash && v.cambio !== undefined) venta.cambio = v.cambio;
+  if (form.pagos) {
+    venta.dividido = v.dividido === true;
+    if (Array.isArray(v.pagos)) venta.pagos = v.pagos;
+  }
+  if (v.descuento_venta) venta.descuento_venta = v.descuento_venta;
+  if (v.customer_id) venta.customer_id = v.customer_id;
   return {
     status: 200,
     body: {
