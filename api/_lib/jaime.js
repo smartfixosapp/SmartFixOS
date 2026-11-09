@@ -20,6 +20,7 @@ import {
   shopInfo,
   validEmail,
 } from './muse.js';
+import { lecturaRoute } from './jaimeLectura.js';
 
 const API_TOKEN = process.env.JAIME_API_TOKEN || '';
 const TENANT_ID = process.env.JAIME_TENANT_ID || process.env.MUSE_TENANT_ID || '';
@@ -3142,6 +3143,67 @@ function openapi() {
           responses: { 200: { description: 'Resumen' } },
         },
       },
+      '/caja/cierres': {
+        get: {
+          operationId: 'cajaCierres',
+          summary: 'Cierres de caja del periodo: apertura, cierre, quien, fondo, cobrado por metodo, gastos, efectivo esperado, contado, diferencia y sin_conteo_efectivo',
+          parameters: [{ name: 'desde', in: 'query', description: 'YYYY-MM-DD o fecha ISO (hora de PR si no trae zona); por defecto hoy', schema: { type: 'string' } }, { name: 'hasta', in: 'query', description: 'YYYY-MM-DD o fecha ISO; maximo 92 dias de rango', schema: { type: 'string' } }],
+          responses: { 200: { description: 'Respuesta' }, 400: { description: 'invalid_query' } },
+        },
+      },
+      '/caja/estado': {
+        get: {
+          operationId: 'cajaEstado',
+          summary: 'Caja abierta o cerrada ahora, desde cuando, quien la abrio y el acumulado por metodo del turno actual',
+          responses: { 200: { description: 'Respuesta' }, 400: { description: 'invalid_query' } },
+        },
+      },
+      '/pagos': {
+        get: {
+          operationId: 'pagosPeriodo',
+          summary: 'Cada cobro, ingreso de mostrador y reembolso del periodo con totales por metodo y por dia (anulados excluidos y contados)',
+          parameters: [{ name: 'desde', in: 'query', description: 'YYYY-MM-DD o fecha ISO (hora de PR si no trae zona); por defecto hoy', schema: { type: 'string' } }, { name: 'hasta', in: 'query', description: 'YYYY-MM-DD o fecha ISO; maximo 92 dias de rango', schema: { type: 'string' } }],
+          responses: { 200: { description: 'Respuesta' }, 400: { description: 'invalid_query' } },
+        },
+      },
+      '/gastos': {
+        get: {
+          operationId: 'gastosPeriodo',
+          summary: 'Cada gasto del periodo con totales por categoria y por dia (anulados excluidos y contados)',
+          parameters: [{ name: 'desde', in: 'query', description: 'YYYY-MM-DD o fecha ISO (hora de PR si no trae zona); por defecto hoy', schema: { type: 'string' } }, { name: 'hasta', in: 'query', description: 'YYYY-MM-DD o fecha ISO; maximo 92 dias de rango', schema: { type: 'string' } }],
+          responses: { 200: { description: 'Respuesta' }, 400: { description: 'invalid_query' } },
+        },
+      },
+      '/piezas': {
+        get: {
+          operationId: 'piezasPeriodo',
+          summary: 'Con desde/hasta: piezas registradas en boletos en el periodo con costo, precio y totales por suplidor. Sin desde/hasta devuelve el catalogo de inventario',
+          parameters: [{ name: 'desde', in: 'query', description: 'YYYY-MM-DD o fecha ISO (hora de PR si no trae zona); por defecto hoy', schema: { type: 'string' } }, { name: 'hasta', in: 'query', description: 'YYYY-MM-DD o fecha ISO; maximo 92 dias de rango', schema: { type: 'string' } }],
+          responses: { 200: { description: 'Respuesta' }, 400: { description: 'invalid_query' } },
+        },
+      },
+      '/boletos/listos-sin-cobrar': {
+        get: {
+          operationId: 'boletosListosSinCobrar',
+          summary: 'Boletos en Listo para recoger con balance pendiente, desde cuando y dias esperando',
+          responses: { 200: { description: 'Respuesta' }, 400: { description: 'invalid_query' } },
+        },
+      },
+      '/ponches': {
+        get: {
+          operationId: 'ponchesPeriodo',
+          summary: 'Ponches de entrada y salida del periodo y horas trabajadas por dia y empleado',
+          parameters: [{ name: 'desde', in: 'query', description: 'YYYY-MM-DD o fecha ISO (hora de PR si no trae zona); por defecto hoy', schema: { type: 'string' } }, { name: 'hasta', in: 'query', description: 'YYYY-MM-DD o fecha ISO; maximo 92 dias de rango', schema: { type: 'string' } }],
+          responses: { 200: { description: 'Respuesta' }, 400: { description: 'invalid_query' } },
+        },
+      },
+      '/inventario': {
+        get: {
+          operationId: 'inventarioCapital',
+          summary: 'Productos con existencia y costo, capital parado total y por categoria, y existencia baja',
+          responses: { 200: { description: 'Respuesta' }, 400: { description: 'invalid_query' } },
+        },
+      },
       '/alertas': {
         get: {
           operationId: 'alertas',
@@ -3175,6 +3237,7 @@ export async function jaimeHandler(req, res) {
   try {
     const [a, b, c] = parts;
     const m = req.method;
+    if (m === 'GET' && (await lecturaRoute(parts, req, res, TENANT_ID))) return;
     if (a === 'tickets') {
       if (m === 'GET' && !b) return await listTickets(req, res);
       if (m === 'GET' && b && !c) return await ticketDetail(req, res, b);
