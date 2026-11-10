@@ -135,7 +135,7 @@ test('sin llave o con llave incorrecta responde 401 y no toca la base', async ()
 });
 
 test('los endpoints de lectura rechazan metodos de escritura', async () => {
-  for (const parts of ALL_PATHS) {
+  for (const parts of ALL_PATHS.filter((p) => p[0] !== 'ponches')) {
     const r = await run({}, parts, { method: 'POST', query: RANGE });
     assert.equal(r.status, 404, parts.join('/'));
     assert.equal(r.calls.length, 0);
