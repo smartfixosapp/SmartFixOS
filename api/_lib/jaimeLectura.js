@@ -5,7 +5,7 @@ const DAY_MS = 86_400_000;
 const PAGE = 1000;
 const MAX_ROWS = 2000;
 const MAX_RANGE_DAYS = 92;
-const TOLERANCE_CENTS = 5;
+export const TOLERANCE_CENTS = 5;
 const METHODS = ['efectivo', 'tarjeta', 'ath_movil', 'transferencia', 'otro'];
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const ISO_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,3})?)?(Z|[+-]\d{2}:\d{2})?$/;
@@ -25,15 +25,15 @@ function fail(res, status, error, code) {
   return res.status(status).json({ ok: false, error, code: code || 'error' });
 }
 
-function cents(n) {
+export function cents(n) {
   return Math.round((Number(n) || 0) * 100);
 }
 
-function dollars(c) {
+export function dollars(c) {
   return Math.round(c) / 100;
 }
 
-function prIso(v) {
+export function prIso(v) {
   const ms = typeof v === 'number' ? v : Date.parse(v);
   if (!Number.isFinite(ms)) return null;
   return `${new Date(ms + PR_OFFSET_MS).toISOString().slice(0, 19)}-04:00`;
@@ -104,7 +104,7 @@ function missingDetail(message) {
   return m ? `la base no tiene la columna ${m[1]}` : 'faltan columnas opcionales en la base';
 }
 
-async function fetchAll(url, max) {
+export async function fetchAll(url, max) {
   const rows = [];
   for (let offset = 0; offset < max; offset += PAGE) {
     const size = Math.min(PAGE, max - offset);
@@ -288,7 +288,7 @@ async function gastos(req, res, tenantId) {
 const REG_FULL = 'id,status,date,created_at,opening_balance,closing_balance,total_revenue,total_expenses,opened_by,closed_by,last_movement_at,final_count';
 const REG_BASIC = 'id,status,date,created_at,opening_balance,closing_balance,total_revenue,total_expenses,opened_by,closed_by';
 
-function shiftTotals(txs, openingCents) {
+export function shiftTotals(txs, openingCents) {
   const by = emptyMethods();
   let refunds = 0;
   let expenses = 0;
@@ -392,13 +392,16 @@ async function cierres(req, res, tenantId) {
     const fc = finalCountOf(reg);
     const { counted, hasDenoms } = countedOf(reg);
     const expectedC = cents(t.efectivo_esperado);
-    const sinConteo = !open && !hasDenoms && (counted === null || counted <= 0);
+    const explicit = typeof fc?.sin_conteo === 'boolean';
+    const sinConteo = !open && (explicit ? fc.sin_conteo : !hasDenoms && (counted === null || counted <= 0));
+    const figure = !open && (!sinConteo || explicit);
+    const countedC = figure ? counted ?? 0 : null;
     let diferencia = null;
     let resultado = open ? 'abierta' : 'sin_conteo';
-    if (!open && !sinConteo) {
-      const d = counted - expectedC;
+    if (figure) {
+      const d = countedC - expectedC;
       diferencia = dollars(d);
-      resultado = Math.abs(d) <= TOLERANCE_CENTS ? 'exacto' : d < 0 ? 'faltante' : 'sobrante';
+      if (!sinConteo) resultado = Math.abs(d) <= TOLERANCE_CENTS ? 'exacto' : d < 0 ? 'faltante' : 'sobrante';
     }
     const savedExpected = fc && (fc.expected_cash ?? fc.expectedCash) !== undefined ? cents(fc.expected_cash ?? fc.expectedCash) : null;
     if (!open && !endKnown) avisos.push(`El cierre ${reg.id} no guarda la hora de cierre; se calculo hasta el final del dia ${reg.date || prDay(startMs)}.`);
@@ -420,10 +423,11 @@ async function cierres(req, res, tenantId) {
       gastos_turno: t.gastos,
       gastos_en_efectivo: t.gastos_en_efectivo,
       efectivo_esperado: t.efectivo_esperado,
-      efectivo_contado: sinConteo || open ? null : dollars(counted ?? 0),
+      efectivo_contado: countedC === null ? null : dollars(countedC),
       diferencia,
       resultado,
       sin_conteo_efectivo: sinConteo,
+      modalidad_cierre: open ? null : fc?.mode || null,
       esperado_guardado_al_cerrar: savedExpected === null ? null : dollars(savedExpected),
       cobros: t.cobros,
     };
@@ -707,9 +711,10 @@ async function ponches(req, res, tenantId) {
     const inMs = Date.parse(t.clock_in);
     const outMs = t.clock_out ? Date.parse(t.clock_out) : null;
     const editado = !!t.edited_by;
-    events.push({ id: t.id, empleado: who, empleado_id: t.employee_id || null, tipo: 'entrada', hora: prIso(inMs), dia: prDay(inMs), editado });
+    const origen = t.edited_by === 'Jaime (API)' ? 'api_jaime' : null;
+    events.push({ id: t.id, empleado: who, empleado_id: t.employee_id || null, tipo: 'entrada', hora: prIso(inMs), dia: prDay(inMs), editado, origen });
     if (outMs !== null && Number.isFinite(outMs)) {
-      events.push({ id: t.id, empleado: who, empleado_id: t.employee_id || null, tipo: 'salida', hora: prIso(outMs), dia: prDay(outMs), editado });
+      events.push({ id: t.id, empleado: who, empleado_id: t.employee_id || null, tipo: 'salida', hora: prIso(outMs), dia: prDay(outMs), editado, origen });
       const stored = t.total_hours === null || t.total_hours === undefined ? null : Number(t.total_hours);
       const hours = stored !== null && Number.isFinite(stored) ? stored : Math.round((Math.max(0, outMs - inMs) / 3_600_000) * 100) / 100;
       shifts.push({ empleado: who, empleado_id: t.employee_id || null, dia: prDay(inMs), horas: hours, derivado: stored === null });

@@ -21,6 +21,7 @@ import {
   validEmail,
 } from './muse.js';
 import { lecturaRoute } from './jaimeLectura.js';
+import { escrituraRoute } from './jaimeEscritura.js';
 
 const API_TOKEN = process.env.JAIME_API_TOKEN || '';
 const TENANT_ID = process.env.JAIME_TENANT_ID || process.env.MUSE_TENANT_ID || '';
@@ -3196,6 +3197,43 @@ function openapi() {
           parameters: [{ name: 'desde', in: 'query', description: 'YYYY-MM-DD o fecha ISO (hora de PR si no trae zona); por defecto hoy', schema: { type: 'string' } }, { name: 'hasta', in: 'query', description: 'YYYY-MM-DD o fecha ISO; maximo 92 dias de rango', schema: { type: 'string' } }],
           responses: { 200: { description: 'Respuesta' }, 400: { description: 'invalid_query' } },
         },
+        post: {
+          operationId: 'ponchar',
+          summary: 'Registra una entrada o salida de un empleado (idempotente por id_solicitud). Queda marcada como Jaime (API)',
+          requestBody: body({
+            type: 'object',
+            required: ['id_solicitud', 'empleado', 'tipo'],
+            properties: {
+              id_solicitud: { type: 'string', description: 'Texto estable de 8 a 64 caracteres; repetirlo devuelve el mismo ponche con repetido:true' },
+              empleado: { type: 'string', description: 'id, codigo o nombre que resuelva a un solo empleado activo' },
+              tipo: { type: 'string', enum: ['entrada', 'salida'] },
+              fecha_hora: { type: 'string', description: 'ISO opcional; por defecto ahora; no mas de 5 minutos en el futuro ni 24 horas atras' },
+              nota: { type: 'string' },
+            },
+          }),
+          responses: { 200: { description: 'Ponche y estado del turno' }, 400: { description: 'invalid_body o employee_ambiguous' }, 403: { description: 'employee_inactive o employee_other_tenant' }, 404: { description: 'employee_not_found' }, 409: { description: 'shift_open, no_open_shift, punch_overlap, shift_too_long, request_id_reused' } },
+        },
+      },
+      '/caja/cerrar': {
+        post: {
+          operationId: 'cajaCerrar',
+          summary: 'Cierra la caja abierta (idempotente por id_solicitud). Con conteo o sin conteo con confirmacion explicita. No envia correo: devuelve correo_pendiente:true',
+          requestBody: body({
+            type: 'object',
+            required: ['id_solicitud', 'modalidad', 'efectivo_contado'],
+            properties: {
+              id_solicitud: { type: 'string', description: 'Texto estable de 8 a 64 caracteres; repetirlo devuelve el mismo cierre con repetido:true' },
+              modalidad: { type: 'string', enum: ['con_conteo', 'sin_conteo'] },
+              efectivo_contado: { type: 'number', description: 'Efectivo contado; en sin_conteo, el total de efectivo confirmado por Francis' },
+              denominaciones: { type: 'object', description: "Cantidades por denominacion: 100, 50, 20, 10, 5, 1, 025, 010, 005, 001; deben sumar efectivo_contado; no se admite en sin_conteo" },
+              observaciones: { type: 'string', description: 'Obligatoria (minimo 5 caracteres) en sin_conteo' },
+              confirmo_cierre_sin_conteo: { type: 'boolean', description: 'Debe ser true en sin_conteo' },
+              cerrado_por: { type: 'string' },
+              caja_id: { type: 'string', description: 'Opcional: si se envia, debe ser la caja abierta' },
+            },
+          }),
+          responses: { 200: { description: 'Cierre' }, 400: { description: 'invalid_body o confirmation_required' }, 409: { description: 'no_open_register, multiple_open_registers, register_already_closed, request_id_reused, calculation_mismatch' } },
+        },
       },
       '/inventario': {
         get: {
@@ -3238,6 +3276,7 @@ export async function jaimeHandler(req, res) {
     const [a, b, c] = parts;
     const m = req.method;
     if (m === 'GET' && (await lecturaRoute(parts, req, res, TENANT_ID))) return;
+    if (m === 'POST' && (await escrituraRoute(parts, req, res, TENANT_ID, actorName()))) return;
     if (a === 'tickets') {
       if (m === 'GET' && !b) return await listTickets(req, res);
       if (m === 'GET' && b && !c) return await ticketDetail(req, res, b);
