@@ -19,6 +19,7 @@ window.onunhandledrejection = function(e) {
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from '@/App.jsx'
+import '@/styles/repara-tokens.css'
 import '@/index.css'
 import '@/native-ios-styles.css'
 import { initCapacitor } from '@/lib/capacitor.js'

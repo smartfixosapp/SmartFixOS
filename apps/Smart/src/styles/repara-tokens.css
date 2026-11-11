@@ -1,0 +1,295 @@
+:root {
+  --repara-version: "2026.11.1";
+  --repara-font-display: "Schibsted Grotesk", system-ui, sans-serif;
+  --repara-font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --repara-type-title-size: 26px;
+  --repara-type-title-line: 30px;
+  --repara-type-title-weight: 700;
+  --repara-type-title-tracking: -0.015em;
+  --repara-type-title-family: var(--repara-font-display);
+  --repara-type-title-numeric: normal;
+  --repara-type-heading-size: 20px;
+  --repara-type-heading-line: 24px;
+  --repara-type-heading-weight: 700;
+  --repara-type-heading-tracking: -0.01em;
+  --repara-type-heading-family: var(--repara-font-display);
+  --repara-type-heading-numeric: normal;
+  --repara-type-card-title-size: 16px;
+  --repara-type-card-title-line: 20px;
+  --repara-type-card-title-weight: 700;
+  --repara-type-card-title-tracking: -0.01em;
+  --repara-type-card-title-family: var(--repara-font-display);
+  --repara-type-card-title-numeric: normal;
+  --repara-type-money-size: 26px;
+  --repara-type-money-line: 30px;
+  --repara-type-money-weight: 800;
+  --repara-type-money-tracking: -0.01em;
+  --repara-type-money-family: var(--repara-font-display);
+  --repara-type-money-numeric: tabular-nums;
+  --repara-type-body-size: 15px;
+  --repara-type-body-line: 20px;
+  --repara-type-body-weight: 400;
+  --repara-type-body-tracking: 0em;
+  --repara-type-body-family: var(--repara-font-body);
+  --repara-type-body-numeric: normal;
+  --repara-type-label-size: 13px;
+  --repara-type-label-line: 16px;
+  --repara-type-label-weight: 600;
+  --repara-type-label-tracking: 0em;
+  --repara-type-label-family: var(--repara-font-body);
+  --repara-type-label-numeric: normal;
+  --repara-type-caption-size: 12px;
+  --repara-type-caption-line: 16px;
+  --repara-type-caption-weight: 500;
+  --repara-type-caption-tracking: 0em;
+  --repara-type-caption-family: var(--repara-font-body);
+  --repara-type-caption-numeric: normal;
+  --repara-type-icon-label-size: 11px;
+  --repara-type-icon-label-line: 13px;
+  --repara-type-icon-label-weight: 500;
+  --repara-type-icon-label-tracking: 0em;
+  --repara-type-icon-label-family: var(--repara-font-body);
+  --repara-type-icon-label-numeric: normal;
+  --repara-space-xs: 4px;
+  --repara-space-s: 8px;
+  --repara-space-m: 12px;
+  --repara-space-l: 16px;
+  --repara-space-xl: 24px;
+  --repara-space-xxl: 32px;
+  --repara-radius-chip: 8px;
+  --repara-radius-field: 12px;
+  --repara-radius-card: 16px;
+  --repara-radius-sheet: 22px;
+  --repara-radius-pill: 999px;
+  --repara-touch-ios: 44px;
+  --repara-touch-web: 44px;
+  --repara-touch-android: 48px;
+  --repara-motion-fast: 180ms;
+  --repara-ease-fast: cubic-bezier(0, 0, 0.58, 1);
+  --repara-motion-standard: 350ms;
+  --repara-ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --repara-motion-panel: 450ms;
+  --repara-ease-panel: cubic-bezier(0.2, 0.9, 0.3, 1);
+  --repara-motion-reduced: 150ms;
+  --repara-ease-reduced: cubic-bezier(0, 0, 1, 1);
+  --repara-pill-text-mix: 62%;
+  --repara-pill-bg-mix: 16%;
+  --repara-pill-border-mix: 28%;
+  --repara-brand: #FF5722;
+  --repara-on-brand: #FFFFFF;
+  --repara-brand-text: #CA390B;
+  --repara-grad-start: #FF5721;
+  --repara-grad-end: #E64A1A;
+  --repara-brand-soft: #FF57221F;
+  --repara-surface-tint: #FF57220D;
+  --repara-bg: #F2F2F7;
+  --repara-surface1: #FFFFFF;
+  --repara-surface2: #F2F2F7;
+  --repara-surface3: #E5E5EA;
+  --repara-glass: #FFFFFFC7;
+  --repara-scrim: #00000052;
+  --repara-line: #3C3C432E;
+  --repara-text1: #000000;
+  --repara-text2: #5C5C61;
+  --repara-text3: #8A8A8E;
+  --repara-success: #21A663;
+  --repara-warning: #F58C19;
+  --repara-danger: #EB444D;
+  --repara-info: #338CF2;
+  --repara-vip: #D9A61A;
+  --repara-whatsapp: #25D366;
+  --repara-pill-mix: #000000;
+  --repara-shadow-e0: none;
+  --repara-shadow-e1: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --repara-shadow-e2: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --repara-shadow-e3: 0 18px 48px rgba(0, 0, 0, 0.2);
+  --repara-status-intake: #3B82F6;
+  --repara-status-diagnosing: #8B5CF6;
+  --repara-status-waiting-parts: #F97316;
+  --repara-status-por-reparar: #6366F2;
+  --repara-status-in-progress: #06B6D4;
+  --repara-status-ready-for-pickup: #10B981;
+  --repara-status-waiting-customer: #F43F5E;
+  --repara-status-pending-order: #B71C1C;
+  --repara-status-part-arrived-waiting-device: #FACC15;
+  --repara-status-reparacion-externa: #EC4899;
+  --repara-status-scheduled: #6B7280;
+  --repara-status-warranty: #F59E0B;
+  --repara-status-delivered: #059669;
+  --repara-status-cancelled: #DC2626;
+  --repara-status-not-repairable: #44403C;
+  --repara-status-abandoned: #800021;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --repara-brand: #FF5722;
+    --repara-on-brand: #FFFFFF;
+    --repara-brand-text: #FF6B38;
+    --repara-grad-start: #FF6B38;
+    --repara-grad-end: #FF7333;
+    --repara-brand-soft: #FF6B382E;
+    --repara-surface-tint: #FF6B3814;
+    --repara-bg: #000000;
+    --repara-surface1: #1C1C1E;
+    --repara-surface2: #2C2C2E;
+    --repara-surface3: #3A3A3C;
+    --repara-glass: #2C2C2EB8;
+    --repara-scrim: #0000008C;
+    --repara-line: #54545873;
+    --repara-text1: #FFFFFF;
+    --repara-text2: #AEAEB2;
+    --repara-text3: #8E8E93;
+    --repara-success: #4DC780;
+    --repara-warning: #FFA640;
+    --repara-danger: #FF7373;
+    --repara-info: #66B3FF;
+    --repara-vip: #FFC733;
+    --repara-whatsapp: #25D366;
+    --repara-pill-mix: #FFFFFF;
+    --repara-shadow-e0: none;
+    --repara-shadow-e1: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --repara-shadow-e2: 0 8px 24px rgba(0, 0, 0, 0.55);
+    --repara-shadow-e3: 0 18px 48px rgba(0, 0, 0, 0.7);
+    --repara-status-intake: #6CA1F8;
+    --repara-status-diagnosing: #A885F8;
+    --repara-status-waiting-parts: #FB9650;
+    --repara-status-por-reparar: #8A8CF5;
+    --repara-status-in-progress: #44C8DF;
+    --repara-status-ready-for-pickup: #4CCBA1;
+    --repara-status-waiting-customer: #F76F86;
+    --repara-status-pending-order: #C95555;
+    --repara-status-part-arrived-waiting-device: #FBD950;
+    --repara-status-reparacion-externa: #F176B3;
+    --repara-status-scheduled: #9095A0;
+    --repara-status-warranty: #F8B648;
+    --repara-status-delivered: #44B08F;
+    --repara-status-cancelled: #E55C5C;
+    --repara-status-not-repairable: #73706D;
+    --repara-status-abandoned: #A04059;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --repara-brand: #FF5722;
+  --repara-on-brand: #FFFFFF;
+  --repara-brand-text: #FF6B38;
+  --repara-grad-start: #FF6B38;
+  --repara-grad-end: #FF7333;
+  --repara-brand-soft: #FF6B382E;
+  --repara-surface-tint: #FF6B3814;
+  --repara-bg: #000000;
+  --repara-surface1: #1C1C1E;
+  --repara-surface2: #2C2C2E;
+  --repara-surface3: #3A3A3C;
+  --repara-glass: #2C2C2EB8;
+  --repara-scrim: #0000008C;
+  --repara-line: #54545873;
+  --repara-text1: #FFFFFF;
+  --repara-text2: #AEAEB2;
+  --repara-text3: #8E8E93;
+  --repara-success: #4DC780;
+  --repara-warning: #FFA640;
+  --repara-danger: #FF7373;
+  --repara-info: #66B3FF;
+  --repara-vip: #FFC733;
+  --repara-whatsapp: #25D366;
+  --repara-pill-mix: #FFFFFF;
+  --repara-shadow-e0: none;
+  --repara-shadow-e1: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --repara-shadow-e2: 0 8px 24px rgba(0, 0, 0, 0.55);
+  --repara-shadow-e3: 0 18px 48px rgba(0, 0, 0, 0.7);
+  --repara-status-intake: #6CA1F8;
+  --repara-status-diagnosing: #A885F8;
+  --repara-status-waiting-parts: #FB9650;
+  --repara-status-por-reparar: #8A8CF5;
+  --repara-status-in-progress: #44C8DF;
+  --repara-status-ready-for-pickup: #4CCBA1;
+  --repara-status-waiting-customer: #F76F86;
+  --repara-status-pending-order: #C95555;
+  --repara-status-part-arrived-waiting-device: #FBD950;
+  --repara-status-reparacion-externa: #F176B3;
+  --repara-status-scheduled: #9095A0;
+  --repara-status-warranty: #F8B648;
+  --repara-status-delivered: #44B08F;
+  --repara-status-cancelled: #E55C5C;
+  --repara-status-not-repairable: #73706D;
+  --repara-status-abandoned: #A04059;
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --repara-brand: #FF5722;
+  --repara-on-brand: #FFFFFF;
+  --repara-brand-text: #CA390B;
+  --repara-grad-start: #FF5721;
+  --repara-grad-end: #E64A1A;
+  --repara-brand-soft: #FF57221F;
+  --repara-surface-tint: #FF57220D;
+  --repara-bg: #F2F2F7;
+  --repara-surface1: #FFFFFF;
+  --repara-surface2: #F2F2F7;
+  --repara-surface3: #E5E5EA;
+  --repara-glass: #FFFFFFC7;
+  --repara-scrim: #00000052;
+  --repara-line: #3C3C432E;
+  --repara-text1: #000000;
+  --repara-text2: #5C5C61;
+  --repara-text3: #8A8A8E;
+  --repara-success: #21A663;
+  --repara-warning: #F58C19;
+  --repara-danger: #EB444D;
+  --repara-info: #338CF2;
+  --repara-vip: #D9A61A;
+  --repara-whatsapp: #25D366;
+  --repara-pill-mix: #000000;
+  --repara-shadow-e0: none;
+  --repara-shadow-e1: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --repara-shadow-e2: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --repara-shadow-e3: 0 18px 48px rgba(0, 0, 0, 0.2);
+  --repara-status-intake: #3B82F6;
+  --repara-status-diagnosing: #8B5CF6;
+  --repara-status-waiting-parts: #F97316;
+  --repara-status-por-reparar: #6366F2;
+  --repara-status-in-progress: #06B6D4;
+  --repara-status-ready-for-pickup: #10B981;
+  --repara-status-waiting-customer: #F43F5E;
+  --repara-status-pending-order: #B71C1C;
+  --repara-status-part-arrived-waiting-device: #FACC15;
+  --repara-status-reparacion-externa: #EC4899;
+  --repara-status-scheduled: #6B7280;
+  --repara-status-warranty: #F59E0B;
+  --repara-status-delivered: #059669;
+  --repara-status-cancelled: #DC2626;
+  --repara-status-not-repairable: #44403C;
+  --repara-status-abandoned: #800021;
+  color-scheme: light;
+}
+
+.repara-pill {
+  --c: var(--repara-text3);
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--repara-radius-pill);
+  background: color-mix(in srgb, var(--c) var(--repara-pill-bg-mix), transparent);
+  color: color-mix(in srgb, var(--c) calc(100% - var(--repara-pill-text-mix)), var(--repara-pill-mix));
+  border: 1px solid color-mix(in srgb, var(--c) var(--repara-pill-border-mix), transparent);
+}
+.repara-pill[data-status="intake"] { --c: var(--repara-status-intake); }
+.repara-pill[data-status="diagnosing"] { --c: var(--repara-status-diagnosing); }
+.repara-pill[data-status="waiting_parts"] { --c: var(--repara-status-waiting-parts); }
+.repara-pill[data-status="por_reparar"] { --c: var(--repara-status-por-reparar); }
+.repara-pill[data-status="in_progress"] { --c: var(--repara-status-in-progress); }
+.repara-pill[data-status="ready_for_pickup"] { --c: var(--repara-status-ready-for-pickup); }
+.repara-pill[data-status="waiting_customer"] { --c: var(--repara-status-waiting-customer); }
+.repara-pill[data-status="pending_order"] { --c: var(--repara-status-pending-order); }
+.repara-pill[data-status="part_arrived_waiting_device"] { --c: var(--repara-status-part-arrived-waiting-device); }
+.repara-pill[data-status="reparacion_externa"] { --c: var(--repara-status-reparacion-externa); }
+.repara-pill[data-status="scheduled"] { --c: var(--repara-status-scheduled); }
+.repara-pill[data-status="warranty"] { --c: var(--repara-status-warranty); }
+.repara-pill[data-status="delivered"] { --c: var(--repara-status-delivered); }
+.repara-pill[data-status="cancelled"] { --c: var(--repara-status-cancelled); }
+.repara-pill[data-status="not_repairable"] { --c: var(--repara-status-not-repairable); }
+.repara-pill[data-status="abandoned"] { --c: var(--repara-status-abandoned); }
