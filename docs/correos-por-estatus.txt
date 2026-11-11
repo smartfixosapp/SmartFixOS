@@ -1,0 +1,77 @@
+CORREOS POR ESTATUS SIN DUPLICADOS
+Ola 2 del plan tecnico de boletos. Propuesta, nada ejecutado.
+SQL propuesto: supabase/boletos-correos.sql
+
+1. QUIEN MANDA HOY
+  Android   envia desde el cliente al cambiar estatus, con espera para deshacer.
+  iOS       igual, con espera para deshacer.
+  Web       apps/Smart/src/lib/orderEmails.js: scheduleStatusEmail espera 5 s
+            (cancelScheduledEmail si se deshace), llama a
+            smartfixos.onrender.com/sendEmailInternal y despues inserta una fila
+            en email_log (status sent o failed) sin llave de duplicado.
+  Render    el disparador fn_trigger_event_trg (apps/Smart/db/seeds/009) llena
+            fn_trigger_event en cada update de "order". processFnTriggerEvents
+            corre cada 120 s y llama a cada fn_trigger_rule activa de la entidad
+            Order. Si existe la regla con function_name handleOrderStatusChange,
+            esa funcion manda el correo con plantilla (sendTemplatedEmail) por
+            CADA cambio de estatus, sin mirar si un cliente ya lo mando y sin
+            mirar si el cambio se deshizo.
+  Riesgo: si esa regla esta activa en produccion, el cliente recibe dos correos
+  (el de la app y el de Render), y un estatus deshecho igual sale por Render.
+
+2. CONSULTA DE SOLO LECTURA PARA FRANCIS (paso 0)
+  select id, name, function_name, is_active, is_archived, event_types, last_run_at, last_run_status, total_runs
+    from public.fn_trigger_rule
+   where function_name = 'handleOrderStatusChange';
+  select count(*) filter (where processed_at is null) as pendientes, max(created_at) as ultimo
+    from public.fn_trigger_event where table_name = 'order';
+  Si no hay fila activa, hoy no hay doble envio y basta con la bandera para el
+  futuro. Si hay fila activa, hay doble envio hoy.
+
+3. REGLA COMUN
+  a. Un solo correo por boleto, estatus y entrada del historial. La entrada es
+     el objeto que el RPC agrega a status_history al cambiar el estatus.
+  b. Llave (dedupe_key):
+       estatus:<order_id>:<status>:<timestamp de esa entrada de status_history>
+     update_order_status_v2 ya devuelve email_dedupe_key con esta forma (sin el
+     prefijo; el cliente le pone "estatus:"). Con el RPC de hoy, el cliente lee
+     el boleto despues del cambio y toma la ultima entrada con ese status.
+  c. Solo estatus con email=true en packages/repara-tokens/tokens.json. Hoy
+     pending_order y reparacion_externa no mandan correo. Cambios con
+     visible_to_customer=false (deshacer, correcciones internas) no mandan.
+  d. Reclamar antes de enviar. Quien vaya a enviar primero inserta:
+       POST /rest/v1/email_log?on_conflict=tenant_id,dedupe_key
+       Prefer: resolution=ignore-duplicates,return=representation
+       { tenant_id, to_email, subject, status: 'pending', order_id,
+         order_status, dedupe_key, sender: 'ios'|'android'|'web'|'render' }
+     Si la respuesta trae una fila, ese envia y despues actualiza esa misma fila
+     a sent (con sent_at) o failed (con error_message). Si viene vacia, otro ya
+     lo reclamo: no envia.
+  e. Antes de enviar, quien reclamo vuelve a leer el boleto: si el estatus ya no
+     es el de la llave (se deshizo o cambio otra vez), marca la fila failed con
+     error_message 'estatus_cambio' y no envia.
+  f. Reintento: una fila failed no se reclama otra vez con la misma llave. Un
+     reenvio manual del usuario usa la llave con sufijo :manual:<uuid>.
+  g. Mientras la columna dedupe_key no exista, el insert falla con PGRST204; el
+     cliente sigue como hoy (envia y registra) para no perder correos.
+
+4. DECISION PARA FRANCIS (una de dos)
+  Opcion A, recomendada a corto plazo: los clientes siguen enviando con la
+  bandera, y handleOrderStatusChange tambien reclama la misma llave antes de
+  enviar (sender 'render'). Gana el primero; Render casi siempre llega tarde
+  (120 s) y no envia. No hay que apagar nada para que deje de duplicar.
+  Opcion B, a largo plazo: solo el servidor envia. Un disparador sobre
+  status_history encola en una tabla (como push_queue) y un trabajo la drena
+  con la misma llave. Los clientes dejan de enviar. Fuera de este rediseno
+  salvo que Francis lo pida.
+  En las dos, apagar la regla vieja es opcional: update fn_trigger_rule set
+  is_active=false where function_name='handleOrderStatusChange' (lo corre
+  Francis si decide, no es parte de los archivos).
+
+5. CAMBIOS DE CODIGO QUE SIGUEN (no hechos en esta ola)
+  Web: orderEmails.js, en scheduleStatusEmail(run) reclamar la llave antes de
+  run() y cerrar la fila despues; logEmail deja de insertar una fila nueva
+  cuando ya hay una reclamada.
+  iOS y Android: lo mismo en su envio por estatus.
+  Render: handleOrderStatusChange reclama la llave con sender 'render' y aplica
+  la regla e (relee el boleto, que ya hace con freshOrder).

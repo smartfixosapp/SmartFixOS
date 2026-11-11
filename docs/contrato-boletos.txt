@@ -1,0 +1,180 @@
+CONTRATO DE BOLETOS (OLA 2) - REPARA OS
+Rama contrato-boletos, worktree SmartFixOS-contrato. 11 de noviembre de 2026.
+Base: plan-tecnico-boletos.html seccion 3. Nada se ejecuto contra produccion.
+
+TABLA Y FUENTES DE VERDAD
+  public."order" (singular). Historial en order.status_history (jsonb, lista).
+  Lineas cobrables en order.order_items (jsonb). Piezas por comprar y costo en
+  part_link. Catalogo de estatus y transiciones en
+  packages/repara-tokens/tokens.json. Regla en JS: api/_lib/orderTransitions.js
+  (probada contra tokens.json y contra el SQL en tests/order-transitions.test.mjs).
+
+ESTATUS (16 claves, no cambian en la base)
+  Activo:    intake, diagnosing, waiting_parts, por_reparar, in_progress, ready_for_pickup
+  En espera: waiting_customer, pending_order, part_arrived_waiting_device,
+             reparacion_externa, scheduled, warranty
+  Cerrado:   delivered, cancelled, not_repairable, abandoned
+  Claves viejas (completed, picked_up, ready) no se escriben nunca. Las filas
+  viejas que las tienen se quedan como estan y solo salen con Reabrir.
+
+==============================================================================
+1. CREAR BOLETO
+==============================================================================
+1a. Por el servidor: POST /api/assistant/boleto/nuevo
+  Quien: iOS (formulario y chat guiado), Android (formulario), Web (ola 7).
+  Llave: id_cliente_solicitud = uuid v4 generado UNA vez por borrador en el
+  cliente y guardado con el borrador. Cada reintento manda la misma llave.
+  Servidor (api/_lib/ticketForm.js, hecho en esta ola):
+    1. Reserva atomica: insert en assistant_ticket_requests con
+       on_conflict=tenant_id,request_id y resolution=ignore-duplicates,
+       estado='creando', order_id=null. Solo un envio gana la fila.
+    2. El ganador crea el boleto (crear_boleto de jaime) y deja la fila en
+       estado='listo' con order_id. Si falla, estado='fallido'.
+    3. El que pierde lee la fila: si ya tiene order_id devuelve ese boleto con
+       repetido=true; si sigue 'creando' espera hasta 4 veces 750 ms y si no
+       termina responde 409 request_in_progress (el cliente reintenta con la
+       misma llave); si esta 'fallido' o la reserva tiene mas de 3 minutos, la
+       retoma con un PATCH condicionado (solo un envio la retoma).
+    4. Si la llave apunta a un boleto que ya no existe: 409 request_order_missing
+       (el cliente genera una llave nueva).
+    5. Compatibilidad: si la tabla, la columna estado o actualizado_en, o el
+       indice unico no existen, o order_id sigue NOT NULL, la reserva falla y
+       se usa el camino anterior (revisar, crear, guardar). Ademas, crear_boleto
+       de jaime rechaza un boleto identico (cliente, modelo, problema) de los
+       ultimos 10 minutos, lo que cubre la retoma de una reserva abandonada.
+  Respuestas del cliente:
+    200 ok           mostrar el boleto; si repetido=true no repetir fotos ni pasos.
+    409 request_in_progress   reintentar en 2 a 5 s con la MISMA llave.
+    409 request_order_missing generar llave nueva y preguntar al usuario.
+    400              no reintentar; corregir el formulario.
+    5xx o sin red    reintentar con la MISMA llave.
+  SQL: supabase/boletos-idempotencia.sql.
+
+1b. Insert directo (asistentes de 8 pasos, Recarga, Desbloqueo)
+  Quien: iOS WorkOrderWizard, Recarga, Desbloqueo; Web lib/wizard/api.js.
+  Contrato:
+    1. Al abrir el borrador: id = uuid v4 del cliente. Se guarda con el borrador.
+    2. order_number: rpc next_order_number(p_tenant_id) una vez por borrador y
+       se guarda con el borrador. Si el RPC falla, NO calcular maximo mas uno en
+       el cliente: mostrar error y reintentar.
+    3. POST /rest/v1/order?on_conflict=id
+       Prefer: resolution=ignore-duplicates,return=representation
+       body con id y client_request_id iguales al uuid del borrador.
+    4. Si la respuesta viene vacia, el boleto ya existia: GET order?id=eq.<uuid>
+       y seguir como si se hubiera creado (no repetir fotos ni correo).
+    5. Si viene 23505 por order_client_request_uidx, mismo paso 4.
+  Android no usa este camino.
+
+==============================================================================
+2. CAMBIAR ESTATUS
+==============================================================================
+  Hoy: rpc update_order_status(p_order_id, p_new_status, p_changed_by,
+  p_visible_to_customer). Su SQL no esta en ningun repo; no se toca.
+  Propuesta: rpc update_order_status_v2 (supabase/boletos-update-order-status.sql),
+  NO activa. Firma:
+    p_order_id text, p_new_status text, p_changed_by text,
+    p_visible_to_customer boolean default true, p_via text default 'directo',
+    p_note text default null, p_request_id uuid default null,
+    p_expected_status text default null, p_tenant_id text default null
+  Regla comun (la de Android):
+    - De Activo o En espera a cualquier Activo o En espera: via 'directo',
+      menos scheduled (via 'agendar') y warranty.
+    - delivered solo con via 'entrega'.
+    - cancelled, not_repairable, abandoned solo con via 'cierre' y nota (3+).
+    - warranty solo desde delivered con via 'reclamo' y nota.
+    - warranty vuelve a in_progress directo.
+    - De un Cerrado solo con via 'reabrir' y nota, hacia los 10 destinos de
+      reabrir; suma reopen_count, last_reopen_reason, last_reopen_at.
+    - via 'deshacer': vuelve al estatus anterior si el ultimo cambio tiene
+      menos de 10 minutos.
+  Idempotencia: mismo estatus no escribe; p_request_id repetido no escribe y
+  devuelve repetido=true; p_expected_status distinto da 409 conflicto_estatus.
+  Historial: agrega a status_history {status, from, timestamp, changed_by,
+  actor_uid, note, visible_to_customer, kind:'status', via, request_id}.
+  security invoker: aplica RLS del que llama; con p_tenant_id filtra el taller
+  aunque llame service_role.
+  Errores (PostgREST los devuelve con ese codigo HTTP):
+    400 estatus_invalido, via_invalida, boleto_requerido
+    404 boleto_no_encontrado
+    409 conflicto_estatus, historial_no_es_lista
+    422 requiere_flujo: <via>, nota_requerida, transicion_no_permitida,
+        no_esta_cerrado, destino_reabrir_invalido, deshacer_no_coincide,
+        deshacer_vencido
+    403 sin_permiso_o_no_encontrado
+  Por plataforma cuando se active:
+    Android   OrdersRepository, StatusUndo, Closure, Delivery: llamar v2 con la
+              via del flujo y p_request_id por toque; deshacer con via 'deshacer'
+              y p_visible_to_customer=false.
+    iOS       OrderAPI.updateStatus: igual. El selector deja de ofrecer
+              entregado, cierres, garantia y agendado como destino directo.
+    Web       changeStatusRpc en lib/orderDetailApi.js: igual. Quitar las tres
+              escrituras directas (docs/parches-web-estatus.txt).
+    Servidor  api/_lib/jaime.js ya usa rpc/update_order_status; pasar a v2 con
+              p_tenant_id cuando se active.
+  Etapas: 1 cada cliente aplica la regla (tokens.json); 2 los clientes llaman
+  v2; 3 opcional, update_order_status se reescribe para delegar en v2 o se
+  agrega el check not valid de estatus (plan, cambio 2). Ninguna etapa la
+  decide un agente.
+
+==============================================================================
+3. HISTORIAL, NOTAS Y FOTOS
+==============================================================================
+  Todos usan rpc append_order_history (atomico). Prohibido leer, modificar y
+  escribir status_history entero desde un cliente (dos equipos se pisan).
+  Cada entrada lleva un id (note_id) generado en el cliente para no duplicar.
+
+==============================================================================
+4. PIEZAS Y COSTO
+==============================================================================
+  Linea de order_items (contrato de Android):
+    id, type, name, quantity, price, total, discount_percent,
+    source_part_link_id, cost (unitario), cost_none, supplier_id, supplier_name
+  Regla de oro: al reescribir order_items, cada cliente conserva las llaves que
+  no conoce. iOS hoy NO las conserva (OrderLineItem.swift solo codifica id,
+  type, name, quantity, price, total, discount_percent, source_part_link_id):
+  si iOS guarda las piezas, borra costo y suplidor de Android.
+  Defensa en el servidor (supabase/boletos-piezas.sql y boletos-piezas-activar.sql):
+    - part_link gana supplier_id, supplier_name, order_item_id, cost_none.
+    - part_link.cost es el costo TOTAL de la linea (como lo escribe jaime).
+    - Vista order_item_costing: costo y suplidor por linea; primero order_items,
+      si falta part_link. Fuente unica para el reporte de ganancia.
+    - Disparador order_items_preserve_costing: si una app manda una linea sin
+      cost, cost_none, supplier_id o supplier_name y la linea vieja (mismo id)
+      los tenia, los conserva. Nunca pisa un valor que la app si mando.
+  Por plataforma:
+    Android   sin cambios; ya escribe todo.
+    iOS       ola 4: OrderLineItem con los campos opcionales y conservando las
+              llaves desconocidas. Hasta entonces, el disparador lo protege.
+    Web       partsApi.js: mismo contrato; conservar llaves desconocidas.
+    Servidor  jaime registerPiece y updatePieceCost: escribir tambien
+              supplier_name y order_item_id en part_link (cambio futuro).
+
+==============================================================================
+5. CORREO POR ESTATUS
+==============================================================================
+  Ver docs/correos-por-estatus.txt. Llave por boleto, estatus y entrada del
+  historial en email_log.dedupe_key; quien reclama primero envia. SQL:
+  supabase/boletos-correos.sql.
+
+==============================================================================
+6. NUMERO DE BOLETO
+==============================================================================
+  Solo rpc next_order_number(p_tenant_id). Ningun cliente calcula maximo mas
+  uno. El servidor (jaime nextOrderNumber) todavia tiene ese respaldo: quitarlo
+  cuando la consulta del paso 0 confirme que no hay numeros repetidos.
+
+==============================================================================
+7. COBRO, DEPOSITO Y REEMBOLSO
+==============================================================================
+  Sin cambios en esta ola. Cobrar nunca cambia el estatus (ARIAChat lo hace hoy
+  con "completed"; ver parche 4). Toda logica de dinero va en una ola de Opus.
+
+ORDEN PARA CORRER EL SQL (Francis, primero en rama o copia de Supabase)
+  0. Consultas de solo lectura del plan (paso 0) y las de correos-por-estatus.txt.
+  1. supabase/boletos-idempotencia.sql   (activa la reserva atomica al desplegar api/)
+  2. supabase/boletos-piezas.sql          (columnas, vista, funcion y relleno de nulos)
+  3. supabase/boletos-piezas-activar.sql  (activa el disparador de piezas)
+  4. supabase/boletos-correos.sql         (columnas e indice de la bandera)
+  5. supabase/boletos-update-order-status.sql  (crea v2 inactiva; nadie la llama)
+  Cada archivo se puede correr dos veces sin efecto extra (probado en un
+  Postgres 16 local desechable con tablas de prueba).

@@ -80,9 +80,21 @@ async function customerByPhone(deps, tenantId, digits) {
   return (rows || []).find((c) => phoneDigits(c.phone) === digits) || null;
 }
 
+export const REQUEST_STALE_MS = 3 * 60_000;
+export const REQUEST_WAIT_TRIES = 4;
+export const REQUEST_WAIT_MS = 750;
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const nowMs = (deps) => (typeof deps.now === 'function' ? deps.now() : Date.now());
+const requestPath = (tenantId, requestId) => `assistant_ticket_requests?tenant_id=eq.${tenantId}&request_id=eq.${requestId}`;
+
+function isDuplicateError(e) {
+  return !!e && (e.status === 409 || e.code === '23505' || /duplicate key|unique/i.test(String(e.message || '')));
+}
+
 async function findRequest(deps, tenantId, requestId) {
   try {
-    const rows = await deps.sb(`assistant_ticket_requests?tenant_id=eq.${tenantId}&request_id=eq.${requestId}&select=order_id&limit=1`);
+    const rows = await deps.sb(`${requestPath(tenantId, requestId)}&select=order_id&limit=1`);
     return { available: true, orderId: rows?.[0]?.order_id || null };
   } catch (e) {
     console.warn('assistant_ticket_requests no disponible, boleto sin idempotencia:', e.message);
@@ -94,8 +106,66 @@ async function saveRequest(deps, tenantId, requestId, orderId) {
   try {
     await deps.sb('assistant_ticket_requests', { method: 'POST', body: { tenant_id: tenantId, request_id: requestId, order_id: orderId }, prefer: 'return=minimal' });
   } catch (e) {
-    console.warn('no se pudo guardar la solicitud de boleto:', e.message);
+    if (isDuplicateError(e)) console.warn('carrera en solicitud de boleto: otro envio guardo la misma llave primero; revisar boleto repetido', requestId);
+    else console.warn('no se pudo guardar la solicitud de boleto:', e.message);
   }
+}
+
+async function reserveRequest(deps, tenantId, requestId) {
+  const rows = await deps.sb('assistant_ticket_requests?on_conflict=tenant_id,request_id', {
+    method: 'POST',
+    body: { tenant_id: tenantId, request_id: requestId, order_id: null, estado: 'creando', actualizado_en: new Date(nowMs(deps)).toISOString() },
+    prefer: 'resolution=ignore-duplicates,return=representation',
+  });
+  return Array.isArray(rows) && rows.length > 0;
+}
+
+async function takeOverRequest(deps, tenantId, requestId) {
+  const now = nowMs(deps);
+  const cutoff = new Date(now - REQUEST_STALE_MS).toISOString();
+  const rows = await deps.sb(`${requestPath(tenantId, requestId)}&order_id=is.null&or=(estado.eq.fallido,and(estado.eq.creando,actualizado_en.lt.${cutoff}))`, {
+    method: 'PATCH',
+    body: { estado: 'creando', actualizado_en: new Date(now).toISOString() },
+    prefer: 'return=representation',
+  });
+  return Array.isArray(rows) && rows.length > 0;
+}
+
+async function finishRequest(deps, tenantId, requestId, patch) {
+  try {
+    await deps.sb(`${requestPath(tenantId, requestId)}&order_id=is.null&estado=eq.creando`, {
+      method: 'PATCH',
+      body: { ...patch, actualizado_en: new Date(nowMs(deps)).toISOString() },
+      prefer: 'return=minimal',
+    });
+  } catch (e) {
+    console.warn('no se pudo cerrar la reserva de la solicitud de boleto:', requestId, e.message);
+  }
+}
+
+function repeatedResponse(prev) {
+  return { status: 200, body: { ok: true, boleto: prev, cliente_existente: true, repetido: true, duplicado: false, notificacion_enviada: false, avisos: [] } };
+}
+
+async function claimRequest(deps, tenantId, requestId) {
+  if (await reserveRequest(deps, tenantId, requestId)) return { owner: true };
+  const wait = typeof deps.sleep === 'function' ? deps.sleep : sleep;
+  for (let i = 0; i < REQUEST_WAIT_TRIES; i++) {
+    const rows = await deps.sb(`${requestPath(tenantId, requestId)}&select=order_id,estado,actualizado_en&limit=1`);
+    const row = rows?.[0];
+    if (!row) {
+      if (await reserveRequest(deps, tenantId, requestId)) return { owner: true };
+    } else if (row.order_id) {
+      const prev = await existingTicket(deps, tenantId, row.order_id);
+      if (prev) return { response: repeatedResponse(prev) };
+      return { response: bad('La solicitud ya creo un boleto que no esta disponible; usa un id_cliente_solicitud nuevo', 'request_order_missing', 409) };
+    } else {
+      const stale = row.estado === 'creando' && Date.parse(row.actualizado_en || '') < nowMs(deps) - REQUEST_STALE_MS;
+      if ((row.estado === 'fallido' || stale) && (await takeOverRequest(deps, tenantId, requestId))) return { owner: true };
+    }
+    if (i < REQUEST_WAIT_TRIES - 1) await wait(REQUEST_WAIT_MS);
+  }
+  return { response: bad('El boleto de esta solicitud se esta creando; reintenta con el mismo id_cliente_solicitud en unos segundos', 'request_in_progress', 409) };
 }
 
 async function existingTicket(deps, tenantId, orderId) {
@@ -176,12 +246,25 @@ export async function createTicketFromForm({ body, label, tenantId }, deps) {
     existing = await customerByPhone(deps, tenantId, form.cliente.telefono);
   }
 
+  let mode = 'none';
   let idem = { available: false, orderId: null };
   if (form.requestId) {
-    idem = await findRequest(deps, tenantId, form.requestId);
-    if (idem.orderId) {
-      const prev = await existingTicket(deps, tenantId, idem.orderId);
-      if (prev) return { status: 200, body: { ok: true, boleto: prev, cliente_existente: true, repetido: true, duplicado: false, notificacion_enviada: false, avisos: [] } };
+    let claim = null;
+    try {
+      claim = await claimRequest(deps, tenantId, form.requestId);
+    } catch (e) {
+      console.warn('reserva atomica de solicitud no disponible, se usa el camino anterior:', e.code || '', e.message);
+    }
+    if (claim && claim.response) return claim.response;
+    if (claim && claim.owner) {
+      mode = 'atomic';
+    } else {
+      mode = 'legacy';
+      idem = await findRequest(deps, tenantId, form.requestId);
+      if (idem.orderId) {
+        const prev = await existingTicket(deps, tenantId, idem.orderId);
+        if (prev) return repeatedResponse(prev);
+      }
     }
   }
 
@@ -202,14 +285,26 @@ export async function createTicketFromForm({ body, label, tenantId }, deps) {
   if (!input.email) delete input.email;
   if (!input.telefono) delete input.telefono;
 
-  const r = await deps.crearBoleto(input, actor);
+  let r;
+  try {
+    r = await deps.crearBoleto(input, actor);
+  } catch (e) {
+    if (mode === 'atomic') await finishRequest(deps, tenantId, form.requestId, { estado: 'fallido' });
+    throw e;
+  }
   if (r.status !== 200 || !r.body?.ok) {
+    if (mode === 'atomic') await finishRequest(deps, tenantId, form.requestId, { estado: 'fallido' });
     const status = r.status && r.status !== 200 ? r.status : 502;
     return { status, body: { ok: false, error: r.body?.error || 'No se pudo crear el boleto', code: r.body?.code || 'upstream_error' } };
   }
   const t = r.body.ticket || {};
   const orderId = t.id;
-  if (form.requestId && idem.available && orderId) await saveRequest(deps, tenantId, form.requestId, orderId);
+  if (mode === 'atomic') {
+    if (orderId) await finishRequest(deps, tenantId, form.requestId, { order_id: orderId, estado: 'listo' });
+    else await finishRequest(deps, tenantId, form.requestId, { estado: 'fallido' });
+  } else if (mode === 'legacy' && idem.available && orderId) {
+    await saveRequest(deps, tenantId, form.requestId, orderId);
+  }
   return {
     status: 200,
     body: {
