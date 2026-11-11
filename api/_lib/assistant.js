@@ -33,6 +33,7 @@ import { posProductList, cashRegisterState, createSaleFromForm, posConfig, posQr
 import { readScreenContext, screenContextText } from './screenContext.js';
 import { ticketCharge, payTicketFromForm } from './ticketPay.js';
 import { routeRequest } from './router.js';
+import { intakeAfterCreate, resendIntakeFromRequest } from './intakeEmail.js';
 
 const TENANT_ID = process.env.MUSE_TENANT_ID || '';
 const SECRET = process.env.ASSISTANT_KEY_SECRET || '';
@@ -1585,6 +1586,10 @@ export async function assistantHandler(req, res) {
       const consumo = enabledFor(auth) ? meter((await loadUsage(auth.tenantId)).usage, config) : null;
       return res.status(200).json({ ok: true, habilitado: enabledFor(auth), ...publicConfig(config), consumo });
     }
+    if (parts[0] === 'boleto' && parts.length === 3 && parts[2] === 'correo-ingreso' && req.method === 'POST') {
+      const r = await resendIntakeFromRequest({ ref: parts[1], body: req.body, auth }, { sb });
+      return res.status(r.status).json(r.body);
+    }
     if (!enabledFor(auth)) return fail(res, 403, 'El asistente no esta habilitado para esta cuenta', 'not_enabled');
 
     if (route === 'history' && req.method === 'GET') {
@@ -1605,7 +1610,7 @@ export async function assistantHandler(req, res) {
       return res.status(r.status).json(r.body);
     }
     if (route === 'boleto/nuevo' && req.method === 'POST') {
-      const r = await createTicketFromForm({ body: req.body, label: auth.label, tenantId: auth.tenantId }, { sb, crearBoleto: (input, actor) => crearBoleto(input, actor) });
+      const r = await createTicketFromForm({ body: req.body, label: auth.label, tenantId: auth.tenantId }, { sb, crearBoleto: (input, actor) => crearBoleto(input, actor), correoIngreso: (orderId) => intakeAfterCreate({ tenantId: auth.tenantId, orderId, sender: 'servidor', actor: auth.label }, { sb }) });
       return res.status(r.status).json(r.body);
     }
     if (route === 'buscar' && req.method === 'GET') {

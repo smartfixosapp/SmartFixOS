@@ -22,6 +22,7 @@ import {
 } from './muse.js';
 import { lecturaRoute } from './jaimeLectura.js';
 import { escrituraRoute } from './jaimeEscritura.js';
+import { intakeAfterCreate } from './intakeEmail.js';
 
 const API_TOKEN = process.env.JAIME_API_TOKEN || '';
 const TENANT_ID = process.env.JAIME_TENANT_ID || process.env.MUSE_TENANT_ID || '';
@@ -1543,11 +1544,7 @@ async function createTicket(req, res) {
 
   let notification = { enviada: false, motivo: 'notificacion desactivada (notificar_cliente:false)' };
   if (wantsNotification(b.notificar_cliente)) {
-    const total = money(order.cost_estimate ?? order.labor_cost ?? 0);
-    const lines = [`Recibimos tu equipo (${equipo}) y ya está en nuestra lista de trabajo.`, `Problema reportado: ${problema}`];
-    if (total > 0) lines.push(`Total estimado: $${total.toFixed(2)}.`);
-    lines.push('Te avisaremos por este medio en cada paso de la reparación.');
-    notification = await notifyCustomer(order, { subject: `Recibimos tu equipo · Orden ${order.order_number}`, message: lines.join('\n\n') });
+    notification = await intakeAfterCreate({ tenantId: TENANT_ID, orderId: order.id, sender: 'servidor', actor: actorName() }, { sb });
   }
   return res.status(200).json({
     ok: true,

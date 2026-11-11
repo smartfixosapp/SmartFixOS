@@ -1,0 +1,102 @@
+CORREO DE INGRESO DESDE EL SERVIDOR (UN SOLO ENVIO POR BOLETO)
+Rama correo-ingreso. Nada se ejecuto contra produccion. SQL: supabase/correo-ingreso.sql
+
+1. QUE HACE
+  api/_lib/intakeEmail.js arma el mismo correo de ingreso que iOS
+  (EmailService.sendIntake), Android (CustomerMailService, tipo intake) y la
+  Web (orderEmails.js sendStatusEmail status intake): equipo, problema, fotos,
+  avisos, piezas, resumen, firma, terminos (garantia, condiciones de venta,
+  abandono), datos del taller, logo y redes. Respeta
+  tenant.settings.email_templates.intake (subject, hero_title, hero_line,
+  isActive) y el idioma customer.preferred_language (en o es).
+  Fotos: order.device_photos, solo URLs https, miniatura por
+  /storage/v1/render/image (ancho 400) enlazada a la foto original, tope 8.
+  Envio: POST https://smartfixos.onrender.com/sendEmailInternal con
+  { to, subject, body, from_name, from, replyTo }, igual que los clientes.
+  Ese servicio no valida autenticacion (solo limita 20 envios cada 15 minutos
+  por IP o usuario); el servidor no manda token.
+
+2. CAMINOS QUE LO DISPARAN
+  jaime.js POST /tickets (crear_boleto). Por ahi pasan: la API de Jaime, la
+  herramienta crear_boleto del asistente con cualquier proveedor (Claude,
+  OpenAI, Meta Muse) y el formulario POST /api/assistant/boleto/nuevo
+  (ticketForm.js, usado por iOS y Android). muse.js no crea boletos.
+  Antes jaime mandaba por Resend un correo simple distinto; ahora manda el de
+  ingreso completo. Se envia despues de insertar el boleto con sus fotos y
+  piezas, espera hasta 8 s; si no termina sigue en segundo plano (waitUntil de
+  Vercel cuando existe) y la respuesta trae codigo pendiente. Nunca rompe la
+  creacion. notificar_cliente:false lo omite.
+  boleto/nuevo con la misma id_cliente_solicitud (repetido o duplicado)
+  vuelve a intentar el correo: si ya salio no hace nada, si fallo lo reintenta.
+
+3. REGLA DE UN SOLO ENVIO (email_log)
+  a. Si el boleto ya tiene en status_history una entrada kind email con
+     email_type intake (Android), o hay en email_log una fila sent del mismo
+     taller, destinatario y asunto (iOS, Web, Android), no envia.
+  b. Reclama: POST email_log?on_conflict=tenant_id,dedupe_key
+     Prefer: resolution=ignore-duplicates,return=representation
+     { status:'pending', dedupe_key:'ingreso:<order_id>', order_id,
+       order_status:'intake', sender, ... }
+     Si vuelve fila, envia y cierra esa fila en sent o failed.
+  c. Si no vuelve fila: sent, no envia; failed, la retoma con un PATCH
+     condicionado (status=eq.failed) y reintenta; pending de mas de 10 minutos,
+     la retoma igual; pending reciente, responde en_proceso.
+  d. Sin la columna dedupe_key (SQL sin correr) envia como hoy y registra una
+     fila normal; la regla a evita repetir.
+  e. Al enviar agrega a status_history (rpc append_order_history) la entrada
+     { kind:'email', email_type:'intake', email_log_id } que ya entiende Android.
+
+4. INTERRUPTOR POR TALLER (solo caminos automaticos del servidor)
+  Encendido por defecto. Para apagarlo:
+    tenant.settings.server_emails = { "intake": false }
+  Tambien se acepta email_templates.intake.server_send = false, pero solo
+  dentro del objeto completo de la plantilla (subject, hero_title, hero_line,
+  isActive): iOS decodifica cada plantilla con esos campos y un objeto
+  incompleto romperia la lectura de los ajustes. El reenvio manual no mira el
+  interruptor. La plantilla apagada (isActive false) frena todos los envios
+  salvo forzar.
+
+5. REENVIO MANUAL: POST /api/assistant/boleto/<id o numero>/correo-ingreso
+  Autenticacion: Authorization: Bearer <token de sesion de Supabase> (el
+  mismo que ya usan iOS y Android para /api/assistant). Cualquier miembro del
+  taller; el taller sale de su sesion.
+  Cuerpo:
+    { "confirmar": true, "forzar": false, "origen": "ios" | "android" | "web" }
+  Sin confirmar:true responde 400 confirmacion_requerida con vista_previa
+  { boleto, para, asunto, idioma, plantilla_activa, ya_enviado } y no envia.
+  forzar:true solo para rol owner, admin o manager (403 forzar_no_autorizado);
+  usa la llave ingreso:<order_id>:manual:<uuid> y envia aunque ya haya salido.
+  Respuestas:
+    200 { ok:true, enviado:true|false, correo:{ codigo, motivo, destinatario,
+          asunto, idioma, fotos, log_id } }
+        codigo: enviado, ya_enviado, en_proceso, sin_email, email_invalido,
+        plantilla_apagada
+    404 not_found
+    502 fallo_envio o registro_fallo (se puede reintentar igual)
+
+6. COMO SE UNIFICAN LOS CLIENTES DESPUES (no cambiado en esta rama)
+  iOS: en OrderAPI.sendIntakeEmailInBackground, en vez de
+       EmailService.sendIntake, llamar POST boleto/<id>/correo-ingreso con
+       confirmar:true y origen:'ios'. El boton de reenviar de Documentos llama
+       lo mismo; con forzar:true si el dueno lo pide.
+  Android: CustomerMailService.sendNow para el tipo intake llama el endpoint
+       con origen:'android' y muestra correo.codigo en el panel.
+  Web: en lib/wizard/api.js createOrder, cambiar sendStatusEmail intake por
+       fetch('/api/assistant/boleto/'+order.id+'/correo-ingreso', { POST,
+       body confirmar:true, origen:'web' }).
+  Hasta entonces los clientes que crean con insert directo (asistente de 8
+  pasos de iOS y Web) siguen mandando su correo; el servidor no toca esos
+  boletos porque no pasan por jaime.
+
+7. RIESGO DE DUPLICADO Y COMO SE EVITA
+  Hoy ningun cliente manda el correo de ingreso cuando crea por boleto/nuevo,
+  asi que no hay doble envio en los caminos del servidor. El riesgo es un
+  reenvio manual desde una app vieja: Android lo frena por asunto en email_log
+  y por la nota del historial; iOS y Web no miran, y mandarian otro. Cuando los
+  clientes usen el endpoint, la llave ingreso:<order_id> con el indice unico
+  (tenant_id, dedupe_key) garantiza un solo envio aunque lleguen a la vez.
+  Si el taller cambia el asunto de la plantilla despues de enviar, la regla a
+  ya no reconoce el envio viejo de un cliente; la llave si.
+  El limite de 20 envios cada 15 minutos por IP del servicio de Render aplica
+  a las llamadas desde Vercel; con mucho volumen puede fallar y queda failed
+  para reintento.
