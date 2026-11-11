@@ -34,6 +34,7 @@ import { readScreenContext, screenContextText } from './screenContext.js';
 import { ticketCharge, payTicketFromForm } from './ticketPay.js';
 import { routeRequest } from './router.js';
 import { intakeAfterCreate, resendIntakeFromRequest } from './intakeEmail.js';
+import { ASSISTANT_NAME } from './brand.js';
 
 const TENANT_ID = process.env.MUSE_TENANT_ID || '';
 const SECRET = process.env.ASSISTANT_KEY_SECRET || '';
@@ -1146,7 +1147,7 @@ const TOOL_BY_NAME = new Map(TOOLS.map((t) => [t.name, t]));
 export function systemPrompt(shopName, actorLabel) {
   const today = prDayRange().day;
   return {
-    variable: `Eres el Asistente IA de ${shopName}, un taller de reparacion de celulares y electronicos en Puerto Rico. Trabajas dentro de Archilla OS para ${actorLabel}. Hoy es ${today} (hora de Puerto Rico). Hablas en espanol, claro, breve y amable.`,
+    variable: `Eres ${ASSISTANT_NAME}, el Asistente IA de ${shopName}, un taller de reparacion de celulares y electronicos en Puerto Rico. Tu nombre es ${ASSISTANT_NAME}: si te preguntan como te llamas o quien eres, responde que eres ${ASSISTANT_NAME}, el asistente de Repara OS. Trabajas dentro de Repara OS para ${actorLabel}. Hoy es ${today} (hora de Puerto Rico). Hablas en espanol, claro, breve y amable.`,
     fijo: SYSTEM_RULES,
   };
 }

@@ -4,6 +4,7 @@ import { tint } from "@/components/pos/native/posUi";
 import { warmUpload, analyzeDamagePhoto } from "@/lib/wizard/api";
 import BurstCamera from "./BurstCamera";
 import { IOS, PHOTO_EXCEPTIONS } from "@/lib/wizard/helpers";
+import { ASSISTANT_NAME } from "../../../../../api/_lib/brand.js";
 import { Caption, W } from "./ui";
 
 export const MAX_PHOTOS = 12;
@@ -84,11 +85,11 @@ export default function StepPhotos({ w, tenantId }) {
           <div className="flex flex-col" style={{ gap: 10 }}>
             <button onClick={analyze} disabled={analyzing} className="apple-press w-full flex items-center justify-center gap-2 disabled:opacity-60" style={{ height: 46, borderRadius: 10, background: IOS.indigo, color: "#fff", fontSize: 15, fontWeight: 600 }}>
               {analyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              {analyzing ? "Analizando foto…" : "Analizar daño con Archi"}
+              {analyzing ? "Analizando foto…" : `Analizar daño con ${ASSISTANT_NAME}`}
             </button>
             {vision && (
               <div className="flex flex-col" style={{ gap: 6, padding: 12, borderRadius: 10, background: tint(IOS.indigo, 0.08) }}>
-                <span className="flex items-center gap-1.5" style={{ fontSize: 12, fontWeight: 700, color: IOS.indigo }}><Sparkles className="w-3.5 h-3.5" /> Archi ve: {vision.confidence}</span>
+                <span className="flex items-center gap-1.5" style={{ fontSize: 12, fontWeight: 700, color: IOS.indigo }}><Sparkles className="w-3.5 h-3.5" /> {ASSISTANT_NAME} ve: {vision.confidence}</span>
                 <span style={{ fontSize: 14 }}>{vision.diagnosis}</span>
                 <button onClick={addToProblem} className="self-start" style={{ fontSize: 12, fontWeight: 600, color: IOS.indigo }}>Agregar a la descripción</button>
               </div>
