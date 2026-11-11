@@ -293,7 +293,7 @@ test('id_cliente_solicitud repetido devuelve el boleto ya creado sin crear otro'
     assert.equal(r.body.boleto.id, ORDER_ID);
   });
   assert.equal(fake.orderPosts(), 0);
-  assert.equal(fake.calls.filter((c) => c.method !== 'GET' && !c.url.includes('assistant_ticket_requests?on_conflict')).length, 0);
+  assert.equal(fake.calls.filter((c) => c.method !== 'GET' && !c.url.includes('assistant_ticket_requests?on_conflict') && !/email_log|onrender|append_order_history/.test(c.url)).length, 0);
 });
 
 test('id_cliente_solicitud repetido con la tabla vieja tambien devuelve el boleto ya creado', async () => {

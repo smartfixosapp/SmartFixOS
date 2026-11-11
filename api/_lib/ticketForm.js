@@ -147,6 +147,19 @@ function repeatedResponse(prev) {
   return { status: 200, body: { ok: true, boleto: prev, cliente_existente: true, repetido: true, duplicado: false, notificacion_enviada: false, avisos: [] } };
 }
 
+async function withIntakeRetry(response, deps) {
+  const orderId = response?.body?.boleto?.id;
+  const again = response?.body?.repetido === true || response?.body?.duplicado === true;
+  if (typeof deps.correoIngreso !== 'function' || !again || !orderId) return response;
+  let correo;
+  try {
+    correo = await deps.correoIngreso(orderId);
+  } catch (e) {
+    correo = { enviada: false, codigo: 'fallo_envio', motivo: String(e?.message || e) };
+  }
+  return { ...response, body: { ...response.body, notificacion_enviada: correo?.enviada === true, notificacion: correo } };
+}
+
 async function claimRequest(deps, tenantId, requestId) {
   if (await reserveRequest(deps, tenantId, requestId)) return { owner: true };
   const wait = typeof deps.sleep === 'function' ? deps.sleep : sleep;
@@ -255,7 +268,7 @@ export async function createTicketFromForm({ body, label, tenantId }, deps) {
     } catch (e) {
       console.warn('reserva atomica de solicitud no disponible, se usa el camino anterior:', e.code || '', e.message);
     }
-    if (claim && claim.response) return claim.response;
+    if (claim && claim.response) return withIntakeRetry(claim.response, deps);
     if (claim && claim.owner) {
       mode = 'atomic';
     } else {
@@ -263,7 +276,7 @@ export async function createTicketFromForm({ body, label, tenantId }, deps) {
       idem = await findRequest(deps, tenantId, form.requestId);
       if (idem.orderId) {
         const prev = await existingTicket(deps, tenantId, idem.orderId);
-        if (prev) return repeatedResponse(prev);
+        if (prev) return withIntakeRetry(repeatedResponse(prev), deps);
       }
     }
   }
@@ -305,7 +318,7 @@ export async function createTicketFromForm({ body, label, tenantId }, deps) {
   } else if (mode === 'legacy' && idem.available && orderId) {
     await saveRequest(deps, tenantId, form.requestId, orderId);
   }
-  return {
+  return withIntakeRetry({
     status: 200,
     body: {
       ok: true,
@@ -319,7 +332,8 @@ export async function createTicketFromForm({ body, label, tenantId }, deps) {
       repetido: false,
       duplicado: r.body.duplicado === true,
       notificacion_enviada: r.body.notificacion_enviada === true,
+      ...(r.body.notificacion ? { notificacion: r.body.notificacion } : {}),
       avisos: Array.isArray(r.body.avisos) ? r.body.avisos : [],
     },
-  };
+  }, deps);
 }
