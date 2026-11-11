@@ -1,0 +1,13 @@
+{
+  "name": "repara-tokens",
+  "version": "2026.11.1",
+  "private": true,
+  "type": "module",
+  "description": "Tokens de diseno de Repara OS para iPhone, iPad, Android y web",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "build": "node build.mjs",
+    "check": "node build.mjs --check",
+    "test": "node --test test/*.test.mjs"
+  }
+}
