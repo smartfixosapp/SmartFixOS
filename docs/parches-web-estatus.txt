@@ -1,0 +1,135 @@
+PARCHES PROPUESTOS: ESCRITURAS DIRECTAS DE ESTATUS EN LA WEB
+Ola 2 del plan tecnico de boletos. NO APLICADO: otro agente trabaja apps/Smart.
+Base: rama main local (b5d5e976, ya con el renombre a Boletos).
+Regla: todo cambio de estatus pasa por el RPC update_order_status (hoy) o
+update_order_status_v2 (cuando Francis lo active), usando changeStatusRpc de
+apps/Smart/src/lib/orderDetailApi.js. Nunca .update({ status }) directo.
+
+Sitios encontrados con grep "Order.update(... status:" en apps/Smart/src:
+  1. components/aria/ARIAChat.jsx:930   cualquier estatus, sin RPC
+  2. components/aria/ARIAChat.jsx:981   clave invalida "completed"
+  3. components/inventory/PurchaseOrderDetailDialog.jsx:523   "waiting_parts"
+Ademas, la definicion de la herramienta en ARIAChat.jsx:130 ofrece al modelo
+las claves invalidas "ready" y "completed".
+
+
+------------------------------------------------------------------------------
+PARCHE 1 de 5: apps/Smart/src/components/aria/ARIAChat.jsx, linea 3 (imports)
+------------------------------------------------------------------------------
+Agregar despues de la linea 3:
+
+  import { changeStatusRpc, changedByLabel } from "@/lib/orderDetailApi";
+
+
+------------------------------------------------------------------------------
+PARCHE 2 de 5: apps/Smart/src/components/aria/ARIAChat.jsx, linea 130
+(definicion de la herramienta actualizar_estado_orden)
+------------------------------------------------------------------------------
+Antes:
+          nuevo_estado: { type: "string", enum: ["intake", "in_progress", "waiting_parts", "ready", "completed", "cancelled"] },
+
+Despues (solo los 10 destinos directos de la regla comun; entregar, cerrar,
+agendar y garantia van por sus flujos):
+          nuevo_estado: { type: "string", enum: ["intake", "diagnosing", "waiting_parts", "por_reparar", "in_progress", "ready_for_pickup", "waiting_customer", "pending_order", "part_arrived_waiting_device", "reparacion_externa"] },
+
+
+------------------------------------------------------------------------------
+PARCHE 3 de 5: apps/Smart/src/components/aria/ARIAChat.jsx, lineas 927 a 935
+(case "actualizar_estado_orden")
+------------------------------------------------------------------------------
+Antes (lineas 929 y 930):
+          const LABELS = { intake: "Diagnóstico/Entrada", in_progress: "En Reparación", waiting_parts: "Esperando Piezas", ready: "Listo para Recoger", completed: "Completado", cancelled: "Cancelado" };
+          await dataClient.entities.Order.update(args.orden_id, { status: args.nuevo_estado });
+
+Despues:
+          const LABELS = { intake: "Recibido", diagnosing: "Diagnóstico", waiting_parts: "Esperando pieza", por_reparar: "Por reparar", in_progress: "En reparación", ready_for_pickup: "Listo", waiting_customer: "Esperando cliente", pending_order: "Pendiente a ordenar", part_arrived_waiting_device: "Pieza lista, falta equipo", reparacion_externa: "Reparación externa" };
+          const ALIAS = { ready: "ready_for_pickup" };
+          const destino = ALIAS[args.nuevo_estado] || args.nuevo_estado;
+          if (!LABELS[destino]) return JSON.stringify({ error: `El estatus "${args.nuevo_estado}" no se puede poner desde el asistente. Entregar, cancelar, no reparable, abandonado, agendar y garantía se hacen desde el boleto.` });
+          await changeStatusRpc(args.orden_id, destino, changedByLabel(createdBy), true, { resetNotRepairable: false });
+
+Y en las lineas 932 y 933 cambiar LABELS[args.nuevo_estado] por LABELS[destino]
+(y args.nuevo_estado por destino) para que el mensaje muestre la etiqueta nueva.
+El WorkOrderEvent.create de la linea 931 se deja igual.
+
+
+------------------------------------------------------------------------------
+PARCHE 4 de 5: apps/Smart/src/components/aria/ARIAChat.jsx, linea 981
+(case "registrar_cobro")
+------------------------------------------------------------------------------
+Antes:
+          await dataClient.entities.Order.update(args.orden_id, { status: "completed" });
+
+Despues: borrar esa linea. Cobrar no cambia el estatus. "completed" no es una
+de las 16 claves y deja el boleto fuera de todos los filtros de las apps.
+Si se quiere entregar, se usa el flujo Entrega del boleto.
+
+AVISO DE DINERO (no se toca en esta ola): el mismo case crea un Transaction
+directo sin caja abierta, sin order_link y sin actualizar amount_paid ni
+balance_due. Debe pasar por el flujo de cobro de la web (components/pos/native/OrderPay.jsx)
+o por POST /api/assistant/boleto/{numero}/pago. Requiere una ola de Opus aparte.
+
+Cambio en la linea 186 (descripcion de registrar_cobro):
+Antes:
+      description: "Registra el pago de una reparación y la marca como completada.",
+Despues:
+      description: "Registra el pago de una reparación. No cambia el estatus del boleto.",
+
+
+------------------------------------------------------------------------------
+PARCHE 5 de 5: apps/Smart/src/components/inventory/PurchaseOrderDetailDialog.jsx,
+lineas 512 a 523
+------------------------------------------------------------------------------
+Agregar import junto a la linea 4:
+
+  import { changeStatusRpc, changedByLabel } from "@/lib/orderDetailApi";
+
+Antes (lineas 513 a 523):
+            const skipStatuses = [
+              "part_arrived_waiting_device",
+              "in_progress",
+              "ready_for_pickup",
+              "picked_up",
+              "delivered",
+              "cancelled",
+              "completed",
+            ];
+            if (skipStatuses.includes(wo.status)) continue;
+            await base44.entities.Order.update(woId, { status: "waiting_parts" });
+
+Despues:
+            const skipStatuses = [
+              "waiting_parts",
+              "part_arrived_waiting_device",
+              "in_progress",
+              "ready_for_pickup",
+              "scheduled",
+              "warranty",
+              "delivered",
+              "cancelled",
+              "not_repairable",
+              "abandoned",
+              "picked_up",
+              "completed",
+            ];
+            if (skipStatuses.includes(wo.status)) continue;
+            await changeStatusRpc(woId, "waiting_parts", changedByLabel("Compras"), true, { resetNotRepairable: false });
+
+Motivo: el RPC escribe status_history con actor y deja la regla de
+transiciones en un solo lugar. La lista nueva no mueve boletos cerrados
+(no_reparable, abandonado), agendados ni en garantia, que la lista vieja si
+movia. Si el RPC rechaza el cambio, el catch de la linea 525 ya lo registra
+con console.warn y sigue con los demas boletos.
+
+
+------------------------------------------------------------------------------
+Cuando se active update_order_status_v2
+------------------------------------------------------------------------------
+changeStatusRpc pasa a llamar update_order_status_v2 con p_via='directo' y un
+p_request_id = crypto.randomUUID() por toque. Los tres sitios de arriba no
+cambian otra vez. Ver docs/contrato-boletos.txt.
+
+Verificacion sugerida para el agente de la web:
+  pnpm -C apps/Smart build
+  grep -rnE "Order\.update\([^)]*status:" apps/Smart/src   (debe quedar solo PurchaseOrder.update)
+  grep -rn '"completed"' apps/Smart/src/components/aria/ARIAChat.jsx   (solo en lecturas de la linea 1144)

@@ -92,6 +92,7 @@ export async function sb(path, { method = 'GET', body, prefer } = {}) {
   if (!res.ok) {
     const err = new Error((data && data.message) || `Supabase ${res.status}`);
     err.status = res.status;
+    if (data && typeof data === 'object' && data.code) err.code = String(data.code);
     throw err;
   }
   return data;

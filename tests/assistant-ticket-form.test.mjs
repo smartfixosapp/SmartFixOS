@@ -18,12 +18,53 @@ const ORDER_ID = 'dddddddd-bbbb-4ccc-8ddd-eeeeeeeeeeee';
 const REQUEST_ID = 'eeeeeeee-bbbb-4ccc-8ddd-eeeeeeeeeeee';
 
 function jsonResponse(status, data) {
+  if (status === 204) return new Response(null, { status });
   return new Response(data === undefined ? '' : JSON.stringify(data), { status, headers: { 'content-type': 'application/json' } });
+}
+
+function requestsStore(mode, seed) {
+  const rows = new Map();
+  if (seed) rows.set(seed.request_id || REQUEST_ID, { tenant_id: TENANT, request_id: seed.request_id || REQUEST_ID, order_id: null, estado: 'listo', actualizado_en: new Date().toISOString(), ...seed });
+  const param = (path, name) => {
+    const m = new RegExp(`[?&]${name}=eq\\.([^&]+)`).exec(path);
+    return m ? m[1] : null;
+  };
+  const handle = (method, path, body, prefer) => {
+    if (mode === 'missing') return jsonResponse(404, { code: 'PGRST205', message: "Could not find the table 'public.assistant_ticket_requests' in the schema cache" });
+    const key = body?.request_id || param(path, 'request_id');
+    if (method === 'POST' && path.startsWith('assistant_ticket_requests?on_conflict')) {
+      if (mode === 'legacy') return jsonResponse(400, { code: '23502', message: 'null value in column "order_id" of relation "assistant_ticket_requests" violates not-null constraint' });
+      if (rows.has(key)) return jsonResponse(201, []);
+      const row = { ...body };
+      rows.set(key, row);
+      return jsonResponse(201, [row]);
+    }
+    if (method === 'POST') {
+      if (rows.has(key)) return jsonResponse(409, { code: '23505', message: 'duplicate key value violates unique constraint "assistant_ticket_requests_unique_idx"' });
+      rows.set(key, { estado: 'listo', ...body });
+      return jsonResponse(201);
+    }
+    const row = rows.get(key);
+    if (method === 'GET') return jsonResponse(200, row ? [row] : []);
+    if (method === 'PATCH') {
+      let match = !!row;
+      if (match && path.includes('order_id=is.null')) match = row.order_id === null || row.order_id === undefined;
+      const orCut = /actualizado_en\.lt\.([^)]+)\)/.exec(path);
+      if (match && path.includes('or=(')) match = row.estado === 'fallido' || (row.estado === 'creando' && Date.parse(row.actualizado_en) < Date.parse(orCut[1]));
+      else if (match && path.includes('estado=eq.creando')) match = row.estado === 'creando';
+      if (!match) return jsonResponse(200, []);
+      Object.assign(row, body);
+      return prefer && prefer.includes('return=representation') ? jsonResponse(200, [row]) : jsonResponse(204);
+    }
+    return jsonResponse(405, { message: 'metodo no soportado en la prueba' });
+  };
+  return { rows, handle };
 }
 
 function fakeSupabase({ phoneMatch = null, requestsTable = 'missing', storedRequest = null } = {}) {
   const calls = [];
   let insertedOrder = null;
+  const requests = requestsStore(requestsTable, storedRequest);
   const fetchImpl = async (url, opts = {}) => {
     const u = String(url);
     const method = opts.method || 'GET';
@@ -31,11 +72,7 @@ function fakeSupabase({ phoneMatch = null, requestsTable = 'missing', storedRequ
     calls.push({ method, url: u, body });
     if (!u.startsWith(SB)) throw new Error(`red real bloqueada: ${u}`);
     const path = decodeURIComponent(u.slice(`${SB}/rest/v1/`.length));
-    if (path.startsWith('assistant_ticket_requests')) {
-      if (requestsTable === 'missing') return jsonResponse(404, { code: 'PGRST205', message: "Could not find the table 'public.assistant_ticket_requests'" });
-      if (method === 'GET') return jsonResponse(200, storedRequest ? [storedRequest] : []);
-      return jsonResponse(201);
-    }
+    if (path.startsWith('assistant_ticket_requests')) return requests.handle(method, path, body, opts.headers?.Prefer);
     if (path.startsWith('customer?') && path.includes('phone=ilike')) return jsonResponse(200, phoneMatch ? [phoneMatch] : []);
     if (path.startsWith('customer?') && path.includes(`id=eq.${EXISTING.id}`)) return jsonResponse(200, [EXISTING]);
     if (path.startsWith('customer?')) return jsonResponse(200, []);
@@ -53,7 +90,7 @@ function fakeSupabase({ phoneMatch = null, requestsTable = 'missing', storedRequ
     if (method === 'GET') return jsonResponse(200, []);
     return jsonResponse(200, {});
   };
-  return { calls, fetchImpl, inserted: () => insertedOrder };
+  return { calls, fetchImpl, requests, inserted: () => insertedOrder, orderPosts: () => calls.filter((c) => c.method === 'POST' && c.url.endsWith('/rest/v1/order')).length };
 }
 
 const realFetch = globalThis.fetch;
@@ -209,12 +246,14 @@ test('cliente nuevo: crea por el mismo camino del asistente con color, codigo y 
   assert.equal(row.customer_id, NEW_CUSTOMER_ID);
   assert.equal(row.created_by_name, 'prueba - App iOS');
   assert.ok(warns.some((w) => w.includes('assistant_ticket_requests')));
-  assert.equal(fake.calls.filter((c) => c.method === 'POST' && c.url.includes('assistant_ticket_requests')).length, 0);
+  const reqPosts = fake.calls.filter((c) => c.method === 'POST' && c.url.includes('assistant_ticket_requests'));
+  assert.equal(reqPosts.length, 1);
+  assert.ok(reqPosts[0].url.includes('on_conflict=tenant_id,request_id'));
   assert.equal(fake.calls.filter((c) => c.method === 'DELETE' || c.method === 'PATCH').length, 0);
 });
 
-test('telefono existente: usa el cliente existente sin duplicar y lo indica', async () => {
-  const fake = fakeSupabase({ phoneMatch: EXISTING, requestsTable: 'ok' });
+test('telefono existente: usa el cliente existente sin duplicar y lo indica (tabla vieja sin reserva: camino anterior)', async () => {
+  const fake = fakeSupabase({ phoneMatch: EXISTING, requestsTable: 'legacy' });
   await withFetch(fake, async () => {
     const r = await call('boleto/nuevo', { method: 'POST', body: { ...baseBody(), cliente: { nombre: 'Otra', apellido: 'Persona', telefono: '7875551234' }, id_cliente_solicitud: REQUEST_ID, origen: 'android' } });
     assert.equal(r.status, 200, JSON.stringify(r.body));
@@ -226,12 +265,12 @@ test('telefono existente: usa el cliente existente sin duplicar y lo indica', as
   assert.equal(row.customer_id, EXISTING.id);
   assert.equal(row.customer_name, EXISTING.name);
   assert.equal(row.created_by_name, 'prueba - App Android');
-  const saved = fake.calls.find((c) => c.method === 'POST' && c.url.includes('assistant_ticket_requests'));
+  const saved = fake.calls.find((c) => c.method === 'POST' && c.url.endsWith('/rest/v1/assistant_ticket_requests'));
   assert.deepEqual(saved.body, { tenant_id: TENANT, request_id: REQUEST_ID, order_id: ORDER_ID });
 });
 
 test('cliente_id: usa ese cliente del taller', async () => {
-  const fake = fakeSupabase({ requestsTable: 'ok' });
+  const fake = fakeSupabase({ requestsTable: 'atomic' });
   await withFetch(fake, async () => {
     const b = baseBody();
     delete b.cliente;
@@ -245,7 +284,7 @@ test('cliente_id: usa ese cliente del taller', async () => {
 });
 
 test('id_cliente_solicitud repetido devuelve el boleto ya creado sin crear otro', async () => {
-  const fake = fakeSupabase({ requestsTable: 'ok', storedRequest: { order_id: ORDER_ID } });
+  const fake = fakeSupabase({ requestsTable: 'atomic', storedRequest: { order_id: ORDER_ID } });
   await withFetch(fake, async () => {
     const r = await call('boleto/nuevo', { method: 'POST', body: { ...baseBody(), id_cliente_solicitud: REQUEST_ID } });
     assert.equal(r.status, 200, JSON.stringify(r.body));
@@ -253,7 +292,19 @@ test('id_cliente_solicitud repetido devuelve el boleto ya creado sin crear otro'
     assert.equal(r.body.boleto.numero, 'WO-9000');
     assert.equal(r.body.boleto.id, ORDER_ID);
   });
-  assert.equal(fake.calls.filter((c) => c.method !== 'GET').length, 0);
+  assert.equal(fake.orderPosts(), 0);
+  assert.equal(fake.calls.filter((c) => c.method !== 'GET' && !c.url.includes('assistant_ticket_requests?on_conflict')).length, 0);
+});
+
+test('id_cliente_solicitud repetido con la tabla vieja tambien devuelve el boleto ya creado', async () => {
+  const fake = fakeSupabase({ requestsTable: 'legacy', storedRequest: { order_id: ORDER_ID } });
+  await withFetch(fake, async () => {
+    const r = await call('boleto/nuevo', { method: 'POST', body: { ...baseBody(), id_cliente_solicitud: REQUEST_ID } });
+    assert.equal(r.status, 200, JSON.stringify(r.body));
+    assert.equal(r.body.repetido, true);
+    assert.equal(r.body.boleto.id, ORDER_ID);
+  });
+  assert.equal(fake.orderPosts(), 0);
 });
 
 test('la herramienta crear_boleto sin campos nuevos sigue igual (sin color, codigo ni cliente_id)', async () => {
@@ -268,4 +319,79 @@ test('la herramienta crear_boleto sin campos nuevos sigue igual (sin color, codi
   assert.equal('device_color' in row, false);
   assert.equal('device_security' in row, false);
   assert.equal(row.created_by_name, 'Asistente IA - prueba');
+});
+
+const { sb } = await import('../api/_lib/muse.js');
+const directDeps = (extra = {}) => ({ sb, crearBoleto: (input, actor) => crearBoleto(input, actor), sleep: () => new Promise((r) => setTimeout(r, 20)), ...extra });
+const direct = (deps, body) => form.createTicketFromForm({ body, label: 'Asistente IA - prueba', tenantId: TENANT }, deps);
+
+test('reserva atomica: reserva, crea y deja la solicitud lista con el boleto', async () => {
+  const fake = fakeSupabase({ requestsTable: 'atomic' });
+  await withFetch(fake, async () => {
+    const r = await direct(directDeps(), { ...baseBody(), id_cliente_solicitud: REQUEST_ID });
+    assert.equal(r.status, 200, JSON.stringify(r.body));
+    assert.equal(r.body.repetido, false);
+  });
+  const row = fake.requests.rows.get(REQUEST_ID);
+  assert.equal(row.order_id, ORDER_ID);
+  assert.equal(row.estado, 'listo');
+  const reserve = fake.calls.find((c) => c.url.includes('on_conflict=tenant_id,request_id'));
+  assert.deepEqual({ ...reserve.body, actualizado_en: 'x' }, { tenant_id: TENANT, request_id: REQUEST_ID, order_id: null, estado: 'creando', actualizado_en: 'x' });
+  assert.equal(fake.orderPosts(), 1);
+  assert.equal(fake.calls.filter((c) => c.method === 'DELETE').length, 0);
+});
+
+test('reserva atomica: dos envios simultaneos con la misma llave crean un solo boleto', async () => {
+  const fake = fakeSupabase({ requestsTable: 'atomic' });
+  const [a, b] = await withFetch(fake, () => Promise.all([
+    direct(directDeps(), { ...baseBody(), id_cliente_solicitud: REQUEST_ID }),
+    direct(directDeps(), { ...baseBody(), id_cliente_solicitud: REQUEST_ID }),
+  ]));
+  assert.equal(a.status, 200, JSON.stringify(a.body));
+  assert.equal(b.status, 200, JSON.stringify(b.body));
+  assert.equal(fake.orderPosts(), 1);
+  assert.deepEqual([a.body.repetido, b.body.repetido].sort(), [false, true]);
+  assert.equal(a.body.boleto.id, b.body.boleto.id);
+});
+
+test('reserva atomica: si otro envio sigue creando responde 409 sin crear', async () => {
+  const fake = fakeSupabase({ requestsTable: 'atomic', storedRequest: { order_id: null, estado: 'creando', actualizado_en: new Date().toISOString() } });
+  let waits = 0;
+  const r = await withFetch(fake, () => direct(directDeps({ sleep: async () => { waits++; } }), { ...baseBody(), id_cliente_solicitud: REQUEST_ID }));
+  assert.equal(r.status, 409);
+  assert.equal(r.body.code, 'request_in_progress');
+  assert.equal(waits, form.REQUEST_WAIT_TRIES - 1);
+  assert.equal(fake.orderPosts(), 0);
+});
+
+test('reserva atomica: una reserva vieja sin boleto se retoma y se crea una sola vez', async () => {
+  const old = new Date(Date.now() - form.REQUEST_STALE_MS - 60_000).toISOString();
+  const fake = fakeSupabase({ requestsTable: 'atomic', storedRequest: { order_id: null, estado: 'creando', actualizado_en: old } });
+  const r = await withFetch(fake, () => direct(directDeps(), { ...baseBody(), id_cliente_solicitud: REQUEST_ID }));
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(fake.orderPosts(), 1);
+  assert.equal(fake.requests.rows.get(REQUEST_ID).estado, 'listo');
+});
+
+test('reserva atomica: si crear falla queda fallido y el reintento con la misma llave crea', async () => {
+  const fake = fakeSupabase({ requestsTable: 'atomic' });
+  let fail = true;
+  const deps = directDeps({ crearBoleto: async (input, actor) => (fail ? { status: 502, body: { ok: false, error: 'caida', code: 'upstream_error' } } : crearBoleto(input, actor)) });
+  const first = await withFetch(fake, () => direct(deps, { ...baseBody(), id_cliente_solicitud: REQUEST_ID }));
+  assert.equal(first.status, 502);
+  assert.equal(fake.requests.rows.get(REQUEST_ID).estado, 'fallido');
+  fail = false;
+  const second = await withFetch(fake, () => direct(deps, { ...baseBody(), id_cliente_solicitud: REQUEST_ID }));
+  assert.equal(second.status, 200, JSON.stringify(second.body));
+  assert.equal(second.body.repetido, false);
+  assert.equal(fake.orderPosts(), 1);
+  assert.equal(fake.requests.rows.get(REQUEST_ID).order_id, ORDER_ID);
+});
+
+test('reserva atomica: la llave apunta a un boleto que ya no esta y responde 409 sin crear otro', async () => {
+  const fake = fakeSupabase({ requestsTable: 'atomic', storedRequest: { order_id: 'ffffffff-bbbb-4ccc-8ddd-eeeeeeeeeeee', estado: 'listo' } });
+  const r = await withFetch(fake, () => direct(directDeps(), { ...baseBody(), id_cliente_solicitud: REQUEST_ID }));
+  assert.equal(r.status, 409);
+  assert.equal(r.body.code, 'request_order_missing');
+  assert.equal(fake.orderPosts(), 0);
 });
