@@ -12,7 +12,7 @@
 export const PLANS = {
   solo: {
     id: 'solo',
-    label: 'Archilla OS',
+    label: 'Repara OS',
     price: 9.99,
     priceAnnual: 99.90,
     tagline: 'Todo tu taller, todo incluido',

@@ -270,7 +270,7 @@ const isDev = Deno.env.get("DENO_ENV") !== "production";
 
   // Health check (Render requires 2xx on healthCheckPath)
   if (path === '/' || path === '/health') {
-    return new Response(JSON.stringify({ status: 'ok', service: 'Archilla OS Functions' }), {
+    return new Response(JSON.stringify({ status: 'ok', service: 'Repara OS Functions' }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

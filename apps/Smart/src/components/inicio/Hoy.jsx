@@ -43,7 +43,7 @@ function ageText(o) {
 
 export default function HoyBriefing({ open, onClose, tenant, tenantId, tz, employee, orders, products, hasPunch, hasCash, onPunch, onCash, onOpenOrder, onPay }) {
   const zone = safeTZ(tz);
-  const shop = String(tenant?.name || "").trim() || "Archilla OS";
+  const shop = String(tenant?.name || "").trim() || "Repara OS";
   const [tasks, setTasks] = useState(null);
   const [snooze, setSnooze] = useState(readSnooze());
   const [menuFor, setMenuFor] = useState(null);

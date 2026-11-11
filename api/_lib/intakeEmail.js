@@ -31,7 +31,7 @@ export function strings(lang) {
     defaultCustomerName: t('Cliente', 'Customer'),
     greeting: (n) => t(`Hola ${n}, `, `Hi ${n}, `),
     anyQuestionsLine: t('Cualquier duda respondiendo este correo y te ayudamos.', "Any questions, just reply to this email and we'll help you out."),
-    sentBy: (n) => t(`Enviado por ${n} · Powered by Archilla OS`, `Sent by ${n} · Powered by Archilla OS`),
+    sentBy: (n) => t(`Enviado por ${n} · Powered by Repara OS`, `Sent by ${n} · Powered by Repara OS`),
     equipmentTitle: t('EQUIPO', 'DEVICE'),
     orderLabel: t('Boleto', 'Order'),
     typeLabel: t('Tipo', 'Type'),
@@ -322,7 +322,7 @@ export function renderIntakeEmail({ order, tenant, lang = 'es', maxPhotos = MAX_
 }
 
 export function emailPayload({ to, subject, html, tenant }) {
-  const safeName = String(tenantFromName(tenant)).replace(/[\r\n]/g, ' ').replace(/"/g, "'").trim() || 'Archilla OS';
+  const safeName = String(tenantFromName(tenant)).replace(/[\r\n]/g, ' ').replace(/"/g, "'").trim() || 'Repara OS';
   const payload = { to: String(to).trim(), subject, body: html, from_name: safeName, from: `${safeName} <${SENDER_ADDRESS}>` };
   const rt = String(tenant?.email || '').trim();
   if (rt.includes('@')) payload.replyTo = rt;

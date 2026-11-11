@@ -12,7 +12,7 @@ const SB_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'htt
 // SB_KEY must be set in Vercel dashboard as SUPABASE_SERVICE_ROLE_KEY
 const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@archillaos.com';
-const FROM_NAME = process.env.FROM_NAME || 'Archilla OS';
+const FROM_NAME = process.env.FROM_NAME || 'Repara OS';
 const APP_URL = process.env.APP_URL || 'https://smart-fix-os-smart.vercel.app';
 
 const sbHeaders = {
@@ -244,9 +244,9 @@ export default async function handler(req, res) {
         const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#0a0a0a;font-family:'Segoe UI',Arial,sans-serif;color:#e5e7eb;">
 <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
-  <div style="text-align:center;margin-bottom:32px;font-size:24px;font-weight:800;color:#fff;letter-spacing:-0.5px;"><span style="color:#FF5722;">●</span> Archilla OS</div>
+  <div style="text-align:center;margin-bottom:32px;font-size:24px;font-weight:800;color:#fff;letter-spacing:-0.5px;"><span style="color:#FF5722;">●</span> Repara OS</div>
   <div style="background:linear-gradient(135deg,#1c1410,#141009);border:1px solid #3d2a1f;border-radius:20px;padding:36px;margin-bottom:20px;">
-    <h1 style="color:#fff;font-size:26px;font-weight:800;margin:0 0 8px;text-align:center;">¡Bienvenido a Archilla OS!</h1>
+    <h1 style="color:#fff;font-size:26px;font-weight:800;margin:0 0 8px;text-align:center;">¡Bienvenido a Repara OS!</h1>
     <p style="color:#9ca3af;text-align:center;margin:0 0 28px;font-size:15px;">Tu cuenta para <strong style="color:#e5e7eb;">${tenantName}</strong> fue creada ✅</p>
     <div style="background:linear-gradient(135deg,#3d1d0f,#2a1409);border:2px solid #FF5722;border-radius:14px;padding:28px;text-align:center;margin-bottom:28px;">
       <p style="color:#ffab91;font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin:0 0 16px;">Último paso</p>
@@ -262,13 +262,13 @@ export default async function handler(req, res) {
   </div>
   <div style="text-align:center;font-size:12px;color:#4b5563;">
     <p>¿No creaste esta cuenta? Ignora este mensaje.</p>
-    <p>Archilla OS — Hecho en Puerto Rico 🇵🇷</p>
+    <p>Repara OS — Hecho en Puerto Rico 🇵🇷</p>
   </div>
 </div></body></html>`;
 
         await sendResendEmail({
           to: email,
-          subject: `¡Activa tu cuenta de Archilla OS, ${ownerName}!`,
+          subject: `¡Activa tu cuenta de Repara OS, ${ownerName}!`,
           html,
           fromName: FROM_NAME,
           fromEmail: FROM_EMAIL,

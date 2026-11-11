@@ -211,7 +211,7 @@ export default function Dashboard() {
   const warranties = useMemo(() => activeWarrantyOrders(orders), [orders]);
   const left = leftOpenYesterday(openEntry, register, tz);
   const trial = trialInfo(tenant);
-  const shopName = String(tenant?.name || "").trim() || "Archilla OS";
+  const shopName = String(tenant?.name || "").trim() || "Repara OS";
   const openOrder = (id) => navigate(`/Orders/${id}`);
   const watchdog = today.expenses > 0 && today.net < 0;
 

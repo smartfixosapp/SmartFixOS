@@ -45,7 +45,7 @@ export default function PWAMetaTags() {
       appleTitle.name = 'apple-mobile-web-app-title';
       document.head.appendChild(appleTitle);
     }
-    appleTitle.content = 'Archilla OS';
+    appleTitle.content = 'Repara OS';
 
     // Application Name
     let appName = document.querySelector('meta[name="application-name"]');
@@ -54,7 +54,7 @@ export default function PWAMetaTags() {
       appName.name = 'application-name';
       document.head.appendChild(appName);
     }
-    appName.content = 'Archilla OS';
+    appName.content = 'Repara OS';
 
     // Mobile optimized
     let mobileOptimized = document.querySelector('meta[name="mobile-web-app-capable"]');

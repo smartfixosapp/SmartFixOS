@@ -83,7 +83,7 @@ export function Historia() {
             className="text-[clamp(15px,1.7vw,17px)] leading-[1.7]"
             style={{ color: "var(--ar-text-2)" }}
           >
-            Archilla OS es el taller que yo quería tener: rápido, honesto y que te dice la verdad de cuánto te quedó.{" "}
+            Repara OS es el taller que yo quería tener: rápido, honesto y que te dice la verdad de cuánto te quedó.{" "}
             <span className="relative inline-block font-bold" style={{ color: "var(--ar-text)" }}>
               Esto no es vaporware
               <motion.span

@@ -185,18 +185,18 @@ export async function sendWelcomeEmail({ tenant, tenantId, employee, pin }) {
   if (!to) return false;
   const shop = String(tenant?.name || "").trim() || "tu taller";
   const first = String(employee.full_name || "").trim().split(/\s+/)[0] || "";
-  const html = `<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#111"><h2 style="margin:0 0 8px">Hola ${esc(first)}</h2><p style="font-size:15px;line-height:1.5">${esc(shop)} te dio acceso a Archilla OS.</p><div style="margin:18px 0;padding:16px;background:#F4F4F5;border-radius:12px"><div style="font-size:12px;color:#666;letter-spacing:.06em">TU PIN DE ACCESO</div><div style="font-size:34px;font-weight:700;letter-spacing:8px;font-family:ui-monospace,Menlo,monospace">${esc(pin)}</div></div><p style="font-size:14px;line-height:1.5">Abre Archilla OS en el dispositivo del taller, toca "Cambiar usuario" e ingresa tu PIN de 4 dígitos. Al entrar por primera vez te pediremos crear tu propio PIN.</p></div>`;
-  return sendRawEmail({ tenantId, to, subject: `Tu acceso a Archilla OS — ${shop}`, html, replyTo: String(tenant?.email || "").includes("@") ? tenant.email : undefined, fromName: shop });
+  const html = `<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#111"><h2 style="margin:0 0 8px">Hola ${esc(first)}</h2><p style="font-size:15px;line-height:1.5">${esc(shop)} te dio acceso a Repara OS.</p><div style="margin:18px 0;padding:16px;background:#F4F4F5;border-radius:12px"><div style="font-size:12px;color:#666;letter-spacing:.06em">TU PIN DE ACCESO</div><div style="font-size:34px;font-weight:700;letter-spacing:8px;font-family:ui-monospace,Menlo,monospace">${esc(pin)}</div></div><p style="font-size:14px;line-height:1.5">Abre Repara OS en el dispositivo del taller, toca "Cambiar usuario" e ingresa tu PIN de 4 dígitos. Al entrar por primera vez te pediremos crear tu propio PIN.</p></div>`;
+  return sendRawEmail({ tenantId, to, subject: `Tu acceso a Repara OS — ${shop}`, html, replyTo: String(tenant?.email || "").includes("@") ? tenant.email : undefined, fromName: shop });
 }
 
 export function shareAccessText(employee, pin) {
   const first = String(employee.full_name || "").trim().split(/\s+/)[0] || "";
   const role = roleLabels(rolesOf(employee)).join(" · ");
-  return `Hola ${first}\nTu acceso a Archilla OS está listo.\nNombre: ${employee.full_name}\nRol: ${role}\nPIN: ${pin}\nAbre la app en el dispositivo del taller e ingresa tu PIN para acceder.`;
+  return `Hola ${first}\nTu acceso a Repara OS está listo.\nNombre: ${employee.full_name}\nRol: ${role}\nPIN: ${pin}\nAbre la app en el dispositivo del taller e ingresa tu PIN para acceder.`;
 }
 
 export function invitationText(tenant, code) {
-  return `Únete al equipo de ${String(tenant?.name || "").trim() || "nuestro taller"} en Archilla OS. Descarga la app, toca Soy empleado y entra con el código del taller: ${code}`;
+  return `Únete al equipo de ${String(tenant?.name || "").trim() || "nuestro taller"} en Repara OS. Descarga la app, toca Soy empleado y entra con el código del taller: ${code}`;
 }
 
 export function shiftTaskSummary(tenant) {

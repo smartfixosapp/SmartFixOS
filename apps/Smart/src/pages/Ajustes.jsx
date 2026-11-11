@@ -216,14 +216,14 @@ export default function Ajustes() {
           <div className="grid stagger" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(clamp(150px, 20%, 220px), 1fr))", gap: 12 }}>
             {visible.map((s) => <Tile key={s.id} s={s} admin={admin} tenant={tenant} onOpen={() => go(s.id)} />)}
           </div>
-          <Group header="Acerca de Archilla OS" pad={false}>
+          <Group header="Acerca de Repara OS" pad={false}>
             <Row first Icon={Info} color={A.brand} title="Versión" right={<span style={{ fontSize: 17, color: A.sub }}>web</span>} />
             <Row Icon={Hammer} color={A.warning} title="Build" right={<span style={{ fontSize: 17, color: A.sub }}>{BUILD}</span>} />
             <Row Icon={ShieldCheck} color={A.success} title="Política de Privacidad" chevron={false} right={<ExternalLink className="w-4 h-4" style={{ color: A.ter }} />} onClick={() => window.open("https://smartfixos.com/privacy", "_blank", "noopener")} />
             <Row Icon={FileText} color={A.info} title="Términos de Uso" chevron={false} right={<ExternalLink className="w-4 h-4" style={{ color: A.ter }} />} onClick={() => window.open("https://smartfixos.com/terms", "_blank", "noopener")} />
             <Row Icon={Bug} color={A.sub} title="Reportar problema" onClick={() => setReport(true)} />
           </Group>
-          <p style={{ fontSize: 12, color: A.sub, textAlign: "center" }}>© 2026 archistudios · Archilla OS. Todos los derechos reservados.</p>
+          <p style={{ fontSize: 12, color: A.sub, textAlign: "center" }}>© 2026 archistudios · Repara OS. Todos los derechos reservados.</p>
           <div>
             <button onClick={requestAppLock} className="apple-press w-full flex items-center justify-center gap-2" style={{ padding: "17px 0", borderRadius: 16, background: A.brand, color: "#fff", fontSize: 17, fontWeight: 700 }}><Lock className="w-5 h-5" /> Bloquear app</button>
             <p style={{ fontSize: 12, color: A.sub, textAlign: "center", marginTop: 6 }}>Bloquea con PIN. Tu sesión y PIN se conservan — al volver entras directo.</p>

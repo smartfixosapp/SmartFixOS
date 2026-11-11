@@ -1575,7 +1575,7 @@ export async function assistantHandler(req, res) {
   }
   if (route === 'plaid/done') {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    return res.status(200).send('<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Banco conectado</title></head><body style="font-family:-apple-system,system-ui,sans-serif;text-align:center;padding:64px 24px"><h2>Listo</h2><p>Puedes cerrar esta ventana y volver a Archilla OS.</p></body></html>');
+    return res.status(200).send('<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Banco conectado</title></head><body style="font-family:-apple-system,system-ui,sans-serif;text-align:center;padding:64px 24px"><h2>Listo</h2><p>Puedes cerrar esta ventana y volver a Repara OS.</p></body></html>');
   }
   if (rateLimited(route)) return fail(res, 429, 'Demasiadas solicitudes, espera un minuto', 'rate_limited');
   const auth = await authenticate(req);

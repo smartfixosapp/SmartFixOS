@@ -178,7 +178,7 @@ export default function SoftwareServiceDialog({ open, onClose, onSuccess }) {
       if (formData.customer_email) {
         try {
           await base44.integrations.Core.SendEmail({
-            from_name: "Archilla OS",
+            from_name: "Repara OS",
             to: formData.customer_email,
             subject: `Confirmación de Servicio - Boleto ${orderNumber}`,
             body: `
@@ -205,7 +205,7 @@ export default function SoftwareServiceDialog({ open, onClose, onSuccess }) {
                   </p>
                   
                   <p style="color: #999; font-size: 12px; margin-top: 30px; text-align: center; border-top: 1px solid #eee; padding-top: 15px;">
-                    Archilla OS - Sistema de Gestión
+                    Repara OS - Sistema de Gestión
                   </p>
                 </div>
               </div>

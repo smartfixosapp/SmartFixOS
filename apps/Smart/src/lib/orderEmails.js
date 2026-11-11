@@ -24,7 +24,7 @@ function strings(lang) {
     defaultCustomerName: t("Cliente", "Customer"),
     greeting: (n) => t(`Hola ${n}, `, `Hi ${n}, `),
     anyQuestionsLine: t("Cualquier duda respondiendo este correo y te ayudamos.", "Any questions, just reply to this email and we'll help you out."),
-    sentBy: (n) => t(`Enviado por ${n} · Powered by Archilla OS`, `Sent by ${n} · Powered by Archilla OS`),
+    sentBy: (n) => t(`Enviado por ${n} · Powered by Repara OS`, `Sent by ${n} · Powered by Repara OS`),
     equipmentTitle: t("EQUIPO", "DEVICE"),
     orderLabel: t("Boleto", "Order"),
     typeLabel: t("Tipo", "Type"),
@@ -514,7 +514,7 @@ async function sendRawCore({ to, subject, html, replyTo, fromName }) {
   if (!isValidEmail(cleanTo)) {
     throw new Error(`Email del cliente inválido ("${cleanTo.slice(0, 60)}") — corrígelo en la ficha del cliente.`);
   }
-  const safeName = fromName ? String(fromName).replace(/"/g, "'") : "Archilla OS";
+  const safeName = fromName ? String(fromName).replace(/"/g, "'") : "Repara OS";
   const payload = { to: cleanTo, subject, body: html, from_name: safeName, from: `${safeName} <noreply@smartfixos.com>` };
   const rt = String(replyTo || "").trim();
   if (rt.includes("@")) payload.replyTo = rt;

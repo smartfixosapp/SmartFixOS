@@ -2768,7 +2768,7 @@ function openapi() {
   return {
     openapi: '3.0.3',
     info: {
-      title: 'Archilla OS - API de la tienda 911SmartFix para Jaime',
+      title: 'Repara OS - API de la tienda 911SmartFix para Jaime',
       version: '1.0.0',
       description:
         'Acceso exclusivo a los datos de la tienda 911SmartFix. Autenticacion: header Authorization: Bearer <llave>. ' +

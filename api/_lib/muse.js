@@ -201,7 +201,7 @@ function emailHtml({ shop, greetingName, message, order }) {
         ${paragraphs}
         ${summary}
       </div>
-      <div style="text-align:center;font-size:12px;color:#9ca3af;margin-top:14px">Enviado por ${escapeHtml(shop)} · Powered by Archilla OS</div>
+      <div style="text-align:center;font-size:12px;color:#9ca3af;margin-top:14px">Enviado por ${escapeHtml(shop)} · Powered by Repara OS</div>
     </div></body></html>`;
 }
 
@@ -471,7 +471,7 @@ function openapi() {
   return {
     openapi: '3.0.3',
     info: {
-      title: 'Archilla OS - Operaciones del taller (uso personal)',
+      title: 'Repara OS - Operaciones del taller (uso personal)',
       version: '1.0.0',
       description:
         'API personal para consultar boletos, cambiar estatus, escribirle al cliente y registrar gastos o ingresos del taller. ' +

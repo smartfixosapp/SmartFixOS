@@ -71,7 +71,7 @@ export function Diagnostico({ tenant, tenantId, employee, role, back }) {
   const reconnect = async () => { try { await supabase.removeAllChannels(); } catch { return; } setLastReconnect(new Date()); setRt(true); };
   const failed = (rows || []).filter((r) => r.status === "failed");
   const list = onlyFailed ? failed : rows || [];
-  const dump = [`Archilla OS Diagnóstico`, `Versión: web`, `Internet: ${online ? "Conectado" : "Sin conexión"}`, `Realtime: ${rt ? "Conectado" : "Desconectado"}`, `Modo: ${localStorage.getItem("employee_session") ? "Empleado (PIN)" : "Dueño (OAuth)"}`, `Tenant: ${tenantId.slice(0, 8)}…${tenantId.slice(-4)}`, `Usuario: ${employee?.full_name || "—"}`, `Email: ${employee?.email || "—"}`, `Rol: ${role || "—"}`, `Último reconectar: ${lastReconnect ? lastReconnect.toLocaleString("es-PR") : "—"}`, `Fecha del reporte: ${new Date().toLocaleString("es-PR")}`].join("\n");
+  const dump = [`Repara OS Diagnóstico`, `Versión: web`, `Internet: ${online ? "Conectado" : "Sin conexión"}`, `Realtime: ${rt ? "Conectado" : "Desconectado"}`, `Modo: ${localStorage.getItem("employee_session") ? "Empleado (PIN)" : "Dueño (OAuth)"}`, `Tenant: ${tenantId.slice(0, 8)}…${tenantId.slice(-4)}`, `Usuario: ${employee?.full_name || "—"}`, `Email: ${employee?.email || "—"}`, `Rol: ${role || "—"}`, `Último reconectar: ${lastReconnect ? lastReconnect.toLocaleString("es-PR") : "—"}`, `Fecha del reporte: ${new Date().toLocaleString("es-PR")}`].join("\n");
   const retry = async (r) => {
     setRetrying(r.id);
     try { await sendRawEmail({ tenantId, to: r.to_email, subject: r.subject, html: r.body_html, replyTo: tenant?.email, fromName: r.from_name || tenantEmailFromName(tenant) }); } catch { return; } finally { setRetrying(null); load(); }
@@ -96,7 +96,7 @@ export function Diagnostico({ tenant, tenantId, employee, role, back }) {
       <div className="flex flex-col" style={{ gap: 8 }}>
         <button onClick={reconnect} className="apple-press flex items-center justify-center gap-2" style={{ padding: "14px 0", borderRadius: 16, background: tint(A.brand, 0.12), color: A.brand, fontWeight: 600 }}><RefreshCw className="w-4 h-4" /> Reconectar sincronización</button>
         <button onClick={async () => { try { await navigator.clipboard.writeText(dump); setToast("Copiado al portapapeles"); setTimeout(() => setToast(null), 2000); } catch { return; } }} className="apple-press flex items-center justify-center gap-2" style={{ padding: "14px 0", borderRadius: 16, background: "rgba(142,142,147,0.15)", fontWeight: 600 }}><Copy className="w-4 h-4" /> Copiar diagnóstico</button>
-        <a href={`mailto:archillastudios@gmail.com?subject=${encodeURIComponent("Archilla OS — Diagnóstico app vweb")}&body=${encodeURIComponent(dump)}`} className="apple-press flex items-center justify-center gap-2" style={{ padding: "14px 0", borderRadius: 16, background: "rgba(142,142,147,0.15)", fontWeight: 600 }}><Mail className="w-4 h-4" /> Enviar a soporte</a>
+        <a href={`mailto:archillastudios@gmail.com?subject=${encodeURIComponent("Repara OS — Diagnóstico app vweb")}&body=${encodeURIComponent(dump)}`} className="apple-press flex items-center justify-center gap-2" style={{ padding: "14px 0", borderRadius: 16, background: "rgba(142,142,147,0.15)", fontWeight: 600 }}><Mail className="w-4 h-4" /> Enviar a soporte</a>
       </div>
       {toast && <p style={{ color: A.success, textAlign: "center", fontWeight: 600 }}>{toast}</p>}
       <Group header="Detalles técnicos">
@@ -128,7 +128,7 @@ export function ReportarProblema({ open, onClose, tenant, tenantId, employee }) 
   return (
     <Dialog open={open} onClose={() => !busy && onClose()} dismissable={!busy} title="Reportar problema" width={480} height="86dvh" leading={<TextAction onClick={onClose}>{done ? "Cerrar" : "Cancelar"}</TextAction>} trailing={<span />}>
       {done ? (
-        <div className="flex flex-col items-center text-center" style={{ gap: 10, padding: "40px 10px" }}><span style={{ width: 76, height: 76, borderRadius: 999, background: tint(A.success, 0.16), color: A.success, display: "flex", alignItems: "center", justifyContent: "center" }}><Check className="w-9 h-9" strokeWidth={3} /></span><b style={{ fontSize: 22 }}>¡Reporte enviado!</b><p style={{ color: A.sub }}>Gracias por ayudarnos a mejorar Archilla OS.<br />Revisaremos tu reporte pronto.</p><button onClick={onClose} className="apple-press" style={{ marginTop: 10, padding: "12px 28px", borderRadius: 14, background: A.brand, color: "#fff", fontWeight: 700 }}>Cerrar</button></div>
+        <div className="flex flex-col items-center text-center" style={{ gap: 10, padding: "40px 10px" }}><span style={{ width: 76, height: 76, borderRadius: 999, background: tint(A.success, 0.16), color: A.success, display: "flex", alignItems: "center", justifyContent: "center" }}><Check className="w-9 h-9" strokeWidth={3} /></span><b style={{ fontSize: 22 }}>¡Reporte enviado!</b><p style={{ color: A.sub }}>Gracias por ayudarnos a mejorar Repara OS.<br />Revisaremos tu reporte pronto.</p><button onClick={onClose} className="apple-press" style={{ marginTop: 10, padding: "12px 28px", borderRadius: 14, background: A.brand, color: "#fff", fontWeight: 700 }}>Cerrar</button></div>
       ) : (
         <div className="flex flex-col" style={{ gap: 14, paddingTop: 8 }}>
           <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", color: A.sub, textTransform: "uppercase" }}>Tipo de reporte</p>
@@ -204,7 +204,7 @@ export function Suscripcion({ tenant, tenantId, back }) {
   const status = String(tenant?.subscription_status || "").toLowerCase();
   const subscribed = status === "active" || status === "trialing" || ["solo", "team", "pro", "enterprise", "founders_lifetime"].includes(plan);
   const color = plan === "trial" ? A.info : plan === "beta" ? A.success : plan === "expired" ? A.danger : ["solo", "team", "pro", "enterprise", "founders_lifetime"].includes(plan) ? A.success : A.sub;
-  const sub = plan === "trial" ? (days !== null ? `Días restantes de prueba: ${days}` : "Prueba activa") : plan === "expired" ? "Tu prueba terminó. Activa un plan para seguir usando Archilla OS." : subscribed ? "Suscripción activa" : "Sin suscripción activa";
+  const sub = plan === "trial" ? (days !== null ? `Días restantes de prueba: ${days}` : "Prueba activa") : plan === "expired" ? "Tu prueba terminó. Activa un plan para seguir usando Repara OS." : subscribed ? "Suscripción activa" : "Sin suscripción activa";
   const manage = async () => {
     if (tenant?.billing_source === "apple") { setError("Administra tu suscripción desde tu Apple ID en el iPhone."); return; }
     setBusy(true); setError(null);

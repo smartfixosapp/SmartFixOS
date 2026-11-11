@@ -71,7 +71,7 @@ function CustomerDetail({ customer, tenantId, tenant, employee, onChanged, onDel
 
   const name = displayName(customer);
   const vip = isVip(customer);
-  const shop = String(tenant?.name || "").trim() || "Archilla OS";
+  const shop = String(tenant?.name || "").trim() || "Repara OS";
   const msg = encodeURIComponent(greeting(customer, shop));
   const digits = phoneDigits(customer.phone);
   const spent = num(customer.total_spent);

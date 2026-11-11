@@ -185,7 +185,7 @@ export function WelcomeCard({ onNewOrder }) {
       <div className="flex items-center gap-3">
         <span style={{ width: 48, height: 48, borderRadius: 999, background: tint(FP.brand, 0.12), color: FP.brand, display: "flex", alignItems: "center", justifyContent: "center" }}><Sparkles className="w-6 h-6" /></span>
         <span className="flex flex-col">
-          <span style={{ fontSize: 15, fontWeight: 700 }}>¡Bienvenido a Archilla OS!</span>
+          <span style={{ fontSize: 15, fontWeight: 700 }}>¡Bienvenido a Repara OS!</span>
           <span style={{ fontSize: 12, color: "#8E8E93" }}>Empieza creando tu primer boleto de trabajo.</span>
         </span>
       </div>

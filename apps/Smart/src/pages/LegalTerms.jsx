@@ -16,10 +16,10 @@ export default function LegalTerms() {
   return (
     <LegalLayout title="Términos y Condiciones" eyebrow="Legal" lastUpdated="23 mayo 2026">
       <p>
-        Bienvenido a Archilla OS. Estos Términos y Condiciones ("Términos") rigen el uso
-        de la aplicación Archilla OS, los sitios web archillaos.com y app.archillaos.com,
+        Bienvenido a Repara OS. Estos Términos y Condiciones ("Términos") rigen el uso
+        de la aplicación Repara OS, los sitios web archillaos.com y app.archillaos.com,
         y cualquier servicio relacionado ("Servicio") operados por <strong>Archilla Studios</strong>{" "}
-        (en adelante "nosotros", "nuestro" o "Archilla OS").
+        (en adelante "nosotros", "nuestro" o "Repara OS").
       </p>
       <p>
         Al crear una cuenta, instalar la aplicación o usar cualquier parte del Servicio,
@@ -28,7 +28,7 @@ export default function LegalTerms() {
 
       <h2>1. Descripción del Servicio</h2>
       <p>
-        Archilla OS es un sistema operativo para talleres de reparación: gestión de
+        Repara OS es un sistema operativo para talleres de reparación: gestión de
         boletos de trabajo, punto de venta, inventario, finanzas, clientes y empleados,
         accesible desde dispositivos iOS y Android.
       </p>
@@ -44,14 +44,14 @@ export default function LegalTerms() {
 
       <h2>3. Planes y Suscripción</h2>
       <p>
-        Archilla OS ofrece dos planes de suscripción mensual:
+        Repara OS ofrece dos planes de suscripción mensual:
       </p>
       <ul>
         <li><strong>Solo boletos</strong> — $20 USD/mes con 1 técnico, más $5 USD/mes por cada técnico adicional (hasta 5 técnicos, $40 USD/mes). Incluye boletos, clientes, piezas por boleto, chat interno, ponche y multitienda. No incluye POS, cobros, inventario ni finanzas.</li>
         <li><strong>Completo</strong> — $49 USD/mes. Incluye todo: boletos, POS, cobros, inventario, finanzas, portal del cliente, nómina y comisiones, chat interno, multi-device y hasta 5 usuarios.</li>
       </ul>
       <p>
-        Los clientes con una suscripción anterior (Archilla OS a $9.99 USD/mes) conservan su precio mientras mantengan
+        Los clientes con una suscripción anterior (Repara OS a $9.99 USD/mes) conservan su precio mientras mantengan
         su suscripción activa. Los precios están en dólares estadounidenses; en la App Store pueden mostrarse con
         el equivalente local y los impuestos que Apple aplique en tu país.
       </p>
@@ -84,7 +84,7 @@ export default function LegalTerms() {
 
       <h2>5. Contenido del Cliente</h2>
       <p>
-        Tú conservas la propiedad de toda la data que introduces en Archilla OS:
+        Tú conservas la propiedad de toda la data que introduces en Repara OS:
         clientes, boletos, productos, fotos, facturas, configuraciones, etc.
         ("Contenido del Cliente").
       </p>
@@ -101,7 +101,7 @@ export default function LegalTerms() {
 
       <h2>6. Propiedad Intelectual</h2>
       <p>
-        El software Archilla OS, su código, diseño, marca, logos, y toda propiedad
+        El software Repara OS, su código, diseño, marca, logos, y toda propiedad
         intelectual relacionada son propiedad exclusiva de Archilla Studios. Te
         otorgamos una licencia limitada, no exclusiva e intransferible para usar el
         Servicio según estos Términos.
@@ -120,7 +120,7 @@ export default function LegalTerms() {
       <h2>7. Limitación de Responsabilidad</h2>
       <p>
         El Servicio se ofrece <strong>"tal como está"</strong> y "según disponibilidad",
-        sin garantías expresas o implícitas. Archilla OS hace esfuerzos razonables para
+        sin garantías expresas o implícitas. Repara OS hace esfuerzos razonables para
         mantener el Servicio operativo y los datos seguros, pero no garantizamos:
       </p>
       <ul>

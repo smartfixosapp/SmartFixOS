@@ -269,7 +269,7 @@ test('contenido en ingles y datos del taller: logo, telefono, direccion, redes, 
   assert.ok(en.html.includes('Hi Juan Perez, '));
   assert.ok(en.html.includes('DEVICE PHOTOS'));
   assert.ok(en.html.includes('Abandonment &amp; Storage Policy'));
-  assert.ok(en.html.includes('Sent by Taller Prueba · Powered by Archilla OS'));
+  assert.ok(en.html.includes('Sent by Taller Prueba · Powered by Repara OS'));
   for (const t of ["src='https://cdn.prueba.com/logo.png'", 'Tel. 787-555-0000', 'Calle 1', 'taller@prueba.com', 'Facebook', 'Instagram']) assert.ok(en.html.includes(t), t);
   const es = mod.renderIntakeEmail({ order: baseOrder(), tenant, lang: 'es' });
   assert.equal(es.subject, 'Ya tenemos tu WO-501');

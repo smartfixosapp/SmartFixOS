@@ -33,7 +33,7 @@ const DEFAULT_SCHEDULE = {
 };
 
 // Dos planes: Solo boletos (desde $20/mes) y Completo ($49/mes).
-const PLAN_INFO = { label: "Archilla OS", color: "blue", max_users: 999, price: "Desde $20/mes" };
+const PLAN_INFO = { label: "Repara OS", color: "blue", max_users: 999, price: "Desde $20/mes" };
 
 const STEPS = [
   { id: 1, label: "Identidad",  icon: Building2        },
@@ -215,7 +215,7 @@ export default function FirstTimeSetupWizard({ onComplete }) {
       }
 
       localStorage.setItem(SETUP_KEY, "true");
-      toast.success("¡Taller configurado! Bienvenido a Archilla OS 🎉");
+      toast.success("¡Taller configurado! Bienvenido a Repara OS 🎉");
       onComplete?.();
     } catch (e) {
       console.error(e);

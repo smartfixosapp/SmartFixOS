@@ -202,7 +202,7 @@ function LockScreen({ tenantId, onUnlock }) {
       </div>
       <div className="flex-1 flex flex-col items-center justify-center" style={{ gap: 20, padding: "0 16px 40px" }}>
         <div className="flex flex-col items-center text-center" style={{ gap: 6 }}>
-          <p style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-0.02em" }}>Archilla OS</p>
+          <p style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-0.02em" }}>Repara OS</p>
           <p style={{ fontSize: 17, color: "#8E8E93" }}>{first ? `Hola, ${first}` : "Acceso rápido"}</p>
           {tenantName && <p className="flex items-center gap-2" style={{ fontSize: 14, color: "#8E8E93" }}><span style={{ width: 8, height: 8, borderRadius: 999, background: "#30D158" }} /> {tenantName}</p>}
         </div>

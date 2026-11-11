@@ -82,7 +82,7 @@ export function Hero() {
           transition={{ duration: 0.7, ease: EASE, delay: 0.4 }}
           className="flex justify-center lg:justify-end"
         >
-          <PhoneMock src={heroShot} alt="Pantalla de inicio de Archilla OS" width={300} float glow priority />
+          <PhoneMock src={heroShot} alt="Pantalla de inicio de Repara OS" width={300} float glow priority />
         </motion.div>
       </Container>
     </section>

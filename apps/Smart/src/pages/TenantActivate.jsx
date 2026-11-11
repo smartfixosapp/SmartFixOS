@@ -377,7 +377,7 @@ export default function TenantActivate() {
       <div className="w-full max-w-2xl mx-auto mb-6">
         <div className="text-center mb-6">
           <div className="text-xl font-extrabold tracking-tight mb-4 apple-label-primary">
-            <span style={{ color: "#FF5722" }}>●</span> Archilla OS
+            <span style={{ color: "#FF5722" }}>●</span> Repara OS
           </div>
           <h1 className="apple-text-title1 apple-label-primary">Configura tu taller</h1>
           <p className="apple-text-footnote apple-label-secondary mt-1 tabular-nums">Paso {step + 1} de {TOTAL_STEPS}</p>

@@ -107,7 +107,7 @@ export function scheduleEmailHtml({ shop, employee, schedule, url }) {
 export async function sendScheduleEmail({ tenant, tenantId, employee, schedule, url }) {
   const to = String(employee.email || "").trim();
   if (!to) return false;
-  const shop = String(tenant?.name || "").trim() || "Archilla OS";
+  const shop = String(tenant?.name || "").trim() || "Repara OS";
   return sendRawEmail({ tenantId, to, subject: `Tu horario semanal — ${shop}`, html: scheduleEmailHtml({ shop, employee, schedule, url }), replyTo: String(tenant?.email || "").includes("@") ? tenant.email : undefined, fromName: shop });
 }
 
@@ -140,7 +140,7 @@ export function buildIcs({ employee, shop, schedule, tz, previousIcs }) {
   const seq = Math.floor(Date.now() / 60000);
   const off = utcOffsetLabel(zone);
   const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
-  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Archilla OS//Horario//ES", "CALSCALE:GREGORIAN", "METHOD:PUBLISH", `X-WR-CALNAME:${icsEscape(`Horario ${employee.full_name}`)}`, `X-WR-TIMEZONE:${zone}`,
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Repara OS//Horario//ES", "CALSCALE:GREGORIAN", "METHOD:PUBLISH", `X-WR-CALNAME:${icsEscape(`Horario ${employee.full_name}`)}`, `X-WR-TIMEZONE:${zone}`,
     "BEGIN:VTIMEZONE", `TZID:${zone}`, "BEGIN:STANDARD", "DTSTART:19700101T000000", `TZOFFSETFROM:${off}`, `TZOFFSETTO:${off}`, "END:STANDARD", "END:VTIMEZONE"];
   const known = new Set();
   const previousUids = previousIcs ? [...previousIcs.matchAll(/^UID:(.+)$/gm)].map((m) => m[1].trim()) : [];

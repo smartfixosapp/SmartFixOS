@@ -25,7 +25,7 @@ const MODULES = [
     benefit: "Del mostrador a entregado, sin perder una.",
     features: ["Ticket en 30s", "Fotos por estado", "Garantías", "Aviso automático al cliente"],
     shot: s06,
-    shotAlt: "Lista de boletos en Archilla OS",
+    shotAlt: "Lista de boletos en Repara OS",
     featured: true,
   },
   {

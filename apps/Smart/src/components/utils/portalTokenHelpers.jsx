@@ -250,7 +250,7 @@ export async function sendPortalLinkEmail(orderId, customerEmail, customerName, 
           </p>
           <div style="margin-top: 15px;">
             <img src="https://smartfixosapp.com/images/logo.png"
-                 alt="Archilla OS"
+                 alt="Repara OS"
                  style="height: 40px; width: auto;" />
           </div>
         </div>
@@ -259,7 +259,7 @@ export async function sendPortalLinkEmail(orderId, customerEmail, customerName, 
 
     // ✅ Enviar email
     await base44.functions.invoke('sendEmail', {
-      from_name: "Archilla OS - Portal de Clientes",
+      from_name: "Repara OS - Portal de Clientes",
       to_email: customerEmail,
       subject: `📱 Estado de tu Boleto ${order.order_number}`,
       body_html: emailBody,

@@ -70,7 +70,7 @@ export default function EmployeeHome() {
           <span className="h-8 w-8 rounded-lg bg-orange-500 flex items-center justify-center">
             <Wrench className="h-4 w-4 text-white" strokeWidth={2.4} />
           </span>
-          Archilla OS
+          Repara OS
         </Link>
         {status === "ok" && (
           <button

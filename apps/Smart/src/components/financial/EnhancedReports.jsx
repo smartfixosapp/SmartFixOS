@@ -386,7 +386,7 @@ export default function EnhancedReports({ dateFilter, customStartDate, customEnd
         doc.setPage(i);
         doc.setFontSize(8);
         doc.setTextColor(150);
-        doc.text(`Archilla OS - Reporte Financiero`, 14, doc.internal.pageSize.getHeight() - 10);
+        doc.text(`Repara OS - Reporte Financiero`, 14, doc.internal.pageSize.getHeight() - 10);
         doc.text(`Página ${i} de ${totalPages}`, pageWidth - 40, doc.internal.pageSize.getHeight() - 10);
       }
 

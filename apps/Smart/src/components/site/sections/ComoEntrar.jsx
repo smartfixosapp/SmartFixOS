@@ -11,7 +11,7 @@ const STEPS = [
     num: "01",
     icon: Apple,
     title: "Descárgala del App Store",
-    body: "Búscala como Archilla OS en el App Store y bájala gratis.",
+    body: "Búscala como Repara OS en el App Store y bájala gratis.",
   },
   {
     num: "02",

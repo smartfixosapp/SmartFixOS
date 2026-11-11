@@ -69,7 +69,7 @@ export async function processPaymentHandler(req) {
         type: "revenue",
         amount: planPrice,
         category: "other",
-        description: `Plan Archilla OS - ${tenant.name}`,
+        description: `Plan Repara OS - ${tenant.name}`,
         recorded_by: user.email,
         metadata: {
           tenant_id: tenantId,

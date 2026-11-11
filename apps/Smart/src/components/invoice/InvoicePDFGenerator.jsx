@@ -34,7 +34,7 @@ export async function generateInvoicePDF(invoice, orders, products = [], busines
     doc.setFontSize(24);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(0, 168, 232);
-    doc.text(businessInfo.name || 'Archilla OS', margin, y);
+    doc.text(businessInfo.name || 'Repara OS', margin, y);
     y += 10;
   }
 

@@ -804,7 +804,7 @@ export default function WorkOrderWizard({
           });
 
           await base44.integrations.Core.SendEmail({
-            from_name: businessInfo.business_name || "Archilla OS",
+            from_name: businessInfo.business_name || "Repara OS",
             to: formData.customer.email,
             subject: emailData.subject,
             body: emailData.body

@@ -233,10 +233,10 @@ function EmailComposer({ tenants }) {
   const [search, setSearch] = useState("");
 
   const TEMPLATES = [
-    { label: "Bienvenida", subject: "Bienvenido a Archilla OS", body: "Hola {{name}},\n\nGracias por registrarte en Archilla OS. Estamos aqui para ayudarte a configurar tu taller.\n\nSi necesitas ayuda, no dudes en contactarnos.\n\n- Equipo Archilla OS" },
-    { label: "Trial expirando", subject: "Tu trial de Archilla OS vence pronto", body: "Hola {{name}},\n\nTu periodo de prueba de Archilla OS vence en pocos dias. Para continuar usando el sistema, activa tu suscripcion.\n\nSi tienes preguntas sobre los planes, respondenos a este email.\n\n- Equipo Archilla OS" },
-    { label: "Pago fallido", subject: "Problema con tu pago - Archilla OS", body: "Hola {{name}},\n\nNo pudimos procesar tu ultimo pago. Por favor verifica tu metodo de pago para evitar interrupciones en el servicio.\n\nSi necesitas ayuda, estamos aqui.\n\n- Equipo Archilla OS" },
-    { label: "Nueva feature", subject: "Nueva funcionalidad en Archilla OS", body: "Hola {{name}},\n\nHemos lanzado una nueva funcionalidad que creemos te sera muy util.\n\n[Describe la feature aqui]\n\n- Equipo Archilla OS" },
+    { label: "Bienvenida", subject: "Bienvenido a Repara OS", body: "Hola {{name}},\n\nGracias por registrarte en Repara OS. Estamos aqui para ayudarte a configurar tu taller.\n\nSi necesitas ayuda, no dudes en contactarnos.\n\n- Equipo Repara OS" },
+    { label: "Trial expirando", subject: "Tu trial de Repara OS vence pronto", body: "Hola {{name}},\n\nTu periodo de prueba de Repara OS vence en pocos dias. Para continuar usando el sistema, activa tu suscripcion.\n\nSi tienes preguntas sobre los planes, respondenos a este email.\n\n- Equipo Repara OS" },
+    { label: "Pago fallido", subject: "Problema con tu pago - Repara OS", body: "Hola {{name}},\n\nNo pudimos procesar tu ultimo pago. Por favor verifica tu metodo de pago para evitar interrupciones en el servicio.\n\nSi necesitas ayuda, estamos aqui.\n\n- Equipo Repara OS" },
+    { label: "Nueva feature", subject: "Nueva funcionalidad en Repara OS", body: "Hola {{name}},\n\nHemos lanzado una nueva funcionalidad que creemos te sera muy util.\n\n[Describe la feature aqui]\n\n- Equipo Repara OS" },
   ];
 
   const filteredTenants = useMemo(() => {

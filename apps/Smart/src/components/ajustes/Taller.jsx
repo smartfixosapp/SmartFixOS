@@ -163,7 +163,7 @@ export function DatosTaller({ tenant, tenantId, reload, back }) {
     setMsg(null); setError(null);
     try {
       const data = JSON.parse(await file.text());
-      if (!data || typeof data !== "object" || !data.tenant) throw new Error("El archivo no parece un backup válido de Archilla OS.");
+      if (!data || typeof data !== "object" || !data.tenant) throw new Error("El archivo no parece un backup válido de Repara OS.");
       if (!data.manifest) throw new Error("El backup no incluye un manifest — versión incompatible.");
       const mid = String(data.manifest.tenantId || "");
       const tt = String(data.tenant.id || "");
@@ -228,7 +228,7 @@ export function DatosTaller({ tenant, tenantId, reload, back }) {
         <Row first={!msg} Icon={Download} color={A.vip} title="Importar backup" sub="Clientes, boletos, inventario, configuración" onClick={() => fileRef.current?.click()} />
       </Group>
       <Group header="Qué incluye el backup" icon={Info} form pad={false}>
-        {[["Clientes y boletos del taller", Users], ["Inventario y catálogo de productos", Package], ["Configuración del negocio", Building2], ["Compatible con el importador de Archilla OS", BadgeCheck]].map(([t, BI], i) => <p key={t} className="relative flex items-center gap-3" style={{ fontSize: 15, padding: "13px 16px" }}>{i > 0 && <span aria-hidden="true" style={{ position: "absolute", top: 0, left: 16, right: 0, height: 0.5, background: A.sep }} />}<BI className="w-[18px] h-[18px]" style={{ color: A.sub, width: 22 }} /> {t}</p>)}
+        {[["Clientes y boletos del taller", Users], ["Inventario y catálogo de productos", Package], ["Configuración del negocio", Building2], ["Compatible con el importador de Repara OS", BadgeCheck]].map(([t, BI], i) => <p key={t} className="relative flex items-center gap-3" style={{ fontSize: 15, padding: "13px 16px" }}>{i > 0 && <span aria-hidden="true" style={{ position: "absolute", top: 0, left: 16, right: 0, height: 0.5, background: A.sep }} />}<BI className="w-[18px] h-[18px]" style={{ color: A.sub, width: 22 }} /> {t}</p>)}
       </Group>
       <AlertDialog open={!!confirm} title="¿Restaurar configuración?" message="Vamos a sobrescribir la configuración actual del taller con el backup. Esta acción no se puede deshacer fácilmente — confirma que es el archivo correcto." onClose={() => setConfirm(null)} actions={[{ label: "Cancelar" }, { label: "Restaurar", destructive: true, onPress: restore }]} />
     </SubPage>

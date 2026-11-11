@@ -1039,7 +1039,7 @@ export default function PurchaseOrderDialog({
         </DialogFooter>
       </DialogContent>
 
-      {/* Scanner IA — único uso de IA en Archilla OS. */}
+      {/* Scanner IA — único uso de IA en Repara OS. */}
       <POInvoiceScannerDialog
         open={showAIScanner}
         onClose={() => setShowAIScanner(false)}

@@ -169,7 +169,7 @@ export const phoneDigits = (s) => String(s || "").replace(/\D/g, "");
 
 export function greeting(customer, shop) {
   const first = String(customer?.name || "").trim().split(/\s+/)[0] || customer?.name || "";
-  return `Hola ${first}, te escribimos de ${shop || "Archilla OS"}.`;
+  return `Hola ${first}, te escribimos de ${shop || "Repara OS"}.`;
 }
 
 export async function campaignContext(tenantId) {
@@ -205,7 +205,7 @@ const escHtml = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").re
 export async function sendCampaign({ tenant, tenantId, recipients, subject, body, onProgress, signal }) {
   let sent = 0;
   let failed = 0;
-  const fromName = String(tenant?.name || "").trim() || "Archilla OS";
+  const fromName = String(tenant?.name || "").trim() || "Repara OS";
   for (const c of recipients) {
     if (signal?.aborted) break;
     const personalized = body.replace(/\{nombre\}/gi, String(c.name || "").trim().split(/\s+/)[0] || "");

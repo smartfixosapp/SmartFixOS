@@ -87,7 +87,7 @@ export function Lede({ className = "", children, ...rest }) {
 
 export function LogoLockup({ size = 28, mono = false, className = "" }) {
   return (
-    <span className={cx("inline-flex items-center gap-2 select-none", className)} aria-label="Archilla OS">
+    <span className={cx("inline-flex items-center gap-2 select-none", className)} aria-label="Repara OS">
       <img src="/images/logo-160.webp" alt="" width={size} height={size} decoding="async" style={{ width: size, height: size, objectFit: "contain" }} />
       <span
         className="font-brico font-bold tracking-[-0.03em]"

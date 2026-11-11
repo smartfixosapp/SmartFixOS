@@ -74,7 +74,7 @@ export async function createStripeSubscriptionHandler(req) {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: `Archilla OS — ${planLabel}`,
+              name: `Repara OS — ${planLabel}`,
               description: 'Sistema de gestión para talleres de reparación electrónica',
             },
             unit_amount: Math.round(planAmount * 100),

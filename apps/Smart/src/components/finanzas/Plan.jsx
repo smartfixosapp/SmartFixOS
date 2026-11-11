@@ -65,7 +65,7 @@ export async function buildPayrollReceiptPDF(r, tenant) {
   doc.roundedRect(L, y, W - L * 2, 54, 10, 10, "F");
   text("TOTAL PAGADO", L + 16, y + 20, { size: 12, bold: true, color: [85, 85, 85] });
   text(`$${r.total.toFixed(2)}`, W - L - 16, y + 14, { size: 24, bold: true, align: "right" });
-  text("Generado con Archilla OS · Este comprobante no sustituye documentos oficiales de nomina.", L, 792 - 50, { size: 9, color: [128, 128, 128] });
+  text("Generado con Repara OS · Este comprobante no sustituye documentos oficiales de nomina.", L, 792 - 50, { size: 9, color: [128, 128, 128] });
   return doc.output("blob");
 }
 

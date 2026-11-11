@@ -81,7 +81,7 @@ export function SendScheduleDialog({ open, onClose, onSent, tenant, tenantId, em
   const [sent, setSent] = useState(null);
   const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
-  const shop = String(tenant?.name || "").trim() || "Archilla OS";
+  const shop = String(tenant?.name || "").trim() || "Repara OS";
   useEffect(() => { if (sent) onSent?.(); }, [sent]);
   useEffect(() => {
     if (!open || !employee) return;

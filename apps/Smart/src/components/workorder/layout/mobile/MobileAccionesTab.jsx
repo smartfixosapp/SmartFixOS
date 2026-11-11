@@ -170,7 +170,7 @@ export default function MobileAccionesTab({
     const cleanPhone = (phone || "").replace(/\D/g, "");
     const name = o.customer_name || "";
     const orderNum = o.order_number || "";
-    const msg = `Hola ${name}, le contactamos de Archilla OS sobre su boleto #${orderNum}.`;
+    const msg = `Hola ${name}, le contactamos de Repara OS sobre su boleto #${orderNum}.`;
 
     switch (channel) {
       case "whatsapp":

@@ -63,7 +63,7 @@ export default function NewEmployeeDialog({ open, onClose, tenant, tenantId, onC
           {result.emailState && <p style={{ fontSize: 13, color: result.emailState === "sent" ? "#4DC780" : "#FFA640" }}>{result.emailState === "sent" ? `Email enviado a ${emp.email}` : "No se pudo enviar el email — comparte el PIN manualmente"}</p>}
           <div className="w-full text-left" style={{ fontSize: 13, color: W.sub }}>
             <p style={{ fontWeight: 700, color: "#fff", marginBottom: 4 }}>¿Cómo accede el empleado?</p>
-            <p>1. Abre Archilla OS en el dispositivo del taller</p>
+            <p>1. Abre Repara OS en el dispositivo del taller</p>
             <p>2. Toca &quot;Cambiar usuario&quot; en la pantalla de inicio o en el menú del Dashboard</p>
             <p>3. Ingresa su PIN de 4 dígitos para acceder</p>
           </div>

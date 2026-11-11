@@ -45,10 +45,10 @@ function HashHandoffNotice() {
           Casi listo
         </h2>
         <p className="mb-7 mt-2 text-[15px] leading-relaxed" style={{ color: "var(--ar-text-2)" }}>
-          Tu enlace de acceso está listo. Abre la app Archilla OS para terminar de iniciar sesión.
+          Tu enlace de acceso está listo. Abre la app Repara OS para terminar de iniciar sesión.
         </p>
         <a href={deepLink} className="ar-grad mb-3 block w-full rounded-xl py-3.5 font-semibold text-white">
-          Abrir en Archilla OS
+          Abrir en Repara OS
         </a>
         <button onClick={() => setDismissed(true)} className="block w-full py-2 text-[13px]" style={{ color: "var(--ar-text-3)" }}>
           Cerrar

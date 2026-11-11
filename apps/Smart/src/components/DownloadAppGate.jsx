@@ -14,7 +14,7 @@ import { ArrowLeft, Smartphone } from "lucide-react";
  * Props:
  *   - title      — h1 text (e.g. "Suscríbete desde la app")
  *   - body       — paragraph below the title explaining why
- *   - planLabel  — optional pill at the top ("Archilla OS · desde $20/mes")
+ *   - planLabel  — optional pill at the top ("Repara OS · desde $20/mes")
  */
 export default function DownloadAppGate({ title, body, planLabel }) {
   return (

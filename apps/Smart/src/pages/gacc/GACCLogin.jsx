@@ -96,7 +96,7 @@ export default function GACCLogin() {
             <Shield className="h-6 w-6 text-cyan-400" />
           </div>
           <h1 className="text-white font-semibold text-lg">Panel SuperAdmin</h1>
-          <p className="text-gray-500 text-sm">Archilla OS · GACC</p>
+          <p className="text-gray-500 text-sm">Repara OS · GACC</p>
         </div>
 
         {step === "email" && (

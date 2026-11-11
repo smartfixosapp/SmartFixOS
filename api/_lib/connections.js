@@ -277,7 +277,7 @@ export async function createPlaidLink(tenantId, webhookBase) {
   if (!conn.plaid?.secret_enc) return { status: 409, body: { ok: false, error: 'Primero guarda el Client ID y el Secret de Plaid' } };
   try {
     const out = await plaid(conn, '/link/token/create', {
-      client_name: 'Archilla OS',
+      client_name: 'Repara OS',
       language: 'es',
       country_codes: ['US'],
       user: { client_user_id: tenantId },

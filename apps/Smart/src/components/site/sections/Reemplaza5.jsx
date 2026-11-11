@@ -121,7 +121,7 @@ export function Reemplaza5() {
             <img src="/images/logo-160.webp" alt="" style={{ width: 40, height: 40, objectFit: "contain" }} />
             <div className="flex flex-col">
               <span className="font-brico text-[17px] font-bold tracking-[-0.03em]" style={{ color: "var(--ar-text)" }}>
-                Archilla OS
+                Repara OS
               </span>
               <span className="text-[13px]" style={{ color: "var(--ar-text-2)" }}>
                 Todo en uno, conectado.

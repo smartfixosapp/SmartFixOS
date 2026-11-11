@@ -303,7 +303,7 @@ export default async function handler(req, res) {
       <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png" alt="SmartFixOS" style="height:44px;" />
     </div>
     <h2 style="color:#111;margin:0 0 8px;">Restablecer contraseña</h2>
-    <p style="color:#555;margin:0 0 28px;font-size:15px;">Haz clic en el botón de abajo para crear una nueva contraseña para tu cuenta Archilla OS.</p>
+    <p style="color:#555;margin:0 0 28px;font-size:15px;">Haz clic en el botón de abajo para crear una nueva contraseña para tu cuenta Repara OS.</p>
     <div style="text-align:center;margin:32px 0;">
       <a href="${recoveryLink}" style="background:linear-gradient(135deg,#0891b2,#0e7490);color:#fff;padding:16px 36px;border-radius:10px;text-decoration:none;font-weight:700;font-size:16px;display:inline-block;">
         🔑 Restablecer contraseña
@@ -315,9 +315,9 @@ export default async function handler(req, res) {
 
       await sendResendEmail({
         to: email,
-        subject: 'Restablece tu contraseña de Archilla OS',
+        subject: 'Restablece tu contraseña de Repara OS',
         html: emailHtml,
-        fromName: 'Archilla OS',
+        fromName: 'Repara OS',
         fromEmail: FROM_EMAIL,
       });
 

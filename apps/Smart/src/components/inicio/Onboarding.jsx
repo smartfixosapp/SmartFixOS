@@ -124,7 +124,7 @@ export function WelcomeOnboarding({ open, tenant, onAction }) {
     <div className="apple-type fixed inset-0 flex items-center justify-center" style={{ zIndex: 380, background: "#000", color: "#fff", padding: 16 }} role="dialog" aria-modal="true">
       <div className="w-full flex flex-col items-center" style={{ maxWidth: 440, gap: 14 }}>
         <Hand className="w-12 h-12" style={{ color: FP.brand }} />
-        <p style={{ fontSize: 26, fontWeight: 800, textAlign: "center" }}>¡Bienvenido a Archilla OS!</p>
+        <p style={{ fontSize: 26, fontWeight: 800, textAlign: "center" }}>¡Bienvenido a Repara OS!</p>
         <p style={{ fontSize: 15, color: "#8E8E93", textAlign: "center" }}>Empecemos rápido. ¿Qué quieres hacer primero?</p>
         <div className="w-full flex flex-col" style={{ gap: 10, marginTop: 8 }}>
           {tenant?.business_mode !== "retail" && card(Wrench, FP.info, "Crear mi primer boleto", "Recibe un equipo para reparar", "newOrder")}

@@ -101,6 +101,6 @@ export async function buildPurchaseOrderPDF({ po, supplier, tenant }) {
     y += 13 + doc.splitTextToSize(pdfSafe(notes), W - 80).length * 12;
   }
   if (po.tracking_number) { y += 10; text(`Tracking: ${po.tracking_number}`, L, y, { size: 10, color: GRAY }); }
-  text("Generado por Archilla OS", W / 2, H - 30, { size: 8, color: [170, 170, 170], align: "center" });
+  text("Generado por Repara OS", W / 2, H - 30, { size: 8, color: [170, 170, 170], align: "center" });
   return doc.output("blob");
 }

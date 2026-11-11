@@ -263,7 +263,7 @@ async function build(kind, { order, tenant, publicView = false }) {
   doc.setPage(pages);
   if (quote) text("Confirma para iniciar el trabajo", W / 2, H - 60, { size: 11, style: "bold", color: BRAND, align: "center" });
   else text("Gracias por su preferencia", W / 2, H - 60, { size: 11, style: "bold", align: "center" });
-  text(`Generado por Archilla OS · ${stampNow()}`, W / 2, H - 30, { size: 8, color: [170, 170, 170], align: "center" });
+  text(`Generado por Repara OS · ${stampNow()}`, W / 2, H - 30, { size: 8, color: [170, 170, 170], align: "center" });
   doc.setProperties({ title: `${quote ? "Cotización" : "Recibo"} ${order.order_number || ""}` });
   return doc.output("blob");
 }

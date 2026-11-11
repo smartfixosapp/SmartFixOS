@@ -292,7 +292,7 @@ button:focus-visible {
      * Los valores están en RGB triples para poder usar <alpha-value>.
      * ────────────────────────────────────────────────────────────────── */
 
-    /* Accent + system colors (iOS light) — Archilla OS naranja #FF5722 */
+    /* Accent + system colors (iOS light) — Repara OS naranja #FF5722 */
     --apple-blue:    255 87 34;     /* #FF5722 (marca Archilla) */
     --apple-green:   52 199 89;     /* #34C759 */
     --apple-indigo:  88 86 214;     /* #5856D6 */
@@ -368,7 +368,7 @@ button:focus-visible {
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 14 100% 57%;
 
-    /* 🍎 Apple — Dark mode (iOS dark) — Archilla OS naranja #FF5722 */
+    /* 🍎 Apple — Dark mode (iOS dark) — Repara OS naranja #FF5722 */
     --apple-blue:    255 87 34;     /* #FF5722 (marca Archilla) */
     --apple-green:   48 209 88;     /* #30D158 */
     --apple-indigo:  94 92 230;     /* #5E5CE6 */

@@ -76,7 +76,7 @@ export default function PublicReceipt() {
   }, []);
 
   useEffect(() => {
-    if (order) document.title = `Recibo ${order.order_number || ""} - ${tenant?.name || "Archilla OS"}`;
+    if (order) document.title = `Recibo ${order.order_number || ""} - ${tenant?.name || "Repara OS"}`;
   }, [order, tenant]);
 
   const money = useMemo(() => moneyFor(tenant), [tenant]);
@@ -246,7 +246,7 @@ export default function PublicReceipt() {
         )}
 
         <p style={{ textAlign: "center", fontSize: 15, fontWeight: 700, marginTop: 30 }}>Gracias por su preferencia</p>
-        <p style={{ textAlign: "center", fontSize: 11, color: "#aaaaaa", marginTop: 6 }}>Generado por Archilla OS</p>
+        <p style={{ textAlign: "center", fontSize: 11, color: "#aaaaaa", marginTop: 6 }}>Generado por Repara OS</p>
       </article>
     </>,
   );

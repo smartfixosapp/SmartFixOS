@@ -310,7 +310,7 @@ export function ivuPayload(report, tenant, monthLabel) {
     country, taxLabel, portal, fields, monthLabel,
     totalSales: report.grossTotalSales, totalTaxCollected: report.ivuCollected, totalTaxPaidOnExpenses: report.ivuPaidOnExpenses, totalTaxDue: report.ivuDue,
     instructions: instructionsFor(country, portal, taxLabel),
-    disclaimer: "Este documento es un resumen interno generado por Archilla OS. No reemplaza la declaración oficial. El dueño o contador debe radicar los valores en el portal correspondiente del país.",
+    disclaimer: "Este documento es un resumen interno generado por Repara OS. No reemplaza la declaración oficial. El dueño o contador debe radicar los valores en el portal correspondiente del país.",
   };
 }
 
@@ -356,7 +356,7 @@ export async function buildReportPDF({ tenant, monthLabel, transactions, payload
   };
   const footer = () => {
     const when = new Intl.DateTimeFormat("es-PR", { dateStyle: "medium", timeStyle: "short" }).format(new Date());
-    text(`Generado por Archilla OS · ${when}`, W / 2, H - 30, { size: 8, color: [170, 170, 170], align: "center" });
+    text(`Generado por Repara OS · ${when}`, W / 2, H - 30, { size: 8, color: [170, 170, 170], align: "center" });
   };
   const header = () => {
     let y = 40;

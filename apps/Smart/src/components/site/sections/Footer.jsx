@@ -97,7 +97,7 @@ export function Footer() {
             style={{ borderColor: "var(--ar-border)" }}
           >
             <span className="font-mono text-[12px]" style={{ color: "var(--ar-text-3)" }}>
-              © 2026 Archilla OS · 911 Smart Fix · San Juan, PR
+              © 2026 Repara OS · 911 Smart Fix · San Juan, PR
             </span>
             <span
               className="font-mono text-[12px]"

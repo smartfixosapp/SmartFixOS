@@ -125,7 +125,7 @@ export const PLANS = Object.freeze({
   },
   solo: {
     slug: "solo",
-    name: "Archilla OS (anterior)",
+    name: "Repara OS (anterior)",
     tagline: "Plan anterior, ya no se ofrece a clientes nuevos.",
     price: PLAN_AMOUNTS_USD.solo,
     priceId: STRIPE_PRICES.solo,

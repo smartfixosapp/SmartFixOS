@@ -17,7 +17,7 @@ const STEPS = [
     copy: "Pantalla rota. Le haces el ticket en 30 segundos, le tiras fotos y el cliente ya recibió un email: «recibimos tu equipo».",
     modulos: ["Boletos"],
     shot: s12,
-    alt: "Detalle de un boleto en Archilla OS",
+    alt: "Detalle de un boleto en Repara OS",
   },
   {
     hora: "9:35 AM",
@@ -25,7 +25,7 @@ const STEPS = [
     copy: "Lo abres, confirmas la falla. Subes la evidencia. El presupuesto le llega al cliente para que apruebe desde su teléfono.",
     modulos: ["Boletos", "Portal cliente"],
     shot: s13,
-    alt: "Notificar al cliente desde Archilla OS",
+    alt: "Notificar al cliente desde Repara OS",
   },
   {
     hora: "11:00 AM",
@@ -33,7 +33,7 @@ const STEPS = [
     copy: "Pieza descontada del inventario sola. El técnico asignado, el reloj corriendo, la promesa de entrega clara.",
     modulos: ["Reparación", "Inventario"],
     shot: s06,
-    alt: "Lista de boletos en Archilla OS",
+    alt: "Lista de boletos en Repara OS",
   },
   {
     hora: "2:15 PM",
@@ -41,7 +41,7 @@ const STEPS = [
     copy: "Cambias el estado a «Listo» y el cliente recibe el aviso automático. Tú sigues con la próxima, sin llamar a nadie.",
     modulos: ["Notificaciones"],
     shot: s03,
-    alt: "Pantalla de inicio de Archilla OS",
+    alt: "Pantalla de inicio de Repara OS",
   },
   {
     hora: "4:40 PM",
@@ -49,7 +49,7 @@ const STEPS = [
     copy: "Carrito, IVU 11.5% calculado solo, cobras, das garantía. La caja se mueve en el mismo segundo.",
     modulos: ["POS", "Caja"],
     shot: s07,
-    alt: "Catálogo del punto de venta en Archilla OS",
+    alt: "Catálogo del punto de venta en Repara OS",
   },
   {
     hora: "7:00 PM",
@@ -57,7 +57,7 @@ const STEPS = [
     copy: "Cuadras la caja al peso. Ves cuánto entró, cuánto salió y cuánto te quedó de verdad — restando las piezas.",
     modulos: ["Finanzas", "Cierre"],
     shot: s04,
-    alt: "Dashboard de finanzas en Archilla OS",
+    alt: "Dashboard de finanzas en Repara OS",
   },
 ];
 

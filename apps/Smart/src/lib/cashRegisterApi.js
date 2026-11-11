@@ -522,7 +522,7 @@ export async function buildClosingPDF({ tenant, register, closedBy, closedAt, op
     doc.setTextColor(0, 0, 0);
     doc.text(doc.splitTextToSize(observations, W - L * 2), L, y + 14, { baseline: "top" });
   }
-  const footer = `Generado por Archilla OS · ${new Intl.DateTimeFormat("es-ES", { dateStyle: "medium", timeStyle: "short" }).format(new Date())}`;
+  const footer = `Generado por Repara OS · ${new Intl.DateTimeFormat("es-ES", { dateStyle: "medium", timeStyle: "short" }).format(new Date())}`;
   text(footer, L, 792 - 30, { size: 8.5, color: gray });
   return doc.output("blob");
 }
@@ -580,7 +580,7 @@ export async function sendClosingEmail({ tenant, register, closedBy, closedAt, o
 </table>
 ${pdfBlock}
 ${obsBlock}
-<p style="margin:24px 0 0;font-size:12px;color:#9CA3AF">Cerrada por ${esc(closedBy)} · Generado automáticamente por Archilla OS</p>
+<p style="margin:24px 0 0;font-size:12px;color:#9CA3AF">Cerrada por ${esc(closedBy)} · Generado automáticamente por Repara OS</p>
 </div></body></html>`;
   try {
     await sendRawEmail({ tenantId: register.tenant_id, to: recipient, subject: `Cierre de caja - ${tenantName} - ${dateLabel}`, html, replyTo: recipient, fromName: tenantName });

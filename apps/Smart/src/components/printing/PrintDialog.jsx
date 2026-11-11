@@ -73,7 +73,7 @@ export default function PrintDialog({ open, onClose, type, data, customer }) {
 
                 <div style="text-align: center; padding: 20px; background: #F9FAFB; border-radius: 8px;">
                   <p style="margin: 0; color: #6B7280; font-size: 12px;">
-                    Archilla OS - Gracias por confiar en nosotros
+                    Repara OS - Gracias por confiar en nosotros
                   </p>
                 </div>
               </div>
@@ -83,9 +83,9 @@ export default function PrintDialog({ open, onClose, type, data, customer }) {
         `;
 
         await base44.integrations.Core.SendEmail({
-          from_name: "Archilla OS",
+          from_name: "Repara OS",
           to: emailToUse,
-          subject: `🔧 Boleto #${data.order_number} - Archilla OS`,
+          subject: `🔧 Boleto #${data.order_number} - Repara OS`,
           body: emailBody
         });
 
@@ -167,7 +167,7 @@ export default function PrintDialog({ open, onClose, type, data, customer }) {
 
               <div style="background: #F9FAFB; padding: 20px; text-align: center;">
                 <p style="margin: 0; color: #6B7280; font-size: 11px;">
-                  Archilla OS • Gracias por su compra
+                  Repara OS • Gracias por su compra
                 </p>
               </div>
             </div>
@@ -176,9 +176,9 @@ export default function PrintDialog({ open, onClose, type, data, customer }) {
         `;
 
         await base44.integrations.Core.SendEmail({
-          from_name: "Archilla OS",
+          from_name: "Repara OS",
           to: emailToUse,
-          subject: `🧾 Recibo #${data.sale_number} - Archilla OS`,
+          subject: `🧾 Recibo #${data.sale_number} - Repara OS`,
           body: emailBody
         });
 
@@ -220,7 +220,7 @@ ${data.device_serial ? `🔢 *Serie:* ${data.device_serial}` : ''}
 ${data.initial_problem ? `⚠️ *Problema:*\n${data.initial_problem}` : ''}
 
 ━━━━━━━━━━━━━━━━━━━━
-🔧 Archilla OS
+🔧 Repara OS
       `.trim();
     } else {
       const itemsList = (data.items || []).map(item => 
@@ -245,7 +245,7 @@ ${itemsList}
 ✅ *TOTAL:* $${(data.total || 0).toFixed(2)}
 
 ━━━━━━━━━━━━━━━━━━━━
-🔧 Archilla OS
+🔧 Repara OS
 Gracias por su compra
       `.trim();
     }

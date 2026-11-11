@@ -152,7 +152,7 @@ export default function InicioHeader({ employee, tenant, tz, wide, tenantId }) {
       )}
       {hasInternalChat(tenant) && <ChatButton tenantId={tenantId} employee={employee} />}
       <AvatarMenu employeeName={name} logoUrl={tenant?.logo_url} onMiTurno={() => setMiTurno(true)} onSwitchUser={switchUser} onLock={closeSession} />
-      <AlertDialog open={pinNeeded} title="Primero crea tu PIN de dueño" message="Crea tu PIN de dueño en la app Archilla OS (Ajustes, Seguridad) para poder cambiar de usuario." onClose={() => setPinNeeded(false)} actions={[{ label: "Entendido", bold: true }]} />
+      <AlertDialog open={pinNeeded} title="Primero crea tu PIN de dueño" message="Crea tu PIN de dueño en la app Repara OS (Ajustes, Seguridad) para poder cambiar de usuario." onClose={() => setPinNeeded(false)} actions={[{ label: "Entendido", bold: true }]} />
       <AlertDialog open={signOutNeeded} title="¿Cerrar la sesión?" message="Sin un PIN de dueño no se puede bloquear la app, así que se cerrará la sesión por completo. Crea tu PIN en Ajustes, Seguridad para poder bloquear en el futuro." onClose={() => setSignOutNeeded(false)} actions={[{ label: "Cerrar sesión", destructive: true, onPress: signOut }, { label: "Cancelar", bold: true }]} />
       <MiTurnoDialog open={miTurno} onClose={() => setMiTurno(false)} tenantId={tenantId} employee={employee} tz={tz} />
     </div>

@@ -260,7 +260,7 @@ export default function EmailTemplatesTab() {
 
       setBrandingRecordId(brandingRecord?.id || null);
       setBusinessInfo({
-        business_name: config.business_name || "Archilla OS",
+        business_name: config.business_name || "Repara OS",
         phone: config.business_phone || "",
         whatsapp: config.business_whatsapp || "",
         address: config.business_address || "",

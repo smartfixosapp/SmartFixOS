@@ -64,7 +64,7 @@ export default function DeleteOrderDialog({ open, onClose, order, onSuccess, use
       if (order.customer_email) {
         try {
           await base44.integrations.Core.SendEmail({
-            from_name: "Archilla OS",
+            from_name: "Repara OS",
             to: order.customer_email,
             subject: `Boleto ${order.order_number} - Cancelado`,
             body: `

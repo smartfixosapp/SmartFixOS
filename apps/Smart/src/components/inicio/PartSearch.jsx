@@ -92,7 +92,7 @@ export function PartSearchBar({ tenantId, tenant, onQuote }) {
     return { results: r.results.slice(0, 20), partial: r.partial };
   }, [debounced, products]);
 
-  const shop = String(tenant?.name || "").trim() || "Archilla OS";
+  const shop = String(tenant?.name || "").trim() || "Repara OS";
   const flash = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2000); };
   const copy = async (p) => {
     try { await navigator.clipboard.writeText(`${p.name}: ${money(effectivePrice(p))}`); flash("Precio copiado"); } catch { flash("No se pudo copiar"); }

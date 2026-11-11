@@ -23,7 +23,7 @@ const PUNTOS = [
 ];
 
 const DESCRIPCION =
-  "Demostración de la multitienda de Archilla OS: elegir una tienda, ver los boletos de todas juntas y mover un boleto de una tienda a otra.";
+  "Demostración de la multitienda de Repara OS: elegir una tienda, ver los boletos de todas juntas y mover un boleto de una tienda a otra.";
 
 export function Multitienda() {
   const reduce = useReducedMotion();
