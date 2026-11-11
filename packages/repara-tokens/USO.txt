@@ -1,0 +1,88 @@
+REPARA TOKENS - USO
+
+Que es
+  Una sola fuente de verdad de diseno (colores, tipografia, espaciado, radios,
+  elevacion, movimiento, tamanos de toque y los 16 estatus del boleto) para
+  iPhone, iPad, Android y web. Se edita solo tokens.json. Nadie edita a mano los
+  archivos generados.
+
+Requisitos
+  Node 20 o mas (probado con Node 22). Sin dependencias. No toca pnpm ni el CI.
+
+Comandos (desde packages/repara-tokens)
+  node build.mjs
+      Valida tokens.json y escribe dist/ReparaTokens.swift, dist/ReparaTokens.kt,
+      dist/repara-tokens.css y dist/tailwind-preset.cjs.
+
+  node build.mjs --out-ios RUTA --out-android RUTA --out-web RUTA
+      Ademas de dist/, copia cada archivo a la carpeta absoluta de cada repo.
+      Se puede pasar solo uno o dos destinos.
+
+  node build.mjs --check [--out-ios RUTA ...]
+      No escribe nada. Sale con codigo 1 si dist/ o algun destino quedo atras
+      de tokens.json. Correrlo a mano antes de cada ola.
+
+  node --test test/*.test.mjs
+      Pruebas: esquema, 16 estatus completos, contraste 4.5:1, determinismo.
+
+Como cambiar un valor
+  1. Editar tokens.json.
+  2. Subir "version" (AAAA.N.N) si cambia algo que ven las apps.
+  3. node build.mjs, luego las pruebas.
+  4. Copiar a cada repo con --out-*, y que cada repo haga su propio commit.
+
+iOS y iPad (repo SmartFixOS IOS)
+  Destino: SmartFixOS IOS/SmartFixOS IOS/DesignSystem/ReparaTokens.swift
+  El proyecto usa carpetas sincronizadas de Xcode, el archivo entra solo al target.
+  Uso:
+    ReparaTokens.Palette.brand                 Color claro/oscuro automatico
+    ReparaTokens.Spacing.l, .Radius.card, .Touch.ios
+    ReparaTokens.Typography.title.font         Font (Schibsted Grotesk en display)
+    ReparaTokens.Motion.standard.animation     Animation con la curva del token
+    ReparaTokens.Statuses.status(for: "in_progress")
+    ReparaTokens.version
+  SemanticColors.swift y DesignTokens.swift deben pasar a leer de ReparaTokens
+  sin cambiar sus nombres publicos (success, warning, danger, info, vip).
+  El inicializador Color(reparaLight:_:dark:_:) es propio y no choca con
+  Color(light:dark:) que ya existe en SemanticColors.swift.
+
+Android (repo ArchillaChatAndroid)
+  Destino: app/src/main/java/com/archillastudios/archillachat/ui/theme/ReparaTokens.kt
+  Paquete: com.archillastudios.archillachat.ui.theme
+  Uso:
+    ReparaTokens.Palette.brand.resolve(isDark)     Color de Compose
+    ReparaTokens.Spacing.l, .Radius.card, .Touch.android   (Dp)
+    ReparaTokens.Typography.title                  tamano, linea, peso, tracking
+    ReparaTokens.Motion.standard.easing            CubicBezierEasing
+    ReparaTokens.Statuses.byKey("in_progress")
+    ReparaTokens.VERSION
+  Theme.kt, ui/design/Tokens.kt y core/orders/OrderStatus.kt deben leer de aqui.
+  Agregar una prueba JUnit que compare las 16 claves de OrderStatus con
+  ReparaTokens.Statuses.all.
+
+Web (repo SmartFixOS, apps/Smart)
+  Destinos: apps/Smart/src/styles/repara-tokens.css
+            apps/Smart/tailwind.repara.cjs  (sale de tailwind-preset.cjs)
+  1. En index.css: @import "./styles/repara-tokens.css";
+  2. En tailwind.config.js: presets: [require('./tailwind.repara.cjs')]
+  3. Clases: bg-repara-surface1, text-repara-text2, text-repara-brandText,
+     bg-repara-status-in-progress, rounded-repara-card, p-repara-l,
+     shadow-repara-e2, duration-repara-standard, text-repara-title,
+     min-h-touch-web.
+  4. Modo oscuro: automatico con prefers-color-scheme, o forzado con
+     <html data-theme="dark"> y <html data-theme="light">.
+  5. Pastilla de estatus: <span class="repara-pill" data-status="in_progress">.
+  6. La fuente Schibsted Grotesk se carga aparte (Google Fonts o archivo propio);
+     los tokens solo la nombran en --repara-font-display.
+
+Reglas de diseno que quedan en los tokens
+  Radios: 8, 12, 16, 22 y capsula. Toque minimo: 44 iOS y web, 48 Android.
+  Texto de la pastilla de estatus: el color se mezcla 62 % hacia negro (claro)
+  o blanco (oscuro); fondo 16 %, borde 28 %.
+  Estatus: la clave de la base de datos no cambia nunca; la etiqueta corta
+  (es, en) va en pastillas y la larga (esLong, enLong) en detalle y correos.
+  Grupos: main (flujo principal), special (casos especiales), closed (cerrados).
+  email=true manda correo al cliente al entrar al estatus; emailPhotos solo
+  en delivered. to son los destinos directos permitidos; transitions.via dice
+  por que flujo se llega a scheduled, delivered, cancelled, not_repairable,
+  abandoned y warranty; reopen indica que se sale con Reabrir.
