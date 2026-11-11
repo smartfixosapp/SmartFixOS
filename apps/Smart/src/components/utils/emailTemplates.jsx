@@ -80,14 +80,14 @@ export function createWelcomeEmail({
   ` : '';
 
   return {
-    subject: `✅ Orden Recibida - ${orderNumber} | ${businessInfo.business_name || 'Archilla OS'}`,
+    subject: `✅ Boleto Recibido - ${orderNumber} | ${businessInfo.business_name || 'Archilla OS'}`,
     body: `
       <!DOCTYPE html>
       <html lang="es">
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Orden Recibida - ${orderNumber}</title>
+        <title>Boleto Recibido - ${orderNumber}</title>
       </head>
       <body style="margin: 0; padding: 20px; background: #F3F4F6;">
         <div style="${EMAIL_STYLES.container}">
@@ -98,7 +98,7 @@ export function createWelcomeEmail({
               alt="${businessInfo.business_name || 'Archilla OS'}"
               style="height: 120px; width: auto; margin: 0 auto; display: block; filter: drop-shadow(0 4px 20px rgba(0,0,0,0.2));"
             />
-            <h1 style="${EMAIL_STYLES.headerTitle}">¡Orden Recibida!</h1>
+            <h1 style="${EMAIL_STYLES.headerTitle}">¡Boleto Recibido!</h1>
             <p style="${EMAIL_STYLES.headerSubtitle}">Tu equipo está en buenas manos</p>
           </div>
 
@@ -111,17 +111,17 @@ export function createWelcomeEmail({
             <!-- Alert de confirmación -->
             <div style="${EMAIL_STYLES.alert} background: #F0FDF4; border-left-color: #10B981;">
               <p style="margin: 0; color: #065F46; font-size: 22px; font-weight: 800;">
-                ✅ Orden confirmada
+                ✅ Boleto confirmado
               </p>
               <p style="margin: 12px 0 0 0; color: #064E3B; font-size: 16px; line-height: 1.6;">
                 Hemos recibido tu <strong>${deviceInfo || "equipo"}</strong> y ya estamos trabajando en ello.
               </p>
             </div>
 
-            <!-- Información de la orden -->
+            <!-- Información del boleto -->
             <div style="${EMAIL_STYLES.infoBox}">
               <div style="margin-bottom: 24px;">
-                <p style="${EMAIL_STYLES.infoLabel}">Número de Orden</p>
+                <p style="${EMAIL_STYLES.infoLabel}">Número de Boleto</p>
                 <p style="${EMAIL_STYLES.infoValue}">${orderNumber}</p>
               </div>
               
@@ -160,7 +160,7 @@ export function createWelcomeEmail({
 
             <p style="${EMAIL_STYLES.text}">
               <strong style="color: #111827;">Te mantendremos informado</strong> en cada paso del proceso. 
-              Recibirás actualizaciones automáticas por email cuando haya cambios en el estado de tu orden.
+              Recibirás actualizaciones automáticas por email cuando haya cambios en el estado de tu boleto.
             </p>
 
             ${businessInfo.phone || businessInfo.whatsapp ? `
@@ -295,7 +295,7 @@ export function createStatusChangeEmail({
       alertBorder: '#059669',
       alertTitle: '#047857',
       alertText: '#065F46',
-      title: '¡Orden Completada!',
+      title: '¡Boleto Completado!',
       message: 'Gracias por confiar en nosotros. Esperamos que disfrutes tu equipo como nuevo.',
       emoji: '🙏',
       showReview: true,
@@ -331,8 +331,8 @@ export function createStatusChangeEmail({
       alertBorder: '#DC2626',
       alertTitle: '#991B1B',
       alertText: '#7F1D1D',
-      title: 'Orden Cancelada',
-      message: 'Tu orden ha sido cancelada. Si tienes preguntas, no dudes en contactarnos.',
+      title: 'Boleto Cancelado',
+      message: 'Tu boleto ha sido cancelado. Si tienes preguntas, no dudes en contactarnos.',
       emoji: '📞'
     }
   };
@@ -344,7 +344,7 @@ export function createStatusChangeEmail({
     alertTitle: '#374151',
     alertText: '#1F2937',
     title: 'Actualización de Estado',
-    message: 'El estado de tu orden ha cambiado.',
+    message: 'El estado de tu boleto ha cambiado.',
     emoji: '📱'
   };
 
@@ -444,7 +444,7 @@ export function createStatusChangeEmail({
               style="height: 120px; width: auto; margin: 0 auto; display: block; filter: drop-shadow(0 4px 20px rgba(0,0,0,0.2));"
             />
             <h1 style="${EMAIL_STYLES.headerTitle}">${statusInfo.emoji} ${statusInfo.title}</h1>
-            <p style="${EMAIL_STYLES.headerSubtitle}">Actualización de tu orden</p>
+            <p style="${EMAIL_STYLES.headerSubtitle}">Actualización de tu boleto</p>
           </div>
 
           <!-- Cuerpo profesional -->
@@ -463,11 +463,11 @@ export function createStatusChangeEmail({
               </p>
             </div>
 
-            <!-- Info de la orden -->
+            <!-- Info del boleto -->
             <div style="${EMAIL_STYLES.infoBox}">
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 20px;">
                 <div>
-                  <p style="${EMAIL_STYLES.infoLabel}">Orden</p>
+                  <p style="${EMAIL_STYLES.infoLabel}">Boleto</p>
                   <p style="${EMAIL_STYLES.infoValue}">${orderNumber}</p>
                 </div>
                 <div>

@@ -7,7 +7,7 @@ import { useBusinessMode } from "@/lib/businessMode";
 const BRAND = "#F2662E";
 
 const ITEMS = [
-  { id: "orders", icon: Wrench, label: "Órdenes", path: "/Orders" },
+  { id: "orders", icon: Wrench, label: "Boletos", path: "/Orders" },
   { id: "pos", icon: ShoppingCart, label: "POS", path: "/POS" },
   { id: "home", icon: Home, label: "Inicio", path: "/Dashboard" },
   { id: "customers", icon: Users, label: "Clientes", path: "/Customers" },
@@ -19,6 +19,7 @@ const SETTINGS_PATH = "/Settings";
 const lastRoutes = {};
 
 function activeIdFor(pathname, retail) {
+  pathname = pathname.replace(/^\/Boletos/, "/Orders");
   if (pathname === "/" || pathname.startsWith("/Dashboard")) return "home";
   if (pathname.startsWith("/Inventory")) return retail ? "inventory" : "settings";
   if (pathname.startsWith("/Settings")) return "settings";

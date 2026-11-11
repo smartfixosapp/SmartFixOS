@@ -176,7 +176,7 @@ export default function OrderDetail() {
       commitOrder(o);
       return o;
     } catch {
-      toast("Se guardó el cambio, pero no pudimos refrescar la orden. Recarga para actualizar.", "error");
+      toast("Se guardó el cambio, pero no pudimos refrescar el boleto. Recarga para actualizar.", "error");
       return null;
     }
   }, [orderId, tenantId, navigate, toast, commitOrder]);
@@ -402,7 +402,7 @@ export default function OrderDetail() {
         if (skipNote) await addInternalNote(o.id, skipNote, by).catch(() => {});
         skipNoteRef.current = null;
         setSheet(null);
-        toast("Orden entregada");
+        toast("Boleto entregado");
         if (askReview) setTimeout(() => setSheet({ name: "review" }), 400);
         reload();
       },
@@ -422,7 +422,7 @@ export default function OrderDetail() {
       try {
         plan = await buildCancelPlan({ orderId: o.id, orderNumber: o.order_number, tenantId: o.tenant_id });
       } catch {
-        toast("No se pudieron revisar las piezas de la orden. Intenta de nuevo.", "error");
+        toast("No se pudieron revisar las piezas del boleto. Intenta de nuevo.", "error");
         return;
       } finally {
         busyRef.current = false;
@@ -431,11 +431,11 @@ export default function OrderDetail() {
       if (plan.alreadyCancelled) {
         if (plan.hasPendingWork) { setSheet({ name: "cancelParts", plan }); return; }
         if (orderRef.current?.not_repairable_resolved_at) {
-          if (await attempt("No se pudo reabrir la orden", () => patchOrder(orderRef.current.id, { not_repairable_resolved_at: null }))) toast("Orden reabierta");
+          if (await attempt("No se pudo reabrir el boleto", () => patchOrder(orderRef.current.id, { not_repairable_resolved_at: null }))) toast("Boleto reabierto");
           await reload();
           return;
         }
-        toast("La orden ya está cancelada y no quedan piezas pendientes.");
+        toast("El boleto ya está cancelado y no quedan piezas pendientes.");
         return;
       }
       if (plan.isEmpty) { await changeStatus("cancelled"); return; }
@@ -464,7 +464,7 @@ export default function OrderDetail() {
     }
     setSheet(null);
     await reload();
-    if (failures.length) toast(`La orden se canceló, pero falta arreglar esto a mano:\n${failures.join("\n")}`, "error");
+    if (failures.length) toast(`El boleto se canceló, pero falta arreglar esto a mano:\n${failures.join("\n")}`, "error");
     else toast(doneMessage(plan));
   }, [changeStatus, reload, by, toast]);
 
@@ -479,7 +479,7 @@ export default function OrderDetail() {
     if (key === "notify_abandoned") return setSheet({ name: "notify", variant: "abandoned" });
     if (key === "charge") return requireRegister(openQuickPay);
     if (key === "resolve_nr") {
-      if (await attempt("No se pudo marcar como resuelta", () => setNotRepairableResolved(o.id))) toast("Orden marcada como resuelta");
+      if (await attempt("No se pudo marcar como resuelta", () => setNotRepairableResolved(o.id))) toast("Boleto marcado como resuelto");
       return reload();
     }
     if (key === "claimed") {
@@ -500,7 +500,7 @@ export default function OrderDetail() {
   const contact = useCallback(async (channel, text, kind) => {
     const o = orderRef.current;
     const phone = phoneDigits(o.customer_phone);
-    const msg = text ?? `Hola ${o.customer_name || ""}, te escribimos del taller sobre tu orden ${o.order_number}.`;
+    const msg = text ?? `Hola ${o.customer_name || ""}, te escribimos del taller sobre tu boleto ${o.order_number}.`;
     if (channel === "call") window.location.href = `tel:${phone}`;
     if (channel === "sms") window.location.href = `sms:${phone}?&body=${encodeURIComponent(msg)}`;
     if (channel === "whatsapp") window.open(`https://wa.me/${phone.replace(/\+/g, "")}?text=${encodeURIComponent(msg)}`, "_blank", "noopener");
@@ -514,7 +514,7 @@ export default function OrderDetail() {
     const label = statusInfo(o.status).label;
     const device = displayDevice(o) || "equipo";
     const first = firstName(o.customer_name);
-    let text = `Hola ${o.customer_name || ""}, tu orden ${o.order_number} está en estado: ${label}.`;
+    let text = `Hola ${o.customer_name || ""}, tu boleto ${o.order_number} está en estado: ${label}.`;
     if (variant === "ready") {
       const bal = remainingBalance(o);
       text = `Hola ${first}, tu ${device} ya está listo para recoger.${bal > 0.009 ? ` Balance a pagar al recoger: $${bal.toFixed(2)}.` : " Ya está pago en su totalidad."} ¡Gracias por tu confianza!`;
@@ -530,7 +530,7 @@ export default function OrderDetail() {
     }
     if (channel === "mailto") {
       setSheet(null);
-      window.location.href = `mailto:${o.customer_email}?subject=${encodeURIComponent(`Tu orden ${o.order_number}`)}&body=${encodeURIComponent(`Hola ${o.customer_name || ""},\n\nActualización de tu orden ${o.order_number}: ${label}.`)}`;
+      window.location.href = `mailto:${o.customer_email}?subject=${encodeURIComponent(`Tu boleto ${o.order_number}`)}&body=${encodeURIComponent(`Hola ${o.customer_name || ""},\n\nActualización de tu boleto ${o.order_number}: ${label}.`)}`;
       await logActivity(o.id, "email", by).catch(() => {});
       return reload();
     }
@@ -563,9 +563,9 @@ export default function OrderDetail() {
       return requireRegister(async () => {
         const cur = orderRef.current;
         if (!cur.paid && orderTotal(cur) === 0) {
-          if (await attempt("No se pudo cerrar la orden", () => markPaidNoCharge(cur))) {
-            toast("Orden marcada como pagada");
-            setBanner({ text: "Orden cerrada sin cobro", type: "success" });
+          if (await attempt("No se pudo cerrar el boleto", () => markPaidNoCharge(cur))) {
+            toast("Boleto marcado como pagado");
+            setBanner({ text: "Boleto cerrado sin cobro", type: "success" });
           }
           reload();
           return;
@@ -621,7 +621,7 @@ export default function OrderDetail() {
     const res = await recordOrderPayment({ order: o, amount, method, customLabel, by });
     const fresh = await reload();
     const settled = fresh && orderTotal(fresh) > 0 && remainingBalance(fresh) <= 0.004;
-    if (settled) setBanner({ text: `Orden cobrada por ${label}`, type: "success", action: "receipt" });
+    if (settled) setBanner({ text: `Boleto cobrado por ${label}`, type: "success", action: "receipt" });
     else { setBanner({ text: `Pago registrado por ${label}`, type: "success", action: "receipt" }); toast(`Cobro de ${money(amount)} registrado`); }
     if (fresh && String(fresh.customer_email || "").trim() && tenant) {
       sendPaymentReceipt({ order: fresh, tenant, amount: res.applied, method, isFull: res.isPaidNow, transactionId: res.transactionId })
@@ -686,7 +686,7 @@ export default function OrderDetail() {
   const skipPhoto = useCallback(async (mode) => {
     const o = orderRef.current;
     const who = by || "Usuario sin nombre";
-    const text = `${who} marco la orden como ${mode === "repairEvidence" ? "Listo para Recoger" : "Entregado"} sin tomar la foto que pide el sistema.`;
+    const text = `${who} marco el boleto como ${mode === "repairEvidence" ? "Listo para Recoger" : "Entregado"} sin tomar la foto que pide el sistema.`;
     setSheet(null);
     if (mode === "repairEvidence") {
       await addInternalNote(o.id, text, who).catch(() => {});
@@ -780,7 +780,7 @@ export default function OrderDetail() {
       onUndo={undo}
       onSmsFallback={() => {
         const phone = phoneDigits(order.customer_phone);
-        window.location.href = `sms:${phone}?&body=${encodeURIComponent(`Hola ${order.customer_name || "Cliente"}, tu orden ${order.order_number} cambió a: ${statusInfo(order.status).label}.`)}`;
+        window.location.href = `sms:${phone}?&body=${encodeURIComponent(`Hola ${order.customer_name || "Cliente"}, tu boleto ${order.order_number} cambió a: ${statusInfo(order.status).label}.`)}`;
         setNotice(null);
       }}
       onDismissNotice={() => setNotice(null)}
@@ -891,13 +891,13 @@ export default function OrderDetail() {
         <button onClick={() => navigate("/Orders")} aria-label="Volver" className="apple-press" style={{ width: 40, height: 40, borderRadius: 999, background: C.card, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <ChevronLeft className="w-5 h-5" />
         </button>
-        <p className="truncate" style={{ fontSize: 20, fontWeight: 800 }}>Orden {order.order_number}</p>
+        <p className="truncate" style={{ fontSize: 20, fontWeight: 800 }}>Boleto {order.order_number}</p>
       </div>
       <div className="flex items-center gap-1" style={{ padding: 4, borderRadius: 999, background: C.card }}>
-        <button onClick={() => setSheet({ name: "chat" })} aria-label="Chat de la orden" className="apple-press" style={{ width: 38, height: 38, borderRadius: 999, color: C.brand, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <button onClick={() => setSheet({ name: "chat" })} aria-label="Chat del boleto" className="apple-press" style={{ width: 38, height: 38, borderRadius: 999, color: C.brand, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <MessageSquare className="w-5 h-5" />
         </button>
-        <button onClick={() => setSheet({ name: "edit" })} disabled={saving} aria-label="Editar orden" className="apple-press disabled:opacity-50" style={{ width: 38, height: 38, borderRadius: 999, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <button onClick={() => setSheet({ name: "edit" })} disabled={saving} aria-label="Editar boleto" className="apple-press disabled:opacity-50" style={{ width: 38, height: 38, borderRadius: 999, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <Pencil className="w-4 h-4" />
         </button>
         <button onClick={() => setSheet({ name: "menu" })} aria-label="Más opciones" className="apple-press" style={{ width: 38, height: 38, borderRadius: 999, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -1031,7 +1031,7 @@ export default function OrderDetail() {
         onClose={() => setSheet(null)}
         icon={Trash2}
         iconColor={C.red}
-        title="¿Eliminar todas las fotos de esta orden?"
+        title="¿Eliminar todas las fotos de este boleto?"
         message="No se puede deshacer."
         confirmLabel="Eliminar todas"
         confirmColor={C.red}
@@ -1047,7 +1047,7 @@ export default function OrderDetail() {
         onSave={async (sec, serial) => {
           if (await attempt("No se pudo guardar la seguridad", () => patchOrder(order.id, { device_security: sec, device_serial: serial }))) {
             setSheet(null);
-            toast("Orden actualizada");
+            toast("Boleto actualizado");
           }
           reload();
         }}
@@ -1115,7 +1115,7 @@ export default function OrderDetail() {
             await patchOrder(order.id, fields);
             if (before !== after) await logActivity(order.id, "note", by, before ? `Dispositivo corregido: ${before} → ${after}` : `Dispositivo actualizado: ${after}`);
             setSheet(null);
-            toast("Orden actualizada");
+            toast("Boleto actualizado");
             reload();
           } catch (e) {
             toast(`No se pudo guardar: ${e?.message || e}`, "error");
@@ -1163,7 +1163,7 @@ export default function OrderDetail() {
         onClose={() => setSheet(null)}
         onWarranty={() => setSheet({ name: "warrantyReopen" })}
         onContinue={async (reason) => {
-          const ok = await attempt("No se pudo reabrir la orden", async () => {
+          const ok = await attempt("No se pudo reabrir el boleto", async () => {
             const cur = (await fetchOrder(order.id, tenantId)) || order;
             await patchOrder(order.id, { reopen_count: (parseInt(cur.reopen_count, 10) || 0) + 1, last_reopen_reason: reason, last_reopen_at: new Date().toISOString() }, { touchUpdated: false });
           });
@@ -1218,7 +1218,7 @@ export default function OrderDetail() {
               await sendRawEmail({
                 tenantId: fresh.tenant_id,
                 to: fresh.customer_email,
-                subject: `Garantía · Orden ${fresh.order_number} · ${tenantEmailFromName(tenant)}`,
+                subject: `Garantía · Boleto ${fresh.order_number} · ${tenantEmailFromName(tenant)}`,
                 html,
                 replyTo: tenant.email,
                 fromName: tenantEmailFromName(tenant),
@@ -1241,7 +1241,7 @@ export default function OrderDetail() {
           </button>
         )}
         <button onClick={() => setSheet({ name: "delete" })} className="apple-press w-full flex items-center gap-3 text-left" style={{ padding: "13px 14px", borderRadius: 12, background: C.card2, color: C.red, fontSize: 15, fontWeight: 600 }}>
-          <Trash2 className="w-5 h-5" /> Borrar orden
+          <Trash2 className="w-5 h-5" /> Borrar boleto
         </button>
       </Sheet>
       <ConfirmSheet
@@ -1249,8 +1249,8 @@ export default function OrderDetail() {
         onClose={() => setSheet(null)}
         icon={Trash2}
         iconColor={C.red}
-        title="¿Borrar orden?"
-        message="Esta acción marca la orden como eliminada. La web también dejará de mostrarla. Solo el admin master puede recuperarla."
+        title="¿Borrar boleto?"
+        message="Esta acción marca el boleto como eliminado. La web también dejará de mostrarlo. Solo el admin master puede recuperarlo."
         confirmLabel="Borrar permanentemente"
         confirmColor={C.red}
         onConfirm={async () => {
@@ -1309,7 +1309,7 @@ export default function OrderDetail() {
           const fresh = await reload();
           setDepositKey((k) => k + 1);
           const rem = fresh ? remainingBalance(fresh) : 0;
-          toast(fresh && orderTotal(fresh) > 0 && rem <= 0.004 ? "Orden saldada" : "Depósito recibido");
+          toast(fresh && orderTotal(fresh) > 0 && rem <= 0.004 ? "Boleto saldado" : "Depósito recibido");
         }}
         onEdit={async ({ txId, amount }) => { await editDeposit({ order: orderRef.current, txId, amount }); await reload(); setDepositKey((k) => k + 1); }}
         onDelete={async ({ txId }) => { await deleteDeposit({ order: orderRef.current, txId }); await reload(); setDepositKey((k) => k + 1); }}

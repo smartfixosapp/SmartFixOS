@@ -230,8 +230,8 @@ export default function Orders() {
       if (blockers.length) {
         const names = blockers.slice(0, 5).map((o) => o.order_number).filter(Boolean).join(", ");
         queueMessage = blockers.length === 1
-          ? `Tienes 1 orden anterior en Recepción (${names}) — recuerda trabajar en orden si es posible.`
-          : `Tienes ${blockers.length} órdenes anteriores en Recepción (${names}) — recuerda trabajar en orden si es posible.`;
+          ? `Tienes 1 boleto anterior en Recepción (${names}) — recuerda trabajar en orden si es posible.`
+          : `Tienes ${blockers.length} boletos anteriores en Recepción (${names}) — recuerda trabajar en orden si es posible.`;
       }
     }
     navigate(`/Orders/${order.id}`, { state: queueMessage ? { queueMessage } : undefined });
@@ -338,7 +338,7 @@ export default function Orders() {
     if (tenant && isMailableStatus(newStatus) && String(target.customer_email || "").trim()) {
       sendStatusEmail({ order: { ...target, status: newStatus }, tenant, status: newStatus }).catch(() => {});
     }
-    toast.success(`${live.order_number || "Orden"} · ${statusInfo(newStatus).label}`);
+    toast.success(`${live.order_number || "Boleto"} · ${statusInfo(newStatus).label}`);
     setNoteFor({ id: orderId, status: newStatus });
   }, [employeeName, tenant]);
 
@@ -361,14 +361,14 @@ export default function Orders() {
     <div className="apple-type min-h-dvh" style={{ background: "#000", color: "#fff" }}>
       <div className="app-container pt-6 pb-3">
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <h1 className="apple-text-title1 font-bold" style={{ color: "#fff", flex: 1 }}>Órdenes</h1>
+          <h1 className="apple-text-title1 font-bold" style={{ color: "#fff", flex: 1 }}>Boletos</h1>
           {b2b && tenant && (
             <button onClick={() => setInvoiceOpen(true)} aria-label="Factura B2B" title="Factura B2B" className="apple-press" style={iconBtn}>
               <Building2 className="w-4 h-4" />
             </button>
           )}
-          <button onClick={requestNewOrder} aria-label="Nueva orden" className="apple-press" style={{ display: "flex", alignItems: "center", gap: 6, height: 40, padding: "0 16px", borderRadius: 999, background: "#F2662E", color: "#fff", fontSize: 14, fontWeight: 700 }}>
-            <Plus className="w-4 h-4" strokeWidth={3} /> Nueva orden
+          <button onClick={requestNewOrder} aria-label="Nuevo boleto" className="apple-press" style={{ display: "flex", alignItems: "center", gap: 6, height: 40, padding: "0 16px", borderRadius: 999, background: "#F2662E", color: "#fff", fontSize: 14, fontWeight: 700 }}>
+            <Plus className="w-4 h-4" strokeWidth={3} /> Nuevo boleto
           </button>
         </div>
       </div>
@@ -382,7 +382,7 @@ export default function Orders() {
             value={search}
             onChange={(e) => { const v = e.target.value; if (!openScanned(v)) setSearch(v); }}
             onKeyDown={(e) => { if (e.key === "Enter" && openExact(search)) e.preventDefault(); }}
-            placeholder="Buscar por orden, cliente, teléfono o equipo"
+            placeholder="Buscar por boleto, cliente, teléfono o equipo"
             className="apple-type w-full h-11"
             style={{ borderRadius: 999, paddingLeft: 40, paddingRight: 16, background: "rgba(255,255,255,0.06)", color: "#fff", border: "none", outline: "none", fontSize: 14 }}
           />
@@ -423,7 +423,7 @@ export default function Orders() {
             <OrdersBucketRow bucket={bucket} counts={bucketCounts} total={openTotal} onSelect={setBucket} />
             {filteredOrders.length === 0 ? (
               <div className="text-center py-16 apple-text-subheadline" style={{ color: "rgba(255,255,255,0.4)" }}>
-                {search.trim() ? "Ninguna orden coincide con la búsqueda" : orders.length === 0 ? "Aún no hay órdenes. Crea la primera." : "No hay órdenes aquí"}
+                {search.trim() ? "Ningún boleto coincide con la búsqueda" : orders.length === 0 ? "Aún no hay boletos. Crea la primera." : "No hay boletos aquí"}
               </div>
             ) : (
               <OrdersKanban orders={filteredOrders} onCardClick={openOrder} companyById={companyById} onQuickStatus={quickStatus} flat={!!search.trim()} />
@@ -447,10 +447,10 @@ export default function Orders() {
                 );
               })}
             </div>
-            {openTotal === 0 && <p className="text-center" style={{ color: "#8E8E93", fontSize: 14 }}>{orders.length === 0 ? "Aún no hay órdenes. Crea la primera." : "No hay órdenes pendientes."}</p>}
+            {openTotal === 0 && <p className="text-center" style={{ color: "#8E8E93", fontSize: 14 }}>{orders.length === 0 ? "Aún no hay boletos. Crea la primera." : "No hay boletos pendientes."}</p>}
             <button onClick={() => setBucket("all")} className="apple-press flex items-center gap-3 text-left" style={{ padding: 16, borderRadius: 16, background: "#1C1C1E" }}>
               <List className="w-5 h-5" />
-              <span className="flex-1" style={{ fontSize: 16, fontWeight: 600 }}>Todas las órdenes</span>
+              <span className="flex-1" style={{ fontSize: 16, fontWeight: 600 }}>Todos los boletos</span>
               <span style={{ color: "#8E8E93", fontVariantNumeric: "tabular-nums" }}>{openTotal}</span>
               <ChevronRight className="w-4 h-4" style={{ color: "rgba(235,235,245,0.3)" }} />
             </button>
@@ -489,7 +489,7 @@ export default function Orders() {
             )}
             {filteredOrders.length === 0 ? (
               <div className="text-center py-16" style={{ color: "rgba(255,255,255,0.4)", display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
-                <span className="apple-text-subheadline">{search.trim() ? "Ninguna orden coincide con la búsqueda" : "No hay órdenes aquí"}</span>
+                <span className="apple-text-subheadline">{search.trim() ? "Ningún boleto coincide con la búsqueda" : "No hay boletos aquí"}</span>
                 <button onClick={goHome} className="apple-press" style={{ height: 40, padding: "0 18px", borderRadius: 999, background: "rgba(255,255,255,0.08)", color: "#fff", fontSize: 14, fontWeight: 600 }}>Volver a categorías</button>
               </div>
             ) : (
@@ -524,7 +524,7 @@ export default function Orders() {
         }}
       />
       <QueueWarningSheet open={!!queueWarn} olderNumber={queueWarn?.older?.order_number} onClose={() => setQueueWarn(null)} onContinue={() => { const q = queueWarn; setQueueWarn(null); if (q) applyQuickStatus(q.orderId, q.status); }} />
-      <AlertDialog open={limitAlert} title="Límite del plan alcanzado" message="Alcanzaste el límite de 50 órdenes este mes. Actualiza a Plan Pro para crear órdenes sin límite." onClose={() => setLimitAlert(false)} actions={[{ label: "Entendido", bold: true }]} />
+      <AlertDialog open={limitAlert} title="Límite del plan alcanzado" message="Alcanzaste el límite de 50 boletos este mes. Actualiza a Plan Pro para crear boletos sin límite." onClose={() => setLimitAlert(false)} actions={[{ label: "Entendido", bold: true }]} />
       <OrderCreatedToast order={created} onView={() => { const id = created?.id; setCreated(null); if (id) navigate(`/Orders/${id}`); }} />
     </div>
   );

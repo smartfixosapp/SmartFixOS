@@ -129,7 +129,7 @@ function NewCustomerDialog({ open, tenantId, onClose, onSaved }) {
         <Sep />
         <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email (opcional)" inputMode="email" autoComplete="email" autoCapitalize="none" style={field} />
       </Group>
-      <Group header="Idioma" footer="El recibo por correo y los correos de sus órdenes saldrán en este idioma.">
+      <Group header="Idioma" footer="El recibo por correo y los correos de sus boletos saldrán en este idioma.">
         <div className="grid grid-cols-2" style={{ padding: 3, gap: 3 }}>
           {[["es", "Español"], ["en", "English"]].map(([k, l]) => (
             <button key={k} onClick={() => setLang(k)} style={{ padding: "7px 0", borderRadius: 8, fontSize: 14, fontWeight: 600, background: lang === k ? "#636366" : "transparent" }}>{l}</button>

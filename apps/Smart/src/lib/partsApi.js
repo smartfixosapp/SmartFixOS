@@ -80,7 +80,7 @@ export async function persistAll({ order, tenantId, lines, labor, taxOn, taxPct,
 
 export async function addItems({ order, tenantId, pending, by }) {
   const { data: fresh, error } = await supabase.from("order").select("order_items,tax_rate,labor_cost,amount_paid").eq("id", order.id).maybeSingle();
-  if (error || !fresh) throw error || new Error("No se encontró la orden");
+  if (error || !fresh) throw error || new Error("No se encontró el boleto");
   const before = Array.isArray(fresh.order_items) ? fresh.order_items : [];
   let items = [...before];
   let manualCost = 0;

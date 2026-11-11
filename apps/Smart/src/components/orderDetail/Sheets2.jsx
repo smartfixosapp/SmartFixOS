@@ -219,7 +219,7 @@ export function EditOrderSheet({ open, onClose, order, technicians, onSave }) {
   }, [open]);
   const set = (k) => (e) => setF((p) => ({ ...p, [k]: e.target.value }));
   return (
-    <Sheet open={open} onClose={onClose} title="Editar Orden" width={560}
+    <Sheet open={open} onClose={onClose} title="Editar Boleto" width={560}
       footer={<div className="flex gap-2"><Btn onClick={onClose} variant="secondary" style={{ flex: 1 }}>Cancelar</Btn><Btn onClick={async () => { setBusy(true); try { await onSave(f); } finally { setBusy(false); } }} disabled={busy} style={{ flex: 1 }}>Guardar</Btn></div>}>
       <span style={labelStyle}>Cliente</span>
       <input value={f.customer_name || ""} onChange={set("customer_name")} placeholder="Nombre del cliente" style={inputStyle} />
@@ -392,7 +392,7 @@ export function ReopenSheet({ open, onClose, onContinue, onWarranty }) {
   useEffect(() => { if (open) { setReason(""); setDetail(""); } }, [open]);
   const text = [reason, detail.trim()].filter(Boolean).join(" — ");
   return (
-    <Sheet open={open} onClose={onClose} title="Reabrir orden" width={480}
+    <Sheet open={open} onClose={onClose} title="Reabrir boleto" width={480}
       footer={<div className="flex gap-2"><Btn onClick={onClose} variant="secondary" style={{ flex: 1 }}>Cancelar</Btn><Btn onClick={async () => { setBusy(true); try { await onContinue(text); } finally { setBusy(false); } }} disabled={busy || !text} style={{ flex: 1 }}>Continuar</Btn></div>}>
       <button type="button" onClick={onWarranty} className="apple-press w-full flex items-center gap-3 text-left" style={{ padding: 14, borderRadius: 14, background: tint(C.amber, 0.12) }}>
         <ShieldCheck className="w-6 h-6" style={{ color: C.amber }} />
@@ -412,7 +412,7 @@ export function ReopenSheet({ open, onClose, onContinue, onWarranty }) {
         ))}
       </div>
       <Field label="Detalle (opcional)"><textarea value={detail} onChange={(e) => setDetail(e.target.value)} rows={2} style={{ ...inputStyle, resize: "vertical" }} /></Field>
-      <p style={{ fontSize: 12, color: C.sub, marginTop: 8 }}>Queda registrado en la orden — útil para ver retrabajos por técnico.</p>
+      <p style={{ fontSize: 12, color: C.sub, marginTop: 8 }}>Queda registrado en el boleto — útil para ver retrabajos por técnico.</p>
     </Sheet>
   );
 }

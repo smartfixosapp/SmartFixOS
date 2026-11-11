@@ -163,7 +163,7 @@ export async function sendTemplatedEmailWithBase44(base44, { event_type, order_d
         <span style="color:${valueColor};font-size:${valueFontSize};font-weight:${valueFontWeight};">${row.value}</span>
       </div>`;
     }).join('');
-    const headerTitle = isPaid ? '✅ Tu orden está saldada' : '💰 Monto a Pagar al Recoger';
+    const headerTitle = isPaid ? '✅ Tu boleto está saldado' : '💰 Monto a Pagar al Recoger';
     const headerColor = isPaid ? '#065F46' : '#92400E';
     const bgGradient = isPaid
       ? 'linear-gradient(135deg,#F0FDF4 0%,#ECFDF5 100%)'
@@ -191,7 +191,7 @@ export async function sendTemplatedEmailWithBase44(base44, { event_type, order_d
     };
     const rows = [
       ...(isSale && variables.sale_number ? [{ label: 'Número de venta', value: variables.sale_number, bold: true }] : []),
-      ...(!isRefund && variables.amount    ? [{ label: isSale ? 'Total de la venta' : 'Total de la orden', value: `$${variables.amount}` }] : []),
+      ...(!isRefund && variables.amount    ? [{ label: isSale ? 'Total de la venta' : 'Total del boleto', value: `$${variables.amount}` }] : []),
       ...(variables.total_paid             ? [{ label: isRefund ? 'Monto reembolsado' : isDeposit ? 'Depósito recibido' : 'Monto pagado', value: `$${variables.total_paid}`, highlight: true }] : []),
       ...(!isRefund && !isSale && variables.balance !== undefined && variables.balance !== ''
         ? [{ label: 'Balance pendiente', value: parseFloat(variables.balance) === 0 ? '✅ Saldado' : `$${variables.balance}`, balanceColor: parseFloat(variables.balance) === 0 ? '#059669' : '#DC2626' }]
@@ -364,7 +364,7 @@ export async function sendTemplatedEmailWithBase44(base44, { event_type, order_d
             <p style="margin: 12px 0 0 0; color: ${alertColor.text}; font-size: 16px; line-height: 1.6;">${interpolate(template.alert_message, variables)}</p>
           </div>
           <div style="background: #F9FAFB; border-radius: 16px; padding: 28px; margin: 30px 0; border: 2px solid #E5E7EB;">
-            ${variables.order_number ? `<div style="margin-bottom: 24px;"><p style="color: #6B7280; font-size: 12px; font-weight: 700; margin: 0 0 6px 0;">ORDEN</p><p style="color: #111827; font-size: 24px; font-weight: 800; margin: 0;">${variables.order_number}</p></div>` : ""}
+            ${variables.order_number ? `<div style="margin-bottom: 24px;"><p style="color: #6B7280; font-size: 12px; font-weight: 700; margin: 0 0 6px 0;">BOLETO</p><p style="color: #111827; font-size: 24px; font-weight: 800; margin: 0;">${variables.order_number}</p></div>` : ""}
             ${variables.device_info ? `<div><p style="color: #6B7280; font-size: 12px; font-weight: 700; margin: 0 0 6px 0;">EQUIPO</p><p style="color: #111827; font-size: 18px; font-weight: 600; margin: 0;">${variables.device_info}</p></div>` : ""}
           </div>
           ${pickupAmountHTML}
@@ -384,7 +384,7 @@ export async function sendTemplatedEmailWithBase44(base44, { event_type, order_d
     </html>
   `;
 
-  const subjectBase = interpolate(template.header_title || template.name || "Actualización de tu orden", variables);
+  const subjectBase = interpolate(template.header_title || template.name || "Actualización de tu boleto", variables);
   const subject = variables.order_number ? `${subjectBase} - ${variables.order_number}` : subjectBase;
 
   const recipients = [];

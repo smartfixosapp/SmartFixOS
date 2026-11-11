@@ -129,9 +129,9 @@ function deleteMessage(level, counts) {
   if (counts.brands) parts.push(plural(counts.brands, "marca", "marcas"));
   if (counts.families) parts.push(plural(counts.families, "línea", "líneas"));
   if (counts.models) parts.push(plural(counts.models, "modelo", "modelos"));
-  if (level === 3) return "Se quita este modelo del catálogo. Las órdenes que ya existen mantienen el nombre.";
+  if (level === 3) return "Se quita este modelo del catálogo. Los boletos que ya existen mantienen el nombre.";
   if (!parts.length) return "No tiene nada adentro.";
-  return `Se borran también ${parts.join(", ")}. Las órdenes que ya existen mantienen el nombre.`;
+  return `Se borran también ${parts.join(", ")}. Los boletos que ya existen mantienen el nombre.`;
 }
 
 function useWide() {

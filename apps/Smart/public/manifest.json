@@ -68,9 +68,9 @@
   ],
   "shortcuts": [
     {
-      "name": "Nueva Orden",
-      "short_name": "Orden",
-      "description": "Crear una nueva orden de reparación",
+      "name": "Nuevo Boleto",
+      "short_name": "Boleto",
+      "description": "Crear un nuevo boleto de reparación",
       "url": "/Orders?new=1",
       "icons": [
         {

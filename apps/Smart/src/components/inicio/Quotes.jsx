@@ -109,7 +109,7 @@ export function QuoteDetailDialog({ quote, onClose, shopName, onChanged, onDelet
           <div className="flex" style={{ gap: 10 }}>
             <button disabled={busy} onClick={resend} className="apple-press flex-1 flex items-center justify-center gap-2" style={{ height: 50, borderRadius: 14, background: "#3A3A3C", color: "#fff", fontSize: 15, fontWeight: 600 }}><MessageSquare className="w-4 h-4" /> Reenviar</button>
             <button disabled={busy} onClick={async () => { if (quoteStatus(q) !== "accepted") { try { await updateQuoteStatus(q.id, "accepted"); onChanged?.({ ...q, status: "accepted" }); } catch (e) { setError(`No se pudo cambiar el estado: ${e?.message || e}`); return; } } onConvert?.({ ...q, status: "accepted" }); }}
-              className="apple-press flex-1" style={{ height: 50, borderRadius: 14, background: FP.brand, color: "#fff", fontSize: 15, fontWeight: 700 }}>Convertir en orden</button>
+              className="apple-press flex-1" style={{ height: 50, borderRadius: 14, background: FP.brand, color: "#fff", fontSize: 15, fontWeight: 700 }}>Convertir en boleto</button>
           </div>
         </div>
       </Dialog>

@@ -81,7 +81,7 @@ export default function B2BSettingsPanel({ customer, onUpdate }) {
                   Acceso al Portal B2B
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
-                  Permite al cliente ver sus órdenes y facturas
+                  Permite al cliente ver sus boletos y facturas
                 </p>
               </div>
               <Badge className={

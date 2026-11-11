@@ -353,7 +353,7 @@ export default function PODetailPanel({ po, tenant, tenantId, employeeName, onUp
               </div>
               {po.status !== "cancelled" && (
                 <button onClick={() => setWoPick({ lineId: l.id, allowClear: !!l.linked_work_order_id })} className="apple-press flex items-center gap-1" style={{ marginTop: 8, padding: "5px 11px", borderRadius: 999, background: l.linked_work_order_id ? tint(INFO, 0.16) : "#3A3A3C", color: l.linked_work_order_id ? INFO : W.sub, fontSize: 12, fontWeight: 700 }}>
-                  <Wrench className="w-3 h-3" /> {l.linked_work_order_id ? `Vinculada a ${l.linked_work_order_number || ""}` : "Vincular a orden de trabajo"}
+                  <Wrench className="w-3 h-3" /> {l.linked_work_order_id ? `Vinculada a ${l.linked_work_order_number || ""}` : "Vincular a boleto de trabajo"}
                 </button>
               )}
             </Box>

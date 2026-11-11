@@ -184,21 +184,21 @@ function OrdersByStatusChart({ orders = [] }) {
 
   if (data.length === 0) {
     return (
-      <ChartCard title="🔧 Órdenes por estado" subtitle="Distribución de OTs">
+      <ChartCard title="🔧 Boletos por estado" subtitle="Distribución de OTs">
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "rgb(var(--label-tertiary))", fontSize: "13px" }}>
-          Sin órdenes registradas
+          Sin boletos registrados
         </div>
       </ChartCard>
     );
   }
 
   return (
-    <ChartCard title="🔧 Órdenes por estado" subtitle="Total de OTs por etapa">
+    <ChartCard title="🔧 Boletos por estado" subtitle="Total de OTs por etapa">
       <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 50, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--separator) / 0.29)" horizontal={false} />
         <XAxis type="number" tick={{ fill: "rgb(var(--label-secondary))", fontSize: 11 }} />
         <YAxis type="category" dataKey="status" width={110} tick={{ fill: "rgb(var(--label-primary))", fontSize: 12 }} />
-        <Tooltip {...chartTooltip} formatter={(v) => [v, "Órdenes"]} />
+        <Tooltip {...chartTooltip} formatter={(v) => [v, "Boletos"]} />
         <Bar dataKey="count" radius={[0, 4, 4, 0]}>
           {data.map((d, i) => (
             <Cell key={i} fill={colorByStatus(d.key)} />

@@ -36,11 +36,11 @@ const HERO = [
 
 const GRUPOS = [
   {
-    titulo: "Órdenes",
+    titulo: "Boletos",
     shots: [
-      { src: s02, caption: "Sin órdenes aún", alt: "Pantalla de órdenes vacía en Archilla OS" },
-      { src: s06, caption: "Lista de órdenes", alt: "Lista de órdenes en Archilla OS" },
-      { src: s12, caption: "Detalle de la orden", alt: "Detalle de una orden en Archilla OS" },
+      { src: s02, caption: "Sin boletos aún", alt: "Pantalla de boletos vacía en Archilla OS" },
+      { src: s06, caption: "Lista de boletos", alt: "Lista de boletos en Archilla OS" },
+      { src: s12, caption: "Detalle del boleto", alt: "Detalle de un boleto en Archilla OS" },
       { src: s13, caption: "Avisar al cliente", alt: "Notificar al cliente desde Archilla OS" },
     ],
   },
@@ -66,7 +66,7 @@ const GRUPOS = [
       { src: s15, caption: "Sin compras aún", alt: "Pantalla de compras vacía en Archilla OS" },
       { src: s16, caption: "Elegir suplidor", alt: "Paso 1, elegir suplidor en Archilla OS" },
       { src: s17, caption: "Suplidor listo", alt: "Suplidor seleccionado en Archilla OS" },
-      { src: s18, caption: "Productos de la orden", alt: "Paso 2, productos de la orden de compra en Archilla OS" },
+      { src: s18, caption: "Productos del boleto", alt: "Paso 2, productos de la orden de compra en Archilla OS" },
       { src: s19, caption: "Añadir producto", alt: "Añadir producto a la orden de compra en Archilla OS" },
     ],
   },

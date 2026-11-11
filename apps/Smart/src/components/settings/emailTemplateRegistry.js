@@ -1,62 +1,62 @@
 export const EVENT_TYPES = {
   intake: {
-    label: "Orden: Recepción",
+    label: "Boleto: Recepción",
     icon: "📥",
     emoji: "📱",
     color: "from-emerald-500 to-green-600",
     alertColor: { bg: "#F0FDF4", border: "#10B981", title: "#065F46", text: "#064E3B" }
   },
   diagnosing: {
-    label: "Orden: Diagnóstico",
+    label: "Boleto: Diagnóstico",
     icon: "🔍",
     emoji: "🔬",
     color: "from-sky-500 to-blue-600",
     alertColor: { bg: "#EFF6FF", border: "#3B82F6", title: "#1E40AF", text: "#1E3A8A" }
   },
   awaiting_approval: {
-    label: "Orden: Esperando Aprobación",
+    label: "Boleto: Esperando Aprobación",
     icon: "⏳",
     emoji: "🤝",
     color: "from-amber-500 to-yellow-600",
     alertColor: { bg: "#FFFBEB", border: "#F59E0B", title: "#B45309", text: "#78350F" }
   },
   waiting_parts: {
-    label: "Orden: Esperando Pieza",
+    label: "Boleto: Esperando Pieza",
     icon: "📦",
     emoji: "⏰",
     color: "from-orange-500 to-red-500",
     alertColor: { bg: "#FFF7ED", border: "#F97316", title: "#C2410C", text: "#7C2D12" }
   },
   pending_order: {
-    label: "Orden: Pendiente Ordenar",
+    label: "Boleto: Pendiente Ordenar",
     icon: "🛒",
     emoji: "📋",
     color: "from-yellow-500 to-amber-600",
     alertColor: { bg: "#FEF3C7", border: "#F59E0B", title: "#92400E", text: "#78350F" }
   },
   in_progress: {
-    label: "Orden: En Reparación",
+    label: "Boleto: En Reparación",
     icon: "🔧",
     emoji: "⚡",
     color: "from-cyan-500 to-blue-600",
     alertColor: { bg: "#EFF6FF", border: "#3B82F6", title: "#1E40AF", text: "#1E3A8A" }
   },
   part_arrived_waiting_device: {
-    label: "Orden: Pieza Lista",
+    label: "Boleto: Pieza Lista",
     icon: "📬",
     emoji: "📦",
     color: "from-sky-500 to-cyan-600",
     alertColor: { bg: "#F0F9FF", border: "#0EA5E9", title: "#0369A1", text: "#075985" }
   },
   reparacion_externa: {
-    label: "Orden: Reparación Externa",
+    label: "Boleto: Reparación Externa",
     icon: "🏢",
     emoji: "🔧",
     color: "from-violet-500 to-purple-600",
     alertColor: { bg: "#F5F3FF", border: "#8B5CF6", title: "#6D28D9", text: "#5B21B6" }
   },
   ready_for_pickup: {
-    label: "Orden: Listo para Recoger",
+    label: "Boleto: Listo para Recoger",
     icon: "✅",
     emoji: "✨",
     color: "from-emerald-500 to-green-600",
@@ -77,28 +77,28 @@ export const EVENT_TYPES = {
     alertColor: { bg: "#FEF2F2", border: "#DC2626", title: "#991B1B", text: "#7F1D1D" }
   },
   picked_up: {
-    label: "Orden: Recogido",
+    label: "Boleto: Recogido",
     icon: "🤝",
     emoji: "🙏",
     color: "from-green-500 to-emerald-600",
     alertColor: { bg: "#ECFDF5", border: "#059669", title: "#047857", text: "#065F46" }
   },
   delivered: {
-    label: "Orden: Entregado",
+    label: "Boleto: Entregado",
     icon: "🚚",
     emoji: "🙏",
     color: "from-green-500 to-emerald-600",
     alertColor: { bg: "#ECFDF5", border: "#059669", title: "#047857", text: "#065F46" }
   },
   cancelled: {
-    label: "Orden: Cancelado",
+    label: "Boleto: Cancelado",
     icon: "❌",
     emoji: "📞",
     color: "from-red-500 to-rose-600",
     alertColor: { bg: "#FEF2F2", border: "#DC2626", title: "#991B1B", text: "#7F1D1D" }
   },
   warranty: {
-    label: "Orden: Garantía",
+    label: "Boleto: Garantía",
     icon: "🛡️",
     emoji: "🔧",
     color: "from-amber-500 to-yellow-600",
@@ -150,12 +150,12 @@ export const EVENT_TYPES = {
 
 export const DEFAULT_TEMPLATES = {
   intake: {
-    name: "Orden Recibida",
-    header_title: "¡Orden Recibida!",
+    name: "Boleto Recibido",
+    header_title: "¡Boleto Recibido!",
     header_subtitle: "Tu equipo está en buenas manos",
-    alert_title: "Orden confirmada",
+    alert_title: "Boleto confirmado",
     alert_message: "Hemos recibido tu equipo y ya estamos trabajando en ello.",
-    main_message: "Te mantendremos informado en cada paso del proceso. Recibirás actualizaciones automáticas por email cuando haya cambios en el estado de tu orden.",
+    main_message: "Te mantendremos informado en cada paso del proceso. Recibirás actualizaciones automáticas por email cuando haya cambios en el estado de tu boleto.",
     show_next_steps: true,
     next_steps_items: ["Diagnóstico: Evaluaremos tu equipo en detalle", "Cotización: Te contactaremos con el costo y tiempo estimado", "Reparación: Una vez aprobado, comenzamos el trabajo", "Notificación: Te avisaremos cuando esté listo"],
     show_hours: false,
@@ -186,8 +186,8 @@ export const DEFAULT_TEMPLATES = {
   },
   waiting_parts: {
     name: "Esperando Piezas",
-    header_title: "Orden de Piezas en Proceso",
-    header_subtitle: "Actualizamos el estado de tu orden",
+    header_title: "Boleto de Piezas en Proceso",
+    header_subtitle: "Actualizamos el estado de tu boleto",
     alert_title: "Estamos ordenando las piezas necesarias",
     alert_message: "Hemos identificado las piezas que necesita tu equipo. Ya las ordenamos y te notificaremos cuando lleguen para comenzar la reparación.",
     main_message: "El tiempo de espera depende del proveedor, pero te mantendremos informado del progreso."
@@ -247,7 +247,7 @@ export const DEFAULT_TEMPLATES = {
     header_title: "Recoge tu equipo lo antes posible",
     header_subtitle: "Último recordatorio de recogida",
     alert_title: "Tu equipo sigue esperando",
-    alert_message: "Tu orden continúa lista para recoger y han pasado varios días desde la notificación inicial.",
+    alert_message: "Tu boleto continúa listo para recoger y han pasado varios días desde la notificación inicial.",
     main_message: "Por favor coordina tu visita o contáctanos hoy mismo si necesitas una excepción.",
     show_hours: true,
     show_warranty: true,
@@ -257,7 +257,7 @@ export const DEFAULT_TEMPLATES = {
   picked_up: {
     name: "Equipo Recogido",
     header_title: "¡Gracias por Recoger tu Equipo!",
-    header_subtitle: "Orden completada",
+    header_subtitle: "Boleto completado",
     alert_title: "Equipo entregado exitosamente",
     alert_message: "Has recogido tu equipo. Esperamos que esté funcionando perfectamente.",
     main_message: "Recuerda que cuentas con garantía sobre la reparación realizada.",
@@ -265,8 +265,8 @@ export const DEFAULT_TEMPLATES = {
     show_review_request: true
   },
   delivered: {
-    name: "Orden Entregada",
-    header_title: "¡Orden Completada!",
+    name: "Boleto Entregado",
+    header_title: "¡Boleto Completado!",
     header_subtitle: "Tu equipo ha sido entregado",
     alert_title: "¡Entrega Exitosa!",
     alert_message: "Gracias por confiar en nosotros. Esperamos que disfrutes tu equipo como nuevo.",
@@ -278,11 +278,11 @@ export const DEFAULT_TEMPLATES = {
     show_photos: false
   },
   cancelled: {
-    name: "Orden Cancelada",
-    header_title: "Orden Cancelada",
+    name: "Boleto Cancelado",
+    header_title: "Boleto Cancelado",
     header_subtitle: "Información importante",
-    alert_title: "Tu orden ha sido cancelada",
-    alert_message: "Esta orden ha sido cancelada según tu solicitud o por las condiciones acordadas.",
+    alert_title: "Tu boleto ha sido cancelado",
+    alert_message: "Este boleto ha sido cancelado según tu solicitud o por las condiciones acordadas.",
     main_message: "Si tienes alguna pregunta sobre esta cancelación, no dudes en contactarnos.",
     show_hours: true
   },
@@ -320,7 +320,7 @@ export const DEFAULT_TEMPLATES = {
     header_subtitle: "Tu pago parcial fue registrado",
     alert_title: "Depósito aplicado — ${{total_paid}}",
     alert_message: "Recibimos tu depósito de ${{total_paid}} mediante {{payment_method}}. El desglose completo aparece abajo.",
-    main_message: "Conserva este correo como comprobante. Cuando tu orden esté lista te avisaremos para coordinar el balance restante.",
+    main_message: "Conserva este correo como comprobante. Cuando tu boleto esté listo te avisaremos para coordinar el balance restante.",
     show_phone_contact: true,
     show_whatsapp_contact: true
   },

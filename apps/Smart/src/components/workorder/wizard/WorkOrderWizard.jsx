@@ -367,7 +367,7 @@ export default function WorkOrderWizard({
       ...prev,
       suggested_items: [...(prev.suggested_items || []), newItem]
     }));
-    toast.success(`${item.name} añadido a la orden`);
+    toast.success(`${item.name} añadido al boleto`);
   };
 
   const onKeyDown = (e) => {
@@ -748,7 +748,7 @@ export default function WorkOrderWizard({
         orderNumber = await generateOrderNumber();
       } catch (err) {
         console.error("Error generando número de orden:", err);
-        throw new Error("Error generando número de orden");
+        throw new Error("Error generando número de boleto");
       }
 
       const order = await base44.entities.Order.create({
@@ -811,7 +811,7 @@ export default function WorkOrderWizard({
           });
         } catch (emailErr) {
           console.error("[Wizard] Error sending welcome email:", emailErr);
-          toast.warning("Orden creada, pero el email no pudo enviarse.");
+          toast.warning("Boleto creado, pero el email no pudo enviarse.");
         }
       }
 
@@ -838,7 +838,7 @@ export default function WorkOrderWizard({
           order_id: order.id,
           order_number: orderNumber,
           event_type: "create",
-          description: `Orden creada por ${
+          description: `Boleto creado por ${
             user?.full_name || user?.email || "Sistema"
           }. Datos y adjuntos sincronizados desde el wizard.`,
           user_id: user?.id || null,
@@ -859,7 +859,7 @@ export default function WorkOrderWizard({
       onClose?.();
     } catch (err) {
       console.error("Error creating work order:", err);
-      alert("Error al crear la orden: " + (err?.message || "desconocido"));
+      alert("Error al crear el boleto: " + (err?.message || "desconocido"));
     } finally {
       setLoading(false);
     }

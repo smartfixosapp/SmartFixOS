@@ -17,10 +17,10 @@
 export const RECOMMENDED_INDEXES = {
   // Order - Queries más comunes
   Order: [
-    { fields: ['created_date'], direction: 'descending', usage: 'Listar órdenes recientes' },
+    { fields: ['created_date'], direction: 'descending', usage: 'Listar boletos recientes' },
     { fields: ['status'], direction: 'ascending', usage: 'Filtrar por estado' },
-    { fields: ['customer_id'], direction: 'ascending', usage: 'Órdenes por cliente' },
-    { fields: ['assigned_to'], direction: 'ascending', usage: 'Órdenes por técnico' },
+    { fields: ['customer_id'], direction: 'ascending', usage: 'Boletos por cliente' },
+    { fields: ['assigned_to'], direction: 'ascending', usage: 'Boletos por técnico' },
     { fields: ['order_number'], direction: 'ascending', usage: 'Búsqueda por número (único)' },
     { 
       fields: ['status', 'created_date'], 

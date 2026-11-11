@@ -28,13 +28,13 @@ export function HistoryDialog({ open, onClose, tenantId, customer, onOpenOrder }
   return (
     <Dialog open={open} onClose={onClose} title="Historial del cliente" width={520} height="86dvh" leading={<span />} trailing={<TextAction bold onClick={onClose}>Cerrar</TextAction>}>
       {rows === null ? <p className="flex items-center justify-center gap-2" style={{ padding: 40, color: SUB }}><Loader2 className="w-4 h-4 animate-spin" /> Cargando historial…</p> : rows.length === 0 ? (
-        <div className="flex flex-col items-center text-center" style={{ padding: 40, gap: 6 }}><Inbox className="w-9 h-9" style={{ color: "rgba(235,235,245,0.3)" }} /><p style={{ fontSize: 16, fontWeight: 600 }}>Sin historial</p><p style={{ fontSize: 13, color: SUB }}>Este cliente no tiene otras órdenes registradas.</p></div>
+        <div className="flex flex-col items-center text-center" style={{ padding: 40, gap: 6 }}><Inbox className="w-9 h-9" style={{ color: "rgba(235,235,245,0.3)" }} /><p style={{ fontSize: 16, fontWeight: 600 }}>Sin historial</p><p style={{ fontSize: 13, color: SUB }}>Este cliente no tiene otros boletos registrados.</p></div>
       ) : (
         <div className="flex flex-col" style={{ gap: 14, paddingTop: 8 }}>
           <div className="flex" style={{ gap: 10 }}>
-            {[["ÓRDENES", String(rows.length), "#66B3FF"], ["TOTAL GASTADO", money(total), "#4DC780"]].map(([l, v, c]) => <div key={l} className="flex-1 flex flex-col" style={{ gap: 2, padding: 12, borderRadius: 12, background: CARD }}><span style={{ fontSize: 10, fontWeight: 700, color: SUB }}>{l}</span><span style={{ fontSize: 20, fontWeight: 800, color: c }}>{v}</span></div>)}
+            {[["BOLETOS", String(rows.length), "#66B3FF"], ["TOTAL GASTADO", money(total), "#4DC780"]].map(([l, v, c]) => <div key={l} className="flex-1 flex flex-col" style={{ gap: 2, padding: 12, borderRadius: 12, background: CARD }}><span style={{ fontSize: 10, fontWeight: 700, color: SUB }}>{l}</span><span style={{ fontSize: 20, fontWeight: 800, color: c }}>{v}</span></div>)}
           </div>
-          <p style={{ fontSize: 12, color: SUB, textTransform: "uppercase" }}>Otras órdenes</p>
+          <p style={{ fontSize: 12, color: SUB, textTransform: "uppercase" }}>Otros boletos</p>
           <div style={{ borderRadius: 12, background: CARD, overflow: "hidden" }}>{rows.map((o, i) => <div key={o.id} style={{ borderTop: i ? "0.5px solid rgba(84,84,88,0.6)" : "none" }}><OrderRow order={o} onClick={() => onOpenOrder?.(o.id)} /></div>)}</div>
         </div>
       )}
@@ -97,7 +97,7 @@ export function CustomerEditDialog({ open, onClose, tenantId, customer, onSaved 
             <p style={{ fontSize: 12, color: SUB, textTransform: "uppercase", padding: "0 4px 6px" }}>Información básica</p>
             <div className="grid" style={{ gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>{field("Nombre *", "name")}{field("Apellido", "lastName")}{field("Teléfono *", "phone", { inputMode: "tel" })}{field("Correo electrónico", "email", { type: "email" })}</div>
           </div>
-          {box(row(<div className="grid grid-cols-2" style={{ padding: 2, gap: 2, borderRadius: 9, background: "rgba(118,118,128,0.24)" }}>{[["es", "Español"], ["en", "English"]].map(([k, l]) => <button key={k} onClick={() => set({ language: k })} style={{ padding: "7px 0", borderRadius: 7, fontSize: 14, fontWeight: 600, background: input.language === k ? "#636366" : "transparent" }}>{l}</button>)}</div>), "Sus correos de la orden (listo para recoger, esperando piezas, etc.) saldrán en este idioma.")}
+          {box(row(<div className="grid grid-cols-2" style={{ padding: 2, gap: 2, borderRadius: 9, background: "rgba(118,118,128,0.24)" }}>{[["es", "Español"], ["en", "English"]].map(([k, l]) => <button key={k} onClick={() => set({ language: k })} style={{ padding: "7px 0", borderRadius: 7, fontSize: 14, fontWeight: 600, background: input.language === k ? "#636366" : "transparent" }}>{l}</button>)}</div>), "Sus correos del boleto (listo para recoger, esperando piezas, etc.) saldrán en este idioma.")}
           {box(row(<textarea value={input.notes} onChange={(e) => set({ notes: e.target.value })} placeholder="Notas opcionales" rows={3} className="w-full bg-transparent outline-none" style={{ color: "#fff", fontSize: 16, resize: "vertical" }} />))}
           {box(<>
             {row(<div className="flex items-center"><span className="flex-1" style={{ fontSize: 16 }}>Cumpleaños</span><Toggle on={input.birthdayOn} onChange={(v) => set({ birthdayOn: v, birthday: v && !input.birthday ? new Date().toISOString().slice(0, 10) : input.birthday })} label="Cumpleaños" compact /></div>)}
@@ -112,7 +112,7 @@ export function CustomerEditDialog({ open, onClose, tenantId, customer, onSaved 
           {box(<>
             {row(<div className="flex items-center gap-2"><AlertTriangle className="w-4 h-4" style={{ color: "#FF7373" }} /><span className="flex-1" style={{ fontSize: 16 }}>Cliente riesgoso (lista negra)</span><Toggle on={input.riskFlag} onChange={(v) => set({ riskFlag: v })} label="Cliente riesgoso" compact /></div>)}
             {input.riskFlag && row(<textarea value={input.riskNote} onChange={(e) => set({ riskNote: e.target.value })} placeholder="Motivo (ej. no recogió WO-29, chargeback)" rows={2} className="w-full bg-transparent outline-none" style={{ color: "#fff", fontSize: 16, resize: "vertical" }} />, true)}
-          </>, "Al abrir una orden nueva con este cliente, el sistema te avisará y sugerirá exigir prepago.")}
+          </>, "Al abrir un boleto nuevo con este cliente, el sistema te avisará y sugerirá exigir prepago.")}
           {box(<>
             {row(<div className="flex items-center"><span className="flex-1" style={{ fontSize: 16 }}>Cliente empresarial (B2B)</span><Toggle on={input.isB2b} onChange={(v) => set({ isB2b: v })} label="Cliente empresarial" compact /></div>)}
             {input.isB2b && row(<div className="flex flex-col" style={{ gap: 10 }}>{field("Nombre de empresa", "companyName")}{field("Tax ID / RUC", "taxId")}{field("Email de facturación", "billingEmail", { type: "email" })}</div>, true)}

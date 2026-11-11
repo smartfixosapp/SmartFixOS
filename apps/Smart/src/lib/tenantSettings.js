@@ -72,7 +72,7 @@ export function paymentMethodsOf(tenant) {
   };
 }
 
-export const RECIBO_DEFAULTS = { sale_subject: "Tu recibo de venta #{number}", order_subject: "Tu orden de reparación #{number}", send_email: true, send_whatsapp: true, send_print: true };
+export const RECIBO_DEFAULTS = { sale_subject: "Tu recibo de venta #{number}", order_subject: "Tu boleto de reparación #{number}", send_email: true, send_whatsapp: true, send_print: true };
 export function posReciboOf(tenant) {
   const r = settingsOf(tenant).pos_recibo;
   const o = isObj(r) ? r : {};

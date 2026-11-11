@@ -344,7 +344,7 @@ function ExecutiveDashboardImpl() {
       <div className="grid grid-cols-2 gap-3">
         {[
           {
-            label: "Órdenes activas",
+            label: "Boletos activos",
             value: data.activas, suffix: "",
             Icon: Zap,
             color:  "#5AC8FA",
@@ -438,7 +438,7 @@ function ExecutiveDashboardImpl() {
                     borderRadius: 10, fontSize: 12,
                   }}
                   cursor={{ fill: "rgba(255,255,255,0.02)" }}
-                  formatter={(v) => [v, "Órdenes"]}
+                  formatter={(v) => [v, "Boletos"]}
                 />
                 <Bar dataKey="ordenes" radius={[0, 7, 7, 0]}>
                   {data.topTechs.map((_, i) => (

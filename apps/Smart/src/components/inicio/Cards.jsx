@@ -56,11 +56,11 @@ export function ActionTile({ title, Icon, color, onClick }) {
 export function ActionTiles({ wide, onNewOrder, onQuotes }) {
   return wide ? (
     <div className="grid grid-cols-2" style={{ gap: 12 }}>
-      <ActionTile title="Nueva orden" Icon={CopyPlus} color={FP.brand} onClick={onNewOrder} />
+      <ActionTile title="Nuevo boleto" Icon={CopyPlus} color={FP.brand} onClick={onNewOrder} />
       <ActionTile title="Cotizaciones" Icon={FileSearch} color={FP.vip} onClick={onQuotes} />
     </div>
   ) : (
-    <ActionTile title="Nueva orden" Icon={CopyPlus} color={FP.info} onClick={onNewOrder} />
+    <ActionTile title="Nuevo boleto" Icon={CopyPlus} color={FP.info} onClick={onNewOrder} />
   );
 }
 
@@ -186,11 +186,11 @@ export function WelcomeCard({ onNewOrder }) {
         <span style={{ width: 48, height: 48, borderRadius: 999, background: tint(FP.brand, 0.12), color: FP.brand, display: "flex", alignItems: "center", justifyContent: "center" }}><Sparkles className="w-6 h-6" /></span>
         <span className="flex flex-col">
           <span style={{ fontSize: 15, fontWeight: 700 }}>¡Bienvenido a Archilla OS!</span>
-          <span style={{ fontSize: 12, color: "#8E8E93" }}>Empieza creando tu primera orden de trabajo.</span>
+          <span style={{ fontSize: 12, color: "#8E8E93" }}>Empieza creando tu primer boleto de trabajo.</span>
         </span>
       </div>
       <button onClick={onNewOrder} className="apple-press flex items-center justify-center gap-2" style={{ padding: "10px 0", borderRadius: 12, background: FP.brand, color: "#fff", fontSize: 15, fontWeight: 600 }}>
-        <PlusCircle className="w-4 h-4" /> Nueva orden
+        <PlusCircle className="w-4 h-4" /> Nuevo boleto
       </button>
     </div>
   );
@@ -267,7 +267,7 @@ export function OrderCreatedToast({ order, onView }) {
     <button onClick={onView} className="fixed left-1/2 flex items-center gap-3 text-left apple-press" style={{ zIndex: 250, top: 16, transform: "translateX(-50%)", maxWidth: "calc(100vw - 32px)", padding: "12px 16px", borderRadius: 16, background: "#2C2C2E", boxShadow: "0 12px 32px rgba(0,0,0,0.5)", color: "#fff" }}>
       <BadgeCheck className="w-6 h-6 flex-shrink-0" style={{ color: FP.success }} />
       <span className="min-w-0">
-        <span className="block" style={{ fontSize: 15, fontWeight: 700 }}>Orden creada</span>
+        <span className="block" style={{ fontSize: 15, fontWeight: 700 }}>Boleto creado</span>
         <span className="block truncate" style={{ fontSize: 13, color: "#8E8E93" }}>{order.order_number || ""} · {order.customer_name || ""} · <span style={{ color: FP.brand, fontWeight: 600 }}>Ver</span></span>
       </span>
     </button>

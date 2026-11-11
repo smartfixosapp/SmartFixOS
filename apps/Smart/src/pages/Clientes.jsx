@@ -130,7 +130,7 @@ function CustomerDetail({ customer, tenantId, tenant, employee, onChanged, onDel
         </div>
       )}
       <div className="flex" style={{ gap: 10 }}>
-        {[[Wrench, BRAND, "Nueva orden", onNewOrder], [ShoppingCart, "#4DC780", "Vender en POS", () => navigate(`/POS?customer=${customer.id}`)]].map(([Icon, color, label, fn]) => (
+        {[[Wrench, BRAND, "Nuevo boleto", onNewOrder], [ShoppingCart, "#4DC780", "Vender en POS", () => navigate(`/POS?customer=${customer.id}`)]].map(([Icon, color, label, fn]) => (
           <button key={label} onClick={fn} className="apple-press flex-1 flex flex-col items-center" style={{ gap: 6, padding: "14px 8px", borderRadius: 14, background: tint(color, 0.14), color }}><Icon className="w-5 h-5" /><span style={{ fontSize: 14, fontWeight: 700 }}>{label}</span></button>
         ))}
       </div>
@@ -146,7 +146,7 @@ function CustomerDetail({ customer, tenantId, tenant, employee, onChanged, onDel
       <div>
         {head("Resumen financiero")}
         {card(<div style={{ padding: 12 }}>
-          <div className="flex" style={{ gap: 8 }}>{tile(DollarSign, "GASTADO", spent > 0 ? money(spent) : "—", "#4DC780")}{tile(Wrench, "ÓRDENES", count > 0 ? String(count) : "—", BRAND)}{tile(TrendingUp, "PROMEDIO", spent > 0 && count > 0 ? money(spent / count) : "—", "#66B3FF")}</div>
+          <div className="flex" style={{ gap: 8 }}>{tile(DollarSign, "GASTADO", spent > 0 ? money(spent) : "—", "#4DC780")}{tile(Wrench, "BOLETOS", count > 0 ? String(count) : "—", BRAND)}{tile(TrendingUp, "PROMEDIO", spent > 0 && count > 0 ? money(spent / count) : "—", "#66B3FF")}</div>
           <div className="flex items-center" style={{ padding: "12px 2px 0" }}><Star className="w-4 h-4" style={{ color: "#FFA640", marginRight: 8 }} /><span className="flex-1" style={{ fontSize: 15 }}>Puntos</span><span style={{ fontSize: 15, fontWeight: 700 }}>{num(customer.loyalty_points)}</span></div>
           {tier.toLowerCase() !== "regular" && <div className="flex items-center" style={{ padding: "10px 2px 0" }}><span className="flex-1" style={{ fontSize: 15 }}>Nivel</span><span style={{ fontSize: 15, fontWeight: 700, color: "#FFC733" }}>{tier.charAt(0).toUpperCase() + tier.slice(1)}</span></div>}
           {!wide && <button onClick={() => setHistoryOpen(true)} className="w-full flex items-center" style={{ padding: "12px 2px 0", color: BRAND, fontSize: 14, fontWeight: 600 }}>Ver historial completo</button>}
@@ -154,21 +154,21 @@ function CustomerDetail({ customer, tenantId, tenant, employee, onChanged, onDel
       </div>
       {wide && (
         <div>
-          {head("Últimas órdenes")}
-          {card(orders === null ? <p className="flex justify-center" style={{ padding: 20 }}><Loader2 className="w-4 h-4 animate-spin" style={{ color: SUB }} /></p> : orders.length === 0 ? <p style={{ padding: 16, fontSize: 14, color: SUB }}>Este cliente no tiene órdenes registradas.</p> : orders.map((o, i) => <div key={o.id} style={{ borderTop: i ? "0.5px solid rgba(84,84,88,0.6)" : "none" }}><OrderRow order={o} onClick={() => onOpenOrder(o.id)} /></div>))}
+          {head("Últimos boletos")}
+          {card(orders === null ? <p className="flex justify-center" style={{ padding: 20 }}><Loader2 className="w-4 h-4 animate-spin" style={{ color: SUB }} /></p> : orders.length === 0 ? <p style={{ padding: 16, fontSize: 14, color: SUB }}>Este cliente no tiene boletos registrados.</p> : orders.map((o, i) => <div key={o.id} style={{ borderTop: i ? "0.5px solid rgba(84,84,88,0.6)" : "none" }}><OrderRow order={o} onClick={() => onOpenOrder(o.id)} /></div>))}
         </div>
       )}
       {customer.notes && <div>{head("Notas")}{card(<p style={{ padding: 14, fontSize: 14, whiteSpace: "pre-wrap" }}>{customer.notes}</p>)}</div>}
       <div className="flex flex-col" style={{ gap: 8 }}>
         <button onClick={() => setEditOpen(true)} className="apple-press flex items-center justify-center gap-2" style={{ padding: "13px 0", borderRadius: 14, background: CARD, fontSize: 15, fontWeight: 600, color: BRAND }}><Pencil className="w-4 h-4" /> Editar cliente</button>
         <button onClick={() => setConfirmDelete(true)} disabled={deleting} className="apple-press flex items-center justify-center gap-2" style={{ padding: "13px 0", borderRadius: 14, background: CARD, fontSize: 15, fontWeight: 600, color: "#FF453A" }}><Trash2 className="w-4 h-4" /> {deleting ? "Borrando…" : "Borrar cliente"}</button>
-        <p style={{ fontSize: 12, color: SUB, textAlign: "center" }}>Borrar el cliente NO borra sus órdenes pasadas — solo lo quita del directorio.</p>
+        <p style={{ fontSize: 12, color: SUB, textAlign: "center" }}>Borrar el cliente NO borra sus boletos pasados — solo lo quita del directorio.</p>
         {deleteError && <p style={{ fontSize: 12, color: "#FF453A", textAlign: "center" }}>No se pudo borrar: {deleteError}</p>}
       </div>
       <CustomerEditDialog open={editOpen} onClose={() => setEditOpen(false)} tenantId={tenantId} customer={customer} onSaved={() => onChanged?.()} />
       <HistoryDialog open={historyOpen} onClose={() => setHistoryOpen(false)} tenantId={tenantId} customer={customer} onOpenOrder={onOpenOrder} />
       <ManagerPinDialog open={pinOpen} reason="Autorizar membresía de cliente" tenantId={tenantId} onClose={() => setPinOpen(false)} onAuthorized={() => { setPinOpen(false); applyMember(true); }} />
-      <AlertDialog open={confirmDelete} title={`¿Borrar a ${name}?`} message="Esta acción no se puede deshacer. El historial de órdenes no se borra." onClose={() => setConfirmDelete(false)}
+      <AlertDialog open={confirmDelete} title={`¿Borrar a ${name}?`} message="Esta acción no se puede deshacer. El historial de boletos no se borra." onClose={() => setConfirmDelete(false)}
         actions={[{ label: "Borrar permanentemente", destructive: true, onPress: doDelete }, { label: "Cancelar", bold: true }]} />
     </div>
   );
@@ -180,7 +180,7 @@ const EMPTY = {
   b2b: ["Sin clientes B2B", "Marca un cliente como empresarial al crearlo."],
   new: ["Sin clientes nuevos este mes", null],
   risk: ["Sin clientes en riesgo", "Los clientes marcados como riesgosos (lista negra) aparecen aquí."],
-  inactive: ["Todos tus clientes han vuelto", "Clientes con al menos una orden que no visitan hace 90+ días."],
+  inactive: ["Todos tus clientes han vuelto", "Clientes con al menos un boleto que no visitan hace 90+ días."],
 };
 
 export default function Clientes() {
@@ -309,7 +309,7 @@ export default function Clientes() {
                     <span className="flex items-center gap-1.5 flex-wrap"><span className="truncate" style={{ fontSize: 16, fontWeight: 600 }}>{displayName(c)}</span>{isB2b(c) && <MiniPill label="B2B" color="#66B3FF" />}{isVip(c) && <MiniPill label="VIP" color="#FFC733" />}{isRisk(c) && <MiniPill label="RIESGO" color="#FF7373" />}</span>
                     <span className="block truncate" style={{ fontSize: 13, color: SUB }}>{c.phone || c.email || ""}</span>
                   </span>
-                  {num(c.total_orders) > 0 && <span className="flex flex-col items-end"><span style={{ fontSize: 17, fontWeight: 800 }}>{num(c.total_orders)}</span><span style={{ fontSize: 10, color: SUB }}>órdenes</span></span>}
+                  {num(c.total_orders) > 0 && <span className="flex flex-col items-end"><span style={{ fontSize: 17, fontWeight: 800 }}>{num(c.total_orders)}</span><span style={{ fontSize: 10, color: SUB }}>boletos</span></span>}
                 </button>
                 {c.phone && <a href={`tel:${phoneDigits(c.phone)}`} aria-label={`Llamar a ${displayName(c)}`} className="opacity-0 group-hover:opacity-100 focus:opacity-100" style={{ padding: 12, color: "#4DC780" }}><Phone className="w-4 h-4" /></a>}
               </div>
@@ -345,7 +345,7 @@ export default function Clientes() {
           </>
         )}
       </div>
-      <button onClick={() => navigate("/Orders", { state: { focusSearch: true } })} aria-label="Buscar orden" className="apple-press" style={iconBtn}><ScanSearch className="w-4 h-4" /></button>
+      <button onClick={() => navigate("/Orders", { state: { focusSearch: true } })} aria-label="Buscar boleto" className="apple-press" style={iconBtn}><ScanSearch className="w-4 h-4" /></button>
       <button onClick={() => setCampaign(true)} aria-label="Campaña de email" className="apple-press" style={iconBtn}><Megaphone className="w-4 h-4" /></button>
       <button onClick={() => setNewOpen(true)} aria-label="Nuevo cliente" className="apple-press" style={{ ...iconBtn, background: BRAND, color: "#fff" }}><UserPlus className="w-4 h-4" /></button>
     </div>

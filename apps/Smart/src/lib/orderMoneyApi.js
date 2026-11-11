@@ -83,7 +83,7 @@ export async function recordOrderPayment({ order, amount, method, customLabel, b
     order_number: order.order_number,
     is_settled: method !== "card",
   }).select("id").single();
-  if (error || !data?.id) throw new Error("No se pudo registrar el pago en Finanzas. La orden NO se marcó pagada; intenta de nuevo.");
+  if (error || !data?.id) throw new Error("No se pudo registrar el pago en Finanzas. El boleto NO se marcó pagado; intenta de nuevo.");
   txId = data.id;
   const newPaid = hasEstimate ? Math.min(paid + amount, total) : paid + amount;
   const newBalance = hasEstimate ? Math.max(0, total - newPaid) : 0;

@@ -225,7 +225,7 @@ function WizardInner({ onClose, onCreated, prefill, resume, tenantProp, employee
 
   const pickWarrantyOrder = (o) => { finishedRef.current = true; setWarrantyOpen(false); dismiss(); navigate(`/Orders/${o.id}?warranty=1`); };
 
-  const finalLabel = s.serviceType === "workshop" && s.deposit <= 0 ? "Crear sin depósito" : s.mode === "quick" ? "Finalizar Orden Rápida" : "Confirmar Orden";
+  const finalLabel = s.serviceType === "workshop" && s.deposit <= 0 ? "Crear sin depósito" : s.mode === "quick" ? "Finalizar Boleto Rápido" : "Confirmar Boleto";
   const nextEnabled = w.canAdvance(step) && !busy;
 
   if (!s.modeSelected) {
@@ -260,7 +260,7 @@ function WizardInner({ onClose, onCreated, prefill, resume, tenantProp, employee
   const rail = (
     <div className="flex flex-col" style={{ width: 190, background: W.card, padding: "18px 12px", gap: 14, flexShrink: 0 }}>
       <div className="flex items-start gap-2">
-        <span className="flex-1"><span className="block" style={{ fontSize: 17, fontWeight: 800 }}>Nueva orden</span><span className="flex items-center gap-1" style={{ fontSize: 12, fontWeight: 700, color: modeColor }}>{s.mode === "quick" ? <Zap className="w-3 h-3" /> : <ClipboardList className="w-3 h-3" />} {MODES[s.mode].label}</span></span>
+        <span className="flex-1"><span className="block" style={{ fontSize: 17, fontWeight: 800 }}>Nuevo boleto</span><span className="flex items-center gap-1" style={{ fontSize: 12, fontWeight: 700, color: modeColor }}>{s.mode === "quick" ? <Zap className="w-3 h-3" /> : <ClipboardList className="w-3 h-3" />} {MODES[s.mode].label}</span></span>
         <button onClick={requestClose} aria-label="Cerrar" style={{ width: 30, height: 30, borderRadius: 999, background: "#3A3A3C", display: "flex", alignItems: "center", justifyContent: "center" }}><X className="w-4 h-4" /></button>
       </div>
       {!singlePage && <p style={{ fontSize: 12, color: W.sub }}>{w.logicalStep}/{w.steps.length}</p>}
@@ -338,7 +338,7 @@ function WizardInner({ onClose, onCreated, prefill, resume, tenantProp, employee
       {bgToast && <div className="fixed left-1/2" style={{ zIndex: 460, bottom: 90, transform: "translateX(-50%)", maxWidth: "calc(100vw - 32px)", padding: "10px 16px", borderRadius: 12, background: IOS.red, color: "#fff", fontSize: 14, fontWeight: 600 }}>{bgToast}</div>}
       <AddItemDialog open={addItemOpen} onClose={() => setAddItemOpen(false)} products={products} sel={catalogSel} onPick={(p) => { w.addItem(p); if (partNeedsOrder(p)) set({ oosFor: p }); }} resolvePromo={(p) => resolveDeviceOffer(p, s.offers, offerDeviceCtx({ ...catalogSel, customModelText: s.customModelText }))} />
       <WarrantySearchDialog open={warrantyOpen} tenantId={tenantId} onClose={() => setWarrantyOpen(false)} onPick={pickWarrantyOrder} />
-      <AlertDialog open={confirmClose} title="¿Descartar orden?" message={w.saveable() ? "Las fotos nunca se subieron. También puedes guardar cliente y equipo para seguir después." : "Perderás los datos capturados. Las fotos nunca se subieron."} onClose={() => setConfirmClose(false)}
+      <AlertDialog open={confirmClose} title="¿Descartar boleto?" message={w.saveable() ? "Las fotos nunca se subieron. También puedes guardar cliente y equipo para seguir después." : "Perderás los datos capturados. Las fotos nunca se subieron."} onClose={() => setConfirmClose(false)}
         actions={[
           { label: "Descartar", destructive: true, onPress: () => { discardDraft(); dismiss(); } },
           { label: "Continuar editando", bold: true },
@@ -347,13 +347,13 @@ function WizardInner({ onClose, onCreated, prefill, resume, tenantProp, employee
       {celebrate && created && (
         <div className="fixed inset-0 flex flex-col items-center justify-center text-center" style={{ zIndex: 470, background: "rgba(0,0,0,0.85)", gap: 10 }}>
           <BadgeCheck className="w-20 h-20" style={{ color: IOS.green }} />
-          <p style={{ fontSize: 26, fontWeight: 800 }}>Orden confirmada</p>
+          <p style={{ fontSize: 26, fontWeight: 800 }}>Boleto confirmado</p>
           <p style={{ fontSize: 16, color: W.sub }}>{created.order_number} · {created.customer_name}</p>
         </div>
       )}
       <QuickPaySheet open={!!payOrder} order={payOrder} tenant={tenant} prefillAmount={payPrefill} onClose={finishAfterPay}
         onSubmit={async (p) => { await submitPayment(p); }} />
-      <AlertDialog open={closedAlert} title="Caja cerrada" message="Abre la caja desde el Dashboard antes de registrar un cobro o depósito. La orden se creó, puedes cobrarla luego." onClose={() => { setClosedAlert(false); onCreated?.(created); dismiss(); }}
+      <AlertDialog open={closedAlert} title="Caja cerrada" message="Abre la caja desde el Dashboard antes de registrar un cobro o depósito. El boleto se creó, puedes cobrarlo luego." onClose={() => { setClosedAlert(false); onCreated?.(created); dismiss(); }}
         actions={[{ label: "Ir al Inicio", bold: true, onPress: () => navigate("/Dashboard") }, { label: "Cancelar" }]} />
     </Overlay>
   );

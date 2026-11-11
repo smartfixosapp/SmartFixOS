@@ -169,13 +169,13 @@ export default function OrderDetailDialog({ order, open, onClose, onOrderUpdated
   };
 
   const handleCloseAndGoToPOS = () => {
-    if (!confirm("¿Cerrar esta orden y procesar pago en POS?")) return;
+    if (!confirm("¿Cerrar este boleto y procesar pago en POS?")) return;
     navigateToPOS(editedOrder, navigate, { fromDashboard: true, openPaymentImmediately: true });
     onClose();
   };
 
   const handleWhatsApp = () => {
-    const message = `Hola ${editedOrder.customer_name}, te contactamos de ${tenantBrandName()} sobre tu orden ${editedOrder.order_number}`;
+    const message = `Hola ${editedOrder.customer_name}, te contactamos de ${tenantBrandName()} sobre tu boleto ${editedOrder.order_number}`;
     openWhatsApp(editedOrder.customer_phone, message);
   };
 
@@ -203,7 +203,7 @@ export default function OrderDetailDialog({ order, open, onClose, onOrderUpdated
                   size="icon"
                   className="border-white/10 text-white/40 hover:bg-white/10"
                   title="Imprimir ticket"
-                  aria-label="Imprimir ticket de la orden"
+                  aria-label="Imprimir ticket del boleto"
                 >
                   <Printer className="w-4 h-4" />
                 </Button>
@@ -283,7 +283,7 @@ export default function OrderDetailDialog({ order, open, onClose, onOrderUpdated
                     variant="outline"
                     size="icon"
                     className="border-red-500/30 text-red-400 hover:bg-red-900/20"
-                    aria-label="Eliminar orden"
+                    aria-label="Eliminar boleto"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -408,7 +408,7 @@ export default function OrderDetailDialog({ order, open, onClose, onOrderUpdated
                   className="w-full bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 h-12"
                 >
                   <ShoppingCart className="w-5 h-5 mr-2" />
-                  Cerrar Orden y Procesar en POS
+                  Cerrar Boleto y Procesar en POS
                 </Button>
               )}
 
@@ -416,7 +416,7 @@ export default function OrderDetailDialog({ order, open, onClose, onOrderUpdated
                 <Alert className="bg-green-500/10 border-green-500/30">
                   <CheckCircle2 className="w-4 h-4 text-green-400" />
                   <AlertDescription className="text-green-400">
-                    Esta orden ya fue procesada en POS
+                    Este boleto ya fue procesado en POS
                   </AlertDescription>
                 </Alert>
               )}

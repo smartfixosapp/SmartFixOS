@@ -369,7 +369,7 @@ export default function JeaniDiagnosticPanel({
         comments: [...currentComments, newComment],
       });
 
-      toast.success("📝 Diagnóstico añadido como nota a la orden de trabajo");
+      toast.success("📝 Diagnóstico añadido como nota al boleto de trabajo");
     } catch (err) {
       console.error("Error adding diagnostic note:", err);
       toast.error("No se pudo añadir la nota: " + (err?.message || "error"));
@@ -506,7 +506,7 @@ export default function JeaniDiagnosticPanel({
                     {addingNote ? "Guardando..." : "📝 Añadir nota a la WO"}
                   </button>
                   <p className="text-[10px] text-white/50 self-center">
-                    Guarda el diagnóstico como comentario en la orden de trabajo
+                    Guarda el diagnóstico como comentario en el boleto de trabajo
                   </p>
                 </div>
               )}
@@ -519,7 +519,7 @@ export default function JeaniDiagnosticPanel({
                 className="w-full flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] text-xs text-white/50 font-bold hover:bg-white/[0.05]"
               >
                 <span>
-                  📋 Historial analizado: {historyLoaded.orders.length} orden{historyLoaded.orders.length === 1 ? "" : "es"}
+                  📋 Historial analizado: {historyLoaded.orders.length} boleto{historyLoaded.orders.length === 1 ? "" : "s"}
                 </span>
                 {showHistory ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>

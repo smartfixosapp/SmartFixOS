@@ -411,7 +411,7 @@ export default function OrderStatusManagementTab() {
           key: "order_statuses",
           category: "repair_status",
           value_json: statusesData,
-          description: "Configuración de estados de órdenes"
+          description: "Configuración de estados de boletos"
         });
       }
 
@@ -526,10 +526,10 @@ export default function OrderStatusManagementTab() {
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-2">
             <SettingsIcon className="w-5 h-5 text-red-600" />
-            Gestión de Estados de Órdenes
+            Gestión de Estados de Boletos
           </CardTitle>
           <p className="text-sm text-gray-400 mt-2">
-            Configura los estados del ciclo de vida de las órdenes de trabajo. 
+            Configura los estados del ciclo de vida de los boletos de trabajo. 
             Arrastra para reordenar, edita colores y labels, o crea estados personalizados.
           </p>
         </CardHeader>

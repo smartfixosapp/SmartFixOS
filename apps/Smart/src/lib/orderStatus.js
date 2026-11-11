@@ -26,7 +26,7 @@ export const ORDER_STATUS = {
 export const PICKER_GROUPS = [
   { key: "main", title: "FLUJO PRINCIPAL", statuses: ["intake", "diagnosing", "waiting_parts", "por_reparar", "in_progress", "ready_for_pickup", "delivered"] },
   { key: "special", title: "CASOS ESPECIALES", statuses: ["waiting_customer", "pending_order", "part_arrived_waiting_device", "reparacion_externa"] },
-  { key: "close", title: "CERRAR ORDEN", statuses: ["warranty", "cancelled", "not_repairable", "abandoned"] },
+  { key: "close", title: "CERRAR BOLETO", statuses: ["warranty", "cancelled", "not_repairable", "abandoned"] },
 ];
 
 export const TERMINAL_STATUSES = ["delivered", "cancelled", "warranty", "not_repairable", "abandoned"];
@@ -92,7 +92,7 @@ export const STAGE_GUIDE = {
   reparacion_externa: { title: "Reparación externa", subtitle: "El equipo está en taller externo. Se notifica al cliente solo al volver.", pills: [] },
   waiting_customer: { title: "Esperando al cliente", subtitle: "Necesitamos respuesta del cliente para continuar.", pills: [] },
   warranty: { title: "En garantía", subtitle: "Servicio cubierto por la garantía original. No se cobra al cliente.", pills: [] },
-  delivered: { title: "Orden entregada", subtitle: "Cliente recogió el equipo. Conserva el recibo durante el período de garantía.", pills: [] },
-  cancelled: { title: "Orden cancelada", subtitle: "El cliente canceló la orden. No hay acciones adicionales.", pills: [] },
+  delivered: { title: "Boleto entregado", subtitle: "Cliente recogió el equipo. Conserva el recibo durante el período de garantía.", pills: [] },
+  cancelled: { title: "Boleto cancelado", subtitle: "El cliente canceló el boleto. No hay acciones adicionales.", pills: [] },
   scheduled: { title: "Visita programada", subtitle: "El cliente tiene una cita agendada. Confirma la visita antes de la fecha.", pills: [] },
 };

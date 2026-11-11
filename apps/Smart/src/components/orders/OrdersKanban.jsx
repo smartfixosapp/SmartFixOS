@@ -163,7 +163,7 @@ export default function OrdersKanban({ orders, onCardClick, companyById = {}, on
   }, [orders]);
 
   if (visible.length === 0) {
-    return <div className="text-center py-16 apple-label-tertiary apple-text-subheadline">No hay órdenes que coincidan</div>;
+    return <div className="text-center py-16 apple-label-tertiary apple-text-subheadline">No hay boletos que coincidan</div>;
   }
 
   return (
@@ -177,7 +177,7 @@ export default function OrdersKanban({ orders, onCardClick, companyById = {}, on
                 <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
                   <span style={{ fontSize: 15, fontWeight: 600, color: group.tint || "#8E8E93" }}>{group.label}</span>
                   <span style={{ fontSize: 12, fontWeight: 500, color: "#8E8E93" }}>
-                    {group.orders.length} {group.orders.length === 1 ? "orden" : "órdenes"}
+                    {group.orders.length} {group.orders.length === 1 ? "boleto" : "boletos"}
                   </span>
                   {total > 0 && (
                     <>

@@ -170,7 +170,7 @@ export default function MobileAccionesTab({
     const cleanPhone = (phone || "").replace(/\D/g, "");
     const name = o.customer_name || "";
     const orderNum = o.order_number || "";
-    const msg = `Hola ${name}, le contactamos de Archilla OS sobre su orden #${orderNum}.`;
+    const msg = `Hola ${name}, le contactamos de Archilla OS sobre su boleto #${orderNum}.`;
 
     switch (channel) {
       case "whatsapp":
@@ -178,7 +178,7 @@ export default function MobileAccionesTab({
         break;
       case "email":
         if (o.customer_email) {
-          const subj = encodeURIComponent(`Actualizacion de orden #${orderNum}`);
+          const subj = encodeURIComponent(`Actualizacion de boleto #${orderNum}`);
           const body = encodeURIComponent(msg);
           window.open(`mailto:${o.customer_email}?subject=${subj}&body=${body}`);
         }

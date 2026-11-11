@@ -29,7 +29,7 @@ export default function LegalTerms() {
       <h2>1. Descripción del Servicio</h2>
       <p>
         Archilla OS es un sistema operativo para talleres de reparación: gestión de
-        órdenes de trabajo, punto de venta, inventario, finanzas, clientes y empleados,
+        boletos de trabajo, punto de venta, inventario, finanzas, clientes y empleados,
         accesible desde dispositivos iOS y Android.
       </p>
 
@@ -85,7 +85,7 @@ export default function LegalTerms() {
       <h2>5. Contenido del Cliente</h2>
       <p>
         Tú conservas la propiedad de toda la data que introduces en Archilla OS:
-        clientes, órdenes, productos, fotos, facturas, configuraciones, etc.
+        clientes, boletos, productos, fotos, facturas, configuraciones, etc.
         ("Contenido del Cliente").
       </p>
       <p>

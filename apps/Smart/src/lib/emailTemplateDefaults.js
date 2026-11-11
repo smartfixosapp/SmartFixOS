@@ -1,7 +1,7 @@
 export const EMAIL_TEMPLATE_DEFAULTS = {
   "intake": {
     "subject": {
-      "es": "Recibimos tu equipo · Orden {order_number}",
+      "es": "Recibimos tu equipo · Boleto {order_number}",
       "en": "We received your device · Order {order_number}"
     },
     "hero_title": {
@@ -16,7 +16,7 @@ export const EMAIL_TEMPLATE_DEFAULTS = {
   },
   "diagnosing": {
     "subject": {
-      "es": "Diagnóstico en proceso · Orden {order_number}",
+      "es": "Diagnóstico en proceso · Boleto {order_number}",
       "en": "Diagnosis in progress · Order {order_number}"
     },
     "hero_title": {
@@ -31,7 +31,7 @@ export const EMAIL_TEMPLATE_DEFAULTS = {
   },
   "in_progress": {
     "subject": {
-      "es": "Reparación iniciada · Orden {order_number}",
+      "es": "Reparación iniciada · Boleto {order_number}",
       "en": "Repair started · Order {order_number}"
     },
     "hero_title": {
@@ -46,7 +46,7 @@ export const EMAIL_TEMPLATE_DEFAULTS = {
   },
   "waiting_customer": {
     "subject": {
-      "es": "Necesitamos tu respuesta · Orden {order_number}",
+      "es": "Necesitamos tu respuesta · Boleto {order_number}",
       "en": "We need your response · Order {order_number}"
     },
     "hero_title": {
@@ -54,14 +54,14 @@ export const EMAIL_TEMPLATE_DEFAULTS = {
       "en": "We need your response"
     },
     "hero_line": {
-      "es": "Tenemos una pregunta sobre tu orden y necesitamos tu decisión para continuar. Responde este correo o llámanos para que sigamos avanzando.",
+      "es": "Tenemos una pregunta sobre tu boleto y necesitamos tu decisión para continuar. Responde este correo o llámanos para que sigamos avanzando.",
       "en": "We have a question about your order and need your decision to continue. Reply to this email or call us so we can keep moving."
     },
     "isActive": true
   },
   "waiting_parts": {
     "subject": {
-      "es": "Ordenando tu pieza · Orden {order_number}",
+      "es": "Ordenando tu pieza · Boleto {order_number}",
       "en": "Ordering your part · Order {order_number}"
     },
     "hero_title": {
@@ -76,7 +76,7 @@ export const EMAIL_TEMPLATE_DEFAULTS = {
   },
   "reparacion_externa": {
     "subject": {
-      "es": "Actualización de tu orden · {order_number}",
+      "es": "Actualización de tu boleto · {order_number}",
       "en": "Your order update · {order_number}"
     },
     "hero_title": {
@@ -91,7 +91,7 @@ export const EMAIL_TEMPLATE_DEFAULTS = {
   },
   "part_arrived": {
     "subject": {
-      "es": "Pieza lista · Trae tu equipo · Orden {order_number}",
+      "es": "Pieza lista · Trae tu equipo · Boleto {order_number}",
       "en": "Part ready · Bring your device · Order {order_number}"
     },
     "hero_title": {
@@ -106,7 +106,7 @@ export const EMAIL_TEMPLATE_DEFAULTS = {
   },
   "ready_for_pickup": {
     "subject": {
-      "es": "Listo para recoger · Orden {order_number}",
+      "es": "Listo para recoger · Boleto {order_number}",
       "en": "Ready for pickup · Order {order_number}"
     },
     "hero_title": {
@@ -121,7 +121,7 @@ export const EMAIL_TEMPLATE_DEFAULTS = {
   },
   "delivered": {
     "subject": {
-      "es": "Recibo · Orden {order_number}",
+      "es": "Recibo · Boleto {order_number}",
       "en": "Receipt · Order {order_number}"
     },
     "hero_title": {
@@ -136,22 +136,22 @@ export const EMAIL_TEMPLATE_DEFAULTS = {
   },
   "cancelled": {
     "subject": {
-      "es": "Orden cancelada · {order_number}",
+      "es": "Boleto cancelado · {order_number}",
       "en": "Order cancelled · {order_number}"
     },
     "hero_title": {
-      "es": "Tu orden fue cancelada",
+      "es": "Tu boleto fue cancelado",
       "en": "Your order was cancelled"
     },
     "hero_line": {
-      "es": "Cancelamos la orden según solicitud. Si tienes alguna duda, contáctanos.",
+      "es": "Cancelamos el boleto según solicitud. Si tienes alguna duda, contáctanos.",
       "en": "We cancelled the order as requested. If you have any questions, contact us."
     },
     "isActive": true
   },
   "warranty_expired": {
     "subject": {
-      "es": "Tu garantía finalizó · Orden {order_number}",
+      "es": "Tu garantía finalizó · Boleto {order_number}",
       "en": "Your warranty ended · Order {order_number}"
     },
     "hero_title": {
@@ -166,7 +166,7 @@ export const EMAIL_TEMPLATE_DEFAULTS = {
   },
   "pending_order": {
     "subject": {
-      "es": "Pendiente de ordenar pieza · Orden {order_number}",
+      "es": "Pendiente de ordenar pieza · Boleto {order_number}",
       "en": "Pending to order part · Order {order_number}"
     },
     "hero_title": {
@@ -174,14 +174,14 @@ export const EMAIL_TEMPLATE_DEFAULTS = {
       "en": "We'll order your part"
     },
     "hero_line": {
-      "es": "Identificamos la pieza que necesita tu equipo. Estamos coordinando la orden y te avisamos en cuanto llegue para iniciar la reparación.",
+      "es": "Identificamos la pieza que necesita tu equipo. Estamos coordinando el boleto y te avisamos en cuanto llegue para iniciar la reparación.",
       "en": "We identified the part your device needs. We're coordinating the order and will let you know as soon as it arrives so we can start the repair."
     },
     "isActive": true
   },
   "device_picked_up": {
     "subject": {
-      "es": "Gracias por recoger tu equipo · Orden {order_number}",
+      "es": "Gracias por recoger tu equipo · Boleto {order_number}",
       "en": "Thanks for picking up your device · Order {order_number}"
     },
     "hero_title": {
@@ -196,8 +196,8 @@ export const EMAIL_TEMPLATE_DEFAULTS = {
   },
   "abandoned": {
     "subject": {
-      "es": "Tu equipo sigue sin reclamar · Orden {order_number}",
-      "en": "Tu equipo sigue sin reclamar · Orden {order_number}"
+      "es": "Tu equipo sigue sin reclamar · Boleto {order_number}",
+      "en": "Tu equipo sigue sin reclamar · Boleto {order_number}"
     },
     "hero_title": {
       "es": "Tu equipo sigue esperando en el taller",
@@ -211,8 +211,8 @@ export const EMAIL_TEMPLATE_DEFAULTS = {
   },
   "not_repairable": {
     "subject": {
-      "es": "No pudimos reparar tu equipo · Orden {order_number}",
-      "en": "No pudimos reparar tu equipo · Orden {order_number}"
+      "es": "No pudimos reparar tu equipo · Boleto {order_number}",
+      "en": "No pudimos reparar tu equipo · Boleto {order_number}"
     },
     "hero_title": {
       "es": "No pudimos reparar tu equipo",
@@ -226,7 +226,7 @@ export const EMAIL_TEMPLATE_DEFAULTS = {
   },
   "deposit_receipt": {
     "subject": {
-      "es": "Recibo de depósito · Orden {order_number}",
+      "es": "Recibo de depósito · Boleto {order_number}",
       "en": "Deposit receipt · Order {order_number}"
     },
     "hero_title": {
@@ -234,14 +234,14 @@ export const EMAIL_TEMPLATE_DEFAULTS = {
       "en": "Deposit received"
     },
     "hero_line": {
-      "es": "Confirmamos el depósito que aplicamos a tu orden. Adjuntamos el detalle abajo.",
+      "es": "Confirmamos el depósito que aplicamos a tu boleto. Adjuntamos el detalle abajo.",
       "en": "We confirm the deposit applied to your order. Detail attached below."
     },
     "isActive": true
   },
   "payment_receipt": {
     "subject": {
-      "es": "Recibo de pago · Orden {order_number}",
+      "es": "Recibo de pago · Boleto {order_number}",
       "en": "Payment receipt · Order {order_number}"
     },
     "hero_title": {

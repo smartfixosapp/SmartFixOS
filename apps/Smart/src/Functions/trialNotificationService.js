@@ -98,7 +98,7 @@ async function sendTrialExpiration(base44, tenantId) {
       <p>Tu prueba gratuita en Archilla OS ha expirado. Para continuar accediendo al sistema y no perder tus datos, necesitas activar un plan.</p>
       <p><strong>Plan Archilla OS: $65/mes</strong></p>
       <p>✅ Acceso completo al sistema</p>
-      <p>✅ Gestión de órdenes de trabajo</p>
+      <p>✅ Gestión de boletos de trabajo</p>
       <p>✅ Sistema POS integrado</p>
       <p>✅ Reportes y analíticas</p>
       <a href="https://smartfixos.app/Activate" style="background-color: #00A8E8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 20px;">

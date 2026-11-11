@@ -272,7 +272,7 @@ export default function FullNotificationPanel({ user, onClose }) {
             💰 Pagos ({groupedNotifications.payment.length})
           </TabsTrigger>
           <TabsTrigger value="order" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-600">
-            📋 Órdenes ({groupedNotifications.order.length})
+            📋 Boletos ({groupedNotifications.order.length})
           </TabsTrigger>
           <TabsTrigger value="inventory" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-600 data-[state=active]:to-yellow-600">
             📦 Inventario ({lowStockItems.length})
@@ -466,7 +466,7 @@ export default function FullNotificationPanel({ user, onClose }) {
             {groupedNotifications.order.length === 0 ? (
               <div className="text-center py-12">
                 <ClipboardList className="w-16 h-16 text-gray-600 mx-auto mb-3 opacity-30" />
-                <p className="text-gray-400">No hay notificaciones de órdenes</p>
+                <p className="text-gray-400">No hay notificaciones de boletos</p>
               </div>
             ) : (
               groupedNotifications.order.map(notification => (

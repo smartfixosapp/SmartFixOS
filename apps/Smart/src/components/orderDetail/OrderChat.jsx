@@ -72,7 +72,7 @@ export default function OrderChatSheet({ open, onClose, order, employee, tenantI
       message_text: trimmed,
       channel_id: channelId,
       channel_type: "order",
-      channel_title: `Orden ${order.order_number}`,
+      channel_title: `Boleto ${order.order_number}`,
     });
     setSending(false);
     if (e) {
@@ -86,7 +86,7 @@ export default function OrderChatSheet({ open, onClose, order, employee, tenantI
   if (!order) return null;
 
   return (
-    <Sheet open={open} onClose={onClose} title={`Orden ${order.order_number}`} width={620}>
+    <Sheet open={open} onClose={onClose} title={`Boleto ${order.order_number}`} width={620}>
       <div className="flex items-center gap-2" style={{ marginBottom: 10 }}>
         <button onClick={() => setShowCall((v) => !v)} className="apple-press flex items-center gap-1.5" style={{ padding: "6px 12px", borderRadius: 999, background: C.card2, fontSize: 13, color: C.text }}>
           <Phone className="w-3.5 h-3.5" /> Llamar empleado

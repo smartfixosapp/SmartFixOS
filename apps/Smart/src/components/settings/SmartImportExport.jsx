@@ -274,7 +274,7 @@ const IMPORT_ENTITIES = [
 const EXPORT_ENTITIES = [
   { key: "customers", name: "Clientes", icon: Users, color: "from-blue-600 to-indigo-600", entity: "Customer" },
   { key: "products", name: "Productos", icon: Package, color: "from-emerald-600 to-green-600", entity: "Product" },
-  { key: "orders", name: "Órdenes", icon: ShoppingCart, color: "from-purple-600 to-pink-600", entity: "Order" },
+  { key: "orders", name: "Boletos", icon: ShoppingCart, color: "from-purple-600 to-pink-600", entity: "Order" },
   { key: "sales", name: "Ventas", icon: DollarSign, color: "from-amber-600 to-orange-600", entity: "Sale" },
 ];
 

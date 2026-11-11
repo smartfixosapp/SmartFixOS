@@ -1,5 +1,5 @@
 const DASHBOARD_DEFAULTS = [
-  { id: "orders", label: "Órdenes", icon: "ClipboardList", gradient: "from-purple-500 to-pink-600", action: "Orders", type: "navigate", enabled: true },
+  { id: "orders", label: "Boletos", icon: "ClipboardList", gradient: "from-purple-500 to-pink-600", action: "Orders", type: "navigate", enabled: true },
   { id: "pos", label: "POS", icon: "Wallet", gradient: "from-green-600 to-emerald-700", action: "POS", type: "navigate", enabled: true },
   { id: "customers", label: "Clientes", icon: "Users", gradient: "from-blue-600 to-indigo-700", action: "Customers", type: "navigate", enabled: true },
   { id: "inventory", label: "Inventario", icon: "Package", gradient: "from-teal-500 to-cyan-600", action: "Inventory", type: "navigate", enabled: true },

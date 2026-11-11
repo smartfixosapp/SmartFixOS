@@ -26,7 +26,7 @@ export function DocumentsSheet({ open, onClose, order, busy, onReceipt, onQuote,
         <Item Icon={Tag} color={C.teal} title="Imprimir etiqueta" sub="Etiqueta de equipo con QR (200 x 110 pt)" onClick={onLabel} busy={busy === "label"} disabled={!!busy} />
       </div>
       <div className="flex items-center gap-3" style={{ marginTop: 14, padding: "10px 4px" }}>
-        <span className="flex-1"><span className="block" style={{ fontSize: 14, fontWeight: 600 }}>Etiquetas de equipo</span><span className="block" style={{ fontSize: 12, color: C.sub }}>{labels ? "Imprime etiqueta al crear una orden" : "No se imprime etiqueta"}</span></span>
+        <span className="flex-1"><span className="block" style={{ fontSize: 14, fontWeight: 600 }}>Etiquetas de equipo</span><span className="block" style={{ fontSize: 12, color: C.sub }}>{labels ? "Imprime etiqueta al crear un boleto" : "No se imprime etiqueta"}</span></span>
         <button onClick={() => { setLabelsEnabled(!labels); setLabels(!labels); }} role="switch" aria-checked={labels} aria-label="Etiquetas de equipo" style={{ width: 46, height: 28, borderRadius: 999, background: labels ? C.green : "#3A3A3C", position: "relative" }}><span style={{ position: "absolute", top: 2, left: labels ? 20 : 2, width: 24, height: 24, borderRadius: 999, background: "#fff", transition: "left 0.2s" }} /></button>
       </div>
     </Sheet>
@@ -57,10 +57,10 @@ export function DocumentShareSheet({ open, onClose, kind, order, tenant, blob })
   const title = kind === "quote" ? "Cotización" : "Recibo";
   const linkReady = link.state === "ready";
   const caption = kind === "quote"
-    ? `Aquí tienes tu cotización de la orden ${order.order_number}.`
+    ? `Aquí tienes tu cotización del boleto ${order.order_number}.`
     : linkReady
       ? receiptMessage({ tenantName: tenant?.name, customerName: order.customer_name, orderNumber: order.order_number, url: link.url })
-      : `Aquí tienes tu recibo de la orden ${order.order_number}.`;
+      : `Aquí tienes tu recibo del boleto ${order.order_number}.`;
   const file = docFileName(kind, order);
   const phone = String(order.customer_phone || "").replace(/\D/g, "");
   const email = String(order.customer_email || "").trim();

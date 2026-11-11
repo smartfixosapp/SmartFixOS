@@ -59,7 +59,7 @@ export default function ThermalLabel({ order, onClose, autoPrint = false }) {
 
         {/* ORDEN */}
         <div style={{ marginBottom: '3mm' }}>
-          <div style={{ fontSize: '9pt', fontWeight: 'bold' }}>ORDEN:</div>
+          <div style={{ fontSize: '9pt', fontWeight: 'bold' }}>BOLETO:</div>
           <div style={{ fontSize: '14pt', fontWeight: 'bold', letterSpacing: '1px' }}>
             {order.order_number || 'SIN NÚMERO'}
           </div>

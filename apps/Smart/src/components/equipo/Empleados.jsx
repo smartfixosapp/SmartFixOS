@@ -64,7 +64,7 @@ function DeactivateDialog({ open, emp, tenant, onClose, onDone }) {
           <div style={{ borderRadius: 14, background: "#2C2C2E", padding: "4px 14px" }}>
             {pre.openEntry && row("Turno abierto", `desde ${shortTime(new Date(pre.openEntry.clock_in), tenant?.timezone || undefined)}`, <button onClick={closeShift} className="apple-press" style={{ color: BRAND, fontWeight: 700, fontSize: 13 }}>Cerrar turno ahora</button>)}
             {(pre.unpaidHours > 0 || pre.balance > 0) && row("Horas sin pagar", `${hoursLabel(pre.unpaidHours)} · ${money(pre.balance)}`)}
-            {pre.openOrders > 0 && row("Órdenes asignadas", pre.openOrders)}
+            {pre.openOrders > 0 && row("Boletos asignados", pre.openOrders)}
             {pre.commission > 0 && row("Comisión pendiente", money(pre.commission))}
             {nothing && <p style={{ padding: "10px 0", fontSize: 14, color: W.sub }}>Sin pendientes.</p>}
           </div>
@@ -191,7 +191,7 @@ function Profile({ emp, self, tenant, atLimit, limitText, onSaved, onBack, onDel
 
   const doDelete = async () => {
     try {
-      if (await hasAnyHistory(emp)) { setDelState(null); setError("Ya no se puede borrar: ahora tiene ponches, pagos u órdenes."); setCanDelete(false); return; }
+      if (await hasAnyHistory(emp)) { setDelState(null); setError("Ya no se puede borrar: ahora tiene ponches, pagos o boletos."); setCanDelete(false); return; }
       await deleteEmployee(emp);
       onDeleted(emp);
     } catch (e) { setError(e?.message || String(e)); }
@@ -268,7 +268,7 @@ function Profile({ emp, self, tenant, atLimit, limitText, onSaved, onBack, onDel
           {selfIsOwner && !isOwnerEmp && (
             <button onClick={() => canDelete && setDelState(true)} disabled={!canDelete} className="apple-press w-full flex items-center gap-3 text-left disabled:opacity-60">
               <span style={{ width: 38, height: 38, borderRadius: 12, background: tint(RED, 0.16), color: RED, display: "flex", alignItems: "center", justifyContent: "center" }}><Trash2 className="w-5 h-5" /></span>
-              <span className="flex-1"><span className="block" style={{ fontSize: 15, fontWeight: 600, color: RED }}>Borrar definitivamente</span><span className="block" style={{ fontSize: 12, color: W.sub }}>{canDelete === null ? "Revisando historial…" : canDelete ? "Sin ponches, pagos ni órdenes — se puede borrar" : "Tiene ponches, pagos u órdenes — no se puede borrar"}</span></span>
+              <span className="flex-1"><span className="block" style={{ fontSize: 15, fontWeight: 600, color: RED }}>Borrar definitivamente</span><span className="block" style={{ fontSize: 12, color: W.sub }}>{canDelete === null ? "Revisando historial…" : canDelete ? "Sin ponches, pagos ni boletos — se puede borrar" : "Tiene ponches, pagos o boletos — no se puede borrar"}</span></span>
             </button>
           )}
         </div>
@@ -276,7 +276,7 @@ function Profile({ emp, self, tenant, atLimit, limitText, onSaved, onBack, onDel
 
       <DeactivateDialog open={deactOpen} emp={emp} tenant={tenant} onClose={() => setDeactOpen(false)} onDone={onSaved} />
       <ReactivateDialog open={reactOpen} emp={emp} atLimit={atLimit} limitText={limitText} onClose={() => setReactOpen(false)} onDone={onSaved} />
-      <AlertDialog open={!!delState} title={`¿Borrar a ${emp.full_name} definitivamente?`} message="Esta acción es irreversible. Solo se puede hacer porque no tiene ponches, pagos ni órdenes." onClose={() => setDelState(null)}
+      <AlertDialog open={!!delState} title={`¿Borrar a ${emp.full_name} definitivamente?`} message="Esta acción es irreversible. Solo se puede hacer porque no tiene ponches, pagos ni boletos." onClose={() => setDelState(null)}
         actions={[{ label: "Cancelar" }, { label: "Borrar definitivamente", destructive: true, onPress: doDelete }]} />
     </div>
   );
@@ -338,7 +338,7 @@ export default function Empleados({ tenant, tenantId, self, onSelfUpdated }) {
         <span className="flex-1 min-w-0">
           <span className="flex items-center gap-2 flex-wrap"><span className="truncate" style={{ fontSize: 16, fontWeight: 700 }}>{emp.full_name}</span>{inact && <span style={{ padding: "1px 8px", borderRadius: 999, background: "#3A3A3C", color: W.sub, fontSize: 11 }}>Inactivo desde {dayLabel(emp.updated_at)}</span>}</span>
           <span className="block truncate" style={{ fontSize: 12, color: roleColor(emp), fontWeight: 600 }}>{roleLabels(rolesOf(emp)).join(" · ")}</span>
-          <span className="flex items-center gap-3" style={{ fontSize: 12, color: W.sub, marginTop: 2 }}><span className="flex items-center gap-1"><Wrench className="w-3 h-3" /> {openOrdersOf(emp, live)} órdenes</span><span>{employeeRate(emp) > 0 ? `${money(employeeRate(emp))}/h` : "—"}</span></span>
+          <span className="flex items-center gap-3" style={{ fontSize: 12, color: W.sub, marginTop: 2 }}><span className="flex items-center gap-1"><Wrench className="w-3 h-3" /> {openOrdersOf(emp, live)} boletos</span><span>{employeeRate(emp) > 0 ? `${money(employeeRate(emp))}/h` : "—"}</span></span>
         </span>
         <span className="flex items-center gap-1" style={{ padding: "3px 10px", borderRadius: 999, background: since ? tint(GREEN, 0.16) : "#2C2C2E", color: since ? GREEN : W.sub, fontSize: 12, fontWeight: 700 }}>
           <span style={{ width: 7, height: 7, borderRadius: 999, background: since ? GREEN : W.sub }} /> {since ? `Trabajando · ${shortTime(new Date(since), tz || undefined)}` : "Fuera"}

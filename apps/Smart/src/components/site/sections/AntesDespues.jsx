@@ -6,8 +6,8 @@ import { EASE } from "../motion";
 
 const PARES = [
   {
-    antes: "Apuntas las órdenes en una libreta y a veces se pierde una.",
-    con: "Cada orden viva en la app, con fotos y su estado.",
+    antes: "Apuntas los boletos en una libreta y a veces se pierde una.",
+    con: "Cada boleto viva en la app, con fotos y su estado.",
   },
   {
     antes: "Sacas el IVU con la calculadora y rezas que cuadre.",

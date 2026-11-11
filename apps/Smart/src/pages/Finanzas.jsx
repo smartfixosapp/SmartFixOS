@@ -308,7 +308,7 @@ export default function Finanzas() {
       const parts = [];
       if (l.hasOverlaps) parts.push(`Ponches encimados: ${l.overlapCount} (−${hoursLabel(l.overlapHours)})`);
       if (l.hasUnperiodedPayments) parts.push(`Pago sin período ${new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(l.unperiodedPaid)}`);
-      if (l.undatedOrders > 0) parts.push(`Órdenes sin fecha de entrega: ${l.undatedOrders}`);
+      if (l.undatedOrders > 0) parts.push(`Boletos sin fecha de entrega: ${l.undatedOrders}`);
       return parts.length ? parts.join(" · ") : null;
     },
     isRecurring,

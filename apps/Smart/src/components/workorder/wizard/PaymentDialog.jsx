@@ -74,7 +74,7 @@ export default function PaymentDialog({ open, onClose, order, onSuccess, isCreat
 
     // If editing existing order
     if (!order || !order.id) {
-      toast.error("Error: No se puede procesar el pago sin una orden válida");
+      toast.error("Error: No se puede procesar el pago sin un boleto válido");
       return;
     }
 
@@ -110,7 +110,7 @@ export default function PaymentDialog({ open, onClose, order, onSuccess, isCreat
         customer_name: order.customer_name,
         items: [{
           type: "service",
-          name: `Pago - Orden ${order.order_number}`,
+          name: `Pago - Boleto ${order.order_number}`,
           quantity: 1,
           price: paymentAmount, // Payment is just a transaction amount
           total: paymentAmount
@@ -143,7 +143,7 @@ export default function PaymentDialog({ open, onClose, order, onSuccess, isCreat
           order_number: order.order_number,
           type: "revenue",
           amount: paymentAmount,
-          description: `Pago recibido - Orden ${order.order_number}${notes ? ` - ${notes}` : ''}`,
+          description: `Pago recibido - Boleto ${order.order_number}${notes ? ` - ${notes}` : ''}`,
           category: "repair_payment",
           payment_method: paymentMethod,
           recorded_by: user?.full_name || user?.email,
@@ -182,7 +182,7 @@ export default function PaymentDialog({ open, onClose, order, onSuccess, isCreat
           await SendEmail({
             to: order.customer_email,
             template_key: "custom",
-            custom_subject: `Recibo de Pago ${saleNumber} - Orden ${order.order_number}`,
+            custom_subject: `Recibo de Pago ${saleNumber} - Boleto ${order.order_number}`,
             custom_body: "",
             event_type: "payment_received",
             order_data: {

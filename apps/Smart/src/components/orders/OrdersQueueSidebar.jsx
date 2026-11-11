@@ -65,7 +65,7 @@ export default function OrdersQueueSidebar({ orders = [], selectedOrderId, onSel
     return (
       <div className="apple-type h-full flex flex-col items-center justify-center text-center p-6">
         <Box className="w-10 h-10 apple-label-tertiary mb-3" />
-        <p className="apple-text-subheadline apple-label-secondary font-semibold">Sin órdenes activas</p>
+        <p className="apple-text-subheadline apple-label-secondary font-semibold">Sin boletos activos</p>
         <p className="apple-text-caption1 apple-label-tertiary mt-1">Las nuevas aparecerán aquí</p>
       </div>
     );

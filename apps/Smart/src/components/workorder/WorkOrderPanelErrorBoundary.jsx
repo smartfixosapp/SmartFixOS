@@ -8,7 +8,7 @@ export default class WorkOrderPanelErrorBoundary extends React.Component {
   }
 
   static getDerivedStateFromError(error) {
-    return { hasError: true, message: error?.message || "Error inesperado en la orden" };
+    return { hasError: true, message: error?.message || "Error inesperado en el boleto" };
   }
 
   componentDidCatch(error, info) {
@@ -27,7 +27,7 @@ export default class WorkOrderPanelErrorBoundary extends React.Component {
       <div className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
         <div className="w-full max-w-lg rounded-2xl border border-red-500/30 bg-[#0b0f17] p-6 text-center">
           <p className="text-sm tracking-[0.22em] text-red-300/80">Error de panel</p>
-          <h3 className="mt-2 text-2xl font-semibold text-white">No se pudo abrir esta orden</h3>
+          <h3 className="mt-2 text-2xl font-semibold text-white">No se pudo abrir este boleto</h3>
           <p className="mt-3 text-sm text-white/65">{this.state.message}</p>
           <div className="mt-5 flex items-center justify-center gap-2">
             <Button

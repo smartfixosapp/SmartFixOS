@@ -91,7 +91,7 @@ function TxRow({ tx, color, expense, tz }) {
           <span className="flex items-center gap-1" style={meta}><Calendar className="w-2.5 h-2.5" /> {d ? fmt(d, tz, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).replace(",", " ·") : "—"}</span>
           <span className="flex items-center gap-1" style={meta}><User className="w-2.5 h-2.5" /> {tx.recorded_by || "—"}</span>
           {method && <span className="flex items-center gap-1" style={meta}><CreditCard className="w-2.5 h-2.5" /> {method}</span>}
-          {tx.order_number && <span style={{ fontSize: 10, fontWeight: 500, color: FP.info }}>Orden {tx.order_number}</span>}
+          {tx.order_number && <span style={{ fontSize: 10, fontWeight: 500, color: FP.info }}>Boleto {tx.order_number}</span>}
         </div>
       </div>
       <span style={{ fontSize: 12, fontWeight: 800, color, fontVariantNumeric: "tabular-nums" }}>{expense ? "−" : "+"}{money(num(tx.amount))}</span>

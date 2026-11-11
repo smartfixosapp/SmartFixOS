@@ -228,7 +228,7 @@ export function ConsolidatedInvoiceDialog({ open, onClose, tenant, tenantId, emp
         {!company && (
           companies === null ? <Centered><Loader2 className="w-6 h-6 animate-spin" /><span>Cargando empresas…</span></Centered>
             : loadError && !companies.length ? <Centered><AlertTriangle className="w-7 h-7" style={{ color: ORANGE }} /><b style={{ color: "#fff" }}>No se pudieron cargar</b><span>{loadError}</span></Centered>
-              : !companies.length ? <Centered><Building2 className="w-8 h-8" /><b style={{ color: "#fff" }}>Sin empresas con órdenes</b><span>Las empresas con órdenes abiertas y monto aparecerán aquí.</span></Centered>
+              : !companies.length ? <Centered><Building2 className="w-8 h-8" /><b style={{ color: "#fff" }}>Sin empresas con boletos</b><span>Las empresas con boletos abiertos y monto aparecerán aquí.</span></Centered>
                 : (
                   <>
                     <label className="flex items-center gap-2" style={{ height: 42, padding: "0 12px", borderRadius: 12, background: CARD }}>
@@ -250,11 +250,11 @@ export function ConsolidatedInvoiceDialog({ open, onClose, tenant, tenantId, emp
                 )
         )}
         {company && (
-          loadingOrders ? <Centered><Loader2 className="w-6 h-6 animate-spin" /><span>Cargando órdenes…</span></Centered>
-            : !orders.length ? <Centered><FileText className="w-8 h-8" /><b style={{ color: "#fff" }}>Sin órdenes facturables</b><span>Esta empresa no tiene órdenes abiertas con monto.</span></Centered>
+          loadingOrders ? <Centered><Loader2 className="w-6 h-6 animate-spin" /><span>Cargando boletos…</span></Centered>
+            : !orders.length ? <Centered><FileText className="w-8 h-8" /><b style={{ color: "#fff" }}>Sin boletos facturables</b><span>Esta empresa no tiene boletos abiertos con monto.</span></Centered>
               : (
                 <>
-                  <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", color: SUB, textTransform: "uppercase" }}>Órdenes de {companyName(company)}</p>
+                  <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", color: SUB, textTransform: "uppercase" }}>Boletos de {companyName(company)}</p>
                   <div style={{ borderRadius: 14, background: CARD, overflow: "hidden" }}>
                     {orders.map((o, i) => {
                       const on = selected.has(o.id);
@@ -271,7 +271,7 @@ export function ConsolidatedInvoiceDialog({ open, onClose, tenant, tenantId, emp
                       );
                     })}
                   </div>
-                  <p style={{ fontSize: 12, color: SUB }}>Selecciona las órdenes a incluir. Por defecto van todas.</p>
+                  <p style={{ fontSize: 12, color: SUB }}>Selecciona los boletos a incluir. Por defecto van todas.</p>
 
                   <div className="flex flex-col" style={{ gap: 6, padding: 14, borderRadius: 14, background: CARD }}>
                     <div className="flex justify-between" style={{ fontSize: 14 }}><span style={{ color: SUB }}>Subtotal</span><span style={{ fontVariantNumeric: "tabular-nums" }}>{fm(subtotal)}</span></div>

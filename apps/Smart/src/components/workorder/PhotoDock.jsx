@@ -152,7 +152,7 @@ export default function PhotoDock({ order, onUpdate }) {
                 ))}
             </div>
         ) : (
-            stagedFiles.length === 0 && <p className="text-center text-sm text-gray-500 py-4">No hay fotos en esta orden.</p>
+            stagedFiles.length === 0 && <p className="text-center text-sm text-gray-500 py-4">No hay fotos en este boleto.</p>
         )}
     </div>
   );

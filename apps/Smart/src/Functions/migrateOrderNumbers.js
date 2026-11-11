@@ -44,7 +44,7 @@ export async function migrateOrderNumbersHandler(req) {
         });
         results.orders.migrated++;
       } catch (err) {
-        console.error(`❌ Error migrando orden ${order.id}:`, err.message);
+        console.error(`❌ Error migrando boleto ${order.id}:`, err.message);
         results.orders.errors++;
       }
     }

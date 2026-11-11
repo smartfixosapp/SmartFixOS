@@ -114,7 +114,7 @@ export default function PartArrivedStage({ order, onUpdate, onOrderItemsUpdate, 
 
   const handleNotifyClient = () => {
     if (!waDigits) return;
-    const text = `Hola ${o.customer_name || ""}, ya tenemos la pieza de tu orden ${o.order_number || ""}. Cuando puedas, trae el equipo para completar el trabajo.`.trim();
+    const text = `Hola ${o.customer_name || ""}, ya tenemos la pieza de tu boleto ${o.order_number || ""}. Cuando puedas, trae el equipo para completar el trabajo.`.trim();
     window.open(`https://wa.me/${waDigits}?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
   };
 

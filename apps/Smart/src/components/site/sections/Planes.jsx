@@ -25,7 +25,7 @@ const SOLO_NO_INCLUYE = ["POS y cobros", "Inventario", "Finanzas e IVU"];
 
 const COMPLETO_INCLUYE = [
   "Todo lo de Solo boletos",
-  "Órdenes con cobros y POS",
+  "Boletos con cobros y POS",
   "Finanzas y reportes · IVU 11.5%",
   "Inventario y compras",
   "Portal del cliente",

@@ -252,7 +252,7 @@ export default function WorkOrderTab({ user }) {
       <Card className="bg-zinc-900/50 border-white/10">
         <CardHeader>
           <CardTitle>Configuración del Wizard</CardTitle>
-          <CardDescription>Personaliza el flujo de creación de órdenes</CardDescription>
+          <CardDescription>Personaliza el flujo de creación de boletos</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Steps Order */}
@@ -493,7 +493,7 @@ export default function WorkOrderTab({ user }) {
       <Card className="bg-zinc-900/50 border-white/10">
         <CardHeader>
           <CardTitle>Configuración del Panel</CardTitle>
-          <CardDescription>Personaliza la vista de órdenes individuales</CardDescription>
+          <CardDescription>Personaliza la vista de boletos individuales</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">

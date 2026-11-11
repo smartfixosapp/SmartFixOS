@@ -284,7 +284,7 @@ export default function WorkOrderPanel({ order, onUpdate, onClose, onDelete, onP
             </Button>
 
             {user && ["admin", "manager"].includes(user.role) && (
-              <Button onClick={() => setShowDeleteDialog(true)} size="icon" variant="destructive" className="h-9 w-9" title="Eliminar" aria-label="Eliminar orden de trabajo">
+              <Button onClick={() => setShowDeleteDialog(true)} size="icon" variant="destructive" className="h-9 w-9" title="Eliminar" aria-label="Eliminar boleto de trabajo">
                 <Trash2 className="w-4 h-4" />
               </Button>
             )}
@@ -338,7 +338,7 @@ export default function WorkOrderPanel({ order, onUpdate, onClose, onDelete, onP
                       <a
                         href={(() => {
                           const reciboUrl = `${window.location.origin}/Receipt?order_id=${order.id}`;
-                          const subj = encodeURIComponent(`Tu recibo — ${order?.order_number || "orden"}`);
+                          const subj = encodeURIComponent(`Tu recibo — ${order?.order_number || "boleto"}`);
                           const body = encodeURIComponent(`Hola ${order?.customer_name || ""},\n\nAquí está tu recibo de ${order?.device_brand || ""} ${order?.device_model || ""}:\n\n${reciboUrl}\n\nGracias.`);
                           return `mailto:${order.customer_email}?subject=${subj}&body=${body}`;
                         })()}

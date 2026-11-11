@@ -325,9 +325,9 @@ export default function QuickRepairPanel({ open, onClose, onSuccess }) {
               <div className="w-10 h-10 rounded-apple-sm bg-apple-orange/15 flex items-center justify-center">
                 <Wrench className="w-5 h-5 text-apple-orange" />
               </div>
-              <span>Órdenes Rápidas</span>
+              <span>Boletos Rápidos</span>
             </DialogTitle>
-            <p className="apple-text-footnote apple-label-secondary mt-1 ml-[52px]">Crea una orden en segundos</p>
+            <p className="apple-text-footnote apple-label-secondary mt-1 ml-[52px]">Crea un boleto en segundos</p>
           </div>
 
           {/* Steps */}
@@ -637,7 +637,7 @@ export default function QuickRepairPanel({ open, onClose, onSuccess }) {
                     <CheckCircle2 className="w-8 h-8 text-apple-green" />
                   </div>
                   <h3 className="apple-text-title2 apple-label-primary mb-1">¡Todo Listo!</h3>
-                  <p className="apple-text-footnote apple-label-secondary mb-6">Revisa los detalles antes de crear la orden</p>
+                  <p className="apple-text-footnote apple-label-secondary mb-6">Revisa los detalles antes de crear el boleto</p>
 
                   <div className="apple-surface-elevated rounded-apple-md p-4 text-left space-y-3">
                     <div className="flex justify-between">
@@ -679,7 +679,7 @@ export default function QuickRepairPanel({ open, onClose, onSuccess }) {
             disabled={!canProceed() || loading}
             className="apple-btn apple-btn-primary apple-btn-lg px-8"
           >
-            {step === 4 ? (loading ? "Creando..." : "Confirmar Orden") : "Continuar"}
+            {step === 4 ? (loading ? "Creando..." : "Confirmar Boleto") : "Continuar"}
           </Button>
         </div>
       </DialogContent>

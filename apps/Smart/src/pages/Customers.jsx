@@ -177,7 +177,7 @@ export default function Customers() {
             <Users className="w-3.5 h-3.5" style={{ color: "#8E8E93" }} /> {stats.total} clientes
           </span>
           <span className="tabular-nums" style={{ background: "rgba(255,214,10,0.14)", color: "#FFD60A", borderRadius: 999, padding: "5px 12px", display: "flex", alignItems: "center", gap: 5 }}>
-            <Star className="w-3.5 h-3.5" /> {stats.vip} VIP (3+ órdenes)
+            <Star className="w-3.5 h-3.5" /> {stats.vip} VIP (3+ boletos)
           </span>
           <span className="tabular-nums" style={{ background: "rgba(48,209,88,0.14)", color: "#30D158", borderRadius: 999, padding: "5px 12px", display: "flex", alignItems: "center", gap: 5 }}>
             <Plus className="w-3.5 h-3.5" /> {stats.newThisMonth} nuevos este mes
@@ -253,7 +253,7 @@ export default function Customers() {
                           <div className="flex items-center gap-2 mt-1 flex-wrap">
                             {totalOrders > 0 && (
                               <span className="apple-text-caption1 font-medium text-[#F2662E] bg-[#F2662E]/15 px-2 py-0.5 rounded-full tabular-nums">
-                                {totalOrders} {totalOrders === 1 ? "orden" : "órdenes"}
+                                {totalOrders} {totalOrders === 1 ? "boleto" : "boletos"}
                               </span>
                             )}
                             {lastVisit && (
@@ -326,7 +326,7 @@ export default function Customers() {
                     <th className="text-left px-5 py-3 apple-text-caption1 apple-label-secondary font-medium">Cliente</th>
                     <th className="text-left px-5 py-3 apple-text-caption1 apple-label-secondary font-medium">Contacto</th>
                     <th className="text-left px-5 py-3 apple-text-caption1 apple-label-secondary font-medium">Última actividad</th>
-                    <th className="text-center px-5 py-3 apple-text-caption1 apple-label-secondary font-medium">Órdenes</th>
+                    <th className="text-center px-5 py-3 apple-text-caption1 apple-label-secondary font-medium">Boletos</th>
                     <th className="text-right px-5 py-3 apple-text-caption1 apple-label-secondary font-medium">Acciones</th>
                   </tr>
                 </thead>

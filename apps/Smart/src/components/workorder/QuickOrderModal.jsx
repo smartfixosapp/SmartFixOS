@@ -109,20 +109,20 @@ async function sendAdminNewOrderEmail({ recipients, orderNumber, customerName, d
 
   const safeCustomer = customerName || "Cliente";
   const safeDevice = deviceInfo || "Equipo";
-  const safeOrder = orderNumber || "Nueva orden";
+  const safeOrder = orderNumber || "Nuevo boleto";
   const actionUrl = `/Orders?order=${orderId}`;
 
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;background:#0b1220;color:#e5eefc;">
       <div style="background:linear-gradient(135deg,#06b6d4,#10b981);padding:24px;border-radius:16px;">
-        <h1 style="margin:0;font-size:28px;color:#ffffff;">Nueva orden ${safeOrder}</h1>
-        <p style="margin:10px 0 0;color:#eaffff;font-size:16px;">Se registró una nueva orden en Archilla OS.</p>
+        <h1 style="margin:0;font-size:28px;color:#ffffff;">Nuevo boleto ${safeOrder}</h1>
+        <p style="margin:10px 0 0;color:#eaffff;font-size:16px;">Se registró un nuevo boleto en Archilla OS.</p>
       </div>
       <div style="background:#111827;border:1px solid #1f2937;border-radius:16px;padding:24px;margin-top:20px;">
         <p style="margin:0 0 12px;font-size:15px;"><strong>Cliente:</strong> ${safeCustomer}</p>
         <p style="margin:0 0 12px;font-size:15px;"><strong>Equipo:</strong> ${safeDevice}</p>
-        <p style="margin:0 0 20px;font-size:15px;"><strong>Orden:</strong> ${safeOrder}</p>
-        <a href="${actionUrl}" style="display:inline-block;padding:12px 20px;border-radius:10px;background:#22c55e;color:#052e16;text-decoration:none;font-weight:700;">Ver orden</a>
+        <p style="margin:0 0 20px;font-size:15px;"><strong>Boleto:</strong> ${safeOrder}</p>
+        <a href="${actionUrl}" style="display:inline-block;padding:12px 20px;border-radius:10px;background:#22c55e;color:#052e16;text-decoration:none;font-weight:700;">Ver boleto</a>
       </div>
     </div>
   `;
@@ -132,7 +132,7 @@ async function sendAdminNewOrderEmail({ recipients, orderNumber, customerName, d
     headers: await authJsonHeaders(),
     body: JSON.stringify({
       to: emails,
-      subject: `Nueva orden ${safeOrder} - ${safeCustomer}`,
+      subject: `Nuevo boleto ${safeOrder} - ${safeCustomer}`,
       body: html,
       from_name: "Archilla OS",
     }),
@@ -140,7 +140,7 @@ async function sendAdminNewOrderEmail({ recipients, orderNumber, customerName, d
 
   const result = await response.json().catch(() => ({}));
   if (!response.ok || result?.success === false) {
-    throw new Error(result?.error || "No se pudo enviar email de nueva orden");
+    throw new Error(result?.error || "No se pudo enviar email de nuevo boleto");
   }
 }
 
@@ -819,13 +819,13 @@ export default function QuickOrderModal({ open, onClose, onSuccess }) {
             userId: admin.id,
             userEmail: admin.email,
             type: "new_order",
-            title: `Nueva orden #${newOrder.order_number}`,
+            title: `Nuevo boleto #${newOrder.order_number}`,
             body: `${fullName} - ${deviceBrand?.name || ""} ${deviceModel}`,
             relatedEntityType: "order",
             relatedEntityId: newOrder.id,
             relatedEntityNumber: newOrder.order_number,
             actionUrl: `/Orders?order=${newOrder.id}`,
-            actionLabel: "Ver orden",
+            actionLabel: "Ver boleto",
             priority: "normal"
           });
         }
@@ -845,12 +845,12 @@ export default function QuickOrderModal({ open, onClose, onSuccess }) {
       window.dispatchEvent(new CustomEvent('workorder-created', { detail: { order: newOrder } }));
       window.dispatchEvent(new Event('force-refresh'));
 
-      toast.success("✅ Orden creada exitosamente");
+      toast.success("✅ Boleto creado exitosamente");
       onSuccess?.(newOrder);
       onClose();
     } catch (err) {
       console.error("Error creating order:", err);
-      toast.error("Error al crear la orden: " + err.message);
+      toast.error("Error al crear el boleto: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -876,7 +876,7 @@ export default function QuickOrderModal({ open, onClose, onSuccess }) {
               <Wrench className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white sm:text-2xl">Nueva Orden</h1>
+              <h1 className="text-xl font-bold text-white sm:text-2xl">Nuevo Boleto</h1>
               <p className="text-sm text-gray-400">Completa los detalles de reparacion</p>
             </div>
           </div>
@@ -1573,7 +1573,7 @@ export default function QuickOrderModal({ open, onClose, onSuccess }) {
               ) : (
                 <>
                   <Save className="w-6 h-6 mr-3" />
-                  Crear Orden
+                  Crear Boleto
                   {customerEmail && <Mail className="w-5 h-5 ml-2 opacity-70" />}
                 </>
               )}

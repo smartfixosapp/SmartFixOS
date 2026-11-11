@@ -66,7 +66,7 @@ export default function DeleteTransactionDialog({ open, onClose, transaction, on
             <p className="apple-text-subheadline apple-label-primary">Detalles de la transacción:</p>
             <div className="apple-text-caption1 apple-label-secondary space-y-1">
               <div className="flex justify-between">
-                <span>Orden:</span>
+                <span>Boleto:</span>
                 <span className="tabular-nums apple-label-primary">{transaction.order_number}</span>
               </div>
               <div className="flex justify-between">

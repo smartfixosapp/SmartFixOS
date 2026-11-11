@@ -160,7 +160,7 @@ export default function PublicReceipt() {
         <hr style={{ border: 0, borderTop: `1px solid ${LINE}`, margin: "16px 0 14px" }} />
 
         <h2 style={{ fontSize: 20, fontWeight: 800 }}>{order.paid ? "RECIBO DE PAGO" : "RECIBO"}</h2>
-        <p style={{ fontSize: 14, fontWeight: 700, color: GRAY, marginTop: 6 }}>Orden {order.order_number || ""}</p>
+        <p style={{ fontSize: 14, fontWeight: 700, color: GRAY, marginTop: 6 }}>Boleto {order.order_number || ""}</p>
         <p style={{ fontSize: 13, color: GRAY, marginTop: 4 }}>Fecha: {order.created_date ? dateTime(new Date(order.created_date)) : ""}</p>
         {delivered && <p style={{ fontSize: 13, color: GRAY, marginTop: 2 }}>Entregado: {dateTime(delivered)}</p>}
 

@@ -27,7 +27,7 @@ export default function MobileBottomNav() {
   const location    = useLocation();
   const [activeTab, setActiveTab] = useState("home");
   const { hasPanelsOpen: panelsOpen } = usePanelState();
-  const hasPanelsOpen             = panelsOpen || /^\/Orders\/[^/]+/.test(location.pathname);
+  const hasPanelsOpen             = panelsOpen || /^\/(Orders|Boletos)\/[^/]+/.test(location.pathname);
   const lastPathRef               = useRef(location.pathname);
 
   // ── Visual Viewport API ─────────────────────────────────────────────────
@@ -66,7 +66,7 @@ export default function MobileBottomNav() {
     let tab = "home";
     if (p === "/" || p === "/Dashboard") tab = "home";
     else if (p.includes("POS"))         tab = "pos";
-    else if (p.includes("Orders"))      tab = "orders";
+    else if (p.includes("Orders") || p.includes("Boletos")) tab = "orders";
     else if (p.includes("Inventory"))   tab = businessMode === "retail" ? "inventory" : "settings";
     else if (p.includes("Settings"))    tab = "settings";
     setActiveTab(tab);
@@ -92,7 +92,7 @@ export default function MobileBottomNav() {
   const tabs = [
     businessMode === "retail"
       ? { id: "inventory", label: "Inventario", icon: Package, path: "/Inventory" }
-      : { id: "orders", label: "Órdenes", icon: Wrench, path: "/Orders" },
+      : { id: "orders", label: "Boletos", icon: Wrench, path: "/Orders" },
     { id: "pos", label: "POS", icon: ShoppingCart, path: "/POS" },
     { id: "home", label: "Inicio", icon: Home, path: "/Dashboard" },
     { id: "settings", label: "Ajustes", icon: Settings, path: "/Settings" },

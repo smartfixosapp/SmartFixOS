@@ -93,7 +93,7 @@ export default function CreateCustomerDialog({ open, onClose, onSuccess, custome
           }
         }
         
-        console.log(`🔄 Actualizando ${allOrders.length} órdenes del cliente...`);
+        console.log(`🔄 Actualizando ${allOrders.length} boletos del cliente...`);
         
         for (const order of allOrders) {
           await appClient.entities.Order.update(order.id, {
@@ -105,7 +105,7 @@ export default function CreateCustomerDialog({ open, onClose, onSuccess, custome
           });
         }
         
-        toast.success(`✅ Cliente y ${allOrders.length} órdenes actualizadas`);
+        toast.success(`✅ Cliente y ${allOrders.length} boletos actualizados`);
       } else {
         // Create new
         const customerNumber = await generateCustomerNumber();

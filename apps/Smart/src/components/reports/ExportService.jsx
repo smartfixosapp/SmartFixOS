@@ -413,15 +413,15 @@ class ExportService {
         "Cliente": c.name,
         "Teléfono": c.phone,
         "Email": c.email || "—",
-        "Total Órdenes": customerOrders.length,
+        "Total Boletos": customerOrders.length,
         "Total Gastado": totalSpent,
-        "Promedio por Orden": avgOrder,
-        "Última Orden": lastOrder ? lastOrder.created_date : "—",
+        "Promedio por Boleto": avgOrder,
+        "Último Boleto": lastOrder ? lastOrder.created_date : "—",
         "Estado": customerOrders.length === 0 ? "Inactivo" : customerOrders.length >= 5 ? "VIP" : "Activo"
       };
     });
 
-    const totalOrders = data.reduce((sum, d) => sum + d["Total Órdenes"], 0);
+    const totalOrders = data.reduce((sum, d) => sum + d["Total Boletos"], 0);
     const totalRevenue = data.reduce((sum, d) => sum + d["Total Gastado"], 0);
 
     if (format === "csv") {
@@ -434,17 +434,17 @@ class ExportService {
           { key: "Cliente", label: "Cliente" },
           { key: "Teléfono", label: "Teléfono" },
           { key: "Email", label: "Email" },
-          { key: "Total Órdenes", label: "Órdenes", numeric: true },
+          { key: "Total Boletos", label: "Boletos", numeric: true },
           { key: "Total Gastado", label: "Total Gastado", numeric: true, currency: true },
-          { key: "Promedio por Orden", label: "Promedio", numeric: true, currency: true },
-          { key: "Última Orden", label: "Última Orden", date: true },
+          { key: "Promedio por Boleto", label: "Promedio", numeric: true, currency: true },
+          { key: "Último Boleto", label: "Último Boleto", date: true },
           { key: "Estado", label: "Estado" }
         ],
         data,
         filename: "reporte_clientes",
         summary: {
           "Total Clientes": customers.length,
-          "Total Órdenes": totalOrders,
+          "Total Boletos": totalOrders,
           "Ingresos Totales": `$${totalRevenue.toFixed(2)}`,
           "Promedio por Cliente": `$${(totalRevenue / customers.length || 0).toFixed(2)}`
         }

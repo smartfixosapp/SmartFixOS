@@ -225,7 +225,7 @@ export default function Dashboard() {
   const hoyCard = (
     <button onClick={() => setSheet("hoy")} className="apple-press flex items-center gap-3 text-left" style={{ padding: 16, borderRadius: 16, background: "#1C1C1E" }}>
       <span style={{ width: 40, height: 40, borderRadius: 999, background: "rgba(242,102,46,0.15)", color: FP.brand, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><CalendarCheck className="w-5 h-5" /></span>
-      <span className="flex-1 min-w-0"><span className="block" style={{ fontSize: 15, fontWeight: 600 }}>Hoy</span><span className="block" style={{ fontSize: 12, color: "#8E8E93" }}>Lo que tienes por atender: órdenes, cobros, tareas e inventario</span></span>
+      <span className="flex-1 min-w-0"><span className="block" style={{ fontSize: 15, fontWeight: 600 }}>Hoy</span><span className="block" style={{ fontSize: 12, color: "#8E8E93" }}>Lo que tienes por atender: boletos, cobros, tareas e inventario</span></span>
       <span style={{ color: FP.brand, fontSize: 13, fontWeight: 700 }}>Ver mi día</span>
     </button>
   );
@@ -245,7 +245,7 @@ export default function Dashboard() {
         {draft && !wizard && (
           <div className="flex items-center gap-3" style={{ padding: 16, borderRadius: 16, background: "#1C1C1E" }}>
             <span style={{ width: 40, height: 40, borderRadius: 999, background: "rgba(242,102,46,0.15)", color: FP.brand, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><FileClock className="w-5 h-5" /></span>
-            <span className="flex-1 min-w-0"><span className="block" style={{ fontSize: 15, fontWeight: 600 }}>Orden a medias</span><span className="block truncate" style={{ fontSize: 12, color: "#8E8E93" }}>{draftSummary(draft)}</span></span>
+            <span className="flex-1 min-w-0"><span className="block" style={{ fontSize: 15, fontWeight: 600 }}>Boleto a medias</span><span className="block truncate" style={{ fontSize: 12, color: "#8E8E93" }}>{draftSummary(draft)}</span></span>
             <button onClick={() => { discardDraft(); setDraft(null); }} aria-label="Descartar borrador" style={{ width: 28, height: 28, borderRadius: 999, background: "#3A3A3C", display: "flex", alignItems: "center", justifyContent: "center" }}><X className="w-3.5 h-3.5" /></button>
             <button onClick={() => requestNewOrder(null, true)} className="apple-press" style={{ padding: "8px 14px", borderRadius: 999, background: FP.brand, color: "#fff", fontSize: 12, fontWeight: 700 }}>Continuar</button>
           </div>
@@ -303,7 +303,7 @@ export default function Dashboard() {
         hasPunch={!!openEntry} hasCash={!!register} onPunch={() => setSheet("punch")} onCash={() => (register ? requestCloseCash() : setCashSheet("open"))}
         onOpenOrder={openOrder} onPay={(id) => navigate(`/Orders/${id}?pay=1`)} />
       <WelcomeOnboarding open={showWelcome} tenant={tenant} onAction={(key) => { setShowWelcome(false); if (key) primerosActions[key]?.(); }} />
-      <AlertDialog open={limitAlert} title="Límite del plan alcanzado" message="Alcanzaste el límite de 50 órdenes este mes. Actualiza a Plan Pro para crear órdenes sin límite." onClose={() => setLimitAlert(false)} actions={[{ label: "Entendido", bold: true }]} />
+      <AlertDialog open={limitAlert} title="Límite del plan alcanzado" message="Alcanzaste el límite de 50 boletos este mes. Actualiza a Plan Pro para crear boletos sin límite." onClose={() => setLimitAlert(false)} actions={[{ label: "Entendido", bold: true }]} />
       {wizard && (
         <NewOrderWizard open prefill={wizard.prefill} resume={wizard.resume} tenant={tenant} employee={employee}
           onClose={() => { setWizard(null); setDraft(loadDraft()); }}

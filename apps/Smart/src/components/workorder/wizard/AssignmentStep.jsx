@@ -112,7 +112,7 @@ export default function AssignmentStep({ formData, updateFormData, currentUser }
       {technicians.length === 0 ? (
         <div className="bg-apple-yellow/12 rounded-apple-md p-4">
           <p className="apple-text-subheadline text-apple-yellow">
-            No hay técnicos disponibles. La orden se creará sin asignar.
+            No hay técnicos disponibles. El boleto se creará sin asignar.
           </p>
         </div>
       ) : (
@@ -161,7 +161,7 @@ export default function AssignmentStep({ formData, updateFormData, currentUser }
           <Users className="w-4 h-4 mt-0.5 flex-shrink-0" />
           <span>
             {formData.assigned_to
-              ? "Orden será asignada a este técnico automáticamente"
+              ? "Boleto será asignado a este técnico automáticamente"
               : "Puedes asignar un técnico ahora o dejarlo para después"
             }
           </span>

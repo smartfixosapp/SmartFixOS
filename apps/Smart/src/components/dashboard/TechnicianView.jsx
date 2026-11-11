@@ -156,7 +156,7 @@ export default function TechnicianView({ session, onNewOrder }) {
         ) : filtered.length === 0 ? (
           <div className="py-12 text-center">
             <CheckCircle2 className="w-8 h-8 apple-label-tertiary mx-auto mb-2" />
-            <p className="apple-label-tertiary apple-text-subheadline font-medium">Sin órdenes en esta categoría</p>
+            <p className="apple-label-tertiary apple-text-subheadline font-medium">Sin boletos en esta categoría</p>
           </div>
         ) : (
           <div className="space-y-2">

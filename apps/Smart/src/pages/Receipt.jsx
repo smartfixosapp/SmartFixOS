@@ -38,7 +38,7 @@ export default function Receipt() {
   const [bizName, setBizName] = useState("Archilla OS");
 
   useEffect(() => {
-    if (!orderId) { setError("ID de orden no proporcionado."); setLoading(false); return; }
+    if (!orderId) { setError("ID de boleto no proporcionado."); setLoading(false); return; }
 
     (async () => {
       try {
@@ -48,7 +48,7 @@ export default function Receipt() {
         let q = supabase.from("order").select("*").eq("id", orderId);
         if (tenantId) q = q.eq("tenant_id", tenantId);
         const { data: ord, error: ordErr } = await q.single();
-        if (ordErr || !ord) throw new Error("Orden no encontrada.");
+        if (ordErr || !ord) throw new Error("Boleto no encontrado.");
         setOrder(ord);
 
         // Fetch transactions for this order (para recibo de pago)
@@ -68,7 +68,7 @@ export default function Receipt() {
           .single();
         if (cfg?.payload?.storeName) setBizName(cfg.payload.storeName);
       } catch (e) {
-        setError(e.message || "Error al cargar la orden.");
+        setError(e.message || "Error al cargar el boleto.");
       } finally {
         setLoading(false);
       }

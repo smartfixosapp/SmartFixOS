@@ -1115,11 +1115,11 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
       }
       if (woGroups.size > 0) {
         if (woUpdated === woGroups.size) {
-          toast.success(`✅ Items enlazados a ${woUpdated} orden${woUpdated === 1 ? "" : "es"} de trabajo`);
+          toast.success(`✅ Items enlazados a ${woUpdated} boleto${woUpdated === 1 ? "" : "s"} de trabajo`);
         } else if (woUpdated > 0) {
-          toast.warning(`Solo ${woUpdated}/${woGroups.size} órdenes de trabajo se actualizaron`);
+          toast.warning(`Solo ${woUpdated}/${woGroups.size} boletos de trabajo se actualizaron`);
         } else {
-          toast.error(`❌ No se pudo enlazar items a las órdenes de trabajo. Revisa la consola.`);
+          toast.error(`❌ No se pudo enlazar items a los boletos de trabajo. Revisa la consola.`);
         }
       }
 
@@ -1497,14 +1497,14 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                         {workOrders.length > 0 && (
                           <div className="mt-1">
                             <p className="text-[9px] text-white/50 font-semibold mb-0.5">
-                              Enlazar a orden de trabajo (opcional)
+                              Enlazar a boleto de trabajo (opcional)
                             </p>
                             <select
                               value={row.work_order_id || ""}
                               onChange={(e) => updateRow(idx, { work_order_id: e.target.value })}
                               className="w-full bg-zinc-900 border border-white/10 rounded-lg px-2 py-1 text-[11px] text-white"
                             >
-                              <option value="">— Sin orden de trabajo —</option>
+                              <option value="">— Sin boleto de trabajo —</option>
                               {workOrders.slice(0, 100).map((wo) => (
                                 <option key={wo.id} value={wo.id}>
                                   {wo.order_number || wo.id?.slice(-6)}
@@ -1560,7 +1560,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                           value={row.unit_price}
                           onChange={(e) => updateRow(idx, { unit_price: Number(e.target.value || 0) })}
                           className="bg-emerald-500/[0.05] border-emerald-500/25 text-white text-xs h-8 font-semibold"
-                          title="Precio al cliente. Es el que se factura cuando enlazas con una orden de trabajo."
+                          title="Precio al cliente. Es el que se factura cuando enlazas con un boleto de trabajo."
                         />
                         {Number(row.unit_cost || 0) > 0 && Number(row.unit_price || 0) > 0 && (() => {
                           const margin = Number(row.unit_price) - Number(row.unit_cost);

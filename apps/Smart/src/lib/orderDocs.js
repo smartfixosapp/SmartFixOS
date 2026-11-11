@@ -86,7 +86,7 @@ async function build(kind, { order, tenant, publicView = false }) {
     const qr = await qrData(orderQrUrl(order));
     doc.addImage(qr, "PNG", R - 80, 40, 80, 80);
     text(order.order_number || "", R - 40, 123, { size: 9, align: "center" });
-    text("Escanear para ver orden", R - 40, 135, { size: 7, color: [170, 170, 170], align: "center" });
+    text("Escanear para ver boleto", R - 40, 135, { size: 7, color: [170, 170, 170], align: "center" });
   }
   text(tenant?.name || "Taller de Reparación", L, y, { size: 22, style: "bold" });
   y += 26;
@@ -97,7 +97,7 @@ async function build(kind, { order, tenant, publicView = false }) {
   y += 12;
   if (quote) {
     text("COTIZACIÓN", L, y, { size: 18, style: "bold", color: BRAND });
-    text(`Orden ${order.order_number || ""}`, R, y + 2, { size: 14, style: "bold", align: "right" });
+    text(`Boleto ${order.order_number || ""}`, R, y + 2, { size: 14, style: "bold", align: "right" });
     y += 26;
     text(`Emitida: ${new Intl.DateTimeFormat("es-PR", { day: "numeric", month: "short", year: "numeric" }).format(new Date())}`, L, y, { size: 10, color: GRAY });
     y += 18;
@@ -111,7 +111,7 @@ async function build(kind, { order, tenant, publicView = false }) {
   } else {
     text(order.paid ? "RECIBO DE PAGO" : "RECIBO", L, y, { size: 18, style: "bold" });
     y += 24;
-    text(`Orden ${order.order_number || ""}`, L, y, { size: 12, style: "bold", color: GRAY });
+    text(`Boleto ${order.order_number || ""}`, L, y, { size: 12, style: "bold", color: GRAY });
     y += 16;
     text(`Fecha: ${order.created_date ? dateTime(new Date(order.created_date)) : ""}`, L, y, { size: 10, color: GRAY });
     y += 13;

@@ -56,15 +56,15 @@ export default function CancelPartsSheet({ open, plan, busy, onClose, onConfirm 
       dismissable={!busy}
       footer={(
         <div className="flex flex-col gap-2">
-          <Btn onClick={() => onConfirm(draft)} disabled={busy} color={C.red}>{busy ? "Un momento…" : draft.alreadyCancelled ? "Acomodar piezas" : "Cancelar orden"}</Btn>
+          <Btn onClick={() => onConfirm(draft)} disabled={busy} color={C.red}>{busy ? "Un momento…" : draft.alreadyCancelled ? "Acomodar piezas" : "Cancelar boleto"}</Btn>
           <p className="text-center" style={{ fontSize: 11, color: C.sub }}>Después de esto no sale &ldquo;Deshacer&rdquo;. Revisa aquí antes.</p>
         </div>
       )}
     >
       <p style={{ fontSize: 14, color: C.sub }}>
         {draft.alreadyCancelled
-          ? "Esta orden ya está cancelada, pero quedaron piezas pendientes. Revisa qué pasa con cada una."
-          : "Esta orden tiene piezas. Revisa qué pasa con cada una antes de cancelar."}
+          ? "Este boleto ya está cancelado, pero quedaron piezas pendientes. Revisa qué pasa con cada una."
+          : "Este boleto tiene piezas. Revisa qué pasa con cada una antes de cancelar."}
       </p>
 
       {draft.stockReturns.length > 0 && (
@@ -72,7 +72,7 @@ export default function CancelPartsSheet({ open, plan, busy, onClose, onConfirm 
           <Header color={C.green}>Vuelven a tu inventario</Header>
           <Group>
             {draft.stockReturns.map((r) => (
-              <Line key={r.id} name={r.name} detail="Salió de tu inventario para esta orden" quantity={r.quantity} right={<Switch on={r.include} label={`Devolver ${r.name}`} onChange={(v) => patch("stockReturns", r.id, { include: v })} />} />
+              <Line key={r.id} name={r.name} detail="Salió de tu inventario para este boleto" quantity={r.quantity} right={<Switch on={r.include} label={`Devolver ${r.name}`} onChange={(v) => patch("stockReturns", r.id, { include: v })} />} />
             ))}
           </Group>
           <Footer>Apaga la que ya se instaló o se dañó: esa no vuelve.</Footer>
@@ -81,7 +81,7 @@ export default function CancelPartsSheet({ open, plan, busy, onClose, onConfirm 
 
       {draft.arrivedParts.length > 0 && (
         <>
-          <Header color={C.green}>Llegó para esta orden</Header>
+          <Header color={C.green}>Llegó para este boleto</Header>
           <Group>
             {draft.arrivedParts.map((p) => (
               <Line key={p.id} name={p.name} detail={`Compra ${p.purchaseNumber}`} quantity={p.quantity} right={<Switch on={p.include} label={`Ingresar ${p.name}`} onChange={(v) => patch("arrivedParts", p.id, { include: v })} />} />
@@ -120,7 +120,7 @@ export default function CancelPartsSheet({ open, plan, busy, onClose, onConfirm 
         <>
           <Header color={C.sub}>Compras que no se cancelan</Header>
           <Group>{draft.sharedPurchases.map((p) => <Line key={p.id} name={p.itemsLabel} detail={`Compra ${p.purchaseNumber}`} />)}</Group>
-          <Footer>Traen piezas de otras órdenes o ya llegaron a medias. Lo que falta entra a tu inventario cuando llegue, y su gasto se queda.</Footer>
+          <Footer>Traen piezas de otros boletos o ya llegaron a medias. Lo que falta entra a tu inventario cuando llegue, y su gasto se queda.</Footer>
         </>
       )}
 

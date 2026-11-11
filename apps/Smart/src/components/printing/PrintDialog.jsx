@@ -42,14 +42,14 @@ export default function PrintDialog({ open, onClose, type, data, customer }) {
             <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff;">
               <div style="background: linear-gradient(135deg, #00A8E8 0%, #10B981 50%, #A8D700 100%); padding: 40px 20px; text-align: center;">
                 <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">
-                  🔧 Orden de Trabajo
+                  🔧 Boleto de Trabajo
                 </h1>
               </div>
               
               <div style="padding: 40px 30px; background: white;">
                 <div style="background: #F9FAFB; border-left: 4px solid #00A8E8; padding: 20px; margin-bottom: 30px; border-radius: 8px;">
                   <div style="margin-bottom: 15px;">
-                    <p style="margin: 0; color: #6B7280; font-size: 12px;">ORDEN</p>
+                    <p style="margin: 0; color: #6B7280; font-size: 12px;">BOLETO</p>
                     <p style="margin: 4px 0 0 0; color: #111827; font-size: 24px; font-weight: bold;">${data.order_number}</p>
                   </div>
                   <div>
@@ -85,11 +85,11 @@ export default function PrintDialog({ open, onClose, type, data, customer }) {
         await base44.integrations.Core.SendEmail({
           from_name: "Archilla OS",
           to: emailToUse,
-          subject: `🔧 Orden #${data.order_number} - Archilla OS`,
+          subject: `🔧 Boleto #${data.order_number} - Archilla OS`,
           body: emailBody
         });
 
-        toast.success("✅ Orden enviada por email");
+        toast.success("✅ Boleto enviado por email");
       } else {
         const itemsList = (data.items || []).map((item, idx) => 
           `<tr style="background: ${idx % 2 === 0 ? '#F9FAFB' : 'white'};">
@@ -209,10 +209,10 @@ export default function PrintDialog({ open, onClose, type, data, customer }) {
     
     if (type === "order") {
       message = `
-🔧 *ORDEN DE TRABAJO*
+🔧 *BOLETO DE TRABAJO*
 ━━━━━━━━━━━━━━━━━━━━
 
-📋 *Orden:* ${data.order_number}
+📋 *Boleto:* ${data.order_number}
 👤 *Cliente:* ${data.customer_name}
 📱 *Equipo:* ${data.device_brand || ''} ${data.device_model || ''}
 ${data.device_serial ? `🔢 *Serie:* ${data.device_serial}` : ''}
@@ -263,7 +263,7 @@ Gracias por su compra
         <DialogHeader>
           <DialogTitle className="apple-label-primary apple-text-title2 flex items-center gap-2">
             <MessageCircle className="w-6 h-6 text-apple-blue" />
-            Enviar {type === "order" ? "Orden" : "Recibo"}
+            Enviar {type === "order" ? "Boleto" : "Recibo"}
           </DialogTitle>
         </DialogHeader>
 

@@ -26,7 +26,7 @@ function strings(lang) {
     anyQuestionsLine: t("Cualquier duda respondiendo este correo y te ayudamos.", "Any questions, just reply to this email and we'll help you out."),
     sentBy: (n) => t(`Enviado por ${n} · Powered by Archilla OS`, `Sent by ${n} · Powered by Archilla OS`),
     equipmentTitle: t("EQUIPO", "DEVICE"),
-    orderLabel: t("Orden", "Order"),
+    orderLabel: t("Boleto", "Order"),
     typeLabel: t("Tipo", "Type"),
     brandLabel: t("Marca", "Brand"),
     familyLabel: t("Familia", "Family"),
@@ -48,7 +48,7 @@ function strings(lang) {
     receivedHowHeading: t("CÓMO RECIBIMOS TU EQUIPO", "HOW WE RECEIVED YOUR DEVICE"),
     whatWeFoundHeading: t("LO QUE ENCONTRAMOS", "WHAT WE FOUND"),
     returnPhotosHeading: t("Fotos al recibir el equipo de vuelta", "Photos of the device on its return"),
-    morePhotos: (n) => t(`+ ${n} foto(s) más en tu orden`, `+ ${n} more photo(s) in your order`),
+    morePhotos: (n) => t(`+ ${n} foto(s) más en tu boleto`, `+ ${n} more photo(s) in your order`),
     beforeAfterHeading: t("CÓMO LLEGÓ Y CÓMO TE LO ENTREGAMOS", "HOW IT ARRIVED AND HOW WE RETURNED IT"),
     arrivedLabel: t("ASÍ LLEGÓ", "HOW IT ARRIVED"),
     deliveredLabel: t("ASÍ TE LO ENTREGAMOS", "HOW WE RETURNED IT"),
@@ -75,7 +75,7 @@ function strings(lang) {
       `Thank you for trusting ${shop}. If you have a moment, it would help us a lot if you left a review on ${platform}: ${url}`
     ),
     paymentMethod: (m) => (m === "card" ? t("Tarjeta", "Card") : m === "ath_movil" ? "ATH Móvil" : t("Efectivo", "Cash")),
-    paymentFinalLine: (amount, method) => t(`Monto final: ${amount} (${method}). Tu orden queda completamente pagada.`, `Final amount: ${amount} (${method}). Your order is now paid in full.`),
+    paymentFinalLine: (amount, method) => t(`Monto final: ${amount} (${method}). Tu boleto queda completamente pagado.`, `Final amount: ${amount} (${method}). Your order is now paid in full.`),
     depositReceivedLine: (amount, method) => t(`Recibimos tu depósito de ${amount} (${method}) para tu reparación.`, `We received your deposit of ${amount} (${method}) toward your repair.`),
     depositNotAFullPaymentNote: t("Este es un abono — no es el pago completo. Te avisaremos el total cuando terminemos el diagnóstico.", "This is a partial deposit — not the full payment. We'll let you know the total once diagnosis is done."),
     paymentReceiptTitle: t("RECIBO DE PAGO", "PAYMENT RECEIPT"),
@@ -85,9 +85,9 @@ function strings(lang) {
     methodLabel: t("Método", "Method"),
     dateLabel: t("Fecha", "Date"),
     referenceLabel: t("Referencia", "Reference"),
-    orderTotalLabel: t("Total orden", "Order total"),
+    orderTotalLabel: t("Total boleto", "Order total"),
     paidToDateLabel: t("Pagado acumulado", "Paid to date"),
-    orderPaidOffLabel: t("✓ Orden saldada", "✓ Order paid in full"),
+    orderPaidOffLabel: t("✓ Boleto saldado", "✓ Order paid in full"),
     pendingQuoteLabel: t("Pendiente de cotizar", "Quote pending"),
     refundReceiptTitle: t("REEMBOLSO", "REFUND"),
     refundAmountLabel: t("Monto devuelto", "Amount refunded"),
@@ -106,7 +106,7 @@ function strings(lang) {
     changeLabel: t("Cambio", "Change"),
     warrantyTitle: t("GARANTÍA", "WARRANTY"),
     conditionsTitle: t("CONDICIONES", "TERMS"),
-    abandonmentNoticeSubject: (n) => t(`Aviso: recoge tu equipo · Orden ${n}`, `Reminder: pick up your device · Order ${n}`),
+    abandonmentNoticeSubject: (n) => t(`Aviso: recoge tu equipo · Boleto ${n}`, `Reminder: pick up your device · Order ${n}`),
     abandonmentNoticeTitle: t("Equipo pendiente de recoger", "Device waiting for pickup"),
     abandonmentNoticeLine: (days, fee) => t(
       `tu equipo lleva ${days} días listo para recoger. Por favor pásalo a buscar pronto. Pasado el plazo aplica un cargo diario de ${fee} por almacenaje y, de no reclamarse, el equipo podría considerarse abandonado según nuestros términos.`,
@@ -591,9 +591,9 @@ export async function sendOrderUpdate({ order, tenant, customStatusLine = null }
   const t = (es, en) => (lang === "en" ? en : es);
   return sendOrderEmail({
     order, tenant, lang,
-    subject: t(`Actualización · Orden ${number} · ${fromName}`, `Update · Order ${number} · ${fromName}`),
-    heroTitle: t(`Actualización de tu orden ${number}`, `Update on your order ${number}`),
-    heroLine: customStatusLine || t(`Tu orden ${number} ahora está en estado: ${label}.`, `Your order ${number} is now: ${label}.`),
+    subject: t(`Actualización · Boleto ${number} · ${fromName}`, `Update · Order ${number} · ${fromName}`),
+    heroTitle: t(`Actualización de tu boleto ${number}`, `Update on your order ${number}`),
+    heroLine: customStatusLine || t(`Tu boleto ${number} ahora está en estado: ${label}.`, `Your order ${number} is now: ${label}.`),
     sections: [{ type: "deviceDetails" }, { type: "lineItems" }, { type: "financialSummary" }],
   });
 }

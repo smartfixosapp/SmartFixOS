@@ -117,7 +117,7 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
         customer_name: order.customer_name,
         items: [{
           type: "service",
-          name: `Depósito - Orden ${order.order_number}`,
+          name: `Depósito - Boleto ${order.order_number}`,
           quantity: 1,
           price: depositAmount, // Simplificado, sin desglosar tax para depósito puro
           total: depositAmount
@@ -141,7 +141,7 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
           order_number: order.order_number,
           type: "revenue",
           amount: depositAmount,
-          description: `Depósito - Orden ${order.order_number}${notes ? ` - ${notes}` : ''}`,
+          description: `Depósito - Boleto ${order.order_number}${notes ? ` - ${notes}` : ''}`,
           category: "repair_payment",
           payment_method: paymentMethod,
           recorded_by: user?.full_name || user?.email,
@@ -179,7 +179,7 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
           await SendEmail({
             to: order.customer_email,
             template_key: "custom",
-            custom_subject: `Recibo de Depósito ${saleNumber} - Orden ${order.order_number}`,
+            custom_subject: `Recibo de Depósito ${saleNumber} - Boleto ${order.order_number}`,
             custom_body: "",
             event_type: "deposit_received",
             order_data: {
@@ -274,7 +274,7 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
           {/* Resumen de la Orden */}
           <div className="apple-surface-secondary rounded-apple-md p-3 space-y-1.5">
             <div className="flex justify-between apple-text-subheadline apple-label-secondary">
-              <span>Total Orden</span>
+              <span>Total Boleto</span>
               <span className="tabular-nums">${orderTotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between apple-text-subheadline text-apple-green">

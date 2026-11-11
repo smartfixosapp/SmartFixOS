@@ -55,7 +55,7 @@ const SimplifiedOrderCard = ({ order, onSelect }) => {
       type="button"
       onClick={() => onSelect?.(order?.id)}
       className="apple-type apple-press group relative w-full text-left overflow-hidden rounded-apple-lg apple-card p-4"
-      aria-label={`Orden ${order?.order_number || "sin número"} de ${order?.customer_name || "cliente"}`}
+      aria-label={`Boleto ${order?.order_number || "sin número"} de ${order?.customer_name || "cliente"}`}
     >
       <div className="relative z-10 flex flex-col gap-3">
         {/* Header: Nº de orden + Estado */}

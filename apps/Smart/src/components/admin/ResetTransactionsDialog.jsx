@@ -64,7 +64,7 @@ export default function ResetTransactionsDialog({ open, onClose, onSuccess }) {
 
       if (result.data?.success) {
         toast.success(
-          `Reset completado: ${result.data.affected.transactions} transacciones, ${result.data.affected.orders} órdenes`
+          `Reset completado: ${result.data.affected.transactions} transacciones, ${result.data.affected.orders} boletos`
         );
         onSuccess?.();
         onClose();
@@ -102,7 +102,7 @@ export default function ResetTransactionsDialog({ open, onClose, onSuccess }) {
             <p className="apple-text-caption1 text-apple-orange mb-2">Advertencia crítica:</p>
             <ul className="apple-text-caption1 apple-label-secondary space-y-1 list-disc list-inside">
               <li>Esto eliminará TODAS las transacciones</li>
-              <li>Todas las órdenes volverán a amount_paid=0</li>
+              <li>Todos los boletos volverán a amount_paid=0</li>
               <li>No se puede deshacer</li>
               <li>Se registrará en AuditLog</li>
             </ul>

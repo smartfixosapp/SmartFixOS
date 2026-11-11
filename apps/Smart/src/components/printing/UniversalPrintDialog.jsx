@@ -44,7 +44,7 @@ export default function UniversalPrintDialog({
                 </div>
                 <div>
                   <h2 className="apple-label-primary apple-text-subheadline font-semibold">
-                    {type === "sale" ? "Recibo de Venta" : "Recibo de Orden"}
+                    {type === "sale" ? "Recibo de Venta" : "Recibo de Boleto"}
                   </h2>
                   <p className="apple-label-secondary apple-text-caption1 tabular-nums">
                     #{type === "sale" ? data?.sale_number : data?.order_number}

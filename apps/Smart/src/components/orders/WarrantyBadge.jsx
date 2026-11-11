@@ -13,7 +13,7 @@ export default function WarrantyBadge({ passed_warranty }) {
     <Badge
       className="apple-type rounded-apple-sm bg-apple-yellow/15 text-apple-yellow apple-text-caption1 font-semibold flex items-center gap-1.5 flex-shrink-0 border-0"
       variant="outline"
-      title="Esta orden pasó por garantía"
+      title="Este boleto pasó por garantía"
     >
       <Star className="w-3 h-3 fill-current text-apple-yellow" />
       Garantía

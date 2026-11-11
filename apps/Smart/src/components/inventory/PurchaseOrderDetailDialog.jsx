@@ -528,7 +528,7 @@ export default function PurchaseOrderDetailDialog({
         }
         if (transitioned > 0) {
           toast.success(
-            `📦 Tracking guardado · ${transitioned} orden${transitioned === 1 ? "" : "es"} de trabajo movida${transitioned === 1 ? "" : "s"} a "Esperando piezas"`,
+            `📦 Tracking guardado · ${transitioned} boleto${transitioned === 1 ? "" : "s"} de trabajo movido${transitioned === 1 ? "" : "s"} a "Esperando piezas"`,
           );
         } else {
           toast.success("📦 Tracking guardado");
@@ -980,14 +980,14 @@ export default function PurchaseOrderDetailDialog({
                               </div>
                               <div>
                                 <p className="text-[9px] text-white/50 font-semibold mb-0.5">
-                                  🔗 Enlazar a orden de trabajo
+                                  🔗 Enlazar a boleto de trabajo
                                 </p>
                                 <select
                                   value={it.work_order_id || ""}
                                   onChange={(e) => handleChangeItemWorkOrder(idx, e.target.value)}
                                   className="w-full bg-zinc-900 border border-white/10 rounded-lg px-2 py-1 text-[11px] text-white"
                                 >
-                                  <option value="">— Sin orden de trabajo —</option>
+                                  <option value="">— Sin boleto de trabajo —</option>
                                   {workOrders.slice(0, 200).map((wo) => (
                                     <option key={wo.id} value={wo.id}>
                                       {wo.order_number || wo.id?.slice(-6)}
@@ -1279,7 +1279,7 @@ export default function PurchaseOrderDetailDialog({
                   const linkedItems = form.items.filter((it) => it.work_order_id);
                   const linkedWoIds = [...new Set(linkedItems.map((it) => it.work_order_id))];
                   const extraMsg = linkedWoIds.length > 0
-                    ? `\n\n⚠️ Se removerán ${linkedItems.length} items de ${linkedWoIds.length} orden${linkedWoIds.length === 1 ? "" : "es"} de trabajo enlazada${linkedWoIds.length === 1 ? "" : "s"}.`
+                    ? `\n\n⚠️ Se removerán ${linkedItems.length} items de ${linkedWoIds.length} boleto${linkedWoIds.length === 1 ? "" : "s"} de trabajo enlazado${linkedWoIds.length === 1 ? "" : "s"}.`
                     : "";
                   const ok = window.confirm(
                     `¿Borrar la orden de compra ${form.po_number || ""}?${extraMsg}\n\nNo se borran los gastos ya registrados en Finanzas (esos hay que borrarlos por separado si existen).`,

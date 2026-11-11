@@ -42,8 +42,8 @@ export default function ScheduleVisitSheet({ open, order, tenant, by, onClose, o
       if (newConfirmation && String(order.customer_email || "").trim()) {
         const shop = tenantEmailFromName(tenant);
         const when2 = new Intl.DateTimeFormat("es-PR", { dateStyle: "full", timeStyle: "short" }).format(at);
-        const html = `<div style="font-family:-apple-system,Segoe UI,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#111"><h2>Cita confirmada</h2><p>Hola ${esc(order.customer_name || "")}, tu cita para la orden <b>${esc(order.order_number)}</b> quedó confirmada.</p><p><b>${esc(when2)}</b></p>${location.trim() ? `<p>Ubicación: ${esc(location.trim())}</p>` : ""}${note.trim() ? `<p>${esc(note.trim())}</p>` : ""}<p style="color:#666">${esc(shop)}</p></div>`;
-        sendRawEmail({ tenantId: order.tenant_id, to: order.customer_email, subject: `Cita confirmada · Orden ${order.order_number}`, html, replyTo: tenant?.email, fromName: shop }).catch(() => {});
+        const html = `<div style="font-family:-apple-system,Segoe UI,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#111"><h2>Cita confirmada</h2><p>Hola ${esc(order.customer_name || "")}, tu cita para el boleto <b>${esc(order.order_number)}</b> quedó confirmado.</p><p><b>${esc(when2)}</b></p>${location.trim() ? `<p>Ubicación: ${esc(location.trim())}</p>` : ""}${note.trim() ? `<p>${esc(note.trim())}</p>` : ""}<p style="color:#666">${esc(shop)}</p></div>`;
+        sendRawEmail({ tenantId: order.tenant_id, to: order.customer_email, subject: `Cita confirmada · Boleto ${order.order_number}`, html, replyTo: tenant?.email, fromName: shop }).catch(() => {});
       }
       onSaved?.(); onClose();
     } catch (e) { setError(e?.message || String(e)); } finally { setBusy(false); }
@@ -65,9 +65,9 @@ export default function ScheduleVisitSheet({ open, order, tenant, by, onClose, o
         <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", color: W.sub, textTransform: "uppercase" }}>Nota de la visita</p>
         <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder="Ej: llevar cargador, batería iPhone 14 Pro, verificar Face ID…" aria-label="Nota de la visita" style={field} />
         <p style={{ fontSize: 12, color: W.sub }}>Aparecerá en la agenda como recordatorio de lo que llevas o vas a hacer.</p>
-        <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", color: W.sub, textTransform: "uppercase" }}>Estado de la orden</p>
+        <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", color: W.sub, textTransform: "uppercase" }}>Estado del boleto</p>
         <div className="flex items-center gap-3" style={{ padding: 12, borderRadius: 14, background: "#2C2C2E" }}>
-          <span className="flex-1"><span className="block" style={{ fontSize: 15, fontWeight: 600 }}>Cambiar estado a Agendado</span><span className="block" style={{ fontSize: 12, color: W.sub }}>{canToggle ? "Marca que el trabajo está listo y solo falta la visita." : order.status === "scheduled" ? "La orden ya está en estado Agendado." : "La orden está cerrada."}</span></span>
+          <span className="flex-1"><span className="block" style={{ fontSize: 15, fontWeight: 600 }}>Cambiar estado a Agendado</span><span className="block" style={{ fontSize: 12, color: W.sub }}>{canToggle ? "Marca que el trabajo está listo y solo falta la visita." : order.status === "scheduled" ? "El boleto ya está en estado Agendado." : "El boleto está cerrado."}</span></span>
           <button onClick={() => canToggle && setToStatus((v) => !v)} role="switch" aria-checked={toStatus && canToggle} disabled={!canToggle} aria-label="Cambiar estado a Agendado" style={{ width: 46, height: 28, borderRadius: 999, background: toStatus && canToggle ? "#4DC780" : "#3A3A3C", position: "relative", opacity: canToggle ? 1 : 0.4 }}><span style={{ position: "absolute", top: 2, left: toStatus && canToggle ? 20 : 2, width: 24, height: 24, borderRadius: 999, background: "#fff", transition: "left 0.2s" }} /></button>
         </div>
         {error && <Banner color="#FF7373">{error}</Banner>}

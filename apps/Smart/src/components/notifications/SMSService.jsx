@@ -178,11 +178,11 @@ class SMSService {
 
 Su ${order.device_brand} ${order.device_model} está listo para recoger.
 
-Orden: ${order.order_number}
+Boleto: ${order.order_number}
 ${order.balance_due > 0 ? `Saldo pendiente: $${order.balance_due.toFixed(2)}` : '✅ Pagado completamente'}
 
 Horario: Lun-Sáb 9AM-6PM
-Traiga esta orden al recoger.
+Traiga este boleto al recoger.
 
 ¡Gracias por confiar en nosotros! 🛠️`;
 
@@ -207,7 +207,7 @@ Hola ${customerName},
 
 Le recordamos su cita para el ${appointmentDate}.
 
-Orden: ${orderNumber}
+Boleto: ${orderNumber}
 
 Si necesita reagendar, llámenos al (787) 123-4567.
 
@@ -234,7 +234,7 @@ Si necesita reagendar, llámenos al (787) 123-4567.
 
     const message = `📱 Actualización - ${tenantBrandName()}
 
-Orden: ${order.order_number}
+Boleto: ${order.order_number}
 Cliente: ${order.customer_name}
 
 ${statusMessage}
@@ -318,13 +318,13 @@ Para cancelar SMS, responde STOP.`;
       return { success: false, error: "No phone number" };
     }
 
-    const message = `✅ Orden Recibida - ${tenantBrandName()}
+    const message = `✅ Boleto Recibido - ${tenantBrandName()}
 
 Gracias ${order.customer_name}!
 
 Hemos recibido su ${order.device_brand} ${order.device_model}.
 
-Orden: ${order.order_number}
+Boleto: ${order.order_number}
 ${order.assigned_to_name ? `Técnico: ${order.assigned_to_name}` : ''}
 
 Le notificaremos cuando esté listo.

@@ -194,7 +194,7 @@ export default function TechnicianPerformanceDialog({ open, onClose, technician 
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="apple-text-caption1 apple-label-tertiary">Total Órdenes</p>
+                      <p className="apple-text-caption1 apple-label-tertiary">Total Boletos</p>
                       <p className="apple-text-title2 apple-label-primary mt-1 tabular-nums">
                         {metrics?.totalOrders || 0}
                       </p>
@@ -344,7 +344,7 @@ export default function TechnicianPerformanceDialog({ open, onClose, technician 
               <CardContent className="pt-6">
                 <h3 className="apple-text-headline apple-label-primary mb-4 flex items-center gap-2">
                   <MessageSquare className="w-5 h-5 text-apple-red" />
-                  Órdenes Recientes
+                  Boletos Recientes
                 </h3>
                 <div className="space-y-2">
                   {orders.length > 0 ? (
@@ -371,7 +371,7 @@ export default function TechnicianPerformanceDialog({ open, onClose, technician 
                     ))
                   ) : (
                     <p className="text-center apple-label-tertiary apple-text-body py-4">
-                      No hay órdenes en este período
+                      No hay boletos en este período
                     </p>
                   )}
                 </div>

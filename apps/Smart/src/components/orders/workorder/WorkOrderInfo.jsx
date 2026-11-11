@@ -73,7 +73,7 @@ export default function WorkOrderInfoHeader({ order, assignedUser, onUpdate }) {
               onClick={() =>
                 openWhatsApp(
                   order.customer_phone,
-                  `Hola ${order.customer_name}, te escribimos de ${tenantBrandName()} sobre tu orden ${order.order_number}.`
+                  `Hola ${order.customer_name}, te escribimos de ${tenantBrandName()} sobre tu boleto ${order.order_number}.`
                 )
               }
               className="flex items-center gap-1.5 hover:text-green-400"

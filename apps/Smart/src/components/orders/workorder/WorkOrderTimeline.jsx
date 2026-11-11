@@ -320,7 +320,7 @@ export default function WorkOrderTimeline({ order, onUpdate, hideComposer = fals
           <div className="mb-3 flex items-center justify-between gap-3">
             <div>
               <p className="text-[11px] font-semibold tracking-[0.28em] text-white/35">Nuevo comentario</p>
-              <p className="mt-1 text-sm text-white/50">Registra acuerdos, hallazgos y contexto importante sin salir de la orden.</p>
+              <p className="mt-1 text-sm text-white/50">Registra acuerdos, hallazgos y contexto importante sin salir del boleto.</p>
             </div>
             <div className="hidden rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold tracking-[0.24em] text-white/45 sm:block">
               Enter para enviar

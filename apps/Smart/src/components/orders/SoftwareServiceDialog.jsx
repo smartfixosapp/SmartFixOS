@@ -164,7 +164,7 @@ export default function SoftwareServiceDialog({ open, onClose, onSuccess }) {
         order_id: order.id,
         order_number: orderNumber,
         event_type: "create",
-        description: `Orden de servicio de software creada: ${serviceLabel}`,
+        description: `Boleto de servicio de software creado: ${serviceLabel}`,
         user_name: user?.full_name || user?.email || "Sistema",
         user_id: user?.id || null,
         metadata: {
@@ -180,7 +180,7 @@ export default function SoftwareServiceDialog({ open, onClose, onSuccess }) {
           await base44.integrations.Core.SendEmail({
             from_name: "Archilla OS",
             to: formData.customer_email,
-            subject: `Confirmación de Servicio - Orden ${orderNumber}`,
+            subject: `Confirmación de Servicio - Boleto ${orderNumber}`,
             body: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f5f5f5;">
                 <div style="background: white; padding: 30px; border-radius: 10px;">
@@ -193,7 +193,7 @@ export default function SoftwareServiceDialog({ open, onClose, onSuccess }) {
                   </p>
                   
                   <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                    <p style="margin: 5px 0;"><strong>Orden:</strong> ${orderNumber}</p>
+                    <p style="margin: 5px 0;"><strong>Boleto:</strong> ${orderNumber}</p>
                     <p style="margin: 5px 0;"><strong>Servicio:</strong> ${serviceLabel}</p>
                     <p style="margin: 5px 0;"><strong>Equipo:</strong> ${formData.device_brand} ${formData.device_model}</p>
                     <p style="margin: 5px 0;"><strong>IMEI/Serial:</strong> ${formData.device_serial}</p>

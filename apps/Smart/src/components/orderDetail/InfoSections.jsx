@@ -39,7 +39,7 @@ export function QuickServiceCard({ order, onQuickService }) {
     <>
       {showQuick && (
         <div>
-          <SectionHeader>Tipo de orden</SectionHeader>
+          <SectionHeader>Tipo de boleto</SectionHeader>
           <Card>
             <div className="grid grid-cols-2 gap-1" style={{ padding: 3, borderRadius: 12, background: C.card2 }}>
               {[[false, "Regular"], [true, "Rápida"]].map(([v, l]) => {

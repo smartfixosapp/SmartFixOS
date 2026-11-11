@@ -154,7 +154,7 @@ export default function WorkOrderPanel({ order, onClose, onUpdate, panelVersion 
       await base44.entities.Order.delete(o.id);
       removeLocalOrder(o.id);
 
-      toast.success("Orden eliminada exitosamente");
+      toast.success("Boleto eliminado exitosamente");
       onClose();
       
       // Refrescar lista de órdenes
@@ -162,7 +162,7 @@ export default function WorkOrderPanel({ order, onClose, onUpdate, panelVersion 
       
     } catch (error) {
       console.error("Error eliminando orden:", error);
-      toast.error("Error al eliminar la orden");
+      toast.error("Error al eliminar el boleto");
     } finally {
       setDeleting(false);
       setShowPinPrompt(false);
@@ -180,7 +180,7 @@ export default function WorkOrderPanel({ order, onClose, onUpdate, panelVersion 
         <div className="z-[2] flex items-center justify-between px-3 py-2 border-b border-white/10 bg-black/40 flex-shrink-0">
           <div className="min-w-0">
             <div className="text-white font-semibold truncate">
-              {o.order_number || "SIN #ORDEN"}
+              {o.order_number || "SIN #BOLETO"}
             </div>
             <div className="text-[12px] text-gray-400 truncate">
               {(o.device_brand || "—") + " " + (o.device_model || "")}

@@ -31,7 +31,7 @@ const ARIA_TOOLS = [
     type: "function",
     function: {
       name: "obtener_tecnicos",
-      description: "Obtiene la lista de técnicos disponibles para asignar a una orden.",
+      description: "Obtiene la lista de técnicos disponibles para asignar a un boleto.",
       parameters: { type: "object", properties: {}, required: [] },
     },
   },
@@ -39,7 +39,7 @@ const ARIA_TOOLS = [
     type: "function",
     function: {
       name: "crear_orden_completa",
-      description: "Crea una orden de trabajo con toda la información recopilada. ÚSALA SOLO cuando tengas: cliente, equipo, problema, checklist, seguridad e indicaciones del cliente.",
+      description: "Crea un boleto de trabajo con toda la información recopilada. ÚSALA SOLO cuando tengas: cliente, equipo, problema, checklist, seguridad e indicaciones del cliente.",
       parameters: {
         type: "object",
         properties: {
@@ -107,7 +107,7 @@ const ARIA_TOOLS = [
     type: "function",
     function: {
       name: "buscar_orden",
-      description: "Busca una orden por número, cliente o dispositivo.",
+      description: "Busca un boleto por número, cliente o dispositivo.",
       parameters: {
         type: "object",
         properties: {
@@ -122,7 +122,7 @@ const ARIA_TOOLS = [
     type: "function",
     function: {
       name: "actualizar_estado_orden",
-      description: "Cambia el estado de una orden de trabajo.",
+      description: "Cambia el estado de un boleto de trabajo.",
       parameters: {
         type: "object",
         properties: {
@@ -138,7 +138,7 @@ const ARIA_TOOLS = [
     type: "function",
     function: {
       name: "agregar_nota_orden",
-      description: "Agrega una nota o comentario interno a una orden.",
+      description: "Agrega una nota o comentario interno a un boleto.",
       parameters: {
         type: "object",
         properties: {
@@ -153,7 +153,7 @@ const ARIA_TOOLS = [
     type: "function",
     function: {
       name: "asignar_tecnico",
-      description: "Asigna un técnico a una orden existente.",
+      description: "Asigna un técnico a un boleto existente.",
       parameters: {
         type: "object",
         properties: {
@@ -168,7 +168,7 @@ const ARIA_TOOLS = [
     type: "function",
     function: {
       name: "enviar_mensaje_cliente",
-      description: "Envía una notificación al cliente sobre su orden.",
+      description: "Envía una notificación al cliente sobre su boleto.",
       parameters: {
         type: "object",
         properties: {
@@ -263,7 +263,7 @@ const ARIA_TOOLS = [
     type: "function",
     function: {
       name: "ver_ordenes_listas",
-      description: "Muestra todas las órdenes listas para recoger que aún no han sido entregadas.",
+      description: "Muestra todos los boletos listos para recoger que aún no han sido entregados.",
       parameters: { type: "object", properties: {}, required: [] },
     },
   },
@@ -271,7 +271,7 @@ const ARIA_TOOLS = [
     type: "function",
     function: {
       name: "ver_ordenes_urgentes",
-      description: "Muestra órdenes urgentes, con prioridad alta o que llevan más de 3 días sin movimiento.",
+      description: "Muestra boletos urgentes, con prioridad alta o que llevan más de 3 días sin movimiento.",
       parameters: { type: "object", properties: {}, required: [] },
     },
   },
@@ -330,7 +330,7 @@ const ARIA_TOOLS = [
     type: "function",
     function: {
       name: "resumen_negocio",
-      description: "Muestra un resumen inteligente del negocio: ingresos de la semana, órdenes por estado, técnico más productivo.",
+      description: "Muestra un resumen inteligente del negocio: ingresos de la semana, boletos por estado, técnico más productivo.",
       parameters: { type: "object", properties: {}, required: [] },
     },
   },
@@ -338,7 +338,7 @@ const ARIA_TOOLS = [
     type: "function",
     function: {
       name: "carga_tecnicos",
-      description: "Muestra cuántas órdenes activas tiene asignada cada técnico.",
+      description: "Muestra cuántos boletos activos tiene asignado cada técnico.",
       parameters: { type: "object", properties: {}, required: [] },
     },
   },
@@ -346,11 +346,11 @@ const ARIA_TOOLS = [
     type: "function",
     function: {
       name: "enviar_recibo",
-      description: "Genera y envía por WhatsApp el recibo de una orden: recibo de entrada (cuando se recibe el equipo) o recibo de pago (cuando ya fue cobrado). Úsalo cuando el cliente pida su recibo.",
+      description: "Genera y envía por WhatsApp el recibo de un boleto: recibo de entrada (cuando se recibe el equipo) o recibo de pago (cuando ya fue cobrado). Úsalo cuando el cliente pida su recibo.",
       parameters: {
         type: "object",
         properties: {
-          orden_id:     { type: "string", description: "ID de la orden" },
+          orden_id:     { type: "string", description: "ID del boleto" },
           tipo_recibo:  { type: "string", enum: ["entrada", "pago", "auto"], description: "'entrada' = recibo de recepción, 'pago' = recibo de pago cobrado, 'auto' = detectar según estado" },
         },
         required: ["orden_id"],
@@ -362,11 +362,11 @@ const ARIA_TOOLS = [
 const STATUS_MAP = {
   buscar_cliente:          "Buscando cliente…",
   obtener_tecnicos:        "Cargando técnicos…",
-  crear_orden_completa:    "Creando orden…",
+  crear_orden_completa:    "Creando boleto…",
   buscar_precio_inventario:"Consultando inventario…",
   calcular_total_reparacion:"Calculando…",
   sugerir_accesorios:      "Preparando sugerencias…",
-  buscar_orden:            "Buscando orden…",
+  buscar_orden:            "Buscando boleto…",
   actualizar_estado_orden: "Actualizando estado…",
   agregar_nota_orden:      "Guardando nota…",
   asignar_tecnico:         "Asignando técnico…",
@@ -377,8 +377,8 @@ const STATUS_MAP = {
   ver_stock_bajo:              "Revisando inventario…",
   ver_caja_del_dia:            "Consultando caja…",
   registrar_gasto:             "Registrando gasto…",
-  ver_ordenes_listas:          "Buscando órdenes listas…",
-  ver_ordenes_urgentes:        "Buscando órdenes urgentes…",
+  ver_ordenes_listas:          "Buscando boletos listos…",
+  ver_ordenes_urgentes:        "Buscando boletos urgentes…",
   ajustar_stock:               "Ajustando stock…",
   agregar_producto_inventario: "Agregando producto…",
   actualizar_precio_producto:  "Actualizando precio…",
@@ -442,12 +442,12 @@ export default function ARIAChat() {
       page: null, aiTopic: null },
     { id: "dashboard", emoji: "📊", color: "from-cyan-500 to-blue-600",
       title: "Dashboard", subtitle: "El centro de mando",
-      content: "Ve todo de un vistazo: órdenes activas, caja del día, alertas y KPIs del taller.",
-      page: "/Dashboard", aiTopic: "dashboard de un taller de reparación: órdenes activas, caja, alertas y KPIs" },
+      content: "Ve todo de un vistazo: boletos activos, caja del día, alertas y KPIs del taller.",
+      page: "/Dashboard", aiTopic: "dashboard de un taller de reparación: boletos activos, caja, alertas y KPIs" },
     { id: "orders",    emoji: "🛠️", color: "from-emerald-500 to-green-600",
-      title: "Órdenes de Trabajo", subtitle: "El corazón del taller",
-      content: "Crea órdenes en segundos con el wizard: cliente, dispositivo, problema, técnico y evidencia.",
-      page: "/Dashboard", aiTopic: "órdenes de trabajo de reparación: wizard de pasos, estatus, técnicos asignados" },
+      title: "Boletos de Trabajo", subtitle: "El corazón del taller",
+      content: "Crea boletos en segundos con el wizard: cliente, dispositivo, problema, técnico y evidencia.",
+      page: "/Dashboard", aiTopic: "boletos de trabajo de reparación: wizard de pasos, estatus, técnicos asignados" },
     { id: "pos",       emoji: "🛒", color: "from-amber-500 to-orange-600",
       title: "POS — Punto de Venta", subtitle: "Caja y ventas",
       content: "Abre la caja, agrega productos al carrito y cobra. Acepta efectivo, tarjeta o ambos.",
@@ -625,8 +625,8 @@ export default function ARIAChat() {
         const sinStock = prods.filter(i => i.stock != null && i.min_stock != null && i.stock <= i.min_stock);
 
         const partes = [];
-        if (listas.length > 0) partes.push(`📦 **${listas.length} orden${listas.length > 1 ? "es" : ""} lista${listas.length > 1 ? "s" : ""} para recoger** — ${listas.slice(0,3).map(o => o.customer_name).join(", ")}${listas.length > 3 ? "…" : ""}`);
-        if (stale.length > 0) partes.push(`⏰ **${stale.length} orden${stale.length > 1 ? "es" : ""} sin movimiento** hace más de 3 días — ${stale.slice(0,2).map(o => `${o.customer_name} (${o.device_brand} ${o.device_model})`).join(", ")}${stale.length > 2 ? "…" : ""}`);
+        if (listas.length > 0) partes.push(`📦 **${listas.length} boleto${listas.length > 1 ? "s" : ""} listo${listas.length > 1 ? "s" : ""} para recoger** — ${listas.slice(0,3).map(o => o.customer_name).join(", ")}${listas.length > 3 ? "…" : ""}`);
+        if (stale.length > 0) partes.push(`⏰ **${stale.length} boleto${stale.length > 1 ? "s" : ""} sin movimiento** hace más de 3 días — ${stale.slice(0,2).map(o => `${o.customer_name} (${o.device_brand} ${o.device_model})`).join(", ")}${stale.length > 2 ? "…" : ""}`);
         if (sinStock.length > 0) partes.push(`⚠️ **${sinStock.length} producto${sinStock.length > 1 ? "s" : ""} con stock bajo** — ${sinStock.slice(0,2).map(i => i.name).join(", ")}${sinStock.length > 2 ? "…" : ""}`);
 
         if (partes.length > 0) {
@@ -690,7 +690,7 @@ export default function ARIAChat() {
       const items = Array.isArray(oc.order_items) ? oc.order_items : [];
       const photos = Array.isArray(oc.photos_metadata) ? oc.photos_metadata : [];
       const textAttachments = Array.isArray(oc._textAttachments) ? oc._textAttachments : [];
-      let greeting = `Estoy viendo la orden **#${oc.order_number || ""}** de **${oc.customer_name || "cliente"}** — ${oc.device_brand || ""} ${oc.device_model || ""}.`;
+      let greeting = `Estoy viendo el boleto **#${oc.order_number || ""}** de **${oc.customer_name || "cliente"}** — ${oc.device_brand || ""} ${oc.device_model || ""}.`;
       greeting += `\n\n**Problema:** ${oc.initial_problem || "no especificado"}`;
       greeting += `\n**Estado:** ${oc.status || "desconocido"}`;
       if (items.length > 0) greeting += `\n**Items:** ${items.map(i => i.name || "Item").join(", ")}`;
@@ -736,8 +736,8 @@ export default function ARIAChat() {
 
       orderBlock = `
 
-═══ ORDEN ACTUAL (estás asistiendo con esta orden) ═══
-Orden: #${oc.order_number || "N/A"}
+═══ BOLETO ACTUAL (estás asistiendo con este boleto) ═══
+Boleto: #${oc.order_number || "N/A"}
 Estado: ${oc.status || "desconocido"}
 Cliente: ${oc.customer_name || "N/A"} | Tel: ${oc.customer_phone || "N/A"} | Email: ${oc.customer_email || "N/A"}
 Dispositivo: ${oc.device_brand || ""} ${oc.device_model || ""} (${oc.device_type || "N/A"})
@@ -755,7 +755,7 @@ Con esta información puedes:
 - Sugerir diagnósticos basados en el problema y tipo de dispositivo
 - Recomendar piezas necesarias para la reparación
 - Estimar costos de reparación
-- Explicar el estado actual de la orden
+- Explicar el estado actual del boleto
 - Ayudar a redactar notas técnicas
 - Analizar reportes adjuntos (baterías, logs, etc.) y extraer hallazgos clave`;
     }
@@ -919,7 +919,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
               o.initial_problem?.toLowerCase().includes(term)
             );
           }).slice(0, 5);
-          if (!res.length) return JSON.stringify({ encontrado: false, mensaje: "No se encontró ninguna orden." });
+          if (!res.length) return JSON.stringify({ encontrado: false, mensaje: "No se encontró ningún boleto." });
           return JSON.stringify({ encontrado: true, ordenes: res.map(o => ({ id: o.id, numero: o.order_number, cliente: o.customer_name, dispositivo: `${o.device_brand} ${o.device_model}`, estado: o.status, problema: o.initial_problem })) });
         } catch (e) { return JSON.stringify({ error: e.message }); }
       }
@@ -954,7 +954,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
       case "enviar_mensaje_cliente": {
         try {
           const order = await dataClient.entities.Order.get(args.orden_id);
-          if (!order) return JSON.stringify({ error: "Orden no encontrada." });
+          if (!order) return JSON.stringify({ error: "Boleto no encontrado." });
           // Link al recibo/estado online del cliente
           const baseUrl  = window.location.origin;
           const recibUrl = `${baseUrl}/CustomerPortal?order_id=${order.id}`;
@@ -962,7 +962,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
             listo_para_recoger: `¡Hola ${order.customer_name}! 🎉 Tu ${order.device_brand} ${order.device_model} está listo para recoger.\n\nVe tu recibo aquí: ${recibUrl}\n\n¡Gracias por confiar en nosotros!`,
             en_reparacion:      `¡Hola ${order.customer_name}! 🔧 Tu equipo está en proceso de reparación. Te avisamos cuando esté listo.\n\nSeguimiento: ${recibUrl}`,
             esperando_piezas:   `¡Hola ${order.customer_name}! ⏳ Estamos esperando la pieza para tu equipo. Te mantenemos informado.\n\nSeguimiento: ${recibUrl}`,
-            personalizado:      args.mensaje_personalizado ? `${args.mensaje_personalizado}\n\nVer orden: ${recibUrl}` : "",
+            personalizado:      args.mensaje_personalizado ? `${args.mensaje_personalizado}\n\nVer boleto: ${recibUrl}` : "",
           };
           const texto = textos[args.tipo_mensaje];
           // Generar link de WhatsApp
@@ -1000,7 +1000,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
             if (args.cliente_id) return o.customer_id === args.cliente_id;
             return o.customer_name?.toLowerCase().includes(term);
           }).slice(0, 10);
-          if (!orders.length) return JSON.stringify({ encontrado: false, mensaje: "No hay órdenes para ese cliente." });
+          if (!orders.length) return JSON.stringify({ encontrado: false, mensaje: "No hay boletos para ese cliente." });
           const total = orders.reduce((s, o) => s + (o.total_amount || 0), 0);
           return JSON.stringify({ encontrado: true, total_reparaciones: orders.length, total_gastado: total, ordenes: orders.map(o => ({ numero: o.order_number, dispositivo: `${o.device_brand} ${o.device_model}`, estado: o.status, fecha: o.created_date?.slice(0, 10) })) });
         } catch (e) { return JSON.stringify({ error: e.message }); }
@@ -1034,7 +1034,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
         try {
           const all   = await dataClient.entities.Order.list("-updated_date", 100);
           const listas = (all || []).filter(o => o.status === "ready");
-          if (!listas.length) return JSON.stringify({ mensaje: "No hay órdenes listas para recoger." });
+          if (!listas.length) return JSON.stringify({ mensaje: "No hay boletos listos para recoger." });
           return JSON.stringify({
             total: listas.length,
             ordenes: listas.map(o => ({
@@ -1060,7 +1060,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
               : 99;
             return o.priority === "high" || o.status === "waiting_parts" || diasSinMov > 3;
           }).slice(0, 10);
-          if (!urgentes.length) return JSON.stringify({ mensaje: "¡Sin órdenes urgentes! Todo bajo control." });
+          if (!urgentes.length) return JSON.stringify({ mensaje: "¡Sin boletos urgentes! Todo bajo control." });
           return JSON.stringify({
             total: urgentes.length,
             ordenes: urgentes.map(o => {
@@ -1178,7 +1178,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
       case "enviar_recibo": {
         try {
           const order = await dataClient.entities.Order.get(args.orden_id);
-          if (!order) return JSON.stringify({ error: "Orden no encontrada." });
+          if (!order) return JSON.stringify({ error: "Boleto no encontrado." });
 
           const baseUrl    = window.location.origin;
           const reciboUrl  = `${baseUrl}/Receipt?order_id=${order.id}`;
@@ -1744,12 +1744,12 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                 </div>
                 <p className="apple-text-headline text-apple-blue">Hola, soy JENAI</p>
                 <p className="apple-text-footnote apple-label-tertiary leading-relaxed">
-                  Tu asistente inteligente. Creo órdenes paso a paso, consulto precios, actualizo estados y más.
+                  Tu asistente inteligente. Creo boletos paso a paso, consulto precios, actualizo estados y más.
                 </p>
                 <div className="flex flex-col gap-1.5 w-full mt-2">
                   {[
-                    "Quiero crear una nueva orden",
-                    "¿Qué órdenes están listas para recoger?",
+                    "Quiero crear un nuevo boleto",
+                    "¿Qué boletos están listos para recoger?",
                     "Enviar recibo al cliente",
                     "Resumen del negocio esta semana",
                     "¿Cómo va la carga de los técnicos?",
@@ -1778,7 +1778,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                         style={{ borderBottom: "0.5px solid rgb(var(--separator) / 0.29)" }}
                       >
                         <CheckCircle2 className="w-3.5 h-3.5 text-apple-green shrink-0" />
-                        <span className="apple-text-footnote text-apple-green">Orden Creada</span>
+                        <span className="apple-text-footnote text-apple-green">Boleto Creado</span>
                         <span className="ml-auto apple-text-caption1 text-apple-green tabular-nums">{msg.data.order_number}</span>
                       </div>
                       <div className="px-4 py-3 space-y-0.5">

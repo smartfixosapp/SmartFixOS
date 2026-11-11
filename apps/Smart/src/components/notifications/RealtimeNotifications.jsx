@@ -128,13 +128,13 @@ export function useRealtimeNotifications({ enabled = true } = {}) {
       <div className="apple-type flex items-center gap-3">
         <CheckCircle className="w-5 h-5 text-apple-green" />
         <div>
-          <p className="apple-text-subheadline font-semibold apple-label-primary">Orden completada</p>
-          <p className="apple-text-footnote apple-label-secondary tabular-nums">Orden #{event.order_number} entregada</p>
+          <p className="apple-text-subheadline font-semibold apple-label-primary">Boleto completado</p>
+          <p className="apple-text-footnote apple-label-secondary tabular-nums">Boleto #{event.order_number} entregado</p>
         </div>
       </div>,
       { duration: 6000, position: 'top-right' }
     );
-    notify({ title: "Orden completada", body: `Orden #${event.order_number} entregada al cliente`, tag: `order-${event.order_id}`, url: "/Orders" });
+    notify({ title: "Boleto completado", body: `Boleto #${event.order_number} entregado al cliente`, tag: `order-${event.order_id}`, url: "/Orders" });
     playNotificationSound();
   };
 
@@ -143,13 +143,13 @@ export function useRealtimeNotifications({ enabled = true } = {}) {
       <div className="apple-type flex items-center gap-3">
         <Package className="w-5 h-5 text-apple-blue" />
         <div>
-          <p className="apple-text-subheadline font-semibold apple-label-primary">Orden lista para recoger</p>
-          <p className="apple-text-footnote apple-label-secondary tabular-nums">Orden #{event.order_number}</p>
+          <p className="apple-text-subheadline font-semibold apple-label-primary">Boleto listo para recoger</p>
+          <p className="apple-text-footnote apple-label-secondary tabular-nums">Boleto #{event.order_number}</p>
         </div>
       </div>,
       { duration: 8000, position: 'top-right' }
     );
-    notify({ title: "Lista para recoger", body: `Orden #${event.order_number} está lista`, tag: `ready-${event.order_id}`, url: "/Orders" });
+    notify({ title: "Lista para recoger", body: `Boleto #${event.order_number} está listo`, tag: `ready-${event.order_id}`, url: "/Orders" });
     playNotificationSound();
   };
 
@@ -208,7 +208,7 @@ export const triggerRealtimeNotification = async (type, data) => {
           old_value: data.oldStatus,
           new_value: 'picked_up',
           user_name: data.userName,
-          notes: data.notes || 'Orden entregada al cliente'
+          notes: data.notes || 'Boleto entregado al cliente'
         });
         break;
 
@@ -220,7 +220,7 @@ export const triggerRealtimeNotification = async (type, data) => {
           old_value: data.oldStatus,
           new_value: 'ready_for_pickup',
           user_name: data.userName,
-          notes: data.notes || 'Orden lista para recoger'
+          notes: data.notes || 'Boleto listo para recoger'
         });
         break;
 

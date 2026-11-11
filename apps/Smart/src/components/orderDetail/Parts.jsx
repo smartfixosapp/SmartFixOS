@@ -57,7 +57,7 @@ export function EditPartPage({ open, line, product, orderNumber, onClose, onSave
     <Overlay z={320} onEscape={onClose}>
       <div className="flex items-center gap-3" style={{ padding: "12px 20px", borderBottom: `0.5px solid ${C.sep}` }}>
         <button onClick={onClose} style={{ color: C.brand, fontWeight: 600 }}>Cancelar</button>
-        <span className="flex-1 text-center"><b style={{ fontSize: 17 }}>Editar pieza</b><span className="block" style={{ fontSize: 12, color: C.sub }}>Orden {orderNumber}</span></span>
+        <span className="flex-1 text-center"><b style={{ fontSize: 17 }}>Editar pieza</b><span className="block" style={{ fontSize: 12, color: C.sub }}>Boleto {orderNumber}</span></span>
         <button onClick={save} className="apple-press" style={{ padding: "8px 18px", borderRadius: 999, background: C.brand, color: "#fff", fontWeight: 700 }}>Guardar</button>
       </div>
       <div className="flex-1 overflow-y-auto">
@@ -142,7 +142,7 @@ function OrderLinkSheet({ open, link, order, tenantId, employeeName, onClose, on
         {sup && (
           <>
             {singleShip && <p style={{ fontSize: 12, color: C.sub }}>Aquí juntar piezas no ahorra envío.</p>}
-            {!singleShip && promised && <p style={{ fontSize: 12, color: C.sub }}>Esta orden entrega hoy o mañana.</p>}
+            {!singleShip && promised && <p style={{ fontSize: 12, color: C.sub }}>Este boleto entrega hoy o mañana.</p>}
             {btn(draftCount > 0 ? `Añadir al pedido de ${sup.name} (${draftCount})` : `Empezar pedido de ${sup.name}`, accumulate, accumulatePrimary)}
             {btn("Ordenar ahora, esta va sola", now, !accumulatePrimary)}
           </>

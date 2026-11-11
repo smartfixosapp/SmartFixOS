@@ -94,6 +94,8 @@ function PagesContent() {
         <Route path="/Dashboard"         element={<RequireAuth><Layout><Dashboard /></Layout></RequireAuth>} />
         <Route path="/Orders"            element={<RequireAuth><Layout><Orders /></Layout></RequireAuth>} />
         <Route path="/Orders/:orderId"   element={<RequireAuth><Layout><OrderDetailRoute /></Layout></RequireAuth>} />
+        <Route path="/Boletos"           element={<RequireAuth><Layout><Orders /></Layout></RequireAuth>} />
+        <Route path="/Boletos/:orderId"  element={<RequireAuth><Layout><OrderDetailRoute /></Layout></RequireAuth>} />
         <Route path="/POS"               element={<RequireAuth><Layout><POS /></Layout></RequireAuth>} />
         <Route path="/Settings"          element={<RequireAuth><Layout><SettingsPage /></Layout></RequireAuth>} />
         <Route path="/SettingsLegacy"    element={<RequireAuth roles={["admin", "super_admin", "owner"]}><Layout><LegacySettingsPage /></Layout></RequireAuth>} />

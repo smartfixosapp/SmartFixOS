@@ -46,13 +46,13 @@ export default function SystemAuditPanel() {
       });
 
       if (incompleteteOrders.length > 0) {
-        results.orders.issues.push(`${incompleteteOrders.length} órdenes con datos incompletos`);
+        results.orders.issues.push(`${incompleteteOrders.length} boletos con datos incompletos`);
       }
       if (deletedOrders.length > 0) {
-        results.orders.warnings.push(`${deletedOrders.length} órdenes marcadas como eliminadas`);
+        results.orders.warnings.push(`${deletedOrders.length} boletos marcados como eliminados`);
       }
       if (duplicateNumbers.length > 0) {
-        results.orders.issues.push(`Números de orden duplicados: ${[...new Set(duplicateNumbers)].join(', ')}`);
+        results.orders.issues.push(`Números de boleto duplicados: ${[...new Set(duplicateNumbers)].join(', ')}`);
       }
 
       // 2. AUDITAR VENTAS (SALES)
@@ -101,7 +101,7 @@ export default function SystemAuditPanel() {
       });
 
       if (orphanedTx.length > 0) {
-        results.transactions.issues.push(`${orphanedTx.length} transacciones sin orden asociada`);
+        results.transactions.issues.push(`${orphanedTx.length} transacciones sin boleto asociado`);
       }
       if (invalidAmounts.length > 0) {
         results.transactions.issues.push(`${invalidAmounts.length} transacciones con montos inválidos`);

@@ -513,10 +513,10 @@ function RoleDialog({ open, role, onClose, onSave }) {
   });
 
   const availablePermissions = [
-    { code: "orders.read", label: "Ver órdenes" },
-    { code: "orders.create", label: "Crear órdenes" },
-    { code: "orders.update", label: "Editar órdenes" },
-    { code: "orders.delete", label: "Eliminar órdenes" },
+    { code: "orders.read", label: "Ver boletos" },
+    { code: "orders.create", label: "Crear boletos" },
+    { code: "orders.update", label: "Editar boletos" },
+    { code: "orders.delete", label: "Eliminar boletos" },
     { code: "inventory.read", label: "Ver inventario" },
     { code: "inventory.update", label: "Editar inventario" },
     { code: "users.read", label: "Ver usuarios" },

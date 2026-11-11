@@ -145,7 +145,7 @@ export function PayEmployeeDialog({ open, employee, tenant, tenantId, onClose, o
               line.totalAdvances > 0 ? ["Adelantos", `−${money(line.totalAdvances)}`] : null,
               ["Por pagar", money(line.balance), "#fff", true],
               line.unperiodedPaid > 0 ? ["Pago sin período", money(line.unperiodedPaid), WARN] : null,
-              line.undatedOrders > 0 ? ["Órdenes sin fecha de entrega", String(line.undatedOrders), WARN] : null].filter(Boolean).map(([k, v, c, b]) => <div key={k} className="flex justify-between gap-3" style={{ padding: "5px 0", fontSize: 14 }}><span style={{ color: W.sub }}>{k}</span><span style={{ fontWeight: b ? 800 : 600, color: c || "#fff" }}>{v}</span></div>)}
+              line.undatedOrders > 0 ? ["Boletos sin fecha de entrega", String(line.undatedOrders), WARN] : null].filter(Boolean).map(([k, v, c, b]) => <div key={k} className="flex justify-between gap-3" style={{ padding: "5px 0", fontSize: 14 }}><span style={{ color: W.sub }}>{k}</span><span style={{ fontWeight: b ? 800 : 600, color: c || "#fff" }}>{v}</span></div>)}
           </Sec>
         )}
         <Sec title="Monto a pagar" footer="Se registrará como gasto del taller categoría 'Payroll'.">
@@ -280,7 +280,7 @@ export function BatchPayrollDialog({ open, onClose, tenant, tenantId, onEditPunc
                       const r = rows[l.id] || { amount: "", included: false };
                       const paid = l.salaryPaid - l.proratedPaid > 0.009;
                       const partial = l.proratedPaid > 0.009;
-                      const info = [l.salaryPaid > 0 ? `Ya pagado ${money(l.salaryPaid)}` : null, l.advances > 0 ? `Adelantos ${money(l.advances)}` : null, l.advanceCarry > 0 ? `Adelanto pendiente ${money(l.advanceCarry)}` : null, l.unperiodedPaid > 0 ? `Pago sin período ${money(l.unperiodedPaid)}` : null, l.undatedOrders > 0 ? `Órdenes sin fecha de entrega: ${l.undatedOrders}` : null].filter(Boolean).join(" · ");
+                      const info = [l.salaryPaid > 0 ? `Ya pagado ${money(l.salaryPaid)}` : null, l.advances > 0 ? `Adelantos ${money(l.advances)}` : null, l.advanceCarry > 0 ? `Adelanto pendiente ${money(l.advanceCarry)}` : null, l.unperiodedPaid > 0 ? `Pago sin período ${money(l.unperiodedPaid)}` : null, l.undatedOrders > 0 ? `Boletos sin fecha de entrega: ${l.undatedOrders}` : null].filter(Boolean).join(" · ");
                       return (
                         <div key={l.id} className="flex items-center gap-3" style={{ padding: "12px 14px", borderTop: i ? `0.5px solid ${W.sep}` : "none", opacity: r.included ? 1 : 0.45 }}>
                           <button onClick={() => !l.isOrphan && setRows((p) => ({ ...p, [l.id]: { ...r, included: !r.included } }))} disabled={l.isOrphan} role="checkbox" aria-checked={r.included} aria-label={`Incluir ${l.employee.full_name}`} style={{ width: 26, height: 26, borderRadius: 8, background: r.included ? BRAND : "#3A3A3C", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{r.included && <Check className="w-4 h-4" strokeWidth={3} />}</button>

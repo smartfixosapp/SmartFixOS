@@ -17,23 +17,23 @@ export default function NotificationsTab({ config, onChange }) {
       events: {
         order_created: {
           enabled: true,
-          subject: "Nueva orden recibida - {{order_number}}",
-          template: "Tu orden {{order_number}} ha sido recibida y está siendo procesada."
+          subject: "Nuevo boleto recibido - {{order_number}}",
+          template: "Tu boleto {{order_number}} ha sido recibido y está siendo procesado."
         },
         order_status_changed: {
           enabled: true,
-          subject: "Actualización de tu orden - {{order_number}}",
-          template: "El estado de tu orden {{order_number}} cambió a: {{new_status}}"
+          subject: "Actualización de tu boleto - {{order_number}}",
+          template: "El estado de tu boleto {{order_number}} cambió a: {{new_status}}"
         },
         ready_for_pickup: {
           enabled: true,
           subject: "¡Tu equipo está listo! - {{order_number}}",
-          template: "Tu {{device_brand}} {{device_model}} está listo para recoger. Orden: {{order_number}}"
+          template: "Tu {{device_brand}} {{device_model}} está listo para recoger. Boleto: {{order_number}}"
         },
         completed: {
           enabled: true,
-          subject: "Orden completada - {{order_number}}",
-          template: "Tu orden {{order_number}} ha sido completada exitosamente."
+          subject: "Boleto completado - {{order_number}}",
+          template: "Tu boleto {{order_number}} ha sido completado exitosamente."
         },
         payment_received: {
           enabled: true,
@@ -47,15 +47,15 @@ export default function NotificationsTab({ config, onChange }) {
       events: {
         order_created: {
           enabled: false,
-          template: "911 SmartFix: Tu orden {{order_number}} fue recibida."
+          template: "911 SmartFix: Tu boleto {{order_number}} fue recibido."
         },
         ready_for_pickup: {
           enabled: false,
-          template: "911 SmartFix: Tu equipo {{device_model}} está listo para recoger. Orden: {{order_number}}"
+          template: "911 SmartFix: Tu equipo {{device_model}} está listo para recoger. Boleto: {{order_number}}"
         },
         completed: {
           enabled: false,
-          template: "911 SmartFix: Orden {{order_number}} completada. Gracias por tu preferencia."
+          template: "911 SmartFix: Boleto {{order_number}} completado. Gracias por tu preferencia."
         }
       }
     }
@@ -85,7 +85,7 @@ export default function NotificationsTab({ config, onChange }) {
           <div>
             <p className="text-apple-blue apple-text-headline mb-1">Sistema de Notificaciones Automáticas</p>
             <p className="apple-text-subheadline text-apple-blue">
-              Las notificaciones se envían automáticamente cuando cambia el estado de una orden.
+              Las notificaciones se envían automáticamente cuando cambia el estado de un boleto.
               Puedes personalizar los mensajes usando variables como {'{{order_number}}'}, {'{{customer_name}}'}, {'{{device_model}}'}, etc.
             </p>
           </div>
@@ -143,8 +143,8 @@ export default function NotificationsTab({ config, onChange }) {
             <div className="space-y-3 p-4 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
               <div className="flex items-center justify-between">
                 <div>
-                  <Label className="apple-label-primary apple-text-body">Orden Recibida</Label>
-                  <p className="apple-text-caption1 apple-label-tertiary">Cuando se crea una nueva orden</p>
+                  <Label className="apple-label-primary apple-text-body">Boleto Recibido</Label>
+                  <p className="apple-text-caption1 apple-label-tertiary">Cuando se crea un nuevo boleto</p>
                 </div>
                 <Checkbox
                   checked={emailEvents.order_created?.enabled || false}
@@ -175,7 +175,7 @@ export default function NotificationsTab({ config, onChange }) {
               <div className="flex items-center justify-between">
                 <div>
                   <Label className="apple-label-primary apple-text-body">Cambio de Estado</Label>
-                  <p className="apple-text-caption1 apple-label-tertiary">Cuando cambia el estado de la orden</p>
+                  <p className="apple-text-caption1 apple-label-tertiary">Cuando cambia el estado del boleto</p>
                 </div>
                 <Checkbox
                   checked={emailEvents.order_status_changed?.enabled || false}
