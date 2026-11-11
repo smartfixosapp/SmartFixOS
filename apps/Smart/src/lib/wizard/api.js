@@ -240,7 +240,7 @@ export async function searchOrdersForWarranty(tenantId) {
   return data || [];
 }
 
-async function nextOrderNumber(tenantId) {
+export async function nextOrderNumber(tenantId) {
   const { data, error } = await supabase.rpc("next_order_number", { p_tenant_id: tenantId });
   if (!error && data) return typeof data === "string" ? data : String(data);
   const { data: rows } = await supabase.from("order").select("order_number").eq("tenant_id", tenantId).not("order_number", "is", null).order("created_date", { ascending: false }).limit(500);
@@ -284,7 +284,7 @@ export async function analyzeDamagePhoto(file, deviceHint) {
   return { diagnosis: String(data.diagnosis), category: String(data.category || ""), confidence: String(data.confidence || "") };
 }
 
-const thumbPath = (p) => { const i = p.lastIndexOf("."); return i < 0 ? `${p}_thumb` : `${p.slice(0, i)}_thumb${p.slice(i)}`; };
+export const thumbPath = (p) => { const i = p.lastIndexOf("."); return i < 0 ? `${p}_thumb` : `${p.slice(0, i)}_thumb${p.slice(i)}`; };
 
 async function uploadJpegWithThumb(bucketName, path, file) {
   const bucket = supabase.storage.from(bucketName);

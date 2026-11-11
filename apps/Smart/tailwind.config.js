@@ -12,6 +12,7 @@
  *   - Easing springs y duraciones HIG
  * ────────────────────────────────────────────────────────────────────────── */
 module.exports = {
+  presets: [require("./tailwind.repara.cjs")],
   darkMode: ["class"],
   content: ["./index.html", "./src/**/*.{ts,tsx,js,jsx}"],
   theme: {
