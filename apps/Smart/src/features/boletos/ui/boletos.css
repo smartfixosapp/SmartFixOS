@@ -303,3 +303,23 @@
 @media (prefers-reduced-motion: no-preference) {
   .rb-tk, .rb-btn, .rb-oc, .rb-fi > span { transition: background-color var(--repara-motion-fast) var(--repara-ease-fast), border-color var(--repara-motion-fast) var(--repara-ease-fast), box-shadow var(--repara-motion-fast) var(--repara-ease-fast); }
 }
+.rb-ocs.m4 { --oc: 4; }
+@media (max-width: 700px) {
+  .rb-ocs.m4 { --oc: 2; }
+}
+.rb-x { position: absolute; right: 0; top: 0; width: 28px; height: 28px; color: #fff; background: rgba(0, 0, 0, 0.45); border-radius: 50%; }
+.rb-op small { font-size: 11px; opacity: 0.7; margin-left: 2px; }
+.rb-sgn { position: relative; border-radius: 14px; border: 1.5px dashed var(--rb-tx3); background: #fff; overflow: hidden; }
+.rb-sgn canvas { display: block; width: 100%; height: 190px; touch-action: none; cursor: crosshair; }
+.rb-sgn > span { position: absolute; inset: 0; display: grid; place-items: center; color: #8a8a8a; font-size: 14px; pointer-events: none; }
+.rb-sgn > button { position: absolute; right: 8px; bottom: 8px; }
+.rb-chk { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.rb-chk button { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-radius: 12px; background: var(--rb-s1); border: 1.5px solid var(--rb-line); text-align: left; font-size: 14px; font-weight: 500; }
+.rb-chk button em { font-style: normal; font-size: 12px; color: var(--rb-tx3); }
+.rb-chk button.ok { border-color: var(--rb-ok); }
+.rb-chk button.ok em { color: var(--rb-ok); font-weight: 600; }
+.rb-chk button.damaged { border-color: var(--rb-bad); background: color-mix(in srgb, var(--rb-bad) 10%, transparent); }
+.rb-chk button.damaged em { color: var(--rb-bad); font-weight: 600; }
+@media (max-width: 520px) {
+  .rb-chk { grid-template-columns: 1fr; }
+}
