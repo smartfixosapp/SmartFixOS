@@ -3,10 +3,19 @@ import { dataClient } from "@/components/api/dataClient";
 import { changeStatusRpc, changedByLabel, fetchOrder, fetchTenant, resolveCurrentEmployee, addInternalNote, uploadOrderPhotos } from "@/lib/orderDetailApi";
 import { sendStatusEmail, isMailableStatus } from "@/lib/orderEmails";
 import { subscribeOrders } from "@/lib/inicioApi";
-import { findDuplicateByPhone, insertCustomer, nextOrderNumber, resizeJpeg, thumbPath } from "@/lib/wizard/api";
+import { analyzeDamagePhoto, findDuplicateByPhone, insertCustomer, loadTechnicians, nextOrderNumber, resizeJpeg, searchCustomers, thumbPath } from "@/lib/wizard/api";
+import { findOpenRegister, listDeposits, recordOrderPayment, tenantPaymentMethods } from "@/lib/orderMoneyApi";
+import { sendPaymentReceipt } from "@/lib/orderEmails";
 import { CLOSED_KEYS } from "../domain/statuses";
 import { assertStatusKey } from "../domain/transitions";
-import { buildOrderPayload, customerFullName, UPSERT_OPTIONS } from "../domain/newTicket";
+import {
+  buildOrderPayload, customerFullName, effectiveChecklistNote, effectiveDepositCents, UPSERT_OPTIONS,
+} from "../domain/newTicket";
+import { alreadyDeposited, depositDecision, depositWarning } from "../domain/quote";
+import type { DepositMethod, RegisterState } from "../domain/quote";
+import { hintsFromAnalysis } from "../domain/problems";
+import { buildTechnicians } from "../domain/technicians";
+import type { Technician } from "../domain/technicians";
 import type { NewTicketDraft } from "../domain/newTicket";
 import type { OrderRow } from "../domain/types";
 
@@ -79,13 +88,18 @@ export function watchOrders(onChange: () => void): () => void {
 export interface SessionInfo {
   tenant: Record<string, unknown> | null;
   employeeName: string;
+  employeeId?: string;
 }
 
 export async function loadSession(): Promise<SessionInfo> {
   const tid = activeTenantId();
   if (!tid) return { tenant: null, employeeName: "" };
   const [tenant, employee] = await Promise.all([fetchTenant(tid).catch(() => null), resolveCurrentEmployee(tid).catch(() => null)]);
-  return { tenant: tenant as Record<string, unknown> | null, employeeName: String(employee?.full_name ?? "").trim() };
+  return {
+    tenant: tenant as Record<string, unknown> | null,
+    employeeName: String(employee?.full_name ?? "").trim(),
+    employeeId: employee?.id ? String(employee.id) : undefined,
+  };
 }
 
 export async function changeStatus(order: OrderRow, next: string, session: SessionInfo): Promise<OrderRow> {
@@ -118,6 +132,62 @@ export interface CreateProgress {
 export interface CreateResult {
   order: OrderRow;
   duplicate: boolean;
+  warnings: string[];
+}
+
+export interface CustomerHit {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  company: string;
+  isB2b: boolean;
+}
+
+const toHit = (c: Record<string, unknown>): CustomerHit => ({
+  id: String(c.id),
+  name: String(c.name ?? ""),
+  phone: String(c.phone ?? ""),
+  email: String(c.email ?? ""),
+  company: String(c.company_name ?? ""),
+  isB2b: c.is_b2b === true,
+});
+
+export async function searchExistingCustomers(query: string): Promise<CustomerHit[]> {
+  const tenant = activeTenantId();
+  if (!tenant || query.trim().length < 3) return [];
+  const rows = (await searchCustomers(tenant, query)) as Record<string, unknown>[];
+  return rows.slice(0, 8).map(toHit);
+}
+
+export async function loadTechnicianList(): Promise<Technician[]> {
+  const tenant = activeTenantId();
+  if (!tenant) return [];
+  const res = (await loadTechnicians(tenant)) as { employees: { id?: string; full_name?: string | null; email?: string | null }[]; counts: Record<string, number> };
+  return buildTechnicians(res.employees, res.counts);
+}
+
+export async function loadPaymentMethods(tenant: Record<string, unknown> | null): Promise<DepositMethod[]> {
+  const built = (tenantPaymentMethods(tenant) as { builtIns: string[] }).builtIns;
+  const list = built.filter((m): m is DepositMethod => m === "cash" || m === "card" || m === "ath_movil");
+  return list.length ? list : ["cash"];
+}
+
+export async function registerState(): Promise<RegisterState> {
+  const tenant = activeTenantId();
+  if (!tenant) return "unknown";
+  try {
+    const res = (await findOpenRegister(tenant)) as { failOpen?: boolean; register?: unknown };
+    if (res.failOpen) return "unknown";
+    return res.register ? "open" : "closed";
+  } catch {
+    return "unknown";
+  }
+}
+
+export async function analyzeReference(file: File, hint: string): Promise<{ hints: string[]; diagnosis: string }> {
+  const res = (await analyzeDamagePhoto(file, hint)) as { diagnosis: string; category: string };
+  return { hints: hintsFromAnalysis(res.category, res.diagnosis), diagnosis: res.diagnosis };
 }
 
 async function uploadPhotos(tenantId: string, orderNumber: string, draftId: string, files: File[]): Promise<string[]> {
@@ -140,21 +210,59 @@ async function uploadPhotos(tenantId: string, orderNumber: string, draftId: stri
   return ok;
 }
 
-async function resolveCustomer(tenantId: string, d: NewTicketDraft): Promise<string | null> {
-  if (d.customerId) return d.customerId;
+async function uploadSignature(tenantId: string, orderNumber: string, draftId: string, blob: Blob): Promise<string> {
+  const path = `tenants/${tenantId}/orders/${orderNumber}/signature_${draftId}.png`;
+  const bucket = supabase.storage.from("uploads");
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    const { error } = await bucket.upload(path, blob, { contentType: "image/png", upsert: true });
+    if (!error) return bucket.getPublicUrl(path).data.publicUrl as string;
+    if (attempt < 3) await new Promise((r) => setTimeout(r, 400));
+  }
+  throw new Error("No se pudo guardar la firma del cliente. El boleto no se creó para no perder la autorización; revisa la conexión e intenta de nuevo.");
+}
+
+async function resolveCustomer(tenantId: string, d: NewTicketDraft): Promise<{ id: string | null; created: boolean }> {
+  if (d.customerId) return { id: d.customerId, created: false };
   if (d.phone.trim()) {
     const dup = await findDuplicateByPhone(tenantId, d.phone).catch(() => null);
-    if (dup?.id) return dup.id as string;
+    if (dup?.id) return { id: dup.id as string, created: false };
   }
-  if (!d.firstName.trim()) return null;
+  if (!d.firstName.trim()) return { id: null, created: false };
   const created = await insertCustomer(tenantId, {
     name: d.firstName,
     lastName: d.lastName,
     phone: d.phone.trim(),
     email: d.email.trim(),
     language: "es",
+    ...(d.business.enabled
+      ? { isB2b: true, companyName: d.business.companyName.trim(), taxId: d.business.taxId.trim(), billingEmail: d.business.billingEmail.trim().toLowerCase() }
+      : {}),
   });
-  return (created?.id as string) ?? null;
+  return { id: (created?.id as string) ?? null, created: true };
+}
+
+async function patchBusiness(tenantId: string, customerId: string, d: NewTicketDraft): Promise<void> {
+  const body: Record<string, unknown> = { is_b2b: true, company_name: d.business.companyName.trim() };
+  if (d.business.taxId.trim()) body.tax_id = d.business.taxId.trim();
+  if (d.business.billingEmail.trim()) body.billing_email = d.business.billingEmail.trim().toLowerCase();
+  const { error } = await supabase.from("customer").update(body).eq("id", customerId).eq("tenant_id", tenantId);
+  if (error) throw error;
+}
+
+async function collectDeposit(order: OrderRow, d: NewTicketDraft, session: SessionInfo): Promise<string | null> {
+  const cents = effectiveDepositCents(d);
+  if (cents <= 0) return null;
+  const state = await registerState();
+  const action = depositDecision(cents, state);
+  if (action !== "collect") return depositWarning(action, cents);
+  const existing = (await listDeposits(order.id).catch(() => [])) as { amount?: number | string }[];
+  if (alreadyDeposited(existing.map((t) => Number(t.amount) || 0), cents)) return null;
+  const by = changedByLabel(session.employeeName);
+  const res = (await recordOrderPayment({ order, amount: cents / 100, method: d.depositMethod, customLabel: null, by })) as { applied: number; isPaidNow: boolean; transactionId: string | null };
+  if (session.tenant && order.customer_email && res.applied > 0) {
+    sendPaymentReceipt({ order, tenant: session.tenant, amount: res.applied, method: d.depositMethod, isFull: res.isPaidNow, transactionId: res.transactionId }).catch(() => {});
+  }
+  return null;
 }
 
 export async function createTicket(
@@ -162,10 +270,11 @@ export async function createTicket(
   files: File[],
   session: SessionInfo,
   onProgress: (p: CreateProgress) => void,
+  signature: Blob | null = null,
 ): Promise<CreateResult> {
   const tenantId = activeTenantId();
   if (!tenantId) throw new Error("No se encontró el taller activo. Vuelve a iniciar sesión.");
-  const customerId = await resolveCustomer(tenantId, draft);
+  const { id: customerId, created: customerCreated } = await resolveCustomer(tenantId, draft);
   if (customerId && customerId !== draft.customerId) onProgress({ customerId });
   let orderNumber = draft.orderNumber;
   for (let attempt = 0; attempt < 3; attempt += 1) {
@@ -174,6 +283,9 @@ export async function createTicket(
       onProgress({ orderNumber });
     }
     const photoUrls = await uploadPhotos(tenantId, orderNumber, draft.id, files);
+    const wantsSignature = draft.signatureOn && draft.signed && draft.mode === "repair";
+    const signatureUrl = wantsSignature && signature ? await uploadSignature(tenantId, orderNumber, draft.id, signature) : null;
+    if (wantsSignature && !signatureUrl) throw new Error("Falta la firma del cliente. Pídele que firme de nuevo.");
     const payload = buildOrderPayload(draft, {
       tenantId,
       orderNumber,
@@ -181,16 +293,30 @@ export async function createTicket(
       customerId,
       createdByName: session.employeeName,
       photoUrls,
+      signatureUrl,
     });
     const { data, error } = await supabase.from("order").upsert(payload, UPSERT_OPTIONS).select("*");
     if (!error) {
       const inserted = Array.isArray(data) && data.length > 0;
-      const order = (inserted ? data[0] : await getOrder(draft.id)) as OrderRow | null;
+      let order = (inserted ? data[0] : await getOrder(draft.id)) as OrderRow | null;
       if (!order) throw new Error("El boleto no aparece después de crearlo. Revisa la lista antes de intentar otra vez.");
+      const warnings: string[] = [];
       if (inserted && session.tenant && order.customer_email && isMailableStatus("intake")) {
         sendEmail({ order, tenant: session.tenant, status: "intake" }).catch(() => {});
       }
-      return { order, duplicate: !inserted };
+      if (customerId && draft.business.enabled && !customerCreated) {
+        await patchBusiness(tenantId, customerId, draft).catch(() => warnings.push("No se pudieron guardar los datos de la empresa en el cliente."));
+      }
+      const note = effectiveChecklistNote(draft);
+      if (inserted && note) await addNote(order, note, session).catch(() => warnings.push("No se pudo guardar la revisión del equipo en el historial."));
+      try {
+        const warn = await collectDeposit(order, draft, session);
+        if (warn) warnings.push(warn);
+        else if (effectiveDepositCents(draft) > 0) order = ((await getOrder(order.id).catch(() => null)) ?? order) as OrderRow;
+      } catch (e) {
+        warnings.push(`No se pudo cobrar el depósito: ${e instanceof Error ? e.message : "error desconocido"}. Cóbralo desde el boleto.`);
+      }
+      return { order, duplicate: !inserted, warnings };
     }
     if (error.code === "23505" && attempt < 2) {
       orderNumber = null;
