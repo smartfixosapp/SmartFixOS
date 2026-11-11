@@ -44,7 +44,7 @@ const SplashLoader = () => {
       >
         <img
           src="/icons/icon-1024.png"
-          alt="Archilla OS"
+          alt="Repara OS"
           className="w-full h-full object-contain"
           style={{
             filter: "drop-shadow(0 0 24px rgba(255, 87, 34, 0.55))",
@@ -68,9 +68,13 @@ const SplashLoader = () => {
         transition={{ duration: 0.5, ease: "easeOut", delay: 0.65 }}
         className="mt-4 flex flex-col items-center"
       >
-        <p className="text-white text-[15px] font-semibold tracking-tight">
-          Archilla OS
+        <p className="text-white/45 text-[10px] tracking-[0.28em] uppercase">
+          Archilla Studios presenta
         </p>
+        <p className="mt-1 text-white text-[17px] font-semibold tracking-tight">
+          Repara OS
+        </p>
+        <p className="text-white/35 text-[10px]">antes Archilla OS</p>
         <p className="mt-1 text-white/40 text-[10px] tracking-[0.32em] uppercase">
           Smart · Fix · Operate
         </p>

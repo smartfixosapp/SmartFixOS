@@ -67,7 +67,12 @@ export default function Login() {
           <span className="h-8 w-8 rounded-lg bg-orange-500 flex items-center justify-center">
             <Wrench className="h-4 w-4 text-white" strokeWidth={2.4} />
           </span>
-          Archilla OS
+          <span className="flex flex-col leading-tight">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-zinc-500 font-medium">Archilla Studios presenta</span>
+            <span>
+              Repara OS <span className="text-xs font-normal text-zinc-500">antes Archilla OS</span>
+            </span>
+          </span>
         </Link>
         <Link to="/" className="text-sm text-zinc-400 hover:text-white transition-colors">
           Volver

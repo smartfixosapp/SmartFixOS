@@ -1,6 +1,6 @@
 {
-  "name": "Archilla OS",
-  "short_name": "Archilla OS",
+  "name": "Repara OS",
+  "short_name": "Repara OS",
   "description": "Sistema de gestión integral para talleres de reparación",
   "start_url": "/Dashboard",
   "display": "standalone",
