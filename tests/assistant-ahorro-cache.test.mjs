@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
+import { ASSISTANT_NAME } from '../api/_lib/brand.js';
 
 const TENANT = '11111111-2222-4333-8444-555555555555';
 const SERVICE = 's'.repeat(40);
@@ -122,7 +123,7 @@ test('cuerpo a Anthropic: cache en la ultima herramienta, system fijo y punto mo
     assert.equal(body.system.length, 2);
     assert.deepEqual(body.system[0].cache_control, { type: 'ephemeral' });
     assert.equal(body.system[1].cache_control, undefined);
-    assert.ok(body.system[1].text.startsWith('Eres el Asistente IA de Taller Prueba'));
+    assert.ok(body.system[1].text.startsWith(`Eres ${ASSISTANT_NAME}, el Asistente IA de Taller Prueba`));
     assert.ok(body.system[1].text.includes(prDayRange().day));
     assert.equal(body.system[0].text.includes(prDayRange().day), false);
     assert.equal(body.system[0].text.includes('Taller Prueba'), false);
@@ -326,7 +327,7 @@ test('otros proveedores no cambian: sin cache_control, sin cambio de modelo y sy
     assert.equal(JSON.stringify(sent).includes('cache_control'), false);
     const sys = systemPrompt('Taller Prueba', 'Asistente IA - prueba');
     assert.equal(sent.messages[0].content, `${sys.variable}\n${sys.fijo}`);
-    assert.ok(sent.messages[0].content.startsWith('Eres el Asistente IA de Taller Prueba'));
+    assert.ok(sent.messages[0].content.startsWith(`Eres ${ASSISTANT_NAME}, el Asistente IA de Taller Prueba`));
     const imageUrls = sent.messages.flatMap((m) => (Array.isArray(m.content) ? m.content.filter((b) => b.type === 'image_url').map((b) => b.image_url.url) : []));
     assert.deepEqual(imageUrls, [photo('a'), photo('b'), photo('c')]);
     assert.deepEqual(r.body.modo_ahorro, { activo: false });
@@ -372,4 +373,11 @@ test('tarifas: cache de sonnet 5.5 y 5, haiku largo y ahorro de cache', () => {
   assert.ok(Math.abs(cacheSavingsUsd('claude-sonnet-5-5', { cache_escritura: 1_000_000 }) + 0.5) < 1e-9);
   assert.equal(costUsd('gpt-4.1', { entrada: 1000 }), 0);
   assert.equal(savingsMode({ provider: 'anthropic', model: 'claude-haiku-5-5' }, { porcentaje_usado: 95 }), null);
+});
+
+test('el nombre del asistente sale de una sola constante y el prompt lo usa para presentarse', () => {
+  assert.equal(ASSISTANT_NAME, 'Repara');
+  const sys = systemPrompt('Taller', 'Yo');
+  assert.ok(sys.variable.includes(`Tu nombre es ${ASSISTANT_NAME}`));
+  assert.equal(/Archilla|\bArchi\b/i.test(`${sys.variable}${sys.fijo}`), false);
 });
