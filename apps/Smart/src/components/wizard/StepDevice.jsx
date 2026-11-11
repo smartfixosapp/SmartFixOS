@@ -52,7 +52,7 @@ function AddSheet({ level, ctx, prefill, onClose, onSave }) {
         {cfg.fields.map(([label, ph], i) => <Input key={label} label={label} value={vals[i]} onChange={(v) => setVals((p) => p.map((x, j) => (j === i ? v : x)))} placeholder={ph} autoFocus={i === 0} />)}
         {similar && <p className="flex items-center gap-2" style={{ fontSize: 13, color: IOS.orange }}>Ya existe: {similar} <button onClick={() => { onSave(null, similar); onClose(); }} style={{ fontWeight: 700, textDecoration: "underline" }}>Usar ese</button></p>}
         {error && <p style={{ fontSize: 13, color: IOS.red }}><b>No se pudo guardar</b> {error}</p>}
-        <p style={{ fontSize: 12, color: W.sub }}>Lo añadido queda guardado en tu catálogo y aparecerá automáticamente en próximas órdenes.</p>
+        <p style={{ fontSize: 12, color: W.sub }}>Lo añadido queda guardado en tu catálogo y aparecerá automáticamente en próximos boletos.</p>
       </div>
     </Dialog>
   );
@@ -177,7 +177,7 @@ export default function StepDevice({ w, tenantId, cat, index, chips, onCatalogCh
       if (modName && family) {
         try { model = await createModel(modName, family.id, tenantId); next.models.push(model); created += 1; } catch {
           customText = modName;
-          setNotice(`No se pudo guardar el modelo «${modName}» en el catálogo; se usará como texto en la orden.`);
+          setNotice(`No se pudo guardar el modelo «${modName}» en el catálogo; se usará como texto en el boleto.`);
         }
       }
     } catch (e) {

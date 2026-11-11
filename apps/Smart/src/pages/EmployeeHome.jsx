@@ -111,7 +111,7 @@ export default function EmployeeHome() {
 
               <p className="mt-8 text-zinc-500 text-[13px] leading-relaxed">
                 Sesión real de empleado funcionando (mismo edge function y mismas reglas de
-                acceso que la app nativa). Las pantallas de trabajo diario (Órdenes, POS,
+                acceso que la app nativa). Las pantallas de trabajo diario (Boletos, POS,
                 Inventario) todavía no existen aquí — vienen en el siguiente paso.
               </p>
 

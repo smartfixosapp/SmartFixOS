@@ -190,21 +190,21 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
             try {
               const emailBody = `
                 <h2>${paymentMode === "deposit" ? "Depósito Registrado" : "Recibo de Pago"} - ${tenantBrandName()}</h2>
-                <p><strong>Orden:</strong> ${currentOrder.order_number}</p>
+                <p><strong>Boleto:</strong> ${currentOrder.order_number}</p>
                 <p><strong>Cliente:</strong> ${currentOrder.customer_name}</p>
                 <p><strong>Método de pago:</strong> ${paymentMethod}</p>
                 <p><strong>Monto ${paymentMode === "deposit" ? "depositado" : "pagado"}:</strong> $${finalAmount.toFixed(2)}</p>
                 ${change > 0 ? `<p><strong>Cambio:</strong> $${change.toFixed(2)}</p>` : ''}
-                <p><strong>Total de la orden:</strong> $${orderTotal.toFixed(2)}</p>
+                <p><strong>Total del boleto:</strong> $${orderTotal.toFixed(2)}</p>
                 <p><strong>Total pagado:</strong> $${newTotalPaid.toFixed(2)}</p>
                 <p><strong>Balance pendiente:</strong> $${newBalance.toFixed(2)}</p>
-                ${newBalance <= 0.01 ? '<p style="color: green; font-weight: bold;">✓ Orden saldada completamente</p>' : ''}
-                ${paymentMode === "deposit" ? '<p style="color: orange;"><em>Nota: Este fue registrado como depósito. El estado de la orden no ha cambiado.</em></p>' : ''}
+                ${newBalance <= 0.01 ? '<p style="color: green; font-weight: bold;">✓ Boleto saldado completamente</p>' : ''}
+                ${paymentMode === "deposit" ? '<p style="color: orange;"><em>Nota: Este fue registrado como depósito. El estado del boleto no ha cambiado.</em></p>' : ''}
               `;
 
               await base44.integrations.Core.SendEmail({
                 to: currentOrder.customer_email,
-                subject: `${paymentMode === "deposit" ? "Depósito" : "Recibo de pago"} - Orden ${currentOrder.order_number}`,
+                subject: `${paymentMode === "deposit" ? "Depósito" : "Recibo de pago"} - Boleto ${currentOrder.order_number}`,
                 body: emailBody
               });
 
@@ -288,7 +288,7 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
           order_number: currentOrder.order_number,
           type: "revenue",
           amount: finalAmount,
-          description: `${paymentMode === "deposit" ? "Depósito" : "Pago"} ${paymentMethod} - Orden ${currentOrder.order_number}`,
+          description: `${paymentMode === "deposit" ? "Depósito" : "Pago"} ${paymentMethod} - Boleto ${currentOrder.order_number}`,
           category: "repair_payment",
           payment_method: paymentMethod,
           recorded_by: me?.full_name || me?.email || "Sistema",
@@ -320,9 +320,9 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
       // Mostrar mensaje de éxito
       if (workOrderId && currentOrder) {
         if (newBalance <= 0.01) {
-          alert(`✅ ORDEN SALDADA\n\nBalance: $0.00\nLa orden está completamente pagada.${paymentMode === "full" ? "\nEstado actualizado a: Listo para recoger" : ""}`);
+          alert(`✅ BOLETO SALDADO\n\nBalance: $0.00\nEl boleto está completamente pagado.${paymentMode === "full" ? "\nEstado actualizado a: Listo para recoger" : ""}`);
         } else {
-          alert(`✅ ${paymentMode === "deposit" ? "Depósito" : "Pago"} procesado\n\nPagado: $${finalAmount.toFixed(2)}\nBalance restante: $${newBalance.toFixed(2)}${paymentMode === "deposit" ? "\n\nNota: Estado de la orden sin cambios" : ""}`);
+          alert(`✅ ${paymentMode === "deposit" ? "Depósito" : "Pago"} procesado\n\nPagado: $${finalAmount.toFixed(2)}\nBalance restante: $${newBalance.toFixed(2)}${paymentMode === "deposit" ? "\n\nNota: Estado del boleto sin cambios" : ""}`);
         }
       }
       

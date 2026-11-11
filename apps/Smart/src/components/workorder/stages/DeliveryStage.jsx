@@ -178,7 +178,7 @@ export default function DeliveryStage({
           <div className="mt-4 flex items-center gap-3 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3">
             <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
             <div>
-              <p className="text-sm font-semibold text-emerald-200">Orden saldada</p>
+              <p className="text-sm font-semibold text-emerald-200">Boleto saldado</p>
               <p className="text-xs text-emerald-300/60">Lista para entregar al cliente</p>
             </div>
           </div>
@@ -262,7 +262,7 @@ export default function DeliveryStage({
           onRemoteSaved={onRemoteSaved}
           onClose={onClose}
           accentColor="emerald"
-          subtitle="Confirma piezas y servicios finales antes de cerrar la orden."
+          subtitle="Confirma piezas y servicios finales antes de cerrar el boleto."
           catalogButtonLabel="Añadir ítem"
           onPaymentClick={onPaymentClick}
         />
@@ -275,7 +275,7 @@ export default function DeliveryStage({
           onUpdate={onUpdate}
           accent="emerald"
           title="Centro de Entrega"
-          subtitle="Historial, evidencias y actividad del cierre de orden."
+          subtitle="Historial, evidencias y actividad del cierre de boleto."
         />
       )}
     </div>

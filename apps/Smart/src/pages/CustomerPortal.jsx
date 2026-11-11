@@ -70,7 +70,7 @@ export default function CustomerPortal() {
       const orders = await appClient.entities.Order.filter({ id: orderId });
 
       if (orders.length === 0) {
-        setError("Orden no encontrada");
+        setError("Boleto no encontrado");
         setLoading(false);
         return;
       }
@@ -95,7 +95,7 @@ export default function CustomerPortal() {
       setLoading(false);
     } catch (err) {
       console.error("Error loading order:", err);
-      setError("Error al cargar la orden");
+      setError("Error al cargar el boleto");
       setLoading(false);
     }
   };
@@ -119,7 +119,7 @@ export default function CustomerPortal() {
             <AlertCircle className="w-8 h-8 text-apple-red" />
           </div>
           <h2 className="apple-text-title2 apple-label-primary mb-2">Error</h2>
-          <p className="apple-text-body apple-label-secondary">{error || "No se pudo cargar la orden"}</p>
+          <p className="apple-text-body apple-label-secondary">{error || "No se pudo cargar el boleto"}</p>
         </div>
       </div>
     );
@@ -153,7 +153,7 @@ export default function CustomerPortal() {
               <p className="apple-text-footnote apple-label-secondary">Puerto Rico</p>
             </div>
           </div>
-          <p className="apple-text-subheadline apple-label-secondary">Portal de Seguimiento de Orden</p>
+          <p className="apple-text-subheadline apple-label-secondary">Portal de Seguimiento de Boleto</p>
         </div>
 
         {/* Order Header */}
@@ -194,7 +194,7 @@ export default function CustomerPortal() {
           {/* Contact Buttons */}
           <div className="grid grid-cols-2 gap-3 mt-6">
             <button
-              onClick={() => openWhatsApp("17871234567", `Hola, consulto sobre mi orden ${order.order_number}`)}
+              onClick={() => openWhatsApp("17871234567", `Hola, consulto sobre mi boleto ${order.order_number}`)}
               className="apple-btn apple-btn-primary apple-press"
             >
               <MessageCircle className="w-4 h-4 mr-2" />

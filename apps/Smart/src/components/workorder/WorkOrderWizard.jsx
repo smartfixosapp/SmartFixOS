@@ -69,20 +69,20 @@ async function sendAdminNewOrderEmail({ recipients, orderNumber, customerName, d
 
   const safeCustomer = customerName || "Cliente";
   const safeDevice = deviceInfo || "Equipo";
-  const safeOrder = orderNumber || "Nueva orden";
+  const safeOrder = orderNumber || "Nuevo boleto";
   const actionUrl = `/Orders?order=${orderId}`;
 
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;background:#0b1220;color:#e5eefc;">
       <div style="background:linear-gradient(135deg,#06b6d4,#10b981);padding:24px;border-radius:16px;">
-        <h1 style="margin:0;font-size:28px;color:#ffffff;">Nueva orden ${safeOrder}</h1>
-        <p style="margin:10px 0 0;color:#eaffff;font-size:16px;">Se registró una nueva orden en Archilla OS.</p>
+        <h1 style="margin:0;font-size:28px;color:#ffffff;">Nuevo boleto ${safeOrder}</h1>
+        <p style="margin:10px 0 0;color:#eaffff;font-size:16px;">Se registró un nuevo boleto en Archilla OS.</p>
       </div>
       <div style="background:#111827;border:1px solid #1f2937;border-radius:16px;padding:24px;margin-top:20px;">
         <p style="margin:0 0 12px;font-size:15px;"><strong>Cliente:</strong> ${safeCustomer}</p>
         <p style="margin:0 0 12px;font-size:15px;"><strong>Equipo:</strong> ${safeDevice}</p>
-        <p style="margin:0 0 20px;font-size:15px;"><strong>Orden:</strong> ${safeOrder}</p>
-        <a href="${actionUrl}" style="display:inline-block;padding:12px 20px;border-radius:10px;background:#22c55e;color:#052e16;text-decoration:none;font-weight:700;">Ver orden</a>
+        <p style="margin:0 0 20px;font-size:15px;"><strong>Boleto:</strong> ${safeOrder}</p>
+        <a href="${actionUrl}" style="display:inline-block;padding:12px 20px;border-radius:10px;background:#22c55e;color:#052e16;text-decoration:none;font-weight:700;">Ver boleto</a>
       </div>
     </div>
   `;
@@ -92,7 +92,7 @@ async function sendAdminNewOrderEmail({ recipients, orderNumber, customerName, d
     headers: await authJsonHeaders(),
     body: JSON.stringify({
       to: emails,
-      subject: `Nueva orden ${safeOrder} - ${safeCustomer}`,
+      subject: `Nuevo boleto ${safeOrder} - ${safeCustomer}`,
       body: html,
       from_name: "Archilla OS",
     }),
@@ -100,7 +100,7 @@ async function sendAdminNewOrderEmail({ recipients, orderNumber, customerName, d
 
   const result = await response.json().catch(() => ({}));
   if (!response.ok || result?.success === false) {
-    throw new Error(result?.error || "No se pudo enviar email de nueva orden");
+    throw new Error(result?.error || "No se pudo enviar email de nuevo boleto");
   }
 }
 
@@ -111,21 +111,21 @@ async function sendTechnicianAssignmentEmail({ recipient, orderNumber, customerN
   const safeTech = recipient?.full_name || recipient?.name || email;
   const safeCustomer = customerName || "Cliente";
   const safeDevice = deviceInfo || "Equipo";
-  const safeOrder = orderNumber || "Nueva orden";
+  const safeOrder = orderNumber || "Nuevo boleto";
   const actionUrl = `/Orders?order=${orderId}`;
 
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;background:#0b1220;color:#e5eefc;">
       <div style="background:linear-gradient(135deg,#8b5cf6,#06b6d4);padding:24px;border-radius:16px;">
         <h1 style="margin:0;font-size:28px;color:#ffffff;">Trabajo asignado ${safeOrder}</h1>
-        <p style="margin:10px 0 0;color:#eaffff;font-size:16px;">Se te asignó una nueva orden en Archilla OS.</p>
+        <p style="margin:10px 0 0;color:#eaffff;font-size:16px;">Se te asignó un nuevo boleto en Archilla OS.</p>
       </div>
       <div style="background:#111827;border:1px solid #1f2937;border-radius:16px;padding:24px;margin-top:20px;">
         <p style="margin:0 0 12px;font-size:15px;"><strong>Técnico:</strong> ${safeTech}</p>
         <p style="margin:0 0 12px;font-size:15px;"><strong>Cliente:</strong> ${safeCustomer}</p>
         <p style="margin:0 0 12px;font-size:15px;"><strong>Equipo:</strong> ${safeDevice}</p>
-        <p style="margin:0 0 20px;font-size:15px;"><strong>Orden:</strong> ${safeOrder}</p>
-        <a href="${actionUrl}" style="display:inline-block;padding:12px 20px;border-radius:10px;background:#22c55e;color:#052e16;text-decoration:none;font-weight:700;">Abrir orden</a>
+        <p style="margin:0 0 20px;font-size:15px;"><strong>Boleto:</strong> ${safeOrder}</p>
+        <a href="${actionUrl}" style="display:inline-block;padding:12px 20px;border-radius:10px;background:#22c55e;color:#052e16;text-decoration:none;font-weight:700;">Abrir boleto</a>
       </div>
     </div>
   `;
@@ -2677,7 +2677,7 @@ Reglas:
     }
 
     if (quickOrderMode && normalizedItems.length === 0) {
-      toast.error("La orden rápida requiere al menos una pieza o servicio");
+      toast.error("El boleto rápido requiere al menos una pieza o servicio");
       return null;
     }
 
@@ -2849,7 +2849,7 @@ Reglas:
           status: initialStatus,
           timestamp: new Date().toISOString(),
           changed_by: user?.full_name || user?.email || "System",
-          note: quickOrderMode ? "Orden creada como reparación rápida" : "Orden creada"
+          note: quickOrderMode ? "Boleto creado como reparación rápido" : "Boleto creado"
         }
       ];
       const repairTasks = quickOrderMode
@@ -2889,7 +2889,7 @@ Reglas:
           ? [
               {
                 id: `quick-order-${Date.now()}`,
-                text: "Orden creada en modo rápida. Se omitió la etapa de diagnóstico.",
+                text: "Boleto creado en modo rápido. Se omitió la etapa de diagnóstico.",
                 created_at: new Date().toISOString(),
                 created_by: user?.full_name || user?.email || "System",
                 internal: true
@@ -2922,7 +2922,7 @@ Reglas:
             order_id: newOrder.id,
             order_number: newOrder.order_number,
             event_type: "status_changed",
-            description: "Orden creada como reparación rápida y enviada directo a En Reparación",
+            description: "Boleto creado como reparación rápido y enviado directo a En Reparación",
             metadata: {
               quick_order: true,
               to_status: "in_progress"
@@ -2969,13 +2969,13 @@ Reglas:
               userId: admin.id,
               userEmail: admin.email,
               type: "new_order",
-              title: `Nueva orden #${newOrder.order_number}`,
+              title: `Nuevo boleto #${newOrder.order_number}`,
               body: `${fullName} - ${brandName} ${deviceModel}`,
               relatedEntityType: "order",
               relatedEntityId: newOrder.id,
               relatedEntityNumber: newOrder.order_number,
               actionUrl: `/Orders?order=${newOrder.id}`,
-              actionLabel: "Ver orden",
+              actionLabel: "Ver boleto",
               priority: "normal"
             }).catch(e => console.warn("notif admin failed:", e))
           );
@@ -2995,13 +2995,13 @@ Reglas:
                 userId: assignedTo.id,
                 userEmail: assignedTo.email,
                 type: "assignment",
-                title: `Se te asignó la orden #${newOrder.order_number}`,
+                title: `Se te asignó el boleto #${newOrder.order_number}`,
                 body: `${fullName} - ${brandName} ${deviceModel}`,
                 relatedEntityType: "order",
                 relatedEntityId: newOrder.id,
                 relatedEntityNumber: newOrder.order_number,
                 actionUrl: `/Orders?order=${newOrder.id}`,
-                actionLabel: "Abrir orden",
+                actionLabel: "Abrir boleto",
                 priority: "high",
                 metadata: { assigned_by: user?.full_name || user?.email || "System" }
               }).catch(e => console.warn("tech notif failed:", e))
@@ -3050,7 +3050,7 @@ Reglas:
         return;
       }
 
-      toast.success(quickOrderMode ? "Orden rapida creada" : "Orden creada");
+      toast.success(quickOrderMode ? "Boleto rapido creado" : "Boleto creado");
 
       // En mobile: cerrar directo sin mostrar Print Dialog (no se imprime desde celular)
       if (isCompactDevice) {
@@ -3064,7 +3064,7 @@ Reglas:
       setShowPrintDialog(true);
     } catch (err) {
       console.error("Error creating order:", err);
-      toast.error("No se pudo crear la orden: " + err.message);
+      toast.error("No se pudo crear el boleto: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -3079,7 +3079,7 @@ Reglas:
         return;
       }
 
-      toast.success("✅ Orden creada. Añade otro equipo");
+      toast.success("✅ Boleto creado. Añade otro equipo");
       
       // Mantener datos del cliente, resetear dispositivo
       setDeviceType("");
@@ -3158,7 +3158,7 @@ Reglas:
               <Wrench className={`${isCompactDevice ? "w-5 h-5" : "w-7 h-7"} text-white`} strokeWidth={2} />
             </div>
             <div>
-              <h2 className={`${isCompactDevice ? "apple-text-title2" : "apple-text-title1"} apple-label-primary`}>Nueva orden</h2>
+              <h2 className={`${isCompactDevice ? "apple-text-title2" : "apple-text-title1"} apple-label-primary`}>Nuevo boleto</h2>
               {!isCompactDevice && (
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <div className="h-1.5 w-1.5 rounded-full bg-apple-green" />
@@ -3204,7 +3204,7 @@ Reglas:
               </div>
               <div className="text-left flex-1">
                 <p className={`apple-text-headline font-semibold transition-colors ${quickOrderMode ? "text-apple-orange" : "apple-label-primary"}`}>
-                  {quickOrderMode ? "Orden rápida" : "Orden regular"}
+                  {quickOrderMode ? "Boleto rápido" : "Boleto regular"}
                 </p>
                 <p className="apple-text-footnote apple-label-secondary transition-colors">
                   {quickOrderMode ? "Cambio directo · sin diagnóstico" : "Diagnóstico completo · toca para cambiar"}
@@ -3262,7 +3262,7 @@ Reglas:
           {/* 🚀 PASO 0 — Selector de tipo (solo móvil) */}
           {isCompactDevice && mobileStep === 0 && (
             <>
-              <p className="text-center text-white/40 text-[10px] font-semibold tracking-[0.2em] shrink-0 py-2">¿Qué tipo de orden vas a crear?</p>
+              <p className="text-center text-white/40 text-[10px] font-semibold tracking-[0.2em] shrink-0 py-2">¿Qué tipo de boleto vas a crear?</p>
               {/* Orden Regular */}
               <button
                 onClick={() => { setQuickOrderMode(false); setJenaiMode(false); setMobileStep(1); }}
@@ -3272,7 +3272,7 @@ Reglas:
                   <Wrench className="w-7 h-7 text-white" strokeWidth={2.5} />
                 </div>
                 <div className="text-center">
-                  <p className="text-xl font-semibold text-white tracking-tight">Orden Regular</p>
+                  <p className="text-xl font-semibold text-white tracking-tight">Boleto Regular</p>
                   <p className="text-xs text-white/40 mt-1">Diagnóstico completo · 7 pasos</p>
                 </div>
                 <div className="flex gap-1.5 flex-wrap justify-center">
@@ -3291,7 +3291,7 @@ Reglas:
                   <Zap className="w-7 h-7 text-white" strokeWidth={2.5} />
                 </div>
                 <div className="text-center">
-                  <p className="text-xl font-semibold text-white tracking-tight">Orden Rápida</p>
+                  <p className="text-xl font-semibold text-white tracking-tight">Boleto Rápido</p>
                   <p className="text-xs text-white/40 mt-1">Cambio rápido · 3 pasos</p>
                 </div>
                 <div className="flex gap-1.5 flex-wrap justify-center">
@@ -3419,9 +3419,9 @@ Reglas:
                     className="w-full h-14 rounded-2xl bg-gradient-to-r from-violet-500 to-purple-600 text-white font-semibold text-base flex items-center justify-center gap-2 shadow-[0_8px_24px_rgba(139,92,246,0.3)] hover:from-violet-400 hover:to-purple-500 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {jenaiProcessing ? (
-                      <><Loader2 className="w-5 h-5 animate-spin" /> Creando orden...</>
+                      <><Loader2 className="w-5 h-5 animate-spin" /> Creando boleto...</>
                     ) : (
-                      <><Brain className="w-5 h-5" /> Crear Orden</>
+                      <><Brain className="w-5 h-5" /> Crear Boleto</>
                     )}
                   </button>
                 </div>
@@ -4126,7 +4126,7 @@ Reglas:
             {quickOrderMode && (
               <div className="rounded-xl border border-emerald-400/25 bg-emerald-500/10 px-3 py-2">
                 <p className="text-xs font-semibold text-emerald-200">
-                  En modo rápido debes añadir al menos una pieza o servicio antes de crear la orden.
+                  En modo rápido debes añadir al menos una pieza o servicio antes de crear el boleto.
                 </p>
               </div>
             )}
@@ -4171,7 +4171,7 @@ Reglas:
             {/* Items añadidos */}
             {orderItems.length > 0 && (
               <div className="space-y-2 bg-lime-600/5 border border-lime-500/20 rounded-lg p-3">
-                <p className="text-xs text-lime-300 font-bold">Items en la orden ({orderItems.length})</p>
+                <p className="text-xs text-lime-300 font-bold">Items en el boleto ({orderItems.length})</p>
                 {orderItems.map((item, idx) => (
                   <div key={idx} className="flex items-center justify-between gap-2 bg-black/40 border border-white/10 rounded-lg p-2">
                     <div className="flex-1 min-w-0">
@@ -4487,9 +4487,9 @@ Reglas:
                   className="w-full h-14 rounded-[20px] font-semibold text-sm active:scale-95 transition-all bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-[0_0_30px_rgba(139,92,246,0.25)]"
                 >
                   {jenaiProcessing ? (
-                    <><Loader2 className="w-5 h-5 mr-3 animate-spin" /> Creando orden...</>
+                    <><Loader2 className="w-5 h-5 mr-3 animate-spin" /> Creando boleto...</>
                   ) : (
-                    <><Brain className="w-5 h-5 mr-3" /> Crear Orden</>
+                    <><Brain className="w-5 h-5 mr-3" /> Crear Boleto</>
                   )}
                 </Button>
               ) : isLastMobileStep ? (
@@ -4505,12 +4505,12 @@ Reglas:
                   {loading ? (
                     <>
                       <Loader2 className="w-5 h-5 mr-3 animate-spin" />
-                      {quickOrderMode ? "Procesando..." : "Creando Orden..."}
+                      {quickOrderMode ? "Procesando..." : "Creando Boleto..."}
                     </>
                   ) : (
                     <>
                       <Save className="w-5 h-5 mr-3" />
-                      {quickOrderMode ? "Finalizar Orden Rápida" : "Confirmar Orden"}
+                      {quickOrderMode ? "Finalizar Boleto Rápido" : "Confirmar Boleto"}
                       {customerEmail && <Mail className="w-5 h-5 ml-3 opacity-50" />}
                     </>
                   )}
@@ -4573,12 +4573,12 @@ Reglas:
                 {loading ? (
                   <>
                     <Loader2 className="w-5 h-5 mr-3 animate-spin" />
-                    {quickOrderMode ? "Procesando..." : "Creando Orden..."}
+                    {quickOrderMode ? "Procesando..." : "Creando Boleto..."}
                   </>
                 ) : (
                   <>
                     <Save className="w-5 h-5 mr-3" />
-                    {quickOrderMode ? "Finalizar Orden Rápida" : "Confirmar Orden"}
+                    {quickOrderMode ? "Finalizar Boleto Rápido" : "Confirmar Boleto"}
                     {customerEmail && <Mail className="w-5 h-5 ml-3 opacity-50" />}
                   </>
                 )}

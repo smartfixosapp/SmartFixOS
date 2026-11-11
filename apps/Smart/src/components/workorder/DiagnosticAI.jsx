@@ -289,7 +289,7 @@ export default function DiagnosticAI({ order, checklist = [], deviceCategory = "
                 <div className="text-center">
                   <p className="text-sm font-bold text-white/50">Hola, soy JENAI</p>
                   <p className="mt-1 max-w-xs text-xs text-white/50">
-                    Preguntame cualquier cosa sobre el diagnostico de este dispositivo. Tengo acceso al checklist y los datos de la orden.
+                    Preguntame cualquier cosa sobre el diagnostico de este dispositivo. Tengo acceso al checklist y los datos del boleto.
                   </p>
                 </div>
 

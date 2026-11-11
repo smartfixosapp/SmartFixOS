@@ -310,7 +310,7 @@ export default function StepProblem({ w, tenantId, products, catalogSel, onAddIt
           })}
         </div>
         <DeviceOffersStrip w={w} catalogSel={catalogSel} />
-        {s.pendingParts.length > 0 && <Banner color={IOS.orange}>{s.pendingParts.length} pedido{s.pendingParts.length === 1 ? "" : "s"} a suplidor se crear{s.pendingParts.length === 1 ? "á" : "án"} al confirmar la orden.</Banner>}
+        {s.pendingParts.length > 0 && <Banner color={IOS.orange}>{s.pendingParts.length} pedido{s.pendingParts.length === 1 ? "" : "s"} a suplidor se crear{s.pendingParts.length === 1 ? "á" : "án"} al confirmar el boleto.</Banner>}
       </div>
       {s.oosFor && <OutOfStockSheet product={s.oosFor} tenantId={tenantId} onClose={() => set({ oosFor: null })} onOrder={(pending) => {
         const line = s.cart.find((l) => l.product.id === pending.productId);

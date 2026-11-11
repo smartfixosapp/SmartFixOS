@@ -20,7 +20,7 @@ function CustomerRow({ c, selected, onPick }) {
         <span className="flex flex-wrap items-center" style={{ gap: "2px 10px", fontSize: 12, color: W.sub }}>
           {c.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> {c.phone}</span>}
           {c.email && <span className="flex items-center gap-1 truncate"><Mail className="w-3 h-3" /> {c.email}</span>}
-          {Number(c.total_orders) > 0 && <span>{c.total_orders} orden{Number(c.total_orders) === 1 ? "" : "es"} previa{Number(c.total_orders) === 1 ? "" : "s"}</span>}
+          {Number(c.total_orders) > 0 && <span>{c.total_orders} boleto{Number(c.total_orders) === 1 ? "" : "s"} previo{Number(c.total_orders) === 1 ? "" : "s"}</span>}
         </span>
       </span>
       {selected && <Check className="w-5 h-5" style={{ color: IOS.green }} />}
@@ -121,7 +121,7 @@ export default function StepCustomer({ w, tenantId, onOpenWarranty, onSwitchMode
                   <span style={{ fontSize: 11, color: IOS.green, fontWeight: 600 }}>Cliente seleccionado</span>
                   {s.customer.phone && <span className="flex items-center gap-1" style={{ fontSize: 13, color: W.sub }}><Phone className="w-3 h-3" /> {s.customer.phone}</span>}
                   {s.customer.email && <span className="flex items-center gap-1 truncate" style={{ fontSize: 13, color: W.sub }}><Mail className="w-3 h-3" /> {s.customer.email}</span>}
-                  {Number(s.customer.total_orders) > 0 && <span style={{ fontSize: 12, color: W.sub }}>{s.customer.total_orders} orden{Number(s.customer.total_orders) === 1 ? "" : "es"} previa{Number(s.customer.total_orders) === 1 ? "" : "s"}</span>}
+                  {Number(s.customer.total_orders) > 0 && <span style={{ fontSize: 12, color: W.sub }}>{s.customer.total_orders} boleto{Number(s.customer.total_orders) === 1 ? "" : "s"} previo{Number(s.customer.total_orders) === 1 ? "" : "s"}</span>}
                 </span>
                 <button onClick={() => set({ customer: null })} aria-label="Quitar cliente" style={{ color: W.sub }}><X className="w-5 h-5" /></button>
               </div>
@@ -164,7 +164,7 @@ export default function StepCustomer({ w, tenantId, onOpenWarranty, onSwitchMode
             <UserRoundX className="w-6 h-6" style={{ color: s.anonymous ? IOS.green : W.sub }} />
             <span className="flex-1">
               <span className="block" style={{ fontSize: 15, fontWeight: 600 }}>Continuar sin cliente</span>
-              <span className="block" style={{ fontSize: 12, color: W.sub }}>La orden se registra como anónima</span>
+              <span className="block" style={{ fontSize: 12, color: W.sub }}>El boleto se registra como anónimo</span>
             </span>
             {s.anonymous && <Check className="w-5 h-5" style={{ color: IOS.green }} />}
           </button>

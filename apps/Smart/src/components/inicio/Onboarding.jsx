@@ -46,7 +46,7 @@ export function PrimerosPasosCard({ tenant, tenantId, actions }) {
     ]],
     ["CARGA", [["Productos en inventario", "Agrega tu primer producto", counts.products, actions.inventory]]],
     ["PRIMERAS ACCIONES", [
-      ["Primera orden", "Crea una orden de reparación", counts.orders, actions.newOrder],
+      ["Primer boleto", "Crea un boleto de reparación", counts.orders, actions.newOrder],
       ["Venta en POS", "Registra una venta al mostrador", counts.sales, actions.pos],
     ]],
   ] : [];
@@ -127,7 +127,7 @@ export function WelcomeOnboarding({ open, tenant, onAction }) {
         <p style={{ fontSize: 26, fontWeight: 800, textAlign: "center" }}>¡Bienvenido a Archilla OS!</p>
         <p style={{ fontSize: 15, color: "#8E8E93", textAlign: "center" }}>Empecemos rápido. ¿Qué quieres hacer primero?</p>
         <div className="w-full flex flex-col" style={{ gap: 10, marginTop: 8 }}>
-          {tenant?.business_mode !== "retail" && card(Wrench, FP.info, "Crear mi primera orden", "Recibe un equipo para reparar", "newOrder")}
+          {tenant?.business_mode !== "retail" && card(Wrench, FP.info, "Crear mi primer boleto", "Recibe un equipo para reparar", "newOrder")}
           {card(ShoppingCart, FP.success, "Hacer una venta", "Cobra en el punto de venta", "pos")}
           {card(Package, FP.brand, "Agregar un producto", "Empieza tu inventario", "inventory")}
         </div>

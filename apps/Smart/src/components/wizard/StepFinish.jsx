@@ -63,7 +63,7 @@ export function StepEstimate({ w, tenantId, goToProblem }) {
           <p style={{ fontSize: 11, color: W.ter, marginTop: 2 }}>{s.cart.length ? "Pre-calculado del checkout · puedes ajustarlo" : "Puede quedar en $0 si se cotiza después"}</p>
         </Card>
         <Card style={{ padding: 14 }}>
-          <div className="flex items-center gap-3"><span className="flex-1"><span className="block" style={{ fontSize: 15, fontWeight: 600 }}>Prioridad</span><span className="block" style={{ fontSize: 12, color: W.sub }}>Marcar como prioridad alta · aparecerá destacado en la lista de órdenes</span></span><Switch on={s.highPriority} onChange={(v) => set({ highPriority: v })} label="Prioridad alta" /></div>
+          <div className="flex items-center gap-3"><span className="flex-1"><span className="block" style={{ fontSize: 15, fontWeight: 600 }}>Prioridad</span><span className="block" style={{ fontSize: 12, color: W.sub }}>Marcar como prioridad alta · aparecerá destacado en la lista de boletos</span></span><Switch on={s.highPriority} onChange={(v) => set({ highPriority: v })} label="Prioridad alta" /></div>
         </Card>
         <Card style={{ padding: 14 }}>
           <div className="flex items-center gap-3"><span className="flex-1"><span className="block" style={{ fontSize: 15, fontWeight: 600 }}>Listo para</span><span className="block" style={{ fontSize: 12, color: W.sub }}>Fecha prometida al cliente · se marca atrasada si no se entrega a tiempo</span></span>
@@ -185,7 +185,7 @@ export function StepSignature({ w, tenant }) {
       </div>
       <div className="flex flex-col" style={{ gap: 10 }}>
         <SignaturePad initialBlob={s.signatureBlob} onChange={(b) => set({ signatureBlob: b })} />
-        <p style={{ fontSize: 12, color: W.sub }}>Firma y términos son opcionales — la orden se puede crear sin ellos. Recomendado para evitar disputas.</p>
+        <p style={{ fontSize: 12, color: W.sub }}>Firma y términos son opcionales — el boleto se puede crear sin ellos. Recomendado para evitar disputas.</p>
       </div>
     </div>
   );
@@ -222,7 +222,7 @@ export function StepConfirm({ w, cashOpen }) {
     <div className="grid" style={{ gap: 20, gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", alignItems: "start" }}>
       <div className="flex flex-col" style={{ gap: 14 }}>
         <Card style={{ padding: 14 }}>
-          <div className="flex items-center" style={{ marginBottom: 8 }}><span className="flex-1" style={{ fontSize: 15, fontWeight: 700 }}>Pasos de la orden</span><span style={{ fontSize: 13, color: W.sub }}>{done}/{items.length}</span></div>
+          <div className="flex items-center" style={{ marginBottom: 8 }}><span className="flex-1" style={{ fontSize: 15, fontWeight: 700 }}>Pasos del boleto</span><span style={{ fontSize: 13, color: W.sub }}>{done}/{items.length}</span></div>
           {items.map(([l, v, ok]) => (
             <div key={l} className="flex items-center gap-2" style={{ padding: "5px 0" }}>
               {ok ? <Check className="w-4 h-4" style={{ color: IOS.green }} /> : <Circle className="w-4 h-4" style={{ color: W.ter }} />}
@@ -248,7 +248,7 @@ export function StepConfirm({ w, cashOpen }) {
             <Input type="datetime-local" value={dtInput(s.appointmentDate)} onChange={(v) => v && set({ appointmentDate: new Date(v) })} />
             <div style={{ marginTop: 10 }}>
               {s.serviceType === "visit"
-                ? <><TextArea label="Dirección de la visita" value={s.appointmentLocation} onChange={(v) => set({ appointmentLocation: v })} placeholder="Ej. 123 Calle Principal, San Juan, PR 00901" rows={3} /><p style={{ fontSize: 12, color: W.sub, marginTop: 4 }}>Usaremos esta dirección para abrir Mapas desde la orden.</p></>
+                ? <><TextArea label="Dirección de la visita" value={s.appointmentLocation} onChange={(v) => set({ appointmentLocation: v })} placeholder="Ej. 123 Calle Principal, San Juan, PR 00901" rows={3} /><p style={{ fontSize: 12, color: W.sub, marginTop: 4 }}>Usaremos esta dirección para abrir Mapas desde el boleto.</p></>
                 : <Input label="Link de sesión (Zoom, Meet…)" value={s.appointmentLocation} onChange={(v) => set({ appointmentLocation: v })} placeholder="https://meet.google.com/..." />}
             </div>
           </Card>
@@ -267,7 +267,7 @@ export function StepConfirm({ w, cashOpen }) {
               <button onClick={() => { set({ deposit: 0 }); setDepositText(""); setDepositOpen(false); }} aria-label="Quitar depósito" style={{ color: W.sub }}><X className="w-4 h-4" /></button>
             </div>
           )}
-          {s.deposit > 0 && <p style={{ fontSize: 12, color: W.sub, marginTop: 6 }}>El método de pago (efectivo / ATH / QR) se escoge al crear la orden.</p>}
+          {s.deposit > 0 && <p style={{ fontSize: 12, color: W.sub, marginTop: 6 }}>El método de pago (efectivo / ATH / QR) se escoge al crear el boleto.</p>}
           {s.deposit > 0 && !cashOpen && <p className="flex items-center gap-1.5" style={{ fontSize: 12, color: IOS.orange, marginTop: 6 }}><AlertTriangle className="w-3.5 h-3.5" /> La caja está cerrada — el cobro quedará pendiente hasta que la abras.</p>}
         </Card>
       </div>

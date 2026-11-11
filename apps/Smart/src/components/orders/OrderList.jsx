@@ -85,7 +85,7 @@ const OrderRow = memo(function OrderRow({ order, onClick }) {
       <Card
         role="button"
         tabIndex={0}
-        aria-label={`Abrir orden ${order_number}`}
+        aria-label={`Abrir boleto ${order_number}`}
         onClick={() => onClick?.(order)}
         onKeyDown={handleKeyDown}
         className={`p-4 sm:p-6 cursor-pointer transition-all duration-300 bg-gradient-to-br from-gray-900 to-black border-gray-800 hover:border-red-500/50 hover:shadow-xl hover:shadow-red-600/20 focus:outline-none focus:ring-2 focus:ring-red-600/40 ${
@@ -220,7 +220,7 @@ function OrderList({ orders = [], loading = false, onOrderClick }) {
     return (
       <Card className="p-8 sm:p-12 text-center bg-gray-900 border-gray-800">
         <Clock className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-600 mb-4" />
-        <p className="text-gray-400 text-base sm:text-lg">No se encontraron órdenes</p>
+        <p className="text-gray-400 text-base sm:text-lg">No se encontraron boletos</p>
         <p className="text-gray-500 text-xs sm:text-sm mt-2">Intenta ajustar los filtros de búsqueda</p>
       </Card>
     );

@@ -376,10 +376,10 @@ async function createSupplierPO(pending, order, tenantId, createdByName) {
 
 export async function createOrder({ s, tenantId, tenant, createdByName, onPhase, onBackgroundError }) {
   if (!tenantId) throw new Error("No se encontró el taller activo. Vuelve a iniciar sesión.");
-  if (!s.customer && !s.anonymous && !String(s.nc?.name || "").trim()) throw new Error("Falta el cliente de la orden.");
-  if (s.serviceType === "visit" && !String(s.appointmentLocation || "").trim()) throw new Error("Ingresa la dirección de la visita antes de crear la orden.");
+  if (!s.customer && !s.anonymous && !String(s.nc?.name || "").trim()) throw new Error("Falta el cliente del boleto.");
+  if (s.serviceType === "visit" && !String(s.appointmentLocation || "").trim()) throw new Error("Ingresa la dirección de la visita antes de crear el boleto.");
   const photos = s.mode === "unlock" ? s.unlockPhotos : s.photos;
-  onPhase(photos.length ? "Subiendo fotos..." : "Creando orden...");
+  onPhase(photos.length ? "Subiendo fotos..." : "Creando boleto...");
   const orderNumber = await nextOrderNumber(tenantId);
   const photoTask = (async () => {
     if (!photos.length) return [];
@@ -402,11 +402,11 @@ export async function createOrder({ s, tenantId, tenant, createdByName, onPhase,
   })();
   const sigTask = s.signatureBlob ? uploadSignature(tenantId, orderNumber, s.signatureBlob) : Promise.resolve(null);
   const photoURLs = await photoTask;
-  onPhase(s.signatureBlob ? "Guardando firma..." : "Creando orden...");
+  onPhase(s.signatureBlob ? "Guardando firma..." : "Creando boleto...");
   const signatureURL = await sigTask;
-  onPhase("Creando orden...");
-  if (s.signatureBlob && !signatureURL) throw new Error("No se pudo guardar la firma del cliente. La orden no se creó para no perder la autorización — revisa tu conexión e intenta de nuevo.");
-  if (photos.length && !photoURLs.length) throw new Error("No se pudieron guardar las fotos del equipo. La orden no se creó para no perder la evidencia — revisa tu conexión e intenta de nuevo.");
+  onPhase("Creando boleto...");
+  if (s.signatureBlob && !signatureURL) throw new Error("No se pudo guardar la firma del cliente. El boleto no se creó para no perder la autorización — revisa tu conexión e intenta de nuevo.");
+  if (photos.length && !photoURLs.length) throw new Error("No se pudieron guardar las fotos del equipo. El boleto no se creó para no perder la evidencia — revisa tu conexión e intenta de nuevo.");
 
   const customer = s.customer;
   const payload = {

@@ -104,7 +104,7 @@ export default function PendingOrderStage({ order, onUpdate, user, onOrderItemsU
                 <p className="text-[11px] font-semibold tracking-[0.28em] text-white/35">Accion rápida</p>
                 <h3 className="mt-1 text-xl font-semibold tracking-tight text-white">Cotizar y ordenar</h3>
                 <p className="mt-2 text-sm leading-relaxed text-white/55">
-                  Añade las piezas o servicios que van a formar parte de la orden final y mantén el costo visible.
+                  Añade las piezas o servicios que van a formar parte del boleto final y mantén el costo visible.
                 </p>
                 <Button
                   onClick={() => setShowCatalog(true)}
@@ -157,7 +157,7 @@ export default function PendingOrderStage({ order, onUpdate, user, onOrderItemsU
           onRemoteSaved={onRemoteSaved}
           onPaymentClick={onPaymentClick}
           accentColor="yellow"
-          subtitle="Centraliza costos, añade piezas y mantén el total visible antes de avanzar la orden."
+          subtitle="Centraliza costos, añade piezas y mantén el total visible antes de avanzar el boleto."
         />
       )}
 

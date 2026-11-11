@@ -41,7 +41,7 @@ export async function notifyNewOrderHandler(req) {
       }, { status: 400 });
     }
 
-    console.log(`🔔 [notifyNewOrder] Enviando notificación para orden: ${order_id}`);
+    console.log(`🔔 [notifyNewOrder] Enviando notificación para boleto: ${order_id}`);
 
     // Obtener la orden (service role para garantizar acceso)
     const orders = await base44.asServiceRole.entities.Order.filter({ id: order_id });
@@ -49,7 +49,7 @@ export async function notifyNewOrderHandler(req) {
     if (!orders || orders.length === 0) {
       return Response.json({
         success: false,
-        error: 'Orden no encontrada'
+        error: 'Boleto no encontrado'
       }, { status: 404 });
     }
 
@@ -98,7 +98,7 @@ export async function notifyNewOrderHandler(req) {
 
         // Si el usuario tiene configuración y deshabilitó new_order, skip
         if (userSettings && userSettings.receive_new_order_notifications === false) {
-          console.log(`⏭️ Usuario ${recipient.email} tiene notificaciones de orden deshabilitadas`);
+          console.log(`⏭️ Usuario ${recipient.email} tiene notificaciones de boleto deshabilitados`);
           return null;
         }
 
@@ -107,13 +107,13 @@ export async function notifyNewOrderHandler(req) {
           user_id: recipient.id,
           user_email: recipient.email,
           type: 'new_order',
-          title: `Nueva Orden: ${order.order_number}`,
+          title: `Nuevo Boleto: ${order.order_number}`,
           body: `${order.customer_name} - ${order.device_brand} ${order.device_model}`,
           related_entity_type: 'order',
           related_entity_id: order.id,
           related_entity_number: order.order_number,
           action_url: actionUrl,
-          action_label: 'Ver Orden',
+          action_label: 'Ver Boleto',
           priority: priority,
           is_read: false,
           sent_via: ['in_app'],

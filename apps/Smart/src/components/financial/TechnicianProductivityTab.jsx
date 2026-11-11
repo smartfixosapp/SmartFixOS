@@ -117,7 +117,7 @@ export default function TechnicianProductivityTab({ dateFilter, customStartDate,
 
   const summaryStats = [
     { label: "Técnicos activos", value: techStats.filter(t => t.id !== "__unassigned__").length, icon: Users, bg: "bg-apple-blue/12", text: "text-apple-blue" },
-    { label: "Órdenes totales", value: filteredOrders.length, icon: Wrench, bg: "bg-apple-blue/12", text: "text-apple-blue" },
+    { label: "Boletos totales", value: filteredOrders.length, icon: Wrench, bg: "bg-apple-blue/12", text: "text-apple-blue" },
     { label: "Completadas", value: techStats.reduce((s, t) => s + t.completed, 0), icon: CheckCircle2, bg: "bg-apple-green/12", text: "text-apple-green" },
     { label: "Ingresos generados", value: `$${techStats.reduce((s, t) => s + t.revenue, 0).toFixed(0)}`, icon: TrendingUp, bg: "bg-apple-purple/12", text: "text-apple-purple" },
   ];
@@ -216,7 +216,7 @@ export default function TechnicianProductivityTab({ dateFilter, customStartDate,
               {/* Expanded order list */}
               {isSelected && (
                 <div className="mt-1 ml-3 p-3 rounded-apple-md apple-card space-y-1.5">
-                  <p className="apple-text-caption2 font-semibold apple-label-secondary mb-2">Órdenes del período</p>
+                  <p className="apple-text-caption2 font-semibold apple-label-secondary mb-2">Boletos del período</p>
                   {tech.orders.slice(0, 15).map(o => {
                     const s = o.status || o.current_status;
                     return (

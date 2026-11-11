@@ -99,7 +99,7 @@ export async function generateInvoicePDF(invoice, orders, products = [], busines
   // ===== TABLA DE ÓRDENES =====
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.text('ÓRDENES INCLUIDAS', margin, y);
+  doc.text('BOLETOS INCLUIDOS', margin, y);
   y += 10;
 
   // Headers
@@ -108,7 +108,7 @@ export async function generateInvoicePDF(invoice, orders, products = [], busines
   doc.setFillColor(0, 168, 232);
   doc.setTextColor(255, 255, 255);
   doc.rect(margin, y - 5, pageWidth - (margin * 2), 8, 'F');
-  doc.text('Orden', margin + 2, y);
+  doc.text('Boleto', margin + 2, y);
   doc.text('Equipo', margin + 30, y);
   doc.text('Servicio', margin + 75, y);
   doc.text('Monto', pageWidth - margin - 20, y, { align: 'right' });

@@ -151,7 +151,7 @@ export function ClientPhotoShareSheet({ open, urls, order, onClose }) {
   const [msg, setMsg] = useState(null);
   useEffect(() => { if (open) setMsg(null); }, [open]);
   const first = String(order?.customer_name || "").trim().split(/\s+/)[0] || "";
-  const caption = `Hola${first ? ` ${first}` : ""}, aquí están las fotos de tu equipo (Orden ${order?.order_number || ""}).\n${(urls || []).join("\n")}`;
+  const caption = `Hola${first ? ` ${first}` : ""}, aquí están las fotos de tu equipo (Boleto ${order?.order_number || ""}).\n${(urls || []).join("\n")}`;
   const phone = String(order?.customer_phone || "").trim();
   const email = String(order?.customer_email || "").trim();
   const digits = digitsOf(phone);

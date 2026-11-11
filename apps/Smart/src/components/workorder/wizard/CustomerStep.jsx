@@ -287,7 +287,7 @@ export default function CustomerStep({ formData, updateFormData }) {
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <span className="bg-apple-blue/12 text-apple-blue apple-text-caption2 px-2 py-0.5 rounded-apple-xs tabular-nums">
-                    {customer.total_orders || 0} órdenes
+                    {customer.total_orders || 0} boletos
                   </span>
                   {customer.is_b2b && (
                     <span className="bg-apple-purple/12 text-apple-purple apple-text-caption2 px-2 py-0.5 rounded-apple-xs">

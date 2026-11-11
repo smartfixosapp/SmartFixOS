@@ -137,8 +137,8 @@ NO repitas listas largas — resume.
 - Si los datos son MUY insuficientes, di explícitamente: "Información insuficiente para diagnóstico completo. Se recomienda: [lista de pruebas pendientes]"
 - Usa **negrita** en títulos de sección`;
 
-      const userPrompt = `═══ DATOS DE LA ORDEN ═══
-Orden: #${o.order_number || "N/A"}
+      const userPrompt = `═══ DATOS DEL BOLETO ═══
+Boleto: #${o.order_number || "N/A"}
 Dispositivo: ${deviceInfo}
 Tipo: ${o.device_type || "N/A"}
 IMEI/Serial: ${o.device_imei || "N/A"}
@@ -153,7 +153,7 @@ ${issuesOnly ? `═══ ⚠️ PROBLEMAS DETECTADOS EN EL CHECKLIST ═══\
 ═══ NOTAS DEL TÉCNICO EN ESTE STAGE ═══
 ${checklistNotes || "Sin notas en este stage"}
 
-${previousNotes ? `═══ NOTAS/COMENTARIOS PREVIOS DE LA ORDEN ═══\n• ${previousNotes}\n` : ""}
+${previousNotes ? `═══ NOTAS/COMENTARIOS PREVIOS DEL BOLETO ═══\n• ${previousNotes}\n` : ""}
 ═══ PIEZAS/SERVICIOS YA AGREGADOS ═══
 ${itemsSummary}
 

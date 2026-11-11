@@ -126,7 +126,7 @@ export default function CreateInvoiceDialog({ open, onClose }) {
       setStep(2);
     } catch (error) {
       console.error("Error loading orders:", error);
-      toast.error("Error cargando órdenes");
+      toast.error("Error cargando boletos");
     } finally {
       setLoading(false);
     }
@@ -165,7 +165,7 @@ export default function CreateInvoiceDialog({ open, onClose }) {
     }
 
     if (selectedOrders.length === 0) {
-      toast.error("Selecciona al menos una orden");
+      toast.error("Selecciona al menos un boleto");
       return;
     }
 
@@ -259,14 +259,14 @@ export default function CreateInvoiceDialog({ open, onClose }) {
 
                   <div style="background: #F0FDF4; border-left: 6px solid #10B981; border-radius: 16px; padding: 24px; margin: 30px 0;">
                     <p style="margin: 0; color: #065F46; font-size: 16px; line-height: 1.7;">
-                      Adjuntamos la factura consolidada correspondiente a las órdenes de trabajo completadas. 
+                      Adjuntamos la factura consolidada correspondiente a los boletos de trabajo completados. 
                       El PDF incluye el desglose detallado de cada servicio.
                     </p>
                   </div>
 
                   <div style="background: #F9FAFB; border-radius: 16px; padding: 28px; margin: 30px 0;">
                     <h3 style="color: #111827; font-size: 16px; font-weight: 700; margin: 0 0 16px 0;">
-                      📋 Órdenes Incluidas
+                      📋 Boletos Incluidos
                     </h3>
                     <ul style="margin: 0; padding: 0 0 0 20px; color: #374151;">
                       ${selectedOrders.map((o) => `
@@ -450,10 +450,10 @@ export default function CreateInvoiceDialog({ open, onClose }) {
           <div className="space-y-4">
               <div className="bg-apple-purple/12 rounded-apple-md p-4">
                 <h3 className="apple-label-primary font-semibold mb-2">
-                  Órdenes de {selectedCompany?.company_name}
+                  Boletos de {selectedCompany?.company_name}
                 </h3>
                 <p className="text-xs apple-label-tertiary">
-                  Selecciona las órdenes a incluir en la factura
+                  Selecciona los boletos a incluir en la factura
                 </p>
               </div>
 
@@ -463,7 +463,7 @@ export default function CreateInvoiceDialog({ open, onClose }) {
                 </div> :
             availableOrders.length === 0 ?
             <div className="text-center py-8 apple-label-tertiary">
-                  No hay órdenes disponibles para facturar
+                  No hay boletos disponibles para facturar
                 </div> :
 
             <div className="space-y-2">
@@ -651,14 +651,14 @@ export default function CreateInvoiceDialog({ open, onClose }) {
                   Resumen de Factura
                 </h3>
                 <p className="text-xs apple-label-tertiary">
-                  {selectedCompany?.company_name} - {selectedOrders.length} órdenes, {selectedProducts.length} dispositivos
+                  {selectedCompany?.company_name} - {selectedOrders.length} boletos, {selectedProducts.length} dispositivos
                 </p>
               </div>
 
               {selectedOrders.length > 0 && (
                 <div className="apple-card border-0 rounded-apple-md p-4">
                   <h4 className="text-sm font-semibold text-white mb-3">
-                    Órdenes Incluidas ({selectedOrders.length})
+                    Boletos Incluidos ({selectedOrders.length})
                   </h4>
                   <div className="space-y-2 max-h-48 overflow-y-auto">
                     {selectedOrders.map((order) => (
@@ -772,7 +772,7 @@ export default function CreateInvoiceDialog({ open, onClose }) {
           <Button
             onClick={() => {
               if (step === 2 && selectedOrders.length === 0) {
-                toast.error("Selecciona al menos una orden");
+                toast.error("Selecciona al menos un boleto");
                 return;
               }
               setStep(step + 1);

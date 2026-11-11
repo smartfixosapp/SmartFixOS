@@ -10,8 +10,8 @@ export default function ConfirmationStep({ formData }) {
         <div className="w-16 h-16 mx-auto mb-4 rounded-apple-sm bg-apple-green/15 flex items-center justify-center">
           <Check className="w-8 h-8 text-apple-green" />
         </div>
-        <h3 className="apple-text-title2 apple-label-primary mb-2">Confirmar Orden de Trabajo</h3>
-        <p className="apple-text-subheadline apple-label-secondary">Revisa la información antes de crear la orden</p>
+        <h3 className="apple-text-title2 apple-label-primary mb-2">Confirmar Boleto de Trabajo</h3>
+        <p className="apple-text-subheadline apple-label-secondary">Revisa la información antes de crear el boleto</p>
       </div>
 
       <Card className="apple-card p-6 space-y-4">
@@ -165,7 +165,7 @@ export default function ConfirmationStep({ formData }) {
 
       <div className="p-4 bg-apple-blue/12 rounded-apple-sm">
         <p className="apple-text-footnote text-apple-blue text-center">
-          Al confirmar, se creará la orden y se enviará un email de confirmación al cliente
+          Al confirmar, se creará el boleto y se enviará un email de confirmación al cliente
         </p>
       </div>
     </div>

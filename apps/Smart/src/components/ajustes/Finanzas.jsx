@@ -157,7 +157,7 @@ export function PosRecibo({ tenant, tenantId, reload, back }) {
   const s = settingsOf(tenant);
   const any = d.send_email || d.send_whatsapp || d.send_print;
   const sale = (d.sale_subject.trim() || "Tu recibo #{number}").replace(/\{number\}/g, "1024");
-  const ord = (d.order_subject.trim() || "Tu orden #{number}").replace(/\{number\}/g, "WO-101");
+  const ord = (d.order_subject.trim() || "Tu boleto #{number}").replace(/\{number\}/g, "WO-101");
   const save = async () => {
     if (!any || busy) return;
     setBusy(true); setError(null);
@@ -173,9 +173,9 @@ export function PosRecibo({ tenant, tenantId, reload, back }) {
   const mono = { fontFamily: "ui-monospace, Menlo, monospace" };
   return (
     <SubPage title="POS & Recibo" onBack={back}>
-      <Group header="Asuntos de email" icon={Mail} footer="Usa `{number}` para que se reemplace por el número de venta u orden al enviar.">
+      <Group header="Asuntos de email" icon={Mail} footer="Usa `{number}` para que se reemplace por el número de venta o boleto al enviar.">
         <div>{sub(ShoppingBag, "Recibo de Venta (POS)")}<Field value={d.sale_subject} onChange={(v) => setD({ ...d, sale_subject: v })} placeholder="Tu recibo de venta #{number}" /><p style={{ fontSize: 12, color: A.ter, marginTop: 6 }}>Ejemplo: &quot;{sale}&quot;</p></div>
-        <div>{sub(Wrench, "Orden de Reparación")}<Field value={d.order_subject} onChange={(v) => setD({ ...d, order_subject: v })} placeholder="Tu orden de reparación #{number}" /><p style={{ fontSize: 12, color: A.ter, marginTop: 6 }}>Ejemplo: &quot;{ord}&quot;</p></div>
+        <div>{sub(Wrench, "Boleto de Reparación")}<Field value={d.order_subject} onChange={(v) => setD({ ...d, order_subject: v })} placeholder="Tu boleto de reparación #{number}" /><p style={{ fontSize: 12, color: A.ter, marginTop: 6 }}>Ejemplo: &quot;{ord}&quot;</p></div>
       </Group>
       <Group header="Métodos de envío disponibles" icon={Send} form footer="Elige qué opciones aparecen al finalizar una venta. Los canales que apagues no se mostrarán en el botón de envío." pad={false}>
         <ToggleRow first Icon={Mail} color="#0A84FF" tintColor="#64D2FF" title="Email" sub="Envío de recibo por correo electrónico" on={d.send_email} onChange={(v) => setD({ ...d, send_email: v })} />

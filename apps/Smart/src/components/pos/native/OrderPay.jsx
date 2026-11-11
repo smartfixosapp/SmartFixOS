@@ -84,16 +84,16 @@ export default function OrderPayDialog({ open, onClose, tenantId, tenant, employ
     }
     const settled = orderTotal(fresh) > 0 && remainingBalance(fresh) <= 0.004;
     outcomeRef.current = { settled, amount: res.applied, label, order: fresh, balance: remainingBalance(fresh) };
-    onPaid?.(settled ? `Orden saldada · ${usd(res.applied)} · ${label}` : `Depósito recibido · ${usd(res.applied)} · ${label}`);
+    onPaid?.(settled ? `Boleto saldado · ${usd(res.applied)} · ${label}` : `Depósito recibido · ${usd(res.applied)} · ${label}`);
   };
 
   return (
     <>
-      <Dialog open={open && !selected} onClose={onClose} title="Cobrar a orden" width={560} height="80dvh" leading={<TextAction onClick={onClose}>Cancelar</TextAction>} trailing={null} bodyPadding="0">
+      <Dialog open={open && !selected} onClose={onClose} title="Cobrar a boleto" width={560} height="80dvh" leading={<TextAction onClick={onClose}>Cancelar</TextAction>} trailing={null} bodyPadding="0">
         <div style={{ padding: 16 }}>
           <div className="flex items-center gap-2" style={{ padding: "12px 14px", borderRadius: 12, background: "#2C2C2E" }}>
             <Search className="w-4 h-4" style={{ color: P.sub }} />
-            <input autoFocus value={q} onChange={(e) => onSearch(e.target.value.toUpperCase())} placeholder="Número de orden o cliente" autoCorrect="off" style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: P.text, fontSize: 16 }} />
+            <input autoFocus value={q} onChange={(e) => onSearch(e.target.value.toUpperCase())} placeholder="Número de boleto o cliente" autoCorrect="off" style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: P.text, fontSize: 16 }} />
             {q && <button onClick={() => { setQ(""); setResults([]); }} aria-label="Limpiar" style={{ color: P.sub }}><CircleX className="w-5 h-5" /></button>}
           </div>
         </div>
@@ -111,7 +111,7 @@ export default function OrderPayDialog({ open, onClose, tenantId, tenant, employ
           ) : (
             <div className="flex flex-col items-center text-center" style={{ padding: 40, gap: 8 }}>
               <FileSearch className="w-10 h-10" style={{ color: P.ter }} />
-              <p style={{ fontSize: 17, fontWeight: 600 }}>Busca una orden</p>
+              <p style={{ fontSize: 17, fontWeight: 600 }}>Busca un boleto</p>
               <p style={{ fontSize: 14, color: P.sub }}>{'Escribe el número ("103") o el nombre del cliente.'}</p>
             </div>
           )
@@ -119,7 +119,7 @@ export default function OrderPayDialog({ open, onClose, tenantId, tenant, employ
           <div className="flex flex-col items-center text-center" style={{ padding: 40, gap: 8 }}>
             <Inbox className="w-10 h-10" style={{ color: P.ter }} />
             <p style={{ fontSize: 17, fontWeight: 600 }}>Sin resultados</p>
-            <p style={{ fontSize: 14, color: P.sub }}>Solo se muestran órdenes con balance pendiente.</p>
+            <p style={{ fontSize: 14, color: P.sub }}>Solo se muestran boletos con balance pendiente.</p>
           </div>
         ) : (
           <div style={{ margin: "0 16px 16px", borderRadius: 12, background: "#2C2C2E", overflow: "hidden" }}>{results.map(row)}</div>
@@ -130,7 +130,7 @@ export default function OrderPayDialog({ open, onClose, tenantId, tenant, employ
         if (!paidRef.current) return;
         const o = outcomeRef.current;
         outcomeRef.current = null;
-        if (o) presentCelebration(o.settled ? { style: "money", title: "Orden saldada", subtitle: `${usd(o.amount)} · ${o.label}`, detail: [o.order?.order_number, o.order?.customer_name].filter(Boolean).join(" · ") } : { style: "deposit", title: "Depósito recibido", subtitle: `${usd(o.amount)} · ${o.label}`, detail: `Falta por cobrar ${usd(o.balance)}` });
+        if (o) presentCelebration(o.settled ? { style: "money", title: "Boleto saldado", subtitle: `${usd(o.amount)} · ${o.label}`, detail: [o.order?.order_number, o.order?.customer_name].filter(Boolean).join(" · ") } : { style: "deposit", title: "Depósito recibido", subtitle: `${usd(o.amount)} · ${o.label}`, detail: `Falta por cobrar ${usd(o.balance)}` });
         onClose();
       }} onSubmit={submit} />
     </>

@@ -60,8 +60,8 @@ export default function FinalizedStage({ order, onUpdate, onPaymentClick, compac
   const headerCopy = isCompleted
     ? {
         badge: "Completado",
-        title: "Orden Cerrada",
-        subtitle: "La orden ya salió del flujo activo. Esta vista funciona como cierre limpio con datos finales del cliente y referencia rápida."
+        title: "Boleto Cerrado",
+        subtitle: "El boleto ya salió del flujo activo. Esta vista funciona como cierre limpio con datos finales del cliente y referencia rápida."
       }
     : {
         badge: "Entregado",
@@ -92,7 +92,7 @@ export default function FinalizedStage({ order, onUpdate, onPaymentClick, compac
       title: "Trabajo / artículos finales",
       text: items.length > 0
         ? items.map((item) => item?.name).filter(Boolean).slice(0, 3).join(", ")
-        : "No hay piezas o servicios visibles en esta orden.",
+        : "No hay piezas o servicios visibles en este boleto.",
       icon: Wrench,
       tone: "bg-emerald-500/10 text-emerald-300"
     }
@@ -162,10 +162,10 @@ export default function FinalizedStage({ order, onUpdate, onPaymentClick, compac
                 <div className="min-w-0">
                   <p className="text-[11px] font-semibold tracking-[0.28em] text-white/35">Resultado</p>
                   <h3 className="mt-1 text-xl font-semibold tracking-tight text-white">
-                    {totals.balance <= 0.01 ? "Orden saldada y entregada" : "Entrega registrada con balance visible"}
+                    {totals.balance <= 0.01 ? "Boleto saldado y entregado" : "Entrega registrada con balance visible"}
                   </h3>
                   <p className="mt-2 text-sm leading-relaxed text-white/55">
-                    Esta etapa sirve como resumen de salida: qué se entregó, a quién y cómo quedó la orden después del cierre.
+                    Esta etapa sirve como resumen de salida: qué se entregó, a quién y cómo quedó el boleto después del cierre.
                   </p>
                 </div>
               </div>
@@ -193,7 +193,7 @@ export default function FinalizedStage({ order, onUpdate, onPaymentClick, compac
                     {warrantyActive ? `${warrantyDays} días restantes` : "Sin garantía activa visible"}
                   </p>
                   <p className="mt-1 text-xs text-white/50">
-                    {warrantyActive ? "La orden mantiene ventana de garantía activa." : "No hay contador de garantía disponible."}
+                    {warrantyActive ? "El boleto mantiene ventana de garantía activa." : "No hay contador de garantía disponible."}
                   </p>
                 </div>
               </div>
@@ -352,7 +352,7 @@ export default function FinalizedStage({ order, onUpdate, onPaymentClick, compac
                 <p className="text-[11px] font-semibold tracking-[0.28em] text-white/35">Cierre económico</p>
                 <h3 className="mt-1 text-2xl font-semibold tracking-tight text-white">Piezas y Servicios</h3>
                 <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/55">
-                  Mantén visible el detalle final de piezas, servicios y balance sin importar si la orden ya fue entregada o completada.
+                  Mantén visible el detalle final de piezas, servicios y balance sin importar si el boleto ya fue entregado o completado.
                 </p>
               </div>
             </div>
@@ -383,7 +383,7 @@ export default function FinalizedStage({ order, onUpdate, onPaymentClick, compac
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
                 <ShoppingCart className="h-6 w-6 text-white/35" />
               </div>
-              <p className="text-sm font-semibold text-white/70">No hay items en esta orden</p>
+              <p className="text-sm font-semibold text-white/70">No hay items en este boleto</p>
               <p className="mt-2 text-xs text-white/40">Añade piezas o servicios si hace falta ajustar el cierre final.</p>
             </div>
           ) : (
@@ -459,7 +459,7 @@ export default function FinalizedStage({ order, onUpdate, onPaymentClick, compac
                 <div className="rounded-[24px] border border-emerald-500/15 bg-[linear-gradient(180deg,rgba(16,185,129,0.08),rgba(0,0,0,0.18))] p-5">
                   <p className="text-[11px] font-semibold tracking-[0.28em] text-white/35">Acciones de cobro</p>
                   <h4 className="mt-2 text-2xl font-semibold tracking-tight text-white">
-                    {totals.balance > 0.01 ? "Cierra el balance de la orden" : "Orden saldada"}
+                    {totals.balance > 0.01 ? "Cierra el balance del boleto" : "Boleto saldado"}
                   </h4>
                   <p className="mt-2 text-sm leading-relaxed text-white/55">
                     Registra un depósito adicional o cobra el restante completo desde POS sin salir del cierre final.
@@ -482,7 +482,7 @@ export default function FinalizedStage({ order, onUpdate, onPaymentClick, compac
                     </div>
                   ) : (
                     <div className="mt-5 rounded-[18px] border border-emerald-500/20 bg-emerald-500/10 p-4 text-center">
-                      <p className="text-lg font-bold text-emerald-400">Orden Saldada</p>
+                      <p className="text-lg font-bold text-emerald-400">Boleto Saldado</p>
                     </div>
                   )}
                 </div>
@@ -500,7 +500,7 @@ export default function FinalizedStage({ order, onUpdate, onPaymentClick, compac
         onUpdate={onUpdate}
         accent="emerald"
         title="Centro de Historial"
-        subtitle="Actividad, fotos, seguridad y referencia final de la orden entregada."
+        subtitle="Actividad, fotos, seguridad y referencia final del boleto entregado."
       />
       )}
       <AddItemModal

@@ -88,7 +88,7 @@ export default function ThermalOrderReceipt({ order, onClose, autoPrint = false 
           {logo && (
             <img src={logo} alt="Logo" style={{ maxWidth: '50mm', maxHeight: '15mm', margin: '0 auto 2mm auto', display: 'block' }} onError={(e) => { e.target.style.display = 'none'; }} />
           )}
-          <div style={{ fontSize: '9pt', marginTop: '1mm' }}>ORDEN DE REPARACIÓN</div>
+          <div style={{ fontSize: '9pt', marginTop: '1mm' }}>BOLETO DE REPARACIÓN</div>
           <div style={{ fontSize: '8pt', marginTop: '1mm' }}>
             {format(new Date(order.created_date || new Date()), "dd/MM/yyyy HH:mm", { locale: es })}
           </div>
@@ -98,7 +98,7 @@ export default function ThermalOrderReceipt({ order, onClose, autoPrint = false 
 
         {/* ORDEN # */}
         <div style={{ textAlign: 'center', marginBottom: '3mm' }}>
-          <div style={{ fontSize: '9pt' }}>ORDEN:</div>
+          <div style={{ fontSize: '9pt' }}>BOLETO:</div>
           <div style={{ fontSize: '16pt', fontWeight: 'bold', letterSpacing: '1px' }}>
             {order.order_number || 'SIN #'}
           </div>

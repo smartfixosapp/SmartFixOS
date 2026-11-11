@@ -63,7 +63,7 @@ export function OrderPicker({ open, tenantId, onPick, onClear, allowClear, onClo
     return [o.customer_name, o.order_number, o.device_model, o.device_family, o.device_brand].some((v) => String(v || "").toLowerCase().includes(s));
   });
   return (
-    <Dialog open={open} onClose={onClose} title="Vincular a orden" width={520} height="80dvh" leading={<span />} trailing={<TextAction bold onClick={onClose}>Cerrar</TextAction>}>
+    <Dialog open={open} onClose={onClose} title="Vincular a boleto" width={520} height="80dvh" leading={<span />} trailing={<TextAction bold onClick={onClose}>Cerrar</TextAction>}>
       <div className="flex flex-col" style={{ gap: 10, paddingTop: 6 }}>
         <label className="flex items-center gap-2" style={{ height: 42, padding: "0 12px", borderRadius: 12, background: W.card2 }}>
           <Search className="w-4 h-4" style={{ color: W.sub }} />
@@ -71,12 +71,12 @@ export function OrderPicker({ open, tenantId, onPick, onClear, allowClear, onClo
         </label>
         {allowClear && (
           <button onClick={() => { onClear(); onClose(); }} className="apple-press text-left" style={{ padding: 12, borderRadius: 12, background: W.card2 }}>
-            <span className="block" style={{ fontSize: 14, fontWeight: 600 }}>Sin orden de trabajo</span>
+            <span className="block" style={{ fontSize: 14, fontWeight: 600 }}>Sin boleto de trabajo</span>
             <span className="block" style={{ fontSize: 12, color: W.sub }}>Pieza para stock o uso general del taller</span>
           </button>
         )}
         {rows === null ? <div className="flex justify-center" style={{ padding: 30 }}><Loader2 className="w-5 h-5 animate-spin" style={{ color: W.sub }} /></div>
-          : !list.length ? <div className="text-center" style={{ padding: 24, color: W.sub }}><b style={{ color: "#fff" }}>Sin órdenes activas</b><p style={{ fontSize: 13, marginTop: 4 }}>No hay órdenes en estados accionables. Las órdenes entregadas o canceladas no aparecen aquí.</p></div>
+          : !list.length ? <div className="text-center" style={{ padding: 24, color: W.sub }}><b style={{ color: "#fff" }}>Sin boletos activos</b><p style={{ fontSize: 13, marginTop: 4 }}>No hay boletos en estados accionables. Los boletos entregados o cancelados no aparecen aquí.</p></div>
             : (
               <div style={{ borderRadius: 12, background: W.card2, overflow: "hidden" }}>
                 {list.map((o, i) => {
@@ -377,7 +377,7 @@ function Inner({ onClose, tenantId, employeeName, prefill }) {
 
   const body2 = (
     <div className="flex flex-col" style={{ gap: 14 }}>
-      <div><Caption>PASO 2 DE 3</Caption><p style={{ fontSize: 26, fontWeight: 800 }}>Revisa los productos</p><p style={{ fontSize: 14, color: W.sub }}>Ajusta nombres, costos y precios de venta. Marca si es pieza nueva o si va a una orden.</p></div>
+      <div><Caption>PASO 2 DE 3</Caption><p style={{ fontSize: 26, fontWeight: 800 }}>Revisa los productos</p><p style={{ fontSize: 14, color: W.sub }}>Ajusta nombres, costos y precios de venta. Marca si es pieza nueva o si va a un boleto.</p></div>
       {!lines.length && <div className="text-center" style={{ padding: 24, color: W.sub }}><b style={{ color: "#fff" }}>Sin productos aún</b><p style={{ fontSize: 13, marginTop: 4 }}>Añade items manualmente abajo o sube una factura desde el paso anterior.</p></div>}
       <div className="grid" style={{ gap: 14, gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", alignItems: "start" }}>
         {lines.map((l) => {
@@ -431,7 +431,7 @@ function Inner({ onClose, tenantId, employeeName, prefill }) {
                 <button onClick={() => setPicker({ lineId: l.id, query: l.product_name, allowClear: !!l.inventory_item_id })} className="apple-press" style={{ color: BRAND, fontWeight: 700 }}>{l.inventory_item_id ? "Cambiar" : "Vincular a existente"}</button>
               </div>
               <div className="flex items-center gap-2" style={{ fontSize: 13, marginTop: 8 }}>
-                <span className="flex-1 min-w-0 truncate" style={{ color: l.linked_work_order_id ? INFO : W.sub }}>{l.linked_work_order_id ? `Para orden: ${l.linked_work_order_number || ""}` : "¿Es para una orden de trabajo?"}</span>
+                <span className="flex-1 min-w-0 truncate" style={{ color: l.linked_work_order_id ? INFO : W.sub }}>{l.linked_work_order_id ? `Para boleto: ${l.linked_work_order_number || ""}` : "¿Es para un boleto de trabajo?"}</span>
                 <button onClick={() => setWoPicker({ lineId: l.id, allowClear: !!l.linked_work_order_id })} className="apple-press" style={{ color: BRAND, fontWeight: 700 }}>{l.linked_work_order_id ? "Cambiar" : "Vincular"}</button>
               </div>
               <div className="flex justify-between" style={{ marginTop: 12, fontSize: 14 }}><span style={{ color: W.sub }}>Subtotal</span><b style={{ color: BRAND }}>{money(num(l.quantity) * cost)}</b></div>

@@ -39,7 +39,7 @@ export default function ExternalRepairStage({ order, onUpdate, compact }) {
                 </div>
               </div>
               <p className="max-w-2xl text-sm leading-relaxed text-white/55">
-                Mantén claro qué tercero está trabajando la orden, qué se pidió y cómo seguir el proceso sin llenar la pantalla de bloques genéricos.
+                Mantén claro qué tercero está trabajando el boleto, qué se pidió y cómo seguir el proceso sin llenar la pantalla de bloques genéricos.
               </p>
             </div>
 
@@ -53,7 +53,7 @@ export default function ExternalRepairStage({ order, onUpdate, compact }) {
                 <p className="truncate text-sm font-semibold text-white/75">{o.external_shop || "Sin asignar"}</p>
               </div>
               <div className="rounded-[22px] border border-white/10 bg-black/25 p-4 backdrop-blur-md">
-                <p className="mb-1 text-[11px] font-semibold tracking-[0.24em] text-white/35">Orden</p>
+                <p className="mb-1 text-[11px] font-semibold tracking-[0.24em] text-white/35">Boleto</p>
                 <p className="truncate text-lg font-bold text-cyan-200">{o.order_number || "Sin numero"}</p>
               </div>
             </div>

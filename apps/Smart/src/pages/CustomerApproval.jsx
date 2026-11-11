@@ -188,7 +188,7 @@ export default function CustomerApproval() {
           <p className="apple-text-footnote apple-label-tertiary">{bizName}</p>
           <h1 className="apple-text-title1 apple-label-primary">Cotización de Reparación</h1>
           <p className="apple-text-subheadline apple-label-secondary">
-            {order?.order_number && <span className="tabular-nums">Orden {order.order_number} · </span>}
+            {order?.order_number && <span className="tabular-nums">Boleto {order.order_number} · </span>}
             {order?.device_brand} {order?.device_model}
           </p>
         </div>

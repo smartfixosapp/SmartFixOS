@@ -69,7 +69,7 @@ export default function OrdersTab({ user }) {
         key: "settings.orders",
         value: JSON.stringify(data),
         category: "general",
-        description: "Configuración de órdenes y wizard"
+        description: "Configuración de boletos y wizard"
       };
 
       if (rows?.length) {
@@ -105,7 +105,7 @@ export default function OrdersTab({ user }) {
       <Card className="apple-card border-0">
         <CardHeader>
           <CardTitle className="apple-text-title3 apple-label-primary">Work Order Wizard</CardTitle>
-          <CardDescription className="apple-text-subheadline apple-label-secondary">Configuración del asistente de creación de órdenes</CardDescription>
+          <CardDescription className="apple-text-subheadline apple-label-secondary">Configuración del asistente de creación de boletos</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">

@@ -137,10 +137,10 @@ export default function StepDetails({ w, tenantId, currentEmployee }) {
       <p className="flex items-center gap-2" style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.08em", color: W.sub, paddingTop: 8 }}><UserRound className="w-3.5 h-3.5" style={{ color: IOS.teal }} /> TÉCNICO</p>
       <div className="flex flex-wrap" style={{ gap: 12 }}>
         <button onClick={() => set({ employee: null, employeeAuto: false, employeeTouched: true })} className="apple-press flex items-center gap-3 text-left flex-1" style={{ minWidth: 240, padding: 14, borderRadius: 14, background: !s.employee ? tint(IOS.orange, 0.12) : W.card, border: `1px solid ${!s.employee ? tint(IOS.orange, 0.5) : "transparent"}` }}>
-          <span className="flex-1"><span className="block" style={{ fontSize: 15, fontWeight: 600 }}>Asignar después</span><span className="block" style={{ fontSize: 12, color: W.sub }}>La orden entra a la cola sin técnico asignado</span></span>
+          <span className="flex-1"><span className="block" style={{ fontSize: 15, fontWeight: 600 }}>Asignar después</span><span className="block" style={{ fontSize: 12, color: W.sub }}>El boleto entra a la cola sin técnico asignado</span></span>
           {!s.employee && <Check className="w-5 h-5" style={{ color: IOS.orange }} />}
         </button>
-        <p className="flex items-start gap-2 flex-1" style={{ minWidth: 240, padding: 12, borderRadius: 12, background: tint(IOS.blue, 0.1), fontSize: 12 }}><Info className="w-4 h-4 flex-shrink-0" style={{ color: IOS.blue }} /> Saltar este paso deja la orden en la cola sin asignar. El dispatcher la puede asignar después desde el detalle.</p>
+        <p className="flex items-start gap-2 flex-1" style={{ minWidth: 240, padding: 12, borderRadius: 12, background: tint(IOS.blue, 0.1), fontSize: 12 }}><Info className="w-4 h-4 flex-shrink-0" style={{ color: IOS.blue }} /> Saltar este paso deja el boleto en la cola sin asignar. El dispatcher la puede asignar después desde el detalle.</p>
       </div>
       <div className="flex items-center gap-2"><Caption>Empleados activos</Caption><span style={{ padding: "1px 8px", borderRadius: 999, background: "#3A3A3C", fontSize: 11, fontWeight: 700 }}>{techs.employees.length}</span></div>
       {techs.loading ? <p className="flex items-center gap-2" style={{ fontSize: 14, color: W.sub }}><Loader2 className="w-4 h-4 animate-spin" /> Cargando empleados…</p>

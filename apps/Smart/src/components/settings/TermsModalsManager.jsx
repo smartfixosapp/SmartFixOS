@@ -50,7 +50,7 @@ export default function TermsModalsManager({ appConfig, setAppConfig, saveAppCon
         value: appConfig.warranty_sales || "",
       },
       warranty_repairs: {
-        title: "Garantía por Orden de Trabajo",
+        title: "Garantía por Boleto de Trabajo",
         icon: Shield,
         tint: "blue",
         value: appConfig.warranty_repairs || "",

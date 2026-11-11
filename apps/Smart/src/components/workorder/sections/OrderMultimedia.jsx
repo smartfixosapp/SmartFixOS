@@ -172,12 +172,12 @@ export default function OrderMultimedia({ order, onUpdate }) {
     const url = photo?.publicUrl || photo?.thumbUrl || photo?.url;
     if (!url) return;
 
-    const text = `Foto de evidencia de la orden ${o?.order_number || ""}`.trim();
+    const text = `Foto de evidencia del boleto ${o?.order_number || ""}`.trim();
 
     try {
       if (navigator.share) {
         await navigator.share({
-          title: `Orden ${o?.order_number || ""}`.trim(),
+          title: `Boleto ${o?.order_number || ""}`.trim(),
           text,
           url,
         });

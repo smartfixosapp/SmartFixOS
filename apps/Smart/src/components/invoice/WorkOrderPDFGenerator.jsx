@@ -70,7 +70,7 @@ export async function generateWorkOrderPDF(order, businessInfo = {}) {
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(0, 0, 0);
-  doc.text(`Orden #${order.order_number || order.id}`, margin + 5, y + 7);
+  doc.text(`Boleto #${order.order_number || order.id}`, margin + 5, y + 7);
   
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);

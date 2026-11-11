@@ -143,7 +143,7 @@ export default function CheckoutModalDesktop({
                   <span>${tax.toFixed(2)}</span>
                 </div>
                 <div className={`flex justify-between font-bold pt-2 tabular-nums ${workOrderId ? 'apple-text-headline apple-label-primary' : 'apple-text-title3 text-apple-blue'}`} style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}>
-                  <span>{workOrderId ? "Total de la Orden" : "Total"}</span>
+                  <span>{workOrderId ? "Total del Boleto" : "Total"}</span>
                   <span>${(Number(workOrderId ? orderTotal : finalTotal) || 0).toFixed(2)}</span>
                 </div>
 

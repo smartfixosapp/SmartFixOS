@@ -23,7 +23,7 @@ const STEPS = [
     num: "03",
     icon: KeyRound,
     title: "Crea tu PIN y entra",
-    body: "Pones tu PIN, abres tu taller y empiezas a meter órdenes.",
+    body: "Pones tu PIN, abres tu taller y empiezas a meter boletos.",
   },
 ];
 

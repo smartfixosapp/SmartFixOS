@@ -552,8 +552,8 @@ export default function POS() {
     const r = e.currentTarget.getBoundingClientRect();
     const items = [];
     if (cart.length) items.push({ label: "Poner carrito en pausa", Icon: PauseCircle, onPress: holdCart }, { divider: true });
-    items.push({ label: "Cobrar a orden existente", Icon: Wrench, onPress: () => setDialog("orderPay") });
-    items.push({ label: "Buscar orden", Icon: Search, onPress: () => navigate("/Orders", { state: { focusSearch: true } }) });
+    items.push({ label: "Cobrar a boleto existente", Icon: Wrench, onPress: () => setDialog("orderPay") });
+    items.push({ label: "Buscar boleto", Icon: Search, onPress: () => navigate("/Orders", { state: { focusSearch: true } }) });
     items.push({ label: "Añadir item manual", Icon: PlusCircle, onPress: () => setDialog("manual") });
     items.push({ label: "Recargar catálogo", Icon: RefreshCw, onPress: load });
     items.push({ divider: true });
@@ -640,7 +640,7 @@ export default function POS() {
             <span className="absolute" style={{ top: 4, right: 2, minWidth: 16, height: 16, padding: "0 3px", borderRadius: 999, background: P.danger, color: "#fff", fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{heldCarts.length}</span>
           </button>
         )}
-        <button onClick={openMoreMenu} aria-label="Más opciones" title="Cobrar a orden, item manual, recargar catálogo, historial" className="apple-press" style={{ width: 40, height: 40, borderRadius: 999, color: P.brand, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <button onClick={openMoreMenu} aria-label="Más opciones" title="Cobrar a boleto, item manual, recargar catálogo, historial" className="apple-press" style={{ width: 40, height: 40, borderRadius: 999, color: P.brand, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <MoreHorizontal className="w-6 h-6" />
         </button>
       </div>

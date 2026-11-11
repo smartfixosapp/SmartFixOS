@@ -38,7 +38,7 @@ ${JSON.stringify(lowStockProducts.map(p => ({
   price: p.price
 })), null, 2)}
 
-Órdenes recientes (últimos 30 días): ${recentOrders.length} órdenes
+Boletos recientes (últimos 30 días): ${recentOrders.length} boletos
 
 Analiza:
 1. Velocidad de rotación de cada producto
@@ -137,7 +137,7 @@ Devuelve un JSON con prioridades y acciones sugeridas.`,
             relatedEntityType: "purchase_order",
             relatedEntityId: po.id,
             actionUrl: `/Inventory`,
-            actionLabel: "Ver orden",
+            actionLabel: "Ver boleto",
             priority: daysOverdue > 7 ? "urgent" : "high",
             metadata: {
               po_number: po.po_number,
@@ -149,7 +149,7 @@ Devuelve un JSON con prioridades y acciones sugeridas.`,
         }
       }
 
-      console.log(`✅ SmartNotificationsEngine: ${overdue.length} órdenes vencidas notificadas`);
+      console.log(`✅ SmartNotificationsEngine: ${overdue.length} boletos vencidos notificados`);
       return overdue;
     } catch (error) {
       console.error("Error en checkOverduePurchaseOrders:", error);
@@ -170,7 +170,7 @@ Devuelve un JSON con prioridades y acciones sugeridas.`,
 
       // Análisis IA de rentabilidad
       const analysis = await dataClient.integrations.Core.InvokeLLM({
-        prompt: `Analiza la rentabilidad de estos servicios basándote en ventas y órdenes de trabajo:
+        prompt: `Analiza la rentabilidad de estos servicios basándote en ventas y boletos de trabajo:
 
 Servicios disponibles:
 ${JSON.stringify(services.map(s => ({
@@ -181,7 +181,7 @@ ${JSON.stringify(services.map(s => ({
 })), null, 2)}
 
 Total de ventas recientes: ${sales.length}
-Total de órdenes de trabajo: ${orders.length}
+Total de boletos de trabajo: ${orders.length}
 
 Identifica:
 1. Servicios poco rentables o poco vendidos
@@ -394,12 +394,12 @@ Devuelve solo clientes que deberían recibir recordatorio.`,
             userId: user.id,
             userEmail: user.email,
             type: "pickup_reminder",
-            title: `📦 Orden esperando recogida: ${order.order_number || order.id?.slice(0, 8)}`,
+            title: `📦 Boleto esperando recogido: ${order.order_number || order.id?.slice(0, 8)}`,
             body: `${daysWaiting} días lista sin recoger. Cliente: ${order.customer_name || "N/A"}. ${order.device_brand ? order.device_brand + " " : ""}${order.device_model || ""}`.trim(),
             relatedEntityType: "order",
             relatedEntityId: order.id,
             actionUrl: `/Orders`,
-            actionLabel: "Ver orden",
+            actionLabel: "Ver boleto",
             priority: daysWaiting >= 7 ? "urgent" : "high",
             metadata: {
               order_number: order.order_number,

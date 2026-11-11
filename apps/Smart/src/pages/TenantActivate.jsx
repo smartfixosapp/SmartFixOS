@@ -14,13 +14,13 @@ import {
 // ── Dashboard widgets config ──────────────────────────────────────────────────
 const DASHBOARD_WIDGETS = [
   { key: 'revenue_today',     label: 'Ingresos del día',          icon: DollarSign,  desc: 'Ventas y pagos de hoy' },
-  { key: 'active_orders',     label: 'Órdenes activas',           icon: Wrench,      desc: 'Reparaciones en progreso' },
+  { key: 'active_orders',     label: 'Boletos activos',           icon: Wrench,      desc: 'Reparaciones en progreso' },
   { key: 'total_customers',   label: 'Clientes totales',          icon: Users,       desc: 'Base de clientes' },
   { key: 'inventory_value',   label: 'Valor del inventario',      icon: Package,     desc: 'Stock en dinero' },
   { key: 'avg_repair_time',   label: 'Tiempo promedio reparación',icon: Timer,       desc: 'Eficiencia del taller' },
   { key: 'top_technicians',   label: 'Técnicos top',              icon: Star,        desc: 'Rendimiento del equipo' },
   { key: 'revenue_chart',     label: 'Gráfica de ingresos',       icon: BarChart3,   desc: 'Evolución por período' },
-  { key: 'overdue_orders',    label: 'Órdenes vencidas / urgentes',icon: Bell,       desc: 'Alertas que necesitan atención' },
+  { key: 'overdue_orders',    label: 'Boletos vencidos / urgentes',icon: Bell,       desc: 'Alertas que necesitan atención' },
 ];
 
 const DAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];

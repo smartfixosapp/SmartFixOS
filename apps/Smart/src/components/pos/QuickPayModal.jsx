@@ -244,7 +244,7 @@ export default function QuickPayModal({ order, paymentMode = "full", onClose, on
         },
         employee: me?.full_name || "Sistema",
         deposit_credit: paymentMode === "deposit" ? amountPaid : 0,
-        notes: paymentMode === "deposit" ? "Depósito registrado desde panel de orden" : undefined,
+        notes: paymentMode === "deposit" ? "Depósito registrado desde panel de boleto" : undefined,
         tenant_id: tenantId,
       };
 
@@ -335,11 +335,11 @@ export default function QuickPayModal({ order, paymentMode = "full", onClose, on
     const digits = phone.replace(/\D/g, "");
     const intl = digits.startsWith("1") ? digits : digits.length === 10 ? `1${digits}` : digits;
     const receiptMsg = encodeURIComponent(
-      `¡Hola ${order?.customer_name || ""}! Tu orden *${order?.order_number || ""}* por $${Number(successData.amountPaid).toFixed(2)} ha sido procesada. ¡Gracias!`
+      `¡Hola ${order?.customer_name || ""}! Tu boleto *${order?.order_number || ""}* por $${Number(successData.amountPaid).toFixed(2)} ha sido procesado. ¡Gracias!`
     );
     const waHref = digits ? `https://wa.me/${intl}?text=${receiptMsg}` : null;
     const mailHref = email
-      ? `mailto:${email}?subject=Recibo%20Orden%20${order?.order_number || ""}&body=${encodeURIComponent(`Hola ${order?.customer_name || ""},\n\nTu orden ${order?.order_number || ""} por $${Number(successData.amountPaid).toFixed(2)} ha sido procesada.\n\n¡Gracias por tu preferencia!`)}`
+      ? `mailto:${email}?subject=Recibo%20Orden%20${order?.order_number || ""}&body=${encodeURIComponent(`Hola ${order?.customer_name || ""},\n\nTu boleto ${order?.order_number || ""} por $${Number(successData.amountPaid).toFixed(2)} ha sido procesado.\n\n¡Gracias por tu preferencia!`)}`
       : null;
 
     return (

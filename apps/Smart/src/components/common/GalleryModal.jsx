@@ -126,7 +126,7 @@ export default function GalleryModal({ open, photos = [], initialIndex = 0, onCl
     if (navigator.share && photosToShare.length <= 5) {
       try {
         const shareData = {
-          title: 'Fotos de orden',
+          title: 'Fotos de boleto',
           text: 'Compartiendo fotos del dispositivo',
           files: []
         };
@@ -161,7 +161,7 @@ export default function GalleryModal({ open, photos = [], initialIndex = 0, onCl
       .map(p => p.publicUrl || p.thumbUrl)
       .join('\n\n');
     
-    window.location.href = `mailto:?subject=${encodeURIComponent('Fotos de orden')}&body=${encodeURIComponent(urls)}`;
+    window.location.href = `mailto:?subject=${encodeURIComponent('Fotos de boleto')}&body=${encodeURIComponent(urls)}`;
     setSelectionMode(false);
     setSelectedPhotos([]);
     toast.success("Email abierto");
@@ -176,7 +176,7 @@ export default function GalleryModal({ open, photos = [], initialIndex = 0, onCl
     if (navigator.share && photosToShare.length <= 5) {
       try {
         const shareData = {
-          title: 'Fotos de orden',
+          title: 'Fotos de boleto',
           text: 'Fotos del dispositivo',
           files: []
         };

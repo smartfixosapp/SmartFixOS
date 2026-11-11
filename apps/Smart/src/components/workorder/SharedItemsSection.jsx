@@ -290,7 +290,7 @@ export default function SharedItemsSection({
                 {totals.isPaid ? (
                   <div className="flex items-center gap-2 rounded-[16px] border border-emerald-500/20 bg-emerald-500/10 p-3">
                     <CheckCircle2 className="h-5 w-5 text-emerald-400" />
-                    <span className="text-sm font-bold text-emerald-300">Orden saldada</span>
+                    <span className="text-sm font-bold text-emerald-300">Boleto saldado</span>
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 gap-2">

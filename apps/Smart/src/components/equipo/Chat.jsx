@@ -21,7 +21,7 @@ function titleOf(row, employees, myIds) {
     const emp = employees.find((e) => e.id === other || e.auth_user_id === other);
     return emp?.full_name || row.last?.channel_title || "Conversación";
   }
-  return row.last?.channel_title || "Chat de la orden";
+  return row.last?.channel_title || "Chat del boleto";
 }
 
 function Thread({ tenantId, channel, title, sendTitle, myId, myIds, myName, employees, onBack, onDeleted, onRead }) {
@@ -65,7 +65,7 @@ function Thread({ tenantId, channel, title, sendTitle, myId, myIds, myName, empl
       <div className="flex items-center gap-2" style={{ padding: "12px 16px", borderBottom: `0.5px solid ${W.sep}` }}>
         {onBack && <button onClick={onBack} aria-label="Volver" style={{ color: BRAND }}><ChevronLeft className="w-5 h-5" /></button>}
         <b className="flex-1 truncate" style={{ fontSize: 17 }}>{title}</b>
-        {orderId && <button onClick={() => navigate(`/Orders/${orderId}`)} className="apple-press flex items-center gap-1" style={{ color: BRAND, fontSize: 13, fontWeight: 700 }}><ExternalLink className="w-4 h-4" /> Ver orden</button>}
+        {orderId && <button onClick={() => navigate(`/Orders/${orderId}`)} className="apple-press flex items-center gap-1" style={{ color: BRAND, fontSize: 13, fontWeight: 700 }}><ExternalLink className="w-4 h-4" /> Ver boleto</button>}
         <button onClick={() => setCallOpen(true)} aria-label="Llamar empleado" className="apple-press" style={{ width: 34, height: 34, borderRadius: 999, background: tint("#4DC780", 0.16), color: "#4DC780", display: "flex", alignItems: "center", justifyContent: "center" }}><Phone className="w-4 h-4" /></button>
         <div className="relative">
           <button onClick={() => setMenu((v) => !v)} aria-label="Más" className="apple-press" style={{ width: 34, height: 34, borderRadius: 999, background: "#2C2C2E", display: "flex", alignItems: "center", justifyContent: "center" }}><MoreHorizontal className="w-4 h-4" /></button>

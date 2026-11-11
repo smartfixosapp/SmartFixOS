@@ -318,7 +318,7 @@ export default function SecurityTab({ user }) {
           <CardHeader className="border-b border-white/5 pb-4">
             <CardTitle className="text-white flex items-center gap-2">
               <FileEdit className="w-5 h-5 text-purple-400" />
-              Protección de Órdenes y Registros
+              Protección de Boletos y Registros
             </CardTitle>
             <CardDescription className="text-gray-500">Integridad de datos históricos y notas</CardDescription>
           </CardHeader>
@@ -326,7 +326,7 @@ export default function SecurityTab({ user }) {
             <SecuritySettingRow 
               icon={Eraser}
               color="text-red-500"
-              label="Eliminar Órdenes"
+              label="Eliminar Boletos"
               description="Impedir el borrado de boletos sin rastro administrativo."
               checked={data.require_pin_for_delete_order}
               onChange={(v) => setData({ ...data, require_pin_for_delete_order: v })}
@@ -334,7 +334,7 @@ export default function SecurityTab({ user }) {
             <SecuritySettingRow 
               icon={History}
               color="text-indigo-400"
-              label="Editar Orden Terminada"
+              label="Editar Boleto Terminado"
               description="Bloquear cambios en boletos facturados o entregados."
               checked={data.require_pin_for_edit_completed_order}
               onChange={(v) => setData({ ...data, require_pin_for_edit_completed_order: v })}

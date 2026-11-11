@@ -74,14 +74,14 @@ export function WarrantiesDialog({ open, onClose, tenantId, tz, shopName, onOpen
       <div className="flex flex-col" style={{ gap: 16, paddingTop: 6 }}>
         <label className="flex items-center gap-2" style={{ height: 42, padding: "0 12px", borderRadius: 12, background: "#1C1C1E" }}>
           <Search className="w-4 h-4" style={{ color: "#8E8E93" }} />
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar cliente, orden, equipo…" className="flex-1 bg-transparent outline-none" style={{ color: "#fff", fontSize: 15 }} />
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar cliente, boleto, equipo…" className="flex-1 bg-transparent outline-none" style={{ color: "#fff", fontSize: 15 }} />
           {query && <button onClick={() => setQuery("")} aria-label="Limpiar" style={{ color: "#8E8E93" }}><X className="w-4 h-4" /></button>}
         </label>
         {rows === null ? <p className="flex items-center justify-center gap-2" style={{ padding: 40, color: "#8E8E93" }}><Loader2 className="w-4 h-4 animate-spin" /> Cargando garantías…</p> : rows.length === 0 ? (
           <div className="flex flex-col items-center text-center" style={{ padding: "48px 16px", gap: 8 }}>
             <Shield className="w-10 h-10" style={{ color: FP.success }} />
             <p style={{ fontSize: 17, fontWeight: 600 }}>Sin garantías activas</p>
-            <p style={{ fontSize: 13, color: "#8E8E93" }}>Las órdenes entregadas en los últimos 30 días aparecerán aquí.</p>
+            <p style={{ fontSize: 13, color: "#8E8E93" }}>Los boletos entregados en los últimos 30 días aparecerán aquí.</p>
           </div>
         ) : (
           <>
@@ -153,7 +153,7 @@ export function AppointmentsDialog({ open, onClose, tenantId, tz, onOpenOrder })
           <span style={{ width: 64, height: 64, borderRadius: 999, background: tint(FP.brand, 0.15), color: FP.brand, display: "flex", alignItems: "center", justifyContent: "center" }}><CalendarClock className="w-8 h-8" /></span>
           <p style={{ fontSize: 17, fontWeight: 600 }}>Sin citas programadas</p>
           <p style={{ fontSize: 13, color: "#8E8E93", whiteSpace: "pre-line" }}>{"Las visitas técnicas y sesiones remotas\naparecerán aquí ordenadas por día."}</p>
-          <p style={{ fontSize: 13, color: "#8E8E93", whiteSpace: "pre-line" }}>{"Al crear una orden elige \"Visita técnica\"\npara agendar la cita con fecha y hora."}</p>
+          <p style={{ fontSize: 13, color: "#8E8E93", whiteSpace: "pre-line" }}>{"Al crear un boleto elige \"Visita técnica\"\npara agendar la cita con fecha y hora."}</p>
         </div>
       ) : (
         <div className="flex flex-col" style={{ gap: 18, paddingTop: 6 }}>

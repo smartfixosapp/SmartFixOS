@@ -968,9 +968,9 @@ function CancelOrderModal({ open, onClose, onSave }) {
         <Card className="w-full max-w-md bg-[#111114] border-white/10 p-4 sm:p-6 my-8 max-h-[90vh] overflow-y-auto theme-light:bg-white theme-light:border-gray-200">
           <div className="flex items-center gap-2 mb-2">
             <X className="w-5 h-5 text-red-400 theme-light:text-red-600" />
-            <h3 className="text-white font-semibold text-lg theme-light:text-gray-900">Cancelar orden</h3>
+            <h3 className="text-white font-semibold text-lg theme-light:text-gray-900">Cancelar boleto</h3>
           </div>
-          <p className="text-[12px] text-gray-400 mb-4 theme-light:text-gray-600">Indica el motivo de cancelación de esta orden.</p>
+          <p className="text-[12px] text-gray-400 mb-4 theme-light:text-gray-600">Indica el motivo de cancelación de este boleto.</p>
 
           <div className="space-y-3">
             <div>
@@ -1226,7 +1226,7 @@ function OrderItemsSection({ order, onUpdated, clearEventCache, loadEventsCallba
           {items.length === 0 ? (
             <div className="text-center py-12 border-2 border-dashed border-white/10 rounded-lg theme-light:border-gray-300">
               <ShoppingCart className="w-12 h-12 mx-auto text-gray-600 mb-3 opacity-30" />
-              <p className="text-gray-400 text-sm mb-2 theme-light:text-gray-600">No hay items en esta orden</p>
+              <p className="text-gray-400 text-sm mb-2 theme-light:text-gray-600">No hay items en este boleto</p>
               <p className="text-gray-500 text-xs theme-light:text-gray-500">Haz clic en "Añadir" para comenzar</p>
             </div>
           ) : (
@@ -1692,7 +1692,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
         setStatus(normalizeStatusId(local.status || "intake"));
         setLoadError(null);
       } else {
-        setLoadError(`Error al recargar la orden: ${e.message || "Error de conexión"}`);
+        setLoadError(`Error al recargar el boleto: ${e.message || "Error de conexión"}`);
       }
     } finally {
       setLoading(false);
@@ -1799,13 +1799,13 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
       removeLocalOrder(order.id);
 
       setShowDeleteConfirm(false);
-      toast.success("✅ Orden eliminada");
+      toast.success("✅ Boleto eliminado");
       handleClose();
       onDelete?.(order.id);
       
     } catch (error) {
       console.error("Error eliminando orden:", error);
-      toast.error("Error al eliminar la orden");
+      toast.error("Error al eliminar el boleto");
     } finally {
       setDeleting(false);
     }
@@ -1846,7 +1846,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
         console.error("[WorkOrderPanel] No orderId provided");
         if (mounted) {
           setLoading(false);
-          setLoadError("No se proporcionó un ID de orden.");
+          setLoadError("No se proporcionó un ID de boleto.");
         }
         return;
       }
@@ -1879,7 +1879,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
           console.error("[WorkOrderPanel] Order not found:", orderId);
           setOrder(null);
           setLoading(false);
-          setLoadError(`Orden con ID ${orderId} no encontrada.`);
+          setLoadError(`Boleto con ID ${orderId} no encontrado.`);
           return;
         }
 
@@ -1912,7 +1912,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
             const blockersSorted = blockers.sort((a, b) => extractOrderSequence(a.order_number) - extractOrderSequence(b.order_number));
             const list = blockersSorted.slice(0, 3).map((b) => b.order_number || b.id).join(", ");
             const extra = blockers.length > 3 ? ` y ${blockers.length - 3} más` : "";
-            toast(`⚠️ Hay ${blockers.length} orden${blockers.length > 1 ? "es" : ""} en Recepción antes que esta: ${list}${extra}`, { icon: "⚠️", duration: 5000 });
+            toast(`⚠️ Hay ${blockers.length} boleto${blockers.length > 1 ? "s" : ""} en Recepción antes que este: ${list}${extra}`, { icon: "⚠️", duration: 5000 });
           }
         }
 
@@ -1926,7 +1926,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
         console.error("[WorkOrderPanel] Error loading order:", e.message || e);
         if (mounted) {
           setLoading(false);
-          setLoadError(`Error al cargar la orden: ${e.message || "Error de conexión. Verifique su internet."}`);
+          setLoadError(`Error al cargar el boleto: ${e.message || "Error de conexión. Verifique su internet."}`);
         }
       }
     };
@@ -2166,7 +2166,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
           (Array.isArray(order?.photos_metadata) ? order.photos_metadata.length : 0) +
           (Array.isArray(order?.device_photos) ? order.device_photos.length : 0);
         if (photoCount === 0) {
-          toast("Agrega al menos 1 foto del equipo antes de avanzar la orden", { icon: "📷" });
+          toast("Agrega al menos 1 foto del equipo antes de avanzar el boleto", { icon: "📷" });
           return;
         }
       }
@@ -2177,7 +2177,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
       const prevOrder = getStatusConfig(prevStatusId).order || 0;
       const nextOrder = getStatusConfig(nextId).order || 0;
       if (nextOrder > prevOrder && !order?.repair_checklist_done) {
-        toast("Completa el checklist de cierre antes de avanzar la orden", { icon: "🔒" });
+        toast("Completa el checklist de cierre antes de avanzar el boleto", { icon: "🔒" });
         return;
       }
     }
@@ -2187,7 +2187,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
       const prevOrder = getStatusConfig(prevStatusId).order || 0;
       const nextOrder = getStatusConfig(nextId).order || 0;
       if (nextOrder > prevOrder && !order?.warranty_verdict) {
-        toast("Define el veredicto de garantía antes de avanzar la orden", { icon: "🔒" });
+        toast("Define el veredicto de garantía antes de avanzar el boleto", { icon: "🔒" });
         return;
       }
     }
@@ -2235,7 +2235,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
         contentDiv.innerHTML = `
           <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
           <h2 style="color: #DC2626; font-size: 24px; font-weight: bold; margin-bottom: 16px;">BALANCE PENDIENTE</h2>
-          <p style="color: #374151; font-size: 18px; margin-bottom: 24px;">Esta orden tiene un balance de <strong style="color: #DC2626;">$${balance.toFixed(2)}</strong></p>
+          <p style="color: #374151; font-size: 18px; margin-bottom: 24px;">Este boleto tiene un balance de <strong style="color: #DC2626;">$${balance.toFixed(2)}</strong></p>
           <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
             <button id="goPOS" style="background: linear-gradient(to right, #10B981, #059669); color: white; padding: 12px 24px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; font-size: 16px;">✅ Ir al POS</button>
             <button id="closeAnyway" style="background: #6B7280; color: white; padding: 12px 24px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; font-size: 16px;">Cerrar sin cobrar</button>
@@ -2257,7 +2257,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
             document.body.removeChild(alertDiv);
 
             // Confirmar que sí quiere cerrar sin cobrar
-            if (window.confirm(`⚠️ ¿Confirmas cerrar la orden SIN cobrar los $${balance.toFixed(2)}?`)) {
+            if (window.confirm(`⚠️ ¿Confirmas cerrar el boleto SIN cobrar los $${balance.toFixed(2)}?`)) {
               proceedWithStatusChange();
             }
             resolve();
@@ -2386,7 +2386,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
               waiting_customer: "Esperando Cliente",
               awaiting_approval: "Esperando aprobación",
               waiting_parts: "Esperando piezas",
-              waiting_order: "Esperando orden",
+              waiting_order: "Esperando boleto",
               pending_order: "Pendiente a ordenar",
               reparacion_externa: "Reparación externa",
               in_progress: "En reparación",
@@ -2403,13 +2403,13 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                 userId: order.assigned_to,
                 userEmail: order.assigned_to_name || "",
                 type: "status_change",
-                title: `Orden #${order.order_number} → ${statusLabels[nextId] || nextId}`,
+                title: `Boleto #${order.order_number} → ${statusLabels[nextId] || nextId}`,
                 body: `${order.customer_name} - ${order.device_brand || ""} ${order.device_model || ""}`,
                 relatedEntityType: "order",
                 relatedEntityId: order.id,
                 relatedEntityNumber: order.order_number,
                 actionUrl: `/Orders?order=${order.id}`,
-                actionLabel: "Ver orden",
+                actionLabel: "Ver boleto",
                 priority: ["ready_for_pickup", "delivered", "cancelled"].includes(nextId) ? "high" : "normal",
                 metadata: {
                   old_status: prevStatusId,
@@ -2430,13 +2430,13 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                 userId: targetUser.id,
                 userEmail: targetUser.email,
                 type: "status_change",
-                title: `Orden #${order.order_number} → ${statusLabels[nextId] || nextId}`,
+                title: `Boleto #${order.order_number} → ${statusLabels[nextId] || nextId}`,
                 body: `${order.customer_name} - ${order.device_brand || ""} ${order.device_model || ""}`,
                 relatedEntityType: "order",
                 relatedEntityId: order.id,
                 relatedEntityNumber: order.order_number,
                 actionUrl: `/Orders?order=${order.id}`,
-                actionLabel: "Ver orden",
+                actionLabel: "Ver boleto",
                 priority: ["ready_for_pickup", "delivered", "cancelled"].includes(nextId) ? "high" : "normal",
                 metadata: {
                   old_status: prevStatusId,
@@ -2513,7 +2513,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
         order_id: order.id,
         order_number: order.order_number,
         event_type: "status_change",
-        description: `Orden cancelada. Motivo: ${reason}`,
+        description: `Boleto cancelado. Motivo: ${reason}`,
         user_name: me?.full_name || me?.email || "Sistema",
         user_id: me?.id || null,
         metadata: { to: "cancelled", reason }
@@ -2528,7 +2528,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
 
     } catch (err) {
       console.error("Error cancelando orden:", err);
-      alert(`Error: ${err.message || "No se pudo cancelar la orden"}`);
+      alert(`Error: ${err.message || "No se pudo cancelar el boleto"}`);
     }
   }
 
@@ -2730,7 +2730,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
           <div className="bg-[#0F0F12] rounded-lg p-8 border border-white/10">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500 mx-auto mb-4"></div>
-              <p className="text-white text-lg">Cargando orden...</p>
+              <p className="text-white text-lg">Cargando boleto...</p>
             </div>
           </div>
         </div>
@@ -2761,7 +2761,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
         <div className="absolute inset-0 grid place-items-center p-4">
           <div className="bg-[#0F0F12] rounded-lg p-8 border border-white/10 max-w-md w-full">
             <div className="text-center">
-              <p className="text-red-400 text-lg mb-4">Error al recargar la orden: {loadError}</p>
+              <p className="text-red-400 text-lg mb-4">Error al recargar el boleto: {loadError}</p>
               <Button onClick={handleClose} className="bg-red-600 hover:bg-red-700">
                 Cerrar
               </Button>
@@ -2795,7 +2795,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
         <div className="absolute inset-0 grid place-items-center p-4">
           <div className="bg-[#0F0F12] rounded-lg p-8 border border-white/10 max-w-md w-full">
             <div className="text-center">
-              <p className="text-red-400 text-lg mb-4">Orden no disponible o no encontrada.</p>
+              <p className="text-red-400 text-lg mb-4">Boleto no disponible o no encontrado.</p>
               <Button onClick={handleClose} className="bg-red-600 hover:bg-red-700">
                 Cerrar
               </Button>
@@ -2993,7 +2993,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                 <button
                   onClick={handleRequestDelete}
                   disabled={deleting}
-                  aria-label="Eliminar orden"
+                  aria-label="Eliminar boleto"
                   className="apple-press w-10 h-10 rounded-full bg-apple-red/10 text-apple-red flex items-center justify-center disabled:opacity-40 apple-focusable"
                 >
                   <Trash2 className="w-[18px] h-[18px]" />
@@ -3006,7 +3006,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
           <div className="flex-1 flex items-center justify-center apple-type">
               <div className="text-center space-y-3">
                 <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-apple-blue border-t-transparent mx-auto"></div>
-                <p className="apple-text-callout apple-label-secondary">Cargando orden…</p>
+                <p className="apple-text-callout apple-label-secondary">Cargando boleto…</p>
               </div>
             </div> :
           loadError ?
@@ -3030,7 +3030,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                   <div className="w-14 h-14 rounded-full bg-apple-red/15 flex items-center justify-center mx-auto">
                     <AlertTriangle className="w-6 h-6 text-apple-red" />
                   </div>
-                  <p className="apple-text-callout apple-label-primary">Orden no disponible o no encontrada.</p>
+                  <p className="apple-text-callout apple-label-primary">Boleto no disponible o no encontrado.</p>
                   <button onClick={handleClose} className="apple-btn apple-btn-secondary apple-btn-lg">
                     Cerrar
                   </button>
@@ -3218,7 +3218,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                 </h2>
                 
                 <p className="text-gray-400 mb-6">
-                  Esta acción no se puede deshacer. La orden <strong className="text-cyan-400">#{order?.order_number}</strong> será eliminada permanentemente.
+                  Esta acción no se puede deshacer. El boleto <strong className="text-cyan-400">#{order?.order_number}</strong> será eliminado permanentemente.
                 </p>
 
                 <div className="flex gap-3">

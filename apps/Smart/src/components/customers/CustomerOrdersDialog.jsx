@@ -137,7 +137,7 @@ export default function CustomerOrdersDialog({ customer, orders = [], open, onCl
         {ordersList.length === 0 ? (
           <div className="text-center py-12">
             <Package className="w-12 h-12 sm:w-16 sm:h-16 mx-auto apple-label-tertiary mb-4" />
-            <p className="apple-label-secondary apple-text-body">No hay órdenes registradas</p>
+            <p className="apple-label-secondary apple-text-body">No hay boletos registrados</p>
           </div>
         ) : (
           <div className="space-y-6 p-4">
@@ -146,7 +146,7 @@ export default function CustomerOrdersDialog({ customer, orders = [], open, onCl
               <div>
                 <h3 className="apple-text-subheadline font-semibold text-apple-green mb-3 flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-apple-green animate-pulse" />
-                  Órdenes Activas ({activeOrders.length})
+                  Boletos Activos ({activeOrders.length})
                 </h3>
                 <div className="space-y-3">
                   {activeOrders.map((order) => (
@@ -229,7 +229,7 @@ export default function CustomerOrdersDialog({ customer, orders = [], open, onCl
               <div>
                 <h3 className="apple-text-subheadline font-semibold text-apple-blue mb-3 flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-apple-blue" />
-                  Órdenes Completadas ({completedOrders.length})
+                  Boletos Completados ({completedOrders.length})
                 </h3>
                 <div className="space-y-3">
                   {completedOrders.map((order) => (
@@ -267,7 +267,7 @@ export default function CustomerOrdersDialog({ customer, orders = [], open, onCl
               <div>
                 <h3 className="apple-text-subheadline font-semibold text-apple-red mb-3 flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-apple-red" />
-                  Órdenes Eliminadas ({deletedOrders.length})
+                  Boletos Eliminados ({deletedOrders.length})
                 </h3>
                 <div className="space-y-3">
                   {deletedOrders.map((order) => (

@@ -65,7 +65,7 @@ export function Reemplaza5() {
         transition={{ duration: 0.6, ease: EASE, delay: 0.1 }}
       >
         <Lede className="mt-6 max-w-[58ch]">
-          Lo que antes vivía en cinco lugares — y nunca cuadraba — ahora vive en uno solo. Cada orden mueve la caja, la caja mueve las finanzas, las finanzas restan las piezas. Sin copiar nada dos veces.
+          Lo que antes vivía en cinco lugares — y nunca cuadraba — ahora vive en uno solo. Cada boleto mueve la caja, la caja mueve las finanzas, las finanzas restan las piezas. Sin copiar nada dos veces.
         </Lede>
       </motion.div>
 

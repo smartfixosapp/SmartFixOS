@@ -121,7 +121,7 @@ const TRANSLATIONS = {
   es: {
     // === GENERAL ===
     dashboard: "Inicio",
-    orders: "Órdenes",
+    orders: "Boletos",
     customers: "Clientes",
     inventory: "Inventario",
     pos: "Punto de Venta",
@@ -145,16 +145,16 @@ const TRANSLATIONS = {
     revenue: "Ingresos",
     expenses: "Gastos",
     profit: "Ganancia",
-    recentOrders: "Órdenes Recientes",
+    recentOrders: "Boletos Recientes",
     quickActions: "Acciones Rápidas",
-    newOrder: "Nueva Orden",
+    newOrder: "Nuevo Boleto",
     quickSale: "Venta Rápida",
     openDrawer: "Abrir Caja",
     closeDrawer: "Cerrar Caja",
     
     // === ORDERS ===
-    workOrders: "Órdenes de Trabajo",
-    orderNumber: "Número de Orden",
+    workOrders: "Boletos de Trabajo",
+    orderNumber: "Número de Boleto",
     customer: "Cliente",
     device: "Dispositivo",
     status: "Estado",
@@ -185,7 +185,7 @@ const TRANSLATIONS = {
     phone: "Teléfono",
     email: "Email",
     address: "Dirección",
-    totalOrders: "Total Órdenes",
+    totalOrders: "Total Boletos",
     loyaltyPoints: "Puntos",
     totalSpent: "Total Gastado",
     
@@ -220,7 +220,7 @@ const TRANSLATIONS = {
     inactive: "Inactivo",
     
     // === WIZARD ===
-    newWorkOrder: "Nueva Orden de Trabajo",
+    newWorkOrder: "Nuevo Boleto de Trabajo",
     customerInfo: "Datos del Cliente",
     deviceInfo: "Información del Dispositivo",
     problemDescription: "Descripción del Problema",
@@ -254,7 +254,7 @@ const TRANSLATIONS = {
     users: "Usuarios",
     
     // === COMMON ACTIONS ===
-    createOrder: "Crear Orden",
+    createOrder: "Crear Boleto",
     updateStatus: "Actualizar Estado",
     addPayment: "Agregar Pago",
     sendEmail: "Enviar Email",
@@ -269,7 +269,7 @@ const TRANSLATIONS = {
     confirmDelete: "¿Confirmar eliminación?",
     itemAdded: "Item añadido",
     itemRemoved: "Item eliminado",
-    orderCreated: "Orden creada exitosamente",
+    orderCreated: "Boleto creado exitosamente",
     saleCompleted: "Venta procesada",
     emailSent: "Email enviado",
     
@@ -314,8 +314,8 @@ const TRANSLATIONS = {
     open: "Abierto",
     closed: "Cerrado",
     sales: "ventas",
-    searchOrders: "Buscar órdenes",
-    noOrdersFound: "No se encontraron órdenes",
+    searchOrders: "Buscar boletos",
+    noOrdersFound: "No se encontraron boletos",
     priceList: "Lista de Precios",
     searchProducts: "Buscar productos/servicios…",
     service: "Servicio",
@@ -323,7 +323,7 @@ const TRANSLATIONS = {
     financial: "Finanzas",
     
     // === QUICK REPAIRS ===
-    quickOrders: "Órdenes Rápidas",
+    quickOrders: "Boletos Rápidos",
     selectCustomer: "Seleccionar Cliente",
     createNewCustomer: "Crear Nuevo Cliente",
     newUser: "Nuevo",

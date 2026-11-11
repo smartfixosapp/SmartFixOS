@@ -25,11 +25,11 @@ export default function DeleteOrderDialog({ open, onClose, order, onSuccess, use
 
   const handleCancelOrder = async () => {
     if (user?.role !== 'admin' && user?.role !== 'manager') {
-      setError("Solo administradores o gerentes pueden cancelar órdenes.");
+      setError("Solo administradores o gerentes pueden cancelar boletos.");
       return;
     }
     if (!reason.trim()) {
-      setError("El motivo es obligatorio para cancelar la orden.");
+      setError("El motivo es obligatorio para cancelar el boleto.");
       return;
     }
     if (!adminPin) {
@@ -54,7 +54,7 @@ export default function DeleteOrderDialog({ open, onClose, order, onSuccess, use
         order_id: order.id,
         order_number: order.order_number,
         event_type: "status_change",
-        description: `Orden cancelada. Motivo: ${reason}`,
+        description: `Boleto cancelado. Motivo: ${reason}`,
         user_id: user?.id,
         user_name: user?.full_name,
         metadata: { reason }
@@ -66,11 +66,11 @@ export default function DeleteOrderDialog({ open, onClose, order, onSuccess, use
           await base44.integrations.Core.SendEmail({
             from_name: "Archilla OS",
             to: order.customer_email,
-            subject: `Orden ${order.order_number} - Cancelada`,
+            subject: `Boleto ${order.order_number} - Cancelado`,
             body: `
-              <h2>Orden Cancelada</h2>
+              <h2>Boleto Cancelado</h2>
               <p>Estimado/a ${order.customer_name},</p>
-              <p>Su orden <strong>#${order.order_number}</strong> ha sido cancelada.</p>
+              <p>Su boleto <strong>#${order.order_number}</strong> ha sido cancelado.</p>
               <p><strong>Motivo:</strong> ${reason}</p>
               <p>Si tiene preguntas, contáctenos.</p>
             `
@@ -80,10 +80,10 @@ export default function DeleteOrderDialog({ open, onClose, order, onSuccess, use
         }
       }
       
-      alert(`✓ Orden ${order.order_number} cancelada correctamente.`);
+      alert(`✓ Boleto ${order.order_number} cancelado correctamente.`);
       onSuccess();
     } catch (err) {
-      setError("Error al cancelar la orden: " + err.message);
+      setError("Error al cancelar el boleto: " + err.message);
     } finally {
       setProcessing(false);
     }
@@ -91,7 +91,7 @@ export default function DeleteOrderDialog({ open, onClose, order, onSuccess, use
   
   const handleDeletePermanently = async () => {
       if (user?.role !== 'admin') {
-          setError("Solo los administradores pueden eliminar órdenes permanentemente.");
+          setError("Solo los administradores pueden eliminar boletos permanentemente.");
           return;
       }
       if (confirmationText !== "ELIMINAR") {
@@ -123,10 +123,10 @@ export default function DeleteOrderDialog({ open, onClose, order, onSuccess, use
           await base44.entities.Order.delete(order.id);
           removeLocalOrder(order.id);
 
-          alert(`✓ Orden ${order.order_number} eliminada permanentemente.`);
+          alert(`✓ Boleto ${order.order_number} eliminado permanentemente.`);
           onSuccess();
       } catch (err) {
-          setError("Error al eliminar la orden: " + err.message);
+          setError("Error al eliminar el boleto: " + err.message);
       } finally {
           setProcessing(false);
       }
@@ -148,19 +148,19 @@ export default function DeleteOrderDialog({ open, onClose, order, onSuccess, use
         <DialogHeader className="p-6 pb-2">
           <DialogTitle className="apple-text-title2 apple-label-primary flex items-center gap-2">
             <AlertTriangle className="w-6 h-6 text-apple-red" />
-            Gestionar Orden
+            Gestionar Boleto
           </DialogTitle>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full px-6 pb-6">
             <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="cancel">Cancelar Orden</TabsTrigger>
+                <TabsTrigger value="cancel">Cancelar Boleto</TabsTrigger>
                 <TabsTrigger value="delete" disabled={user?.role !== 'admin'}>Eliminar</TabsTrigger>
             </TabsList>
             <TabsContent value="cancel" className="mt-4">
                 <div className="space-y-4">
                     <DialogDescription className="apple-label-secondary apple-text-subheadline">
-                        Esta acción moverá la orden al estado "Cancelada" y la ocultará de las vistas activas. La orden permanecerá en el sistema para fines de auditoría.
+                        Esta acción moverá el boleto al estado "Cancelada" y lo ocultará de las vistas activas. El boleto permanecerá en el sistema para fines de auditoría.
                     </DialogDescription>
                     <div className="space-y-2">
                         <Label className="apple-label-secondary apple-text-footnote">Motivo de cancelación (obligatorio)</Label>
@@ -180,7 +180,7 @@ export default function DeleteOrderDialog({ open, onClose, order, onSuccess, use
             <TabsContent value="delete" className="mt-4">
                 <div className="space-y-4">
                     <DialogDescription className="text-apple-red font-semibold apple-text-subheadline">
-                        ¡ADVERTENCIA! Esta acción eliminará la orden y todos sus datos asociados de forma PERMANENTE. No se podrá deshacer.
+                        ¡ADVERTENCIA! Esta acción eliminará el boleto y todos sus datos asociados de forma PERMANENTE. No se podrá deshacer.
                     </DialogDescription>
                     <div className="space-y-2">
                         <Label htmlFor="confirm-text" className="apple-label-secondary apple-text-footnote">Para confirmar, escribe "ELIMINAR" en el campo:</Label>

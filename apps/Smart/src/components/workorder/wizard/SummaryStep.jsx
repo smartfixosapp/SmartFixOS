@@ -286,7 +286,7 @@ export default function SummaryStep({ formData, updateFormData, technicians, onB
             <h3 className="apple-text-headline apple-label-primary">Técnico Asignado</h3>
           </div>
 
-          <p className="apple-text-footnote apple-label-tertiary mb-3">Selecciona el técnico que trabajará en esta orden (opcional)</p>
+          <p className="apple-text-footnote apple-label-tertiary mb-3">Selecciona el técnico que trabajará en este boleto (opcional)</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <button
               type="button"
@@ -498,7 +498,7 @@ export default function SummaryStep({ formData, updateFormData, technicians, onB
         </div>
       )}
 
-      <p className="apple-text-caption2 apple-label-tertiary mt-3 text-center">*Verifica la información antes de crear la orden.</p>
+      <p className="apple-text-caption2 apple-label-tertiary mt-3 text-center">*Verifica la información antes de crear el boleto.</p>
 
       {/* Botones de acción */}
       <div className="flex items-center justify-end gap-2 pt-4" style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}>
@@ -531,7 +531,7 @@ export default function SummaryStep({ formData, updateFormData, technicians, onB
               Creando...
             </>
           ) : (
-            "✓ Crear Orden"
+            "✓ Crear Boleto"
           )}
         </Button>
       </div>

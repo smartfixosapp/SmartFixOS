@@ -49,19 +49,19 @@ export default function CancelledStage({ order, onUpdate, compact }) {
                 Cancelado
               </Badge>
               <Badge variant="outline" className="rounded-full border-white/10 bg-white/5 px-3 py-1 text-xs text-white/65">
-                Orden cerrada
+                Boleto cerrado
               </Badge>
             </div>
             <div className="space-y-2">
               <p className="text-[11px] font-semibold tracking-[0.32em] text-white/35">Estado</p>
               <div className="flex flex-wrap items-end gap-x-4 gap-y-2">
-                <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">Orden Cancelada</h2>
+                <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">Boleto Cancelado</h2>
                 <div className="inline-flex items-center rounded-full border border-red-400/20 bg-red-500/10 px-3 py-1 text-sm font-semibold text-red-200">
                   {o.device_brand} {o.device_model}
                 </div>
               </div>
               <p className="max-w-2xl text-sm leading-relaxed text-white/55">
-                Esta orden fue cancelada. Aún puedes consultarla, revisar sus piezas y el historial registrado.
+                Este boleto fue cancelado. Aún puedes consultarlo, revisar sus piezas y el historial registrado.
               </p>
             </div>
 
@@ -90,7 +90,7 @@ export default function CancelledStage({ order, onUpdate, compact }) {
               <div className="min-w-0">
                 <p className="text-[11px] font-semibold tracking-[0.28em] text-white/35">Impacto</p>
                 <h3 className="mt-1 text-xl font-semibold tracking-tight text-white">
-                  {items.length > 0 ? `${items.length} item${items.length > 1 ? "s" : ""} en la orden` : "Sin items registrados"}
+                  {items.length > 0 ? `${items.length} item${items.length > 1 ? "s" : ""} en el boleto` : "Sin items registrados"}
                 </h3>
                 <p className="mt-2 text-sm leading-relaxed text-white/55">
                   {totals.total > 0 ? `Total estimado: $${totals.total.toFixed(2)}` : "No hay costos registrados."}
@@ -154,7 +154,7 @@ export default function CancelledStage({ order, onUpdate, compact }) {
                 <p className="text-[11px] font-semibold tracking-[0.28em] text-white/35">Cotización operativa</p>
                 <h3 className="mt-1 text-2xl font-semibold tracking-tight text-white">Piezas y Servicios</h3>
                 <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/55">
-                  Conserva aquí la lista de piezas y servicios asociados a esta orden aunque esté cancelada.
+                  Conserva aquí la lista de piezas y servicios asociados a este boleto aunque esté cancelado.
                 </p>
               </div>
             </div>
@@ -214,7 +214,7 @@ export default function CancelledStage({ order, onUpdate, compact }) {
         onUpdate={onUpdate}
         accent="red"
         title="Centro de Historial"
-        subtitle="Notas, fotos, actividad y evidencia de la orden cancelada."
+        subtitle="Notas, fotos, actividad y evidencia del boleto cancelado."
       />
       )}
 

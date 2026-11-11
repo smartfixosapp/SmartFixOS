@@ -86,7 +86,7 @@ function stageGuide(order, tenant) {
   const g = STAGE_GUIDE[s];
   if (!g) return null;
   if (s === "cancelled" && !order.not_repairable_resolved_at) {
-    return { ...g, subtitle: "El cliente canceló la orden. Cobra lo pendiente, si aplica, y ciérrala." };
+    return { ...g, subtitle: "El cliente canceló el boleto. Cobra lo pendiente, si aplica, y ciérralo." };
   }
   if (s === "delivered") {
     const social = tenant?.settings?.social || {};
@@ -179,7 +179,7 @@ export default function StatusModule({
   const photos = Array.isArray(order.device_photos) ? order.device_photos : [];
 
   const caption = [
-    closed ? "Orden cerrada" : !COMMON_STATUSES.includes(order.status) ? "Estado especial" : null,
+    closed ? "Boleto cerrado" : !COMMON_STATUSES.includes(order.status) ? "Estado especial" : null,
     `Actualizada ${relativeTime(order.updated_date || order.updated_at)}`,
   ].filter(Boolean).join(" · ");
 
@@ -198,7 +198,7 @@ export default function StatusModule({
   ) : (
     <button onClick={() => onStagePill("resolve_nr")} disabled={saving} className="apple-press flex items-center justify-center gap-2 disabled:opacity-50"
       style={{ minHeight: 50, padding: "0 18px", borderRadius: 14, background: C.brand, color: "#fff", fontWeight: 700, fontSize: 15, flex: 1 }}>
-      <BadgeCheck className="w-5 h-5" /> Cerrar orden
+      <BadgeCheck className="w-5 h-5" /> Cerrar boleto
     </button>
   )) : null;
 
@@ -219,7 +219,7 @@ export default function StatusModule({
   const reopenButton = closed ? (
     <button onClick={onReopen} disabled={saving} className="apple-press flex items-center justify-center gap-2 disabled:opacity-50"
       style={{ minHeight: 50, padding: "0 18px", borderRadius: 14, background: C.brand, color: "#fff", fontWeight: 700, fontSize: 15, flex: 1 }}>
-      <RotateCcw className="w-4 h-4" /> Reabrir orden
+      <RotateCcw className="w-4 h-4" /> Reabrir boleto
     </button>
   ) : null;
 
@@ -292,7 +292,7 @@ export default function StatusModule({
         <div className="flex items-start gap-3" style={{ marginTop: 6, padding: 12, borderRadius: 12, background: tint(C.sub, 0.12) }}>
           <Lock className="w-4 h-4 shrink-0" style={{ color: C.sub, marginTop: 2 }} />
           <div>
-            <p style={{ fontSize: 14, fontWeight: 700, color: C.text }}>Orden cerrada</p>
+            <p style={{ fontSize: 14, fontWeight: 700, color: C.text }}>Boleto cerrado</p>
             <p style={{ fontSize: 13, color: C.sub }}>¿Marcaste un estado por error? Podés reabrirla y volverla a un estado activo.</p>
           </div>
         </div>

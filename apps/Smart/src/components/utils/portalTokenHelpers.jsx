@@ -171,7 +171,7 @@ export async function sendPortalLinkEmail(orderId, customerEmail, customerName, 
     const order = orders[0];
 
     if (!order) {
-      throw new Error('Orden no encontrada');
+      throw new Error('Boleto no encontrado');
     }
 
     // ✅ Formatear fecha de expiración
@@ -194,7 +194,7 @@ export async function sendPortalLinkEmail(orderId, customerEmail, customerName, 
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; padding: 20px;">
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #00A8E8 0%, #10B981 50%, #A8D700 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
-          <h1 style="color: white; font-size: 28px; font-weight: bold; margin: 0;">📱 Estado de tu Orden</h1>
+          <h1 style="color: white; font-size: 28px; font-weight: bold; margin: 0;">📱 Estado de tu Boleto</h1>
           <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">
             ${order.order_number}
           </p>
@@ -221,7 +221,7 @@ export async function sendPortalLinkEmail(orderId, customerEmail, customerName, 
                style="display: inline-block; background: linear-gradient(135deg, #00A8E8 0%, #10B981 100%); 
                       color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; 
                       font-size: 16px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,168,232,0.3);">
-              🔍 Ver Estado de mi Orden
+              🔍 Ver Estado de mi Boleto
             </a>
           </div>
 
@@ -229,7 +229,7 @@ export async function sendPortalLinkEmail(orderId, customerEmail, customerName, 
           <div style="background: white; border-left: 4px solid #00A8E8; padding: 15px; margin: 20px 0; border-radius: 4px;">
             <p style="margin: 0; color: #374151; font-size: 14px;">
               <strong style="color: #00A8E8;">💡 Consejo:</strong> Guarda este email para poder consultar 
-              el estado de tu orden en cualquier momento.
+              el estado de tu boleto en cualquier momento.
             </p>
           </div>
 
@@ -261,7 +261,7 @@ export async function sendPortalLinkEmail(orderId, customerEmail, customerName, 
     await base44.functions.invoke('sendEmail', {
       from_name: "Archilla OS - Portal de Clientes",
       to_email: customerEmail,
-      subject: `📱 Estado de tu Orden ${order.order_number}`,
+      subject: `📱 Estado de tu Boleto ${order.order_number}`,
       body_html: emailBody,
       metadata: {
         order_id: orderId,
@@ -295,7 +295,7 @@ export async function generateWhatsAppPortalLink(orderId, orderNumber, expiresIn
     const message = `
 🔧 *Estado de tu Reparación*
 
-Orden: *${orderNumber}*
+Boleto: *${orderNumber}*
 
 Puedes consultar el estado de tu dispositivo en tiempo real aquí:
 ${url}

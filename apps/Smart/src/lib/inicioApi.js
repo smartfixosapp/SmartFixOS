@@ -135,9 +135,9 @@ export function waMessage(o, shop) {
   const name = String(o.customer_name || "").trim().split(/\s+/)[0] || "";
   const device = displayDevice(o) || "equipo";
   const n = displayNumber(o);
-  if (o.status === "ready_for_pickup") return `Hola ${name}, tu ${device} está listo para recoger en ${shop}. Orden: ${n}.`;
-  if (o.status === "delivered" && remainingBalance(o) > 0.005) return `Hola ${name}, tienes un balance pendiente de $${remainingBalance(o).toFixed(2)} de tu orden ${n}. — ${shop}`;
-  return `Hola ${name}, te escribimos de ${shop} sobre tu orden ${n}.`;
+  if (o.status === "ready_for_pickup") return `Hola ${name}, tu ${device} está listo para recoger en ${shop}. Boleto: ${n}.`;
+  if (o.status === "delivered" && remainingBalance(o) > 0.005) return `Hola ${name}, tienes un balance pendiente de $${remainingBalance(o).toFixed(2)} de tu boleto ${n}. — ${shop}`;
+  return `Hola ${name}, te escribimos de ${shop} sobre tu boleto ${n}.`;
 }
 
 export const cleanPhone = (p) => String(p || "").replace(/[^\d+]/g, "");
@@ -193,7 +193,7 @@ export function shouldBlockApp(tenant) {
   return String(tenant?.plan || "").toLowerCase() === "expired" || String(tenant?.subscription_status || "").toLowerCase() === "expired";
 }
 
-const RECIBO_DEFAULTS = { sale_subject: "Tu recibo de venta #{number}", order_subject: "Tu orden de reparación #{number}", send_email: true, send_whatsapp: true, send_print: true };
+const RECIBO_DEFAULTS = { sale_subject: "Tu recibo de venta #{number}", order_subject: "Tu boleto de reparación #{number}", send_email: true, send_whatsapp: true, send_print: true };
 
 export function primerosPasosFlags(tenant) {
   const s = tenant?.settings || {};

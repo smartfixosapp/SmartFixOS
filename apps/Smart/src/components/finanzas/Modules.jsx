@@ -66,7 +66,7 @@ function Profitability({ tenantId, tz }) {
         <div key={g.label} style={card}>
           <div className="flex justify-between"><span style={{ fontSize: 15, fontWeight: 600 }}>{g.label}</span><span style={{ fontSize: 15, fontWeight: 700, color: g.profit >= 0 ? FP.brand : FP.danger }}>{money(g.profit)}</span></div>
           <p className="flex gap-2" style={{ fontSize: 12, color: "#8E8E93", marginTop: 4 }}>
-            <span>{g.count} órdenes</span><span>· {money(g.revenue)} ingreso</span>{g.cost > 0 && <span>· {money(g.cost)} costo</span>}<span className="flex-1" /><span>{g.margin.toFixed(0)}%</span>
+            <span>{g.count} boletos</span><span>· {money(g.revenue)} ingreso</span>{g.cost > 0 && <span>· {money(g.cost)} costo</span>}<span className="flex-1" /><span>{g.margin.toFixed(0)}%</span>
           </p>
         </div>
       ))}
@@ -75,7 +75,7 @@ function Profitability({ tenantId, tz }) {
   return (
     <div className="flex flex-col" style={{ gap: 16 }}>
       <Segmented options={[["thisMonth", "Este mes"], ["lastMonth", "Mes pasado"], ["last90", "Últimos 90 días"]]} value={period} onChange={setPeriod} />
-      <Note>El costo solo cuenta piezas pedidas por Compras y vinculadas a la orden. Si usaste piezas de tu inventario sin vincular una compra, ese costo no se refleja aquí — la utilidad real puede ser menor.</Note>
+      <Note>El costo solo cuenta piezas pedidas por Compras y vinculadas al boleto. Si usaste piezas de tu inventario sin vincular una compra, ese costo no se refleja aquí — la utilidad real puede ser menor.</Note>
       {loading ? <Spinner /> : (
         <>
           <div>
@@ -126,8 +126,8 @@ function TechScorecard({ tenantId }) {
   return (
     <div className="flex flex-col" style={{ gap: 16 }}>
       <Segmented options={[["last30", "30 días"], ["last90", "90 días"], ["all", "Todo"]]} value={period} onChange={setPeriod} />
-      <Note>Basado en órdenes entregadas. Días = desde que se creó la orden hasta que se marcó entregada. A tiempo = entregada antes o el día de la fecha prometida.</Note>
-      {loading ? <Spinner /> : stats.length === 0 ? <Note>Sin órdenes entregadas en este período.</Note> : stats.map((s) => (
+      <Note>Basado en boletos entregados. Días = desde que se creó el boleto hasta que se marcó entregado. A tiempo = entregado antes o el día de la fecha prometida.</Note>
+      {loading ? <Spinner /> : stats.length === 0 ? <Note>Sin boletos entregados en este período.</Note> : stats.map((s) => (
         <div key={s.name} className="flex flex-col" style={{ ...card, gap: 10 }}>
           <div className="flex justify-between"><span style={{ fontSize: 15, fontWeight: 700 }}>{s.name}</span><span style={{ fontSize: 12, color: "#8E8E93" }}>{s.delivered} entregadas</span></div>
           <div className="flex gap-4">

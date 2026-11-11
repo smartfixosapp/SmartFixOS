@@ -35,7 +35,7 @@ export default function ClientSection({ order, customer }) {
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => openWhatsApp(order.customer_phone, `Hola ${order.customer_name}, referente a tu orden ${order.order_number}`)}
+                onClick={() => openWhatsApp(order.customer_phone, `Hola ${order.customer_name}, referente a tu boleto ${order.order_number}`)}
                 className="ml-auto border-gray-700"
               >
                 WhatsApp

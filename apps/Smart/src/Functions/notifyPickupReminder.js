@@ -18,7 +18,7 @@ export async function notifyPickupReminderHandler(req) {
     });
 
     if (!orders || orders.length === 0) {
-      return Response.json({ message: "No hay órdenes listas para recoger", processed: 0 });
+      return Response.json({ message: "No hay boletos listos para recoger", processed: 0 });
     }
 
     const now = new Date();
@@ -60,7 +60,7 @@ export async function notifyPickupReminderHandler(req) {
               </div>
               
               <p style="font-size: 14px; color: #666;">
-                📌 <strong>Número de orden:</strong> ${freshOrder.order_number}<br>
+                📌 <strong>Número de boleto:</strong> ${freshOrder.order_number}<br>
                 ⏱️ <strong>Días transcurridos:</strong> 15 días<br>
                 ⏳ <strong>Días restantes:</strong> 15 días
               </p>
@@ -85,12 +85,12 @@ export async function notifyPickupReminderHandler(req) {
           notified.push(freshOrder.order_number);
         }
       } catch (err) {
-        console.error(`Error procesando orden ${order.id}:`, err);
+        console.error(`Error procesando boleto ${order.id}:`, err);
       }
     }
 
     return Response.json({ 
-      message: `Procesadas ${orders.length} órdenes`,
+      message: `Procesadas ${orders.length} boletos`,
       notified: notified.length,
       orders: notified
     });

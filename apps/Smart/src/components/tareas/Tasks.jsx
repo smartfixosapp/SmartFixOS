@@ -32,11 +32,11 @@ function OrderPickerAll({ open, tenantId, onPick, onClose }) {
   useEffect(() => { if (open) { setRows(null); setQ(""); fetchAllOrdersForPicker(tenantId).then(setRows, () => setRows([])); } }, [open, tenantId]);
   const list = (rows || []).filter((o) => { const s = q.trim().toLowerCase(); return !s || [o.customer_name, o.order_number, o.device_model, o.device_family, o.device_brand].some((v) => String(v || "").toLowerCase().includes(s)); });
   return (
-    <Dialog open={open} onClose={onClose} title="Vincular a orden" width={480} height="80dvh" leading={<span />} trailing={<TextAction bold onClick={onClose}>Cerrar</TextAction>}>
+    <Dialog open={open} onClose={onClose} title="Vincular a boleto" width={480} height="80dvh" leading={<span />} trailing={<TextAction bold onClick={onClose}>Cerrar</TextAction>}>
       <div className="flex flex-col" style={{ gap: 10, paddingTop: 6 }}>
-        <label className="flex items-center gap-2" style={{ height: 42, padding: "0 12px", borderRadius: 12, background: "#2C2C2E" }}><Search className="w-4 h-4" style={{ color: W.sub }} /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cliente, # de orden, dispositivo…" className="flex-1 bg-transparent outline-none" style={{ color: "#fff", fontSize: 15, minWidth: 0 }} /></label>
-        <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", color: W.sub, textTransform: "uppercase" }}>Todas las órdenes</p>
-        {rows === null ? <p className="flex items-center gap-2" style={{ color: W.sub }}><Loader2 className="w-4 h-4 animate-spin" /> Cargando órdenes…</p> : (
+        <label className="flex items-center gap-2" style={{ height: 42, padding: "0 12px", borderRadius: 12, background: "#2C2C2E" }}><Search className="w-4 h-4" style={{ color: W.sub }} /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cliente, # de boleto, dispositivo…" className="flex-1 bg-transparent outline-none" style={{ color: "#fff", fontSize: 15, minWidth: 0 }} /></label>
+        <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", color: W.sub, textTransform: "uppercase" }}>Todos los boletos</p>
+        {rows === null ? <p className="flex items-center gap-2" style={{ color: W.sub }}><Loader2 className="w-4 h-4 animate-spin" /> Cargando boletos…</p> : (
           <div style={{ borderRadius: 12, background: "#2C2C2E", overflow: "hidden" }}>
             {list.map((o, i) => <button key={o.id} onClick={() => { onPick(o); onClose(); }} className="apple-press w-full flex items-center gap-3 text-left" style={{ padding: "10px 12px", borderTop: i ? `0.5px solid ${W.sep}` : "none" }}><Wrench className="w-4 h-4" style={{ color: BRAND }} /><span className="flex-1 min-w-0"><span className="block" style={{ fontSize: 14, fontWeight: 700 }}>{o.order_number}</span><span className="block truncate" style={{ fontSize: 12, color: W.sub }}>{o.customer_name || "—"} · {[o.device_brand, o.device_family, o.device_model].filter(Boolean).join(" ")}</span></span></button>)}
             {!list.length && <p className="text-center" style={{ padding: 20, color: W.sub }}>Sin resultados</p>}
@@ -114,12 +114,12 @@ export function TaskFormDialog({ open, task, tenantId, employeeName, prelinked, 
             {notify && hasDue && <select value={offset} onChange={(e) => setOffset(Number(e.target.value))} aria-label="Recordarme" style={{ ...field, colorScheme: "dark" }}>{OFFSETS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>}
             {notify && hasDue && <p style={{ fontSize: 12, color: W.sub }}>La web no programa recordatorios en el dispositivo; se guarda la hora para la app.</p>}
           </Group>
-          <Group title="Órdenes vinculadas">
+          <Group title="Boletos vinculados">
             {orders.map((o) => (
               <div key={o.id} className="flex items-center gap-2"><Wrench className="w-4 h-4" style={{ color: BRAND }} /><span className="flex-1 min-w-0"><b style={{ fontSize: 13, color: W.sub }}>{o.order_number}</b> <span style={{ fontSize: 14 }}>{o.customer_name}</span></span>
-                {!(prelinked && prelinked.id === o.id) && <button onClick={() => setOrders((p) => p.filter((x) => x.id !== o.id))} aria-label="Quitar orden"><X className="w-4 h-4" style={{ color: W.sub }} /></button>}</div>
+                {!(prelinked && prelinked.id === o.id) && <button onClick={() => setOrders((p) => p.filter((x) => x.id !== o.id))} aria-label="Quitar boleto"><X className="w-4 h-4" style={{ color: W.sub }} /></button>}</div>
             ))}
-            <button onClick={() => setPickOpen(true)} className="apple-press flex items-center gap-2 self-start" style={{ color: BRAND, fontWeight: 700, fontSize: 14 }}><Plus className="w-4 h-4" /> {orders.length ? "Añadir otra orden" : "Vincular a orden de trabajo"}</button>
+            <button onClick={() => setPickOpen(true)} className="apple-press flex items-center gap-2 self-start" style={{ color: BRAND, fontWeight: 700, fontSize: 14 }}><Plus className="w-4 h-4" /> {orders.length ? "Añadir otro boleto" : "Vincular a boleto de trabajo"}</button>
           </Group>
           {error && <Banner color={RED}>{error}</Banner>}
         </div>
@@ -146,10 +146,10 @@ export function TaskDetailDialog({ open, task, tenantId, employeeName, onClose, 
       <Dialog open={open && !edit} onClose={onClose} title="Detalle de tarea" width={460} leading={<TextAction onClick={() => setEdit(true)}>Editar</TextAction>} trailing={<TextAction bold onClick={onClose}>Cerrar</TextAction>}>
         <div className="flex flex-col" style={{ gap: 16, paddingTop: 8 }}>
           <div><p style={{ fontSize: 19, fontWeight: 700 }}>{cur.title}</p>{cur.notes && <p style={{ fontSize: 14, color: W.sub, marginTop: 6, whiteSpace: "pre-wrap" }}>{cur.notes}</p>}</div>
-          {num(cur.cost) > 0 && sec("COSTO", <><p className="flex items-center gap-2" style={{ fontSize: 17, fontWeight: 700 }}><DollarSign className="w-4 h-4" style={{ color: GREEN }} />{money(cur.cost)}</p><p style={{ fontSize: 12, color: W.sub }}>Informativo — no está en la cotización de esta orden.</p></>)}
+          {num(cur.cost) > 0 && sec("COSTO", <><p className="flex items-center gap-2" style={{ fontSize: 17, fontWeight: 700 }}><DollarSign className="w-4 h-4" style={{ color: GREEN }} />{money(cur.cost)}</p><p style={{ fontSize: 12, color: W.sub }}>Informativo — no está en la cotización de este boleto.</p></>)}
           {cur.assigned_name && sec("RESPONSABLE", <span style={{ alignSelf: "flex-start", padding: "4px 12px", borderRadius: 999, background: tint(BRAND, 0.16), color: BRAND, fontWeight: 700, fontSize: 13 }}>{cur.assigned_name}</span>)}
           {cur.due_at && sec("FECHA LÍMITE", <p style={{ fontSize: 15, color: overdue ? RED : "#fff", fontWeight: 600 }}>{overdue ? "Vencida · " : "Vence · "}{new Intl.DateTimeFormat("es-PR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(cur.due_at))}</p>)}
-          {linked.length > 0 && sec("ÓRDENES VINCULADAS", linked.map((o) => <p key={o.id} style={{ fontSize: 14 }}><b style={{ color: W.sub }}>{o.order_number}</b> {o.customer_name}</p>))}
+          {linked.length > 0 && sec("BOLETOS VINCULADOS", linked.map((o) => <p key={o.id} style={{ fontSize: 14 }}><b style={{ color: W.sub }}>{o.order_number}</b> {o.customer_name}</p>))}
           {cur.created_by && sec("CREADA POR", <p style={{ fontSize: 14 }}>{cur.created_by}</p>)}
           {error && <Banner color={RED}>{error}</Banner>}
           <button onClick={() => run(() => completeTask(cur.id))} disabled={busy} className="apple-press flex items-center justify-center gap-2 disabled:opacity-50" style={{ padding: "13px 0", borderRadius: 14, background: GREEN, color: "#fff", fontWeight: 700 }}><CheckCircle2 className="w-4 h-4" /> Marcar como completada</button>
@@ -172,8 +172,8 @@ export function OrderTasksCard({ order, tenantId, employeeName }) {
     <div style={{ background: "#1C1C1E", borderRadius: 20, border: "0.5px solid rgba(255,255,255,0.08)", padding: 16 }}>
       <div className="flex items-center gap-3" style={{ marginBottom: 8 }}>
         <span style={{ width: 34, height: 34, borderRadius: 10, background: tint(GOLD, 0.16), color: GOLD, display: "flex", alignItems: "center", justifyContent: "center" }}><CheckCircle2 className="w-4 h-4" /></span>
-        <b className="flex-1" style={{ fontSize: 17 }}>Tareas de esta orden</b>
-        <button onClick={() => setForm(true)} className="apple-press flex items-center gap-1" style={{ color: BRAND, fontWeight: 700, fontSize: 13 }}><Plus className="w-4 h-4" /> {tasks.length ? "Añadir otra tarea" : "Añadir tarea a esta orden"}</button>
+        <b className="flex-1" style={{ fontSize: 17 }}>Tareas de este boleto</b>
+        <button onClick={() => setForm(true)} className="apple-press flex items-center gap-1" style={{ color: BRAND, fontWeight: 700, fontSize: 13 }}><Plus className="w-4 h-4" /> {tasks.length ? "Añadir otra tarea" : "Añadir tarea a este boleto"}</button>
       </div>
       {tasks.map((t) => (
         <button key={t.id} onClick={() => setDetail(t)} className="apple-press w-full flex items-center gap-3 text-left" style={{ padding: "9px 0", borderTop: "0.5px solid rgba(255,255,255,0.08)" }}>

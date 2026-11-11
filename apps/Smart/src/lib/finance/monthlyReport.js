@@ -319,7 +319,7 @@ export const IVU_GROUP_LABEL = { sales: "Ventas del período", tax: "Impuesto", 
 const csvSan = (s) => String(s || "").replace(/,/g, ";").replace(/\n/g, " ").replace(/"/g, "'");
 
 export function buildCSV(txs, tz) {
-  const rows = ["Fecha,Tipo,Categoría,Descripción,Empleado,Método,Monto,Orden"];
+  const rows = ["Fecha,Tipo,Categoría,Descripción,Empleado,Método,Monto,Boleto"];
   const stamp = (d) => {
     const p = zonedParts(d, tz);
     const z = (n) => String(n).padStart(2, "0");

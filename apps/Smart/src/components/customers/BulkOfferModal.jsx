@@ -55,7 +55,7 @@ function isInactive(customer, months) {
 // ── Filtros ───────────────────────────────────────────────────────────────────
 const FILTERS = [
   { id: "all",      label: "Todos",              icon: Users,       color: "blue" },
-  { id: "vip",      label: "VIP (3+ órdenes)",   icon: Star,        color: "yellow" },
+  { id: "vip",      label: "VIP (3+ boletos)",   icon: Star,        color: "yellow" },
   { id: "inactive", label: "Sin visita 3+ meses", icon: Clock,       color: "orange" },
   { id: "manual",   label: "Selección manual",    icon: UserCheck,   color: "purple" },
 ];

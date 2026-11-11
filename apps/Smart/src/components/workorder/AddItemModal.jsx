@@ -635,7 +635,7 @@ export default function AddItemModal({
 
   const clearCart = () => {
     setCartItems([]);
-    toast.success("Orden limpia");
+    toast.success("Boleto limpio");
   };
 
   const saveToOrder = async () => {
@@ -742,10 +742,10 @@ export default function AddItemModal({
         ...localUpdatePayload,
       });
 
-      toast.success("Items de la orden actualizados");
+      toast.success("Items del boleto actualizados");
     } catch (error) {
       console.error("[AddItemModal] saveToOrder error:", error);
-      toast.warning("Orden guardada localmente. Falta sincronizarla.");
+      toast.warning("Boleto guardado localmente. Falta sincronizarlo.");
     } finally {
       setSaving(false);
     }
@@ -807,7 +807,7 @@ export default function AddItemModal({
               }`}
             >
               <ShoppingCart className="w-3.5 h-3.5" />
-              Orden
+              Boleto
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-semibold text-white">
                 {countInCart}
               </span>
@@ -1015,7 +1015,7 @@ export default function AddItemModal({
               <div className="flex items-center justify-between px-6 pt-5 pb-3 lg:px-8 lg:pt-6 lg:pb-4 lg:border-b lg:border-white/[0.06] lg:shrink-0">
                 <div>
                   <p className="text-[10px] font-semibold tracking-[0.25em] text-white/40 lg:text-xs">
-                    Items en Orden <span className="text-emerald-400 ml-1">({countInCart})</span>
+                    Items en Boleto <span className="text-emerald-400 ml-1">({countInCart})</span>
                   </p>
                   <p className="hidden lg:block text-[10px] text-white/50 mt-1">Ajusta cantidades, descuentos e IVU antes de aplicar</p>
                 </div>
@@ -1120,7 +1120,7 @@ export default function AddItemModal({
                       className="w-full h-12 sm:h-16 rounded-[20px] bg-emerald-600 hover:bg-emerald-500 shadow-xl shadow-emerald-600/15 text-white font-semibold text-[11px] transition-all active:scale-[0.98] border-t border-white/10"
                     >
                       {saving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <ShoppingCart className="w-5 h-5 mr-2" />}
-                      <span className="hidden sm:inline">Aplicar a la Orden</span>
+                      <span className="hidden sm:inline">Aplicar al Boleto</span>
                       <span className="sm:hidden">Aplicar</span>
                     </Button>
                     {onPaymentClick && (

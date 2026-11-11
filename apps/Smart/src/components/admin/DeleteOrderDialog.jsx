@@ -30,7 +30,7 @@ export default function DeleteOrderDialog({ open, onClose, order, onSuccess }) {
 
       if (result.data?.success) {
         toast.success(
-          `Orden ${order.order_number} eliminada + ${result.data.affected.transactions} transacciones`
+          `Boleto ${order.order_number} eliminado + ${result.data.affected.transactions} transacciones`
         );
         setConfirmText("");
         setReason("");
@@ -53,7 +53,7 @@ export default function DeleteOrderDialog({ open, onClose, order, onSuccess }) {
           <div className="flex items-start gap-3">
             <AlertCircle className="w-6 h-6 text-apple-red flex-shrink-0 mt-1" />
             <div>
-              <h2 className="apple-text-title3 apple-label-primary">Eliminar Orden</h2>
+              <h2 className="apple-text-title3 apple-label-primary">Eliminar Boleto</h2>
               <p className="apple-text-subheadline apple-label-tertiary mt-1">Esto también eliminará transacciones vinculadas</p>
             </div>
             <button
@@ -65,10 +65,10 @@ export default function DeleteOrderDialog({ open, onClose, order, onSuccess }) {
           </div>
 
           <div className="bg-apple-red/12 rounded-apple-md p-3 space-y-2">
-            <p className="apple-text-subheadline apple-label-primary">Detalles de la orden:</p>
+            <p className="apple-text-subheadline apple-label-primary">Detalles del boleto:</p>
             <div className="apple-text-caption1 apple-label-secondary space-y-1">
               <div className="flex justify-between">
-                <span>Orden #:</span>
+                <span>Boleto #:</span>
                 <span className="tabular-nums apple-label-primary">{order.order_number}</span>
               </div>
               <div className="flex justify-between">
@@ -143,7 +143,7 @@ export default function DeleteOrderDialog({ open, onClose, order, onSuccess }) {
               className="flex-1 apple-btn apple-btn-destructive apple-press"
             >
               {processing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-              Eliminar Orden
+              Eliminar Boleto
             </Button>
           </div>
         </div>

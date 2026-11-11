@@ -265,7 +265,7 @@ export default function B2BContactsManager({ customer, onUpdate }) {
                 checked={form.notifications_enabled}
                 onChange={(e) => setForm({ ...form, notifications_enabled: e.target.checked })}
                 className="w-4 h-4 rounded border-purple-500/30" />
-              <label className="text-sm text-gray-300">Recibir notificaciones de órdenes</label>
+              <label className="text-sm text-gray-300">Recibir notificaciones de boletos</label>
             </div>
 
             <div className="flex gap-2 pt-2">

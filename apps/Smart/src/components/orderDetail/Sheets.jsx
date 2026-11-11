@@ -63,7 +63,7 @@ export function NoteForChangeSheet({ open, onClose, status, onSave }) {
   };
   return (
     <Sheet open={open} onClose={onClose} title="Nota para este cambio" width={460}>
-      <p style={{ fontSize: 14, color: C.sub, marginBottom: 14 }}>Opcional — se guarda en el historial de la orden</p>
+      <p style={{ fontSize: 14, color: C.sub, marginBottom: 14 }}>Opcional — se guarda en el historial del boleto</p>
       <div className="flex flex-col gap-2">
         {presets.map((p) => (
           <button key={p} onClick={() => save(p)} disabled={busy} className="apple-press flex items-center gap-3 text-left disabled:opacity-50"
@@ -123,7 +123,7 @@ export function AddNoteSheet({ open, onClose, onSave }) {
         className="w-full"
         style={{ background: C.card2, color: C.text, borderRadius: 12, padding: 12, fontSize: 15, border: "none", outline: "none", resize: "vertical" }}
       />
-      <p style={{ fontSize: 12, color: C.sub, marginTop: 8 }}>Se añade a la línea de tiempo de la orden. Puedes marcarla como ✓ Hecho cuando ya no aplique.</p>
+      <p style={{ fontSize: 12, color: C.sub, marginTop: 8 }}>Se añade a la línea de tiempo del boleto. Puedes marcarla como ✓ Hecho cuando ya no aplique.</p>
     </Sheet>
   );
 }
@@ -268,13 +268,13 @@ export function CustomerHistorySheet({ open, onClose, loading, orders, onOpenOrd
         <div className="flex flex-col items-center text-center" style={{ padding: "28px 0" }}>
           <Inbox className="w-10 h-10" style={{ color: C.sub }} />
           <p style={{ fontSize: 17, fontWeight: 700, marginTop: 10 }}>Sin historial</p>
-          <p style={{ fontSize: 14, color: C.sub, marginTop: 4 }}>Este cliente no tiene otras órdenes registradas.</p>
+          <p style={{ fontSize: 14, color: C.sub, marginTop: 4 }}>Este cliente no tiene otros boletos registrados.</p>
         </div>
       ) : (
         <>
           <div className="grid grid-cols-2 gap-2">
             <div style={{ padding: 14, borderRadius: 14, background: tint(C.blue, 0.12) }}>
-              <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", color: C.blue }}>ÓRDENES</p>
+              <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", color: C.blue }}>BOLETOS</p>
               <p style={{ fontSize: 24, fontWeight: 800 }}>{orders.length}</p>
             </div>
             <div style={{ padding: 14, borderRadius: 14, background: tint(C.green, 0.12) }}>
@@ -282,7 +282,7 @@ export function CustomerHistorySheet({ open, onClose, loading, orders, onOpenOrd
               <p style={{ fontSize: 24, fontWeight: 800 }}>{money(total)}</p>
             </div>
           </div>
-          <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", color: C.sub, margin: "18px 4px 8px" }}>OTRAS ÓRDENES</p>
+          <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", color: C.sub, margin: "18px 4px 8px" }}>OTROS BOLETOS</p>
           <div className="flex flex-col gap-2">
             {orders.map((o) => {
               const st = statusInfo(o.status);
@@ -301,7 +301,7 @@ export function CustomerHistorySheet({ open, onClose, loading, orders, onOpenOrd
               );
             })}
           </div>
-          <p style={{ fontSize: 12, color: C.sub, marginTop: 12, textAlign: "center" }}>La orden actual no aparece en esta lista.</p>
+          <p style={{ fontSize: 12, color: C.sub, marginTop: 12, textAlign: "center" }}>El boleto actual no aparece en esta lista.</p>
         </>
       )}
     </Sheet>
@@ -315,8 +315,8 @@ export function QueueWarningSheet({ open, onClose, olderNumber, onContinue }) {
         <span style={{ width: 64, height: 64, borderRadius: 999, background: tint(C.amber, 0.14), color: C.amber, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
           <Hourglass className="w-7 h-7" />
         </span>
-        <p style={{ fontSize: 19, fontWeight: 800 }}>Hay una orden más antigua sin diagnosticar</p>
-        <p style={{ fontSize: 15, color: C.sub, marginTop: 8 }}>La orden {olderNumber} lleva más tiempo esperando diagnóstico. ¿Continuar con esta de todos modos?</p>
+        <p style={{ fontSize: 19, fontWeight: 800 }}>Hay un boleto más antiguo sin diagnosticar</p>
+        <p style={{ fontSize: 15, color: C.sub, marginTop: 8 }}>El boleto {olderNumber} lleva más tiempo esperando diagnóstico. ¿Continuar con esta de todos modos?</p>
         <div className="w-full flex flex-col gap-2" style={{ marginTop: 22 }}>
           <Btn onClick={onContinue}>Continuar de todos modos</Btn>
           <Btn onClick={onClose} variant="ghost">Cancelar</Btn>
@@ -333,8 +333,8 @@ export function TechWarningSheet({ open, onClose, orderNumber, onContinue }) {
         <span style={{ width: 64, height: 64, borderRadius: 999, background: tint(C.amber, 0.14), color: C.amber, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
           <AlertTriangle className="w-7 h-7" />
         </span>
-        <p style={{ fontSize: 19, fontWeight: 800 }}>Técnico con orden sin diagnosticar</p>
-        <p style={{ fontSize: 15, color: C.sub, marginTop: 8 }}>Ya tiene la orden {orderNumber} sin diagnosticar. ¿Asignar esta también?</p>
+        <p style={{ fontSize: 19, fontWeight: 800 }}>Técnico con boleto sin diagnosticar</p>
+        <p style={{ fontSize: 15, color: C.sub, marginTop: 8 }}>Ya tiene el boleto {orderNumber} sin diagnosticar. ¿Asignar esta también?</p>
         <div className="w-full flex flex-col gap-2" style={{ marginTop: 22 }}>
           <Btn onClick={onContinue}>Asignar de todos modos</Btn>
           <Btn onClick={onClose} variant="ghost">Cancelar</Btn>

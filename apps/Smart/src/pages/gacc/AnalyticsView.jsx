@@ -313,7 +313,7 @@ function UsageHeatmap({ tenants }) {
         <div className="space-y-2">
           <div className="grid grid-cols-5 gap-2 px-2 text-[10px] text-gray-600 tracking-wide font-bold border-b border-white/[0.05] pb-2">
             <div>Tienda</div>
-            <div className="text-center">Ordenes</div>
+            <div className="text-center">Boletos</div>
             <div className="text-center">Ventas</div>
             <div className="text-center">Clientes</div>
             <div className="text-center">Productos</div>
@@ -404,7 +404,7 @@ function FeatureAdoption({ tenants }) {
       // Todas las features estan disponibles en el unico plan (solo)
       { key: "pos", label: "POS", plans: ["solo"] },
       { key: "inventory", label: "Inventario", plans: ["solo"] },
-      { key: "orders_photos", label: "Fotos en Ordenes", plans: ["solo"] },
+      { key: "orders_photos", label: "Fotos en Boletos", plans: ["solo"] },
       { key: "suppliers", label: "Proveedores", plans: ["solo"] },
       { key: "reports", label: "Reportes Financieros", plans: ["solo"] },
       { key: "automations", label: "Automatizaciones", plans: ["solo"] },

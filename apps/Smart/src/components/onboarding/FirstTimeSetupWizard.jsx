@@ -45,13 +45,13 @@ const STEPS = [
 
 const DASHBOARD_WIDGETS = [
   { key: "revenue_today",   label: "Ingresos del día",           icon: DollarSign, desc: "Ventas y pagos de hoy"          },
-  { key: "active_orders",   label: "Órdenes activas",            icon: Wrench,     desc: "Reparaciones en progreso"       },
+  { key: "active_orders",   label: "Boletos activos",            icon: Wrench,     desc: "Reparaciones en progreso"       },
   { key: "total_customers", label: "Clientes totales",           icon: Users,      desc: "Base de clientes"               },
   { key: "inventory_value", label: "Valor del inventario",       icon: Package,    desc: "Stock en dinero"                },
   { key: "avg_repair_time", label: "Tiempo prom. reparación",    icon: Timer,      desc: "Eficiencia del taller"          },
   { key: "top_technicians", label: "Técnicos top",               icon: Star,       desc: "Rendimiento del equipo"         },
   { key: "revenue_chart",   label: "Gráfica de ingresos",        icon: BarChart3,  desc: "Evolución por período"          },
-  { key: "overdue_orders",  label: "Órdenes vencidas / urgentes",icon: Bell,       desc: "Alertas que necesitan atención" },
+  { key: "overdue_orders",  label: "Boletos vencidos / urgentes",icon: Bell,       desc: "Alertas que necesitan atención" },
 ];
 
 export default function FirstTimeSetupWizard({ onComplete }) {
@@ -354,7 +354,7 @@ export default function FirstTimeSetupWizard({ onComplete }) {
                         <p className="apple-label-secondary apple-text-footnote mb-1">Este logo aparecerá en:</p>
                         <ul className="apple-label-tertiary apple-text-caption1 space-y-0.5">
                           <li>• Emails de bienvenida y notificaciones</li>
-                          <li>• Órdenes de trabajo e invoices</li>
+                          <li>• Boletos de trabajo e invoices</li>
                           <li>• Portal del cliente</li>
                         </ul>
                         <p className="apple-label-tertiary apple-text-caption2 mt-2">PNG o JPG · Máx 2MB · Recomendado 200×200px</p>
@@ -505,7 +505,7 @@ export default function FirstTimeSetupWizard({ onComplete }) {
                       </div>
                     </div>
                     <div>
-                      <label className="apple-label-tertiary apple-text-caption1 mb-1 block">Nota en recibos y órdenes de trabajo</label>
+                      <label className="apple-label-tertiary apple-text-caption1 mb-1 block">Nota en recibos y boletos de trabajo</label>
                       <textarea
                         className="apple-input w-full apple-text-caption1 resize-none"
                         rows={3} value={form.receipt_note}

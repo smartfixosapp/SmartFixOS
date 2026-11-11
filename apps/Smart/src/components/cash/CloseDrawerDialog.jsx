@@ -651,7 +651,7 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
                       </p>
                       <div className="grid grid-cols-3 gap-2">
                         {[
-                          { label: "Órdenes activas", value: shiftOrderStats.total, color: "apple-label-primary" },
+                          { label: "Boletos activos", value: shiftOrderStats.total, color: "apple-label-primary" },
                           { label: "Completadas", value: shiftOrderStats.completed, color: "text-apple-green" },
                           { label: "Nuevas", value: shiftOrderStats.newOrders, color: "text-apple-blue" },
                         ].map(stat => (

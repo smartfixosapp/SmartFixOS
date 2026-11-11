@@ -198,9 +198,9 @@ function EmployeePanel({ emp: initial, tenant, tenantId, self, onBack, onSaved }
             <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", color: W.sub, textTransform: "uppercase", marginBottom: 8 }}>Compensación</p>
             <div className="flex flex-col" style={{ gap: 10 }}>
               <Input label="Pago por hora ($)" value={rate} onChange={(v) => /^\d*[.,]?\d{0,2}$/.test(v) && setRate(v)} inputMode="decimal" disabled={restricted} />
-              <Input label="Comisión por orden (%)" value={commission} onChange={(v) => /^\d*[.,]?\d{0,1}$/.test(v) && setCommission(v)} inputMode="decimal" disabled={restricted} />
+              <Input label="Comisión por boleto (%)" value={commission} onChange={(v) => /^\d*[.,]?\d{0,1}$/.test(v) && setCommission(v)} inputMode="decimal" disabled={restricted} />
             </div>
-            <p style={{ fontSize: 12, color: W.sub, marginTop: 8 }}>Pago/hora para payroll · Comisión aplicada al total de órdenes entregadas asignadas al técnico.</p>
+            <p style={{ fontSize: 12, color: W.sub, marginTop: 8 }}>Pago/hora para payroll · Comisión aplicada al total de boletos entregados asignados al técnico.</p>
           </div>
           <div className="flex items-center justify-between"><p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", color: W.sub, textTransform: "uppercase" }}>Pagos recientes</p><b style={{ color: GREEN }}>Total: {money(totalPays)}</b></div>
           {!payments.length ? <p className="text-center" style={{ padding: 20, color: W.sub }}>Sin pagos registrados aún</p> : (

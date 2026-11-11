@@ -21,11 +21,11 @@ import s13 from "../../../assets/images/screenshots/13-notificar-cliente.webp";
 const MODULES = [
   {
     icon: ClipboardList,
-    title: "Órdenes de trabajo",
+    title: "Boletos de trabajo",
     benefit: "Del mostrador a entregado, sin perder una.",
     features: ["Ticket en 30s", "Fotos por estado", "Garantías", "Aviso automático al cliente"],
     shot: s06,
-    shotAlt: "Lista de órdenes en Archilla OS",
+    shotAlt: "Lista de boletos en Archilla OS",
     featured: true,
   },
   {

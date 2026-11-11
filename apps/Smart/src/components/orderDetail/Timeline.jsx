@@ -148,7 +148,7 @@ export default function Timeline({ order, emails, onOpenEmail, onDoneInternal, o
           </span>
           <div className="flex-1 min-w-0">
             <div className="flex justify-between gap-2">
-              <span style={{ fontSize: 15, fontWeight: 600, color: C.text }}>Orden creada</span>
+              <span style={{ fontSize: 15, fontWeight: 600, color: C.text }}>Boleto creado</span>
               <span style={{ fontSize: 12, color: C.sub }}>{relativeTime(order.created_date || order.created_at)}</span>
             </div>
             {order.created_by_name && <p style={{ fontSize: 12, color: C.sub }}>{order.created_by_name}</p>}

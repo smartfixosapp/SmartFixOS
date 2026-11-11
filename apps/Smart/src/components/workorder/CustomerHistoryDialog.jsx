@@ -100,7 +100,7 @@ export default function CustomerHistoryDialog({ open, onClose, customerId, custo
                 <CardContent className="p-4 text-center">
                   <Package className="w-6 h-6 text-blue-400 mx-auto mb-2" />
                   <p className="text-2xl font-bold text-white">{stats.totalOrders}</p>
-                  <p className="text-xs text-gray-500">Total Órdenes</p>
+                  <p className="text-xs text-gray-500">Total Boletos</p>
                 </CardContent>
               </Card>
               
@@ -116,7 +116,7 @@ export default function CustomerHistoryDialog({ open, onClose, customerId, custo
                 <CardContent className="p-4 text-center">
                   <Clock className="w-6 h-6 text-orange-400 mx-auto mb-2" />
                   <p className="text-2xl font-bold text-white">{stats.activeOrders}</p>
-                  <p className="text-xs text-gray-500">Órdenes Activas</p>
+                  <p className="text-xs text-gray-500">Boletos Activos</p>
                 </CardContent>
               </Card>
             </div>
@@ -125,14 +125,14 @@ export default function CustomerHistoryDialog({ open, onClose, customerId, custo
             <div className="space-y-3">
               <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
                 <FileText className="w-5 h-5 text-[#FF0000]" />
-                Órdenes Anteriores
+                Boletos Anteriores
               </h3>
               
               {orders.length === 0 ? (
                 <Card className="bg-gray-900 border-gray-800">
                   <CardContent className="p-8 text-center">
                     <Package className="w-12 h-12 mx-auto text-gray-600 mb-3" />
-                    <p className="text-gray-500">No hay órdenes previas</p>
+                    <p className="text-gray-500">No hay boletos previos</p>
                   </CardContent>
                 </Card>
               ) : (
@@ -176,7 +176,7 @@ export default function CustomerHistoryDialog({ open, onClose, customerId, custo
                         <Button
                           variant="ghost"
                           size="icon"
-                          aria-label={`Abrir orden ${order.order_number || order.id}`}
+                          aria-label={`Abrir boleto ${order.order_number || order.id}`}
                           className="opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={(e) => {
                             e.stopPropagation();

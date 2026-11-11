@@ -62,7 +62,7 @@ export default function FloatingNav() {
   const navItems = [
     { label: "Inicio", icon: Home, path: "Dashboard" },
     { label: "Ventas (POS)", icon: Wallet, path: "POS" },
-    { label: "Órdenes", icon: ClipboardList, path: "Orders" },
+    { label: "Boletos", icon: ClipboardList, path: "Orders" },
     { label: "Clientes", icon: Users, path: "Customers" },
     { label: "Ajustes", icon: Settings, path: "Settings" },
   ];

@@ -9,7 +9,7 @@ export default function TermsStep({ formData, updateFormData, config }) {
   const termsText = config?.terms_text?.es || `
     <h3>Términos y Condiciones - ${brand}</h3>
 
-    <p>1. El cliente autoriza la reparación del equipo descrito en esta orden.</p>
+    <p>1. El cliente autoriza la reparación del equipo descrito en este boleto.</p>
 
     <p>2. Se requiere un depósito del 50% para iniciar la reparación. El saldo restante debe pagarse antes de la entrega del equipo.</p>
 
@@ -21,7 +21,7 @@ export default function TermsStep({ formData, updateFormData, config }) {
 
     <p>6. Si el equipo no es recogido en 60 días después de completada la reparación, ${brand} se reserva el derecho de disponer del equipo.</p>
 
-    <p>7. Al firmar esta orden, el cliente acepta todos los términos y condiciones aquí descritos.</p>
+    <p>7. Al firmar este boleto, el cliente acepta todos los términos y condiciones aquí descritos.</p>
   `;
 
   return (

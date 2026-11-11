@@ -723,7 +723,7 @@ export default function PurchaseOrderDialog({
           <div className="flex items-center gap-2 mb-2">
             <Zap className="w-3.5 h-3.5 text-apple-orange" />
             <p className="apple-text-caption2 font-semibold text-apple-orange">
-              Órdenes esperando piezas ({suggestedWorkOrders.length})
+              Boletos esperando piezas ({suggestedWorkOrders.length})
             </p>
           </div>
           <div className="grid sm:grid-cols-2 gap-2 max-h-44 overflow-y-auto">
@@ -761,14 +761,14 @@ export default function PurchaseOrderDialog({
               );
             })}
           </div>
-          <p className="text-[10px] apple-label-tertiary mt-1.5">Toca una tarjeta para enlazar/desenlazar todos los productos a esa orden.</p>
+          <p className="text-[10px] apple-label-tertiary mt-1.5">Toca una tarjeta para enlazar/desenlazar todos los productos a ese boleto.</p>
         </div>
       )}
 
       {suggestedWorkOrders.length === 0 && (
         <div className="flex items-center gap-3 p-3 apple-card border-0 rounded-apple-md">
           <Wrench className="w-4 h-4 apple-label-tertiary flex-shrink-0" />
-          <p className="text-xs apple-label-tertiary">No hay órdenes de trabajo esperando piezas en este momento.</p>
+          <p className="text-xs apple-label-tertiary">No hay boletos de trabajo esperando piezas en este momento.</p>
         </div>
       )}
 

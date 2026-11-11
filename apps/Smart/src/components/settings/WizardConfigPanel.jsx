@@ -169,7 +169,7 @@ export default function WizardConfigPanel() {
               Configuración en Tiempo Real
             </h4>
             <p className="text-apple-blue apple-text-caption1">
-              Los cambios se aplicarán inmediatamente en el wizard de creación de órdenes.
+              Los cambios se aplicarán inmediatamente en el wizard de creación de boletos.
               Puedes personalizar cada aspecto del proceso de recepción.
             </p>
           </div>

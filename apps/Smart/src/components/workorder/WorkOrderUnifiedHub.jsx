@@ -19,8 +19,8 @@ export default function WorkOrderUnifiedHub({
   const { can: canPlan } = usePlanLimits();
   const hasPhotos = canPlan("orders_photos");
   const subtitle = subtitleProp || (hasPhotos
-    ? "Notas técnicas, evidencia fotográfica y actividad de la orden."
-    : "Notas técnicas, actividad y seguridad de la orden.");
+    ? "Notas técnicas, evidencia fotográfica y actividad del boleto."
+    : "Notas técnicas, actividad y seguridad del boleto.");
 
   useEffect(() => {
     if (openTab) setActiveTab(openTab);

@@ -183,7 +183,7 @@ export default function DashboardTab({ user }) {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
-            <Label className="apple-label-primary apple-text-body">Mostrar KPIs (ventas, órdenes, etc.)</Label>
+            <Label className="apple-label-primary apple-text-body">Mostrar KPIs (ventas, boletos, etc.)</Label>
             <Switch
               checked={data.show_kpis}
               onCheckedChange={(checked) => setData({ ...data, show_kpis: checked })}
@@ -191,7 +191,7 @@ export default function DashboardTab({ user }) {
           </div>
 
           <div className="flex items-center justify-between">
-            <Label className="apple-label-primary apple-text-body">Mostrar órdenes recientes</Label>
+            <Label className="apple-label-primary apple-text-body">Mostrar boletos recientes</Label>
             <Switch
               checked={data.show_recent_orders}
               onCheckedChange={(checked) => setData({ ...data, show_recent_orders: checked })}

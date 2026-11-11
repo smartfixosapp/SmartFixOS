@@ -27,7 +27,7 @@ export default function TrialExpiredScreen({ tenantName, onActivatePlan, onConta
               Tu acceso de prueba de <span className="font-semibold text-apple-blue">15 días</span> ha terminado.
             </p>
             <p className="apple-text-body apple-label-secondary mt-3">
-              Para continuar utilizando el sistema y acceder a tus órdenes, clientes y operaciones, necesitas activar un plan.
+              Para continuar utilizando el sistema y acceder a tus boletos, clientes y operaciones, necesitas activar un plan.
             </p>
           </div>
 
@@ -36,7 +36,7 @@ export default function TrialExpiredScreen({ tenantName, onActivatePlan, onConta
             <p className="apple-text-footnote apple-label-tertiary font-semibold mb-3">Durante tu prueba pudiste usar:</p>
             <div className="space-y-2">
               {[
-                "Gestión completa de órdenes de reparación",
+                "Gestión completa de boletos de reparación",
                 "Control de clientes e historial",
                 "Acceso seguro por tienda y PIN",
                 "Operación diaria sin límites"

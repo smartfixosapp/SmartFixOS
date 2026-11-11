@@ -23,7 +23,7 @@ const EMAIL_TEMPLATES_SETTINGS_SLUG = "email-templates-config";
 const TEMPLATE_GROUPS = [
   {
     id: 'orders',
-    label: 'Órdenes de Trabajo',
+    label: 'Boletos de Trabajo',
     icon: '🔧',
     types: ['intake','diagnosing','awaiting_approval','waiting_parts','pending_order','part_arrived_waiting_device','reparacion_externa','in_progress','ready_for_pickup','picked_up','delivered','cancelled','warranty'],
   },
@@ -42,11 +42,11 @@ const TEMPLATE_GROUPS = [
 ];
 
 const TEMPLATE_VARIABLES = [
-  { key: '{{order_number}}',   desc: 'Número de orden' },
+  { key: '{{order_number}}',   desc: 'Número de boleto' },
   { key: '{{customer_name}}',  desc: 'Nombre del cliente' },
   { key: '{{device_info}}',    desc: 'Equipo (marca/modelo)' },
   { key: '{{initial_problem}}',desc: 'Problema reportado' },
-  { key: '{{amount}}',         desc: 'Total de la orden' },
+  { key: '{{amount}}',         desc: 'Total del boleto' },
   { key: '{{balance}}',        desc: 'Balance pendiente' },
   { key: '{{total_paid}}',     desc: 'Total pagado' },
   { key: '{{payment_method}}', desc: 'Método de pago' },
@@ -527,7 +527,7 @@ export default function EmailTemplatesTab() {
       };
       const rows = [
         ...(isSale    ? [{ label: 'Número de venta',                                          value: '{{sale_number}}',    bold: true }] : []),
-        ...(!isRefund ? [{ label: isSale ? 'Total de la venta' : 'Total de la orden',          value: '${{amount}}' }]                  : []),
+        ...(!isRefund ? [{ label: isSale ? 'Total de la venta' : 'Total del boleto',          value: '${{amount}}' }]                  : []),
         [{ label: isRefund ? 'Monto reembolsado' : isDeposit ? 'Depósito recibido' : 'Monto pagado', value: '${{total_paid}}', highlight: true }][0],
         ...(!isRefund && !isSale ? [{ label: 'Balance pendiente', value: '${{balance}}', balanceColor: '#DC2626' }] : []),
         { label: isRefund ? 'Método de reembolso' : 'Método de pago', value: '{{payment_method}}' },
@@ -672,7 +672,7 @@ export default function EmailTemplatesTab() {
               ${template.header_title || "Título del Email"}
             </h1>
             <p style="color: rgba(255,255,255,0.98); margin: 12px 0 0 0; font-size: 18px; font-weight: 600;">
-              ${template.header_subtitle || "Actualización de tu orden"}
+              ${template.header_subtitle || "Actualización de tu boleto"}
             </p>
           </div>
 
@@ -692,10 +692,10 @@ export default function EmailTemplatesTab() {
               </p>
             </div>
 
-            <!-- Info de la orden -->
+            <!-- Info del boleto -->
             <div style="background: #F9FAFB; border-radius: 16px; padding: 28px; margin: 30px 0; border: 2px solid #E5E7EB;">
               <div style="margin-bottom: 24px;">
-                <p style="color: #6B7280; font-size: 12px; font-weight: 700; text-transform: uppercase; margin: 0 0 6px 0;">Número de Orden</p>
+                <p style="color: #6B7280; font-size: 12px; font-weight: 700; text-transform: uppercase; margin: 0 0 6px 0;">Número de Boleto</p>
                 <p style="color: #111827; font-size: 24px; font-weight: 800; margin: 0;">{{order_number}}</p>
               </div>
               <div>
@@ -742,7 +742,7 @@ export default function EmailTemplatesTab() {
               </div>
             ` : ''}
 
-            <!-- Fotos de la Orden -->
+            <!-- Fotos del Boleto -->
             ${template.show_photos ? `
               <div style="background: #F5F3FF; border-radius: 16px; padding: 28px; margin: 35px 0; border: 2px solid #A78BFA;">
                 <p style="font-size: 20px; font-weight: 800; color: #5B21B6; margin: 0 0 20px 0; text-align: center;">📸 Fotos del Equipo</p>
@@ -871,7 +871,7 @@ export default function EmailTemplatesTab() {
                 <Input
                   value={editingTemplate?.name || ""}
                   onChange={(e) => setEditingTemplate({ ...editingTemplate, name: e.target.value })}
-                  placeholder="Ej: Email de Orden Lista"
+                  placeholder="Ej: Email de Boleto Listo"
                   className="bg-white/5 border-white/10 text-white rounded-xl h-12" />
 
               </div>
@@ -952,7 +952,7 @@ export default function EmailTemplatesTab() {
                 <Input
                   value={editingTemplate?.header_subtitle || ""}
                   onChange={(e) => setEditingTemplate({ ...editingTemplate, header_subtitle: e.target.value })}
-                  placeholder="Actualización de tu orden"
+                  placeholder="Actualización de tu boleto"
                   className="bg-white/5 border-white/10 text-white rounded-xl h-12" />
 
               </div>
@@ -964,7 +964,7 @@ export default function EmailTemplatesTab() {
                 <Input
                   value={editingTemplate?.alert_title || ""}
                   onChange={(e) => setEditingTemplate({ ...editingTemplate, alert_title: e.target.value })}
-                  placeholder="Ej: ¡Orden Confirmada!"
+                  placeholder="Ej: ¡Boleto Confirmado!"
                   className="bg-white/5 border-white/10 text-white rounded-xl h-12" />
 
               </div>
@@ -1159,7 +1159,7 @@ export default function EmailTemplatesTab() {
                   className="w-5 h-5 rounded" />
 
                 <div className="flex-1">
-                  <p className="text-white font-semibold text-sm">Mostrar Fotos de la Orden</p>
+                  <p className="text-white font-semibold text-sm">Mostrar Fotos del Boleto</p>
                   <p className="text-white/60 text-xs">Muestra las fotos tomadas del equipo</p>
                 </div>
               </label>
@@ -1377,7 +1377,7 @@ export default function EmailTemplatesTab() {
               event_type: "",
               logo_url: "",
               header_title: "",
-              header_subtitle: "Actualización de tu orden",
+              header_subtitle: "Actualización de tu boleto",
               alert_title: "",
               alert_message: "",
               main_message: "",
@@ -1527,7 +1527,7 @@ export default function EmailTemplatesTab() {
       <div className="text-center py-12 bg-gradient-to-br from-white/5 to-white/3 border border-white/10 rounded-2xl">
           <Mail className="w-16 h-16 text-white/50 mx-auto mb-4" />
           <p className="text-white/60 text-lg font-semibold">No hay plantillas configuradas</p>
-          <p className="text-white/40 text-sm mt-2">Crea plantillas personalizadas para cada estado de orden</p>
+          <p className="text-white/40 text-sm mt-2">Crea plantillas personalizadas para cada estado de boleto</p>
         </div>
       }
 

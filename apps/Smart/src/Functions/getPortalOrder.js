@@ -127,7 +127,7 @@ export async function getPortalOrderHandler(req) {
         console.error('❌ [getPortalOrder] Orden no encontrada:', tokenRecord.order_id);
         return Response.json({
           success: false,
-          error: 'Orden no encontrada',
+          error: 'Boleto no encontrado',
           code: 'ORDER_NOT_FOUND'
         }, { status: 404 });
       }
@@ -137,7 +137,7 @@ export async function getPortalOrderHandler(req) {
       console.error('❌ [getPortalOrder] Error obteniendo orden:', error);
       return Response.json({
         success: false,
-        error: 'Error al obtener orden',
+        error: 'Error al obtener boleto',
         code: 'ORDER_FETCH_ERROR'
       }, { status: 500 });
     }
@@ -183,7 +183,7 @@ export async function getPortalOrderHandler(req) {
         expires_at: tokenRecord.expires_at,
         created_date: tokenRecord.created_date
       },
-      message: 'Orden obtenida exitosamente'
+      message: 'Boleto obtenido exitosamente'
     });
 
   } catch (error) {

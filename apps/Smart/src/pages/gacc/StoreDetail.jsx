@@ -86,7 +86,7 @@ function OverviewTab({ tenant }) {
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <div className="flex items-center gap-2">
-              <p className="text-[12px] text-white font-semibold">Ordenes este mes</p>
+              <p className="text-[12px] text-white font-semibold">Boletos este mes</p>
               <span className="text-[9px] text-gray-700">renueva el dia 1</span>
             </div>
             <p className="text-[12px] font-bold text-white tabular-nums">
@@ -393,9 +393,9 @@ function ActivityTab({ tenant }) {
     <div className="space-y-4">
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {[
-          { label: "Ordenes (7d)", value: stats.orders7d, color: "text-blue-400" },
-          { label: "Ordenes (30d)", value: stats.orders30d, color: "text-purple-400" },
-          { label: "Ordenes total", value: stats.ordersTotal, color: "text-white" },
+          { label: "Boletos (7d)", value: stats.orders7d, color: "text-blue-400" },
+          { label: "Boletos (30d)", value: stats.orders30d, color: "text-purple-400" },
+          { label: "Boletos total", value: stats.ordersTotal, color: "text-white" },
           { label: "Clientes", value: stats.customers, color: "text-cyan-400" },
           { label: "Ventas (30d)", value: stats.sales30d, color: "text-green-400" },
           { label: "Revenue (30d)", value: `$${stats.revenue30d.toLocaleString()}`, color: "text-pink-400" },
@@ -698,7 +698,7 @@ function ChangePlanModal({ tenant, open, onClose }) {
               <p className="text-[10px] text-gray-600 tracking-wide font-bold mb-2">Limites del plan {getPlanConfig(selectedPlan).label}</p>
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-lg bg-white/[0.02] border border-white/[0.04] px-3 py-2">
-                  <p className="text-[10px] text-gray-600">Ordenes / mes</p>
+                  <p className="text-[10px] text-gray-600">Boletos / mes</p>
                   <p className="text-[14px] font-semibold text-white">
                     {getPlanConfig(selectedPlan).maxOrdersMonthly === -1 ? "Ilimitado" : getPlanConfig(selectedPlan).maxOrdersMonthly}
                   </p>
@@ -1580,7 +1580,7 @@ function DeleteStoreModal({ tenant, open, onClose, onDeleted }) {
                   <li>Se eliminara la tienda <strong className="text-white">{tenant.name}</strong></li>
                   <li>Se eliminaran todos los empleados registrados</li>
                   <li>Se cancelaran las suscripciones</li>
-                  <li>Los datos historicos (ordenes, ventas, clientes) pueden persistir</li>
+                  <li>Los datos historicos (boletos, ventas, clientes) pueden persistir</li>
                   <li>El email <strong className="text-white">{tenant.email}</strong> podra registrarse nuevamente</li>
                 </ul>
               </div>

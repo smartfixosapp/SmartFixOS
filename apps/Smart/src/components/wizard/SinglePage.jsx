@@ -175,12 +175,12 @@ export function WarrantySearchDialog({ open, tenantId, onClose, onPick }) {
   const device = (o) => { const seen = new Set(); return [o.device_brand, o.device_family, o.device_model].filter(Boolean).join(" ").split(/\s+/).filter((x) => { const k = x.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; }).join(" "); };
   return (
     <Dialog open={open} onClose={onClose} title="Garantías" width={520} height="80dvh" leading={<TextAction onClick={onClose}>Cancelar</TextAction>} trailing={null}>
-      <Caption style={{ padding: "10px 0 6px" }}>Buscar la orden original</Caption>
+      <Caption style={{ padding: "10px 0 6px" }}>Buscar el boleto original</Caption>
       <label className="flex items-center gap-2" style={{ height: 44, padding: "0 12px", borderRadius: 12, background: W.card2 }}>
         <Search className="w-4 h-4" style={{ color: W.sub }} />
         <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Número o nombre del cliente" className="flex-1 bg-transparent outline-none" style={{ color: "#fff", fontSize: 16 }} />
       </label>
-      <p style={{ fontSize: 12, color: W.sub, padding: "6px 4px" }}>Busca la orden que ya se entregó y que el cliente trae de vuelta.</p>
+      <p style={{ fontSize: 12, color: W.sub, padding: "6px 4px" }}>Busca el boleto que ya se entregó y que el cliente trae de vuelta.</p>
       {rows === null && <div className="flex justify-center" style={{ padding: 20 }}><Loader2 className="w-5 h-5 animate-spin" style={{ color: W.sub }} /></div>}
       {error && <p style={{ color: IOS.red, fontSize: 13 }}>{error}</p>}
       {results.length > 0 && (
@@ -220,7 +220,7 @@ export function ModeSelection({ onPick, onCancel, onWarranty }) {
     <div className="mx-auto flex flex-col" style={{ gap: 18, maxWidth: 760, padding: "8px 16px 32px" }}>
       <div className="flex items-center gap-3">
         <span style={{ width: 44, height: 44, borderRadius: 12, background: IOS.orange, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}><ClipboardList className="w-6 h-6" /></span>
-        <span><span className="block" style={{ fontSize: 24, fontWeight: 800 }}>Nueva orden</span><span className="block" style={{ fontSize: 14, color: W.sub }}>Selecciona servicio y modo</span></span>
+        <span><span className="block" style={{ fontSize: 24, fontWeight: 800 }}>Nuevo boleto</span><span className="block" style={{ fontSize: 14, color: W.sub }}>Selecciona servicio y modo</span></span>
       </div>
       <p style={{ fontSize: 15, fontWeight: 700 }}>¿Cómo se presta el servicio?</p>
       <div className="flex" style={{ gap: 12 }}>{svcCard("workshop", "En Taller", Home, IOS.blue)}{svcCard("visit", "Visita técnica", MapPin, IOS.orange)}</div>
@@ -239,7 +239,7 @@ export function ModeSelection({ onPick, onCancel, onWarranty }) {
       {!service && <p className="text-center" style={{ fontSize: 13, color: W.sub }}>Selecciona el tipo de servicio para continuar</p>}
       <button onClick={onWarranty} className="apple-press flex items-center gap-3 text-left" style={{ padding: 14, borderRadius: 16, background: W.card, border: `1.5px solid ${tint(IOS.green, 0.35)}` }}>
         <ShieldCheck className="w-6 h-6" style={{ color: IOS.green }} />
-        <span className="flex-1"><span className="flex items-center gap-2" style={{ fontSize: 16, fontWeight: 700 }}>Garantías <span style={{ padding: "1px 8px", borderRadius: 999, background: IOS.green, color: "#fff", fontSize: 10 }}>Nuevo</span></span><span className="block" style={{ fontSize: 12, color: W.sub }}>Equipo de vuelta · busca la orden original</span></span>
+        <span className="flex-1"><span className="flex items-center gap-2" style={{ fontSize: 16, fontWeight: 700 }}>Garantías <span style={{ padding: "1px 8px", borderRadius: 999, background: IOS.green, color: "#fff", fontSize: 10 }}>Nuevo</span></span><span className="block" style={{ fontSize: 12, color: W.sub }}>Equipo de vuelta · busca el boleto original</span></span>
         <ChevronRight className="w-4 h-4" style={{ color: W.ter }} />
       </button>
       <button onClick={onCancel} className="apple-press" style={{ padding: 14, borderRadius: 14, background: tint(IOS.red, 0.12), color: IOS.red, fontSize: 16, fontWeight: 700 }}>Cancelar</button>

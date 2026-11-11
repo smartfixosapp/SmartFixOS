@@ -123,7 +123,7 @@ export default function DashboardSidebar({
       >
         <ClipboardList className="w-[18px] h-[18px] text-apple-blue shrink-0" />
         <span className="apple-text-footnote font-medium text-apple-blue">
-          Nueva orden
+          Nuevo boleto
         </span>
       </button>
       <button

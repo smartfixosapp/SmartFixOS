@@ -76,7 +76,7 @@ export default function AddPartsPage({ order, tenantId, employeeName, lines, onC
     const service = p.type === "service";
     const st = stockOf(p);
     const have = pendingQty(p.id);
-    if (!service && st !== null && st <= 0 && !force) { setConfirm({ title: "¿Añadir pieza sin stock?", message: `No tienes "${p.name}" en stock ahora mismo. ¿Confirmas que quieres añadirla a la orden de todos modos?`, onYes: () => addProduct(p, true) }); return; }
+    if (!service && st !== null && st <= 0 && !force) { setConfirm({ title: "¿Añadir pieza sin stock?", message: `No tienes "${p.name}" en stock ahora mismo. ¿Confirmas que quieres añadirla al boleto de todos modos?`, onYes: () => addProduct(p, true) }); return; }
     if (!service && st !== null && st > 0 && have + 1 > st) { setNotice(`Solo quedan ${st} en stock`); return; }
     setPending((prev) => {
       const i = prev.findIndex((x) => x.kind === "catalog" && x.product.id === p.id);
@@ -180,10 +180,10 @@ export default function AddPartsPage({ order, tenantId, employeeName, lines, onC
         {!m.service && <Card title="Cantidad"><Stepper value={m.qty} onChange={(v) => setM({ ...m, qty: v })} /></Card>}
         <Card title="Precio por unidad"><NumInput value={m.price} onChange={(v) => setM({ ...m, price: v })} ariaLabel="Precio" big /></Card>
         {!m.service && <Card title="Costo" sub={cost0 ? null : "Lo que te cuesta a ti; se registra como gasto en Finanzas"}><NumInput value={m.cost} onChange={(v) => setM({ ...m, cost: v })} ariaLabel="Costo" />{cost0 && <p style={{ fontSize: 12, color: C.amber, marginTop: 6 }}>Sin costo, esta pieza se verá con 100% de margen en los reportes.</p>}</Card>}
-        <Card title="¿Cómo quieres guardarla?" sub={m.mode === "once" ? "Se usa solo en esta orden — no queda guardada para la próxima vez." : "Se crea como producto real de Inventario, además de añadirse a esta orden."}><Seg value={m.mode} onChange={(k) => setM({ ...m, mode: k })} options={[["once", "Usar una vez"], ["save", "Guardar en Inventario"]]} /></Card>
+        <Card title="¿Cómo quieres guardarla?" sub={m.mode === "once" ? "Se usa solo en este boleto — no queda guardada para la próxima vez." : "Se crea como producto real de Inventario, además de añadirse a este boleto."}><Seg value={m.mode} onChange={(k) => setM({ ...m, mode: k })} options={[["once", "Usar una vez"], ["save", "Guardar en Inventario"]]} /></Card>
         {m.mode === "save" && (
           <>
-            <Banner color={C.amber}>{ctx.has ? `Se guardará etiquetada para ${deviceLabel}` : "Esta orden no tiene equipo asociado — se guardará sin etiqueta de marca/modelo."}</Banner>
+            <Banner color={C.amber}>{ctx.has ? `Se guardará etiquetada para ${deviceLabel}` : "Este boleto no tiene equipo asociado — se guardará sin etiqueta de marca/modelo."}</Banner>
             <Card title="Categoría"><select value={m.category} onChange={(e) => setM({ ...m, category: e.target.value })} aria-label="Categoría" className="w-full" style={{ background: C.card2, color: "#fff", borderRadius: 12, padding: "12px 14px", fontSize: 16, colorScheme: "dark" }}>{CATEGORIES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></Card>
             {!m.service && <Card title="Stock inicial"><Stepper value={m.stock} min={0} onChange={(v) => setM({ ...m, stock: v })} /></Card>}
             <Card title="SKU" sub="Opcional — se genera uno si lo dejas vacío"><input value={m.sku} onChange={(e) => setM({ ...m, sku: e.target.value })} placeholder="Auto-generado" className="w-full outline-none" style={{ background: C.card2, color: "#fff", borderRadius: 12, padding: "12px 14px", fontSize: 16 }} /></Card>
@@ -206,7 +206,7 @@ export default function AddPartsPage({ order, tenantId, employeeName, lines, onC
     if (!products.length) content = <div className="text-center" style={{ padding: 40, color: C.sub }}><b style={{ color: "#fff" }}>Sin productos</b><p style={{ fontSize: 13 }}>Agrega inventario en el panel web o en la pestaña Inventario.</p></div>;
     else if (q) { const list = filterProducts(all, q); content = list.length ? grid(list) : <p className="text-center" style={{ padding: 40, color: C.sub }}>Sin resultados para &quot;{q}&quot;</p>; }
     else if (!all.length) content = <div className="text-center" style={{ padding: 40, color: C.sub }}><b style={{ color: "#fff" }}>{ctx.has ? "Sin piezas para este equipo" : "Sin piezas"}</b><p style={{ fontSize: 13, marginTop: 4 }}>{ctx.has ? `No hay piezas ni servicios en inventario para ${deviceLabel}.` : "No hay piezas ni servicios en inventario."}</p>{ctx.has && <button onClick={() => setTab("manual")} className="apple-press" style={{ marginTop: 10, color: C.brand, fontWeight: 700 }}>Agregar a mano</button>}</div>;
-    else content = <div className="flex flex-col" style={{ gap: 18 }}>{!ctx.has && <p style={{ fontSize: 12, color: C.sub }}>Esta orden no tiene equipo. Se muestran todas las piezas y servicios.</p>}{section(ctx.has ? `PIEZAS PARA ${dev}` : "PIEZAS", parts.matched, C.green)}{section(ctx.has && parts.matched.length ? "PIEZAS" : ctx.has ? "OTRAS PIEZAS" : "PIEZAS", ctx.has ? parts.rest : parts.rest, C.green)}{section(ctx.has ? "SERVICIOS PARA ESTE EQUIPO" : "SERVICIOS", services.matched, "#5E5CE6")}{section("SERVICIOS", services.rest, "#5E5CE6")}</div>;
+    else content = <div className="flex flex-col" style={{ gap: 18 }}>{!ctx.has && <p style={{ fontSize: 12, color: C.sub }}>Este boleto no tiene equipo. Se muestran todas las piezas y servicios.</p>}{section(ctx.has ? `PIEZAS PARA ${dev}` : "PIEZAS", parts.matched, C.green)}{section(ctx.has && parts.matched.length ? "PIEZAS" : ctx.has ? "OTRAS PIEZAS" : "PIEZAS", ctx.has ? parts.rest : parts.rest, C.green)}{section(ctx.has ? "SERVICIOS PARA ESTE EQUIPO" : "SERVICIOS", services.matched, "#5E5CE6")}{section("SERVICIOS", services.rest, "#5E5CE6")}</div>;
   }
 
   const panel = (
@@ -241,7 +241,7 @@ export default function AddPartsPage({ order, tenantId, employeeName, lines, onC
     <Overlay z={320} onEscape={requestClose}>
       <div className="flex items-center gap-3" style={{ padding: "12px 20px", borderBottom: `0.5px solid ${C.sep}` }}>
         <button onClick={requestClose} style={{ color: C.brand, fontWeight: 600 }}>Cancelar</button>
-        <span className="flex-1 text-center"><b style={{ fontSize: 17 }}>Agregar piezas</b><span className="block" style={{ fontSize: 12, color: C.sub }}>Orden {order.order_number}{deviceLabel ? ` · ${deviceLabel}` : ""}</span></span>
+        <span className="flex-1 text-center"><b style={{ fontSize: 17 }}>Agregar piezas</b><span className="block" style={{ fontSize: 12, color: C.sub }}>Boleto {order.order_number}{deviceLabel ? ` · ${deviceLabel}` : ""}</span></span>
         <span style={{ width: 60 }} />
       </div>
       <div className="flex flex-1 min-h-0" style={{ flexDirection: wide ? "row" : "column" }}>

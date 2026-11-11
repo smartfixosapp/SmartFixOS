@@ -443,7 +443,7 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
     </p>
 
     <div style="background:#F9FAFB;border-radius:12px;padding:18px 20px;margin-bottom:24px;border:1px solid #E5E7EB;">
-      <p style="color:#6B7280;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:0 0 4px;">Número de orden</p>
+      <p style="color:#6B7280;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:0 0 4px;">Número de boleto</p>
       <p style="color:#111827;font-size:20px;font-weight:800;margin:0 0 10px;">${order.order_number}</p>
       <p style="color:#6B7280;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:0 0 4px;">Problema reportado</p>
       <p style="color:#1F2937;font-size:14px;margin:0;line-height:1.6;">${order.initial_problem || "N/A"}</p>
@@ -454,7 +454,7 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
     <div style="background:#F9FAFB;border-radius:16px;overflow:hidden;border:2px solid #E5E7EB;margin:24px 0;">
       <div style="background:#111827;padding:16px 20px;">
         <p style="color:white;font-size:16px;font-weight:700;margin:0;">💰 Cotización de Reparación</p>
-        <p style="color:rgba(255,255,255,0.4);font-size:12px;margin:4px 0 0;">Orden #${order.order_number}</p>
+        <p style="color:rgba(255,255,255,0.4);font-size:12px;margin:4px 0 0;">Boleto #${order.order_number}</p>
       </div>
       <table style="width:100%;border-collapse:collapse;">
         <thead>
@@ -504,7 +504,7 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
 
       await base44.integrations.Core.SendEmail({
         to: order.customer_email,
-        subject: `🔍 Diagnóstico Completado - Orden #${order.order_number}`,
+        subject: `🔍 Diagnóstico Completado - Boleto #${order.order_number}`,
         body: emailHTML,
       });
       toast.success("Cotización enviada al cliente");
@@ -801,7 +801,7 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
         onUpdate={onUpdate}
         accent="purple"
         title="Historia y Comentarios"
-        subtitle="Notas técnicas, evidencia fotográfica y actividad de la orden."
+        subtitle="Notas técnicas, evidencia fotográfica y actividad del boleto."
       />
       )}
 

@@ -148,7 +148,7 @@ export default function WorkOrderPanelV2({ orderId, onClose, onUpdate, user }) {
       orderId?.order_number ?? orderId?.OrderNumber;
 
     if (!possibleId && !order_number) {
-      setError("ID de orden no válido");
+      setError("ID de boleto no válido");
       setLoading(false);
       return;
     }
@@ -169,7 +169,7 @@ export default function WorkOrderPanelV2({ orderId, onClose, onUpdate, user }) {
         data = await SafeOrderService.getByOrderNumber(order_number);
       }
       if (!data) {
-        throw new Error("No se encontró la orden (ID o número inválido).");
+        throw new Error("No se encontró el boleto (ID o número inválido).");
       }
 
       // relaciones
@@ -188,7 +188,7 @@ export default function WorkOrderPanelV2({ orderId, onClose, onUpdate, user }) {
 
       setOrder(data);
     } catch (e) {
-      setError(e?.message || "Error desconocido al cargar la orden.");
+      setError(e?.message || "Error desconocido al cargar el boleto.");
     } finally {
       setLoading(false);
     }
@@ -334,7 +334,7 @@ export default function WorkOrderPanelV2({ orderId, onClose, onUpdate, user }) {
       <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center">
         <div className="text-white flex flex-col items-center gap-3">
           <Loader2 className="w-12 h-12 animate-spin text-red-600" />
-          <div className="text-lg">Cargando orden…</div>
+          <div className="text-lg">Cargando boleto…</div>
         </div>
       </div>
     );
@@ -352,7 +352,7 @@ export default function WorkOrderPanelV2({ orderId, onClose, onUpdate, user }) {
                 Error al cargar
               </h3>
               <p className="text-gray-300">
-                {error || "Orden no encontrada"}
+                {error || "Boleto no encontrado"}
               </p>
             </div>
             <div className="flex gap-3 justify-center">
@@ -474,7 +474,7 @@ export default function WorkOrderPanelV2({ orderId, onClose, onUpdate, user }) {
               variant="ghost"
               size="icon"
               onClick={handleClose}
-              aria-label="Cerrar orden de trabajo"
+              aria-label="Cerrar boleto de trabajo"
               className="text-gray-400 hover:text-white hover:bg-white/10"
             >
               <X className="w-6 h-6" />

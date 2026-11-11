@@ -145,7 +145,7 @@ export default function DailyTransactionsModal({ open, onClose, currentDrawer })
             {sales.filter(s => s.order_id).length > 0 && (
               <div className="space-y-3">
                 <h3 className="apple-text-subheadline font-semibold apple-label-primary flex items-center gap-2">
-                  💳 Pagos de Orden
+                  💳 Pagos de Boleto
                   <span className="ml-auto bg-gray-sys6 dark:bg-gray-sys5 px-2 py-0.5 rounded-full apple-text-caption1 apple-label-secondary tabular-nums">{sales.filter(s => s.order_id).length}</span>
                 </h3>
                 <div className="space-y-2">
@@ -160,7 +160,7 @@ export default function DailyTransactionsModal({ open, onClose, currentDrawer })
                             {sale.order_number || sale.sale_number}
                           </p>
                           <Badge className="apple-text-caption2 bg-apple-orange/15 text-apple-orange border-0">
-                            Pago de orden
+                            Pago de boleto
                           </Badge>
                           {sale.customer_name && (
                             <p className="apple-label-secondary apple-text-caption1">• {sale.customer_name}</p>

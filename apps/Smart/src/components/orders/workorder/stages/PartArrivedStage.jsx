@@ -220,7 +220,7 @@ export default function PartArrivedStage({ order, onUpdate }) {
             </div>
             <h3 className="font-semibold text-white">Historial</h3>
           </div>
-          <p className="text-sm text-gray-400">Ver eventos y cambios de la orden.</p>
+          <p className="text-sm text-gray-400">Ver eventos y cambios del boleto.</p>
         </div>
 
         {/* Security Module Trigger */}

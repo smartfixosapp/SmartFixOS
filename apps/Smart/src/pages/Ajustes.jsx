@@ -25,7 +25,7 @@ const SECTIONS = [
   { id: "mi-negocio", title: "Mi Negocio", sub: () => "Info, apariencia y región", Icon: Home, color: A.brand, admin: true, keywords: ["Info del Negocio", "Apariencia", "Región", "Idioma", "Logo", "Dirección", "Teléfono"] },
   { id: "finanzas", title: "Finanzas", sub: () => "Plan, gastos, nómina e IVU", Icon: DollarSign, color: A.success, admin: true, keywords: ["Plan financiero", "Meta diaria", "Gastos Fijos", "Nómina", "Impuesto IVU", "Métodos de Pago", "ATH Móvil", "POS y Recibo", "Recibo"] },
   { id: "equipo", title: (admin) => (admin ? "Equipo" : "Mi Turno"), sub: (admin) => (admin ? "Horario, tareas y empleados" : "Mi horario y recordatorios"), Icon: CalendarDays, color: A.vip, keywords: ["Mi horario", "Recordatorios", "Código del taller", "Empleados", "Tareas de Turno", "Ponche"] },
-  { id: "taller", title: "Taller", sub: () => "Catálogo, inventario y etiquetas", Icon: Wrench, color: A.warning, admin: true, keywords: ["Tipo de negocio", "Catálogo de Dispositivos", "Inventario", "Stock", "Precios", "Estados de la orden", "Visita técnica", "Etiquetas de equipo", "Ofertas", "Descuentos", "Promociones", "Oferta por equipo", "Vigencia", "Vence", "Permanente", "Datos del Taller", "Exportar"] },
+  { id: "taller", title: "Taller", sub: () => "Catálogo, inventario y etiquetas", Icon: Wrench, color: A.warning, admin: true, keywords: ["Tipo de negocio", "Catálogo de Dispositivos", "Inventario", "Stock", "Precios", "Estados del boleto", "Visita técnica", "Etiquetas de equipo", "Ofertas", "Descuentos", "Promociones", "Oferta por equipo", "Vigencia", "Vence", "Permanente", "Datos del Taller", "Exportar"] },
   { id: "comunicacion", title: "Comunicación", sub: () => "Emails, políticas y push", Icon: Mail, color: A.info, admin: true, keywords: ["Plantillas de Email", "Políticas del Negocio", "Garantía", "Notificaciones push", "Alertas"] },
   { id: "mensajes", title: "Mensajes", sub: () => "Chat con tu equipo", Icon: MessageCircle, color: A.teal, chat: true, keywords: ["Chat del equipo", "Mensajes internos"] },
   { id: "cuenta", title: "Cuenta", sub: () => "Seguridad y diagnóstico", Icon: ShieldCheck, color: A.danger, keywords: ["Seguridad y Sesión", "PIN", "Cerrar sesión", "Diagnóstico", "Guía de inicio", "Borrar cuenta", "Bloquear app"] },
@@ -53,7 +53,7 @@ function DeleteAccountDialog({ open, tenantId, onClose }) {
       <div className="relative w-full sm:w-[400px] flex flex-col items-center" style={{ background: "#1C1C1E", borderRadius: 28, padding: "28px 20px 20px", color: "#fff" }}>
         <span style={{ width: 76, height: 76, borderRadius: 999, background: tint(A.danger, 0.12), color: A.danger, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}><Trash2 className="w-8 h-8" /></span>
         <p style={{ fontSize: 20, fontWeight: 800 }}>¿Borrar tu cuenta?</p>
-        <p style={{ fontSize: 14, color: A.sub, margin: "8px 0 20px", textAlign: "center" }}>Se eliminará permanentemente tu taller, clientes, órdenes, ventas e inventario en 30 días. Puedes reactivar entrando antes de esa fecha. Esta acción no se puede deshacer después de 30 días.</p>
+        <p style={{ fontSize: 14, color: A.sub, margin: "8px 0 20px", textAlign: "center" }}>Se eliminará permanentemente tu taller, clientes, boletos, ventas e inventario en 30 días. Puedes reactivar entrando antes de esa fecha. Esta acción no se puede deshacer después de 30 días.</p>
         <div className="w-full flex flex-col" style={{ gap: 10 }}>
           <ErrorLine message={error ? `Error al borrar cuenta: ${error}` : null} />
           <button onClick={confirm} disabled={busy} className="apple-press w-full flex items-center justify-center gap-2 disabled:opacity-60" style={{ height: 52, borderRadius: 14, background: "#FF453A", color: "#fff", fontSize: 15, fontWeight: 700 }}>{busy ? <Loader2 className="w-5 h-5 animate-spin" /> : null} Sí, borrar mi cuenta</button>
@@ -231,7 +231,7 @@ export default function Ajustes() {
           {isOwner && (
             <div className="flex flex-col items-center" style={{ gap: 6 }}>
               <button onClick={() => setDel(true)} className="apple-press flex items-center gap-2" style={{ color: A.danger, fontWeight: 600 }}><Trash2 className="w-4 h-4" /> Borrar mi cuenta</button>
-              <p style={{ fontSize: 12, color: A.sub, textAlign: "center", maxWidth: 520 }}>Borrar tu cuenta elimina permanentemente tu taller, clientes, órdenes, ventas e inventario. Se procesa en 30 días — puedes reactivar entrando antes de esa fecha.</p>
+              <p style={{ fontSize: 12, color: A.sub, textAlign: "center", maxWidth: 520 }}>Borrar tu cuenta elimina permanentemente tu taller, clientes, boletos, ventas e inventario. Se procesa en 30 días — puedes reactivar entrando antes de esa fecha.</p>
             </div>
           )}
         </div>

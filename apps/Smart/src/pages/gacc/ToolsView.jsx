@@ -477,7 +477,7 @@ function ImpersonationTool() {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { label: "Ordenes", value: tenantData.orders.length, color: "text-blue-400" },
+              { label: "Boletos", value: tenantData.orders.length, color: "text-blue-400" },
               { label: "Clientes", value: tenantData.customers.length, color: "text-cyan-400" },
               { label: "Empleados", value: tenantData.employees.length, color: "text-purple-400" },
               { label: "Ventas", value: tenantData.sales.length, color: "text-green-400" },
@@ -491,7 +491,7 @@ function ImpersonationTool() {
           {/* Recent orders */}
           {tenantData.orders.length > 0 && (
             <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-              <p className="text-[11px] font-bold text-gray-400 mb-2">Ultimas Ordenes</p>
+              <p className="text-[11px] font-bold text-gray-400 mb-2">Ultimos Boletos</p>
               {tenantData.orders.map(o => (
                 <div key={o.id} className="flex items-center justify-between py-1.5 text-[11px]">
                   <span className="text-white font-mono">{o.order_number || o.id?.slice(0, 8)}</span>

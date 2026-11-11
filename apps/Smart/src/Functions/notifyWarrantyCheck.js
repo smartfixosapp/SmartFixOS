@@ -18,7 +18,7 @@ export async function notifyWarrantyCheckHandler(req) {
     });
 
     if (!orders || orders.length === 0) {
-      return Response.json({ message: "No hay órdenes entregadas", processed: 0 });
+      return Response.json({ message: "No hay boletos entregados", processed: 0 });
     }
 
     const now = new Date();
@@ -69,7 +69,7 @@ export async function notifyWarrantyCheckHandler(req) {
               </p>
               
               <p style="font-size: 14px; color: #666;">
-                📌 <strong>Número de orden:</strong> ${freshOrder.order_number}<br>
+                📌 <strong>Número de boleto:</strong> ${freshOrder.order_number}<br>
                 📅 <strong>Fecha de entrega:</strong> ${deliveredEntry.timestamp ? format(new Date(deliveredEntry.timestamp), "d 'de' MMMM, yyyy", { locale: es }) : 'N/A'}<br>
                 ⏱️ <strong>Días de garantía restantes:</strong> 15 días
               </p>
@@ -90,12 +90,12 @@ export async function notifyWarrantyCheckHandler(req) {
           notified.push(freshOrder.order_number);
         }
       } catch (err) {
-        console.error(`Error procesando orden ${order.id}:`, err);
+        console.error(`Error procesando boleto ${order.id}:`, err);
       }
     }
 
     return Response.json({ 
-      message: `Procesadas ${orders.length} órdenes entregadas`,
+      message: `Procesadas ${orders.length} boletos entregados`,
       notified: notified.length,
       orders: notified
     });

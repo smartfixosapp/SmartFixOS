@@ -950,7 +950,7 @@ function SettingsPage() {
                                w-full overflow-x-auto no-scrollbar flex md:block whitespace-nowrap md:whitespace-normal gap-2 md:gap-0 sticky md:static top-[56px] z-40">
             <TabsTrigger value="branding" className="justify-start gap-2"><Palette/> General & Branding</TabsTrigger>
             <TabsTrigger value="pos" className="justify-start gap-2"><ShoppingCart2/> POS y Ventas</TabsTrigger>
-            <TabsTrigger value="orders" className="justify-start gap-2"><ClipboardList2/> Órdenes</TabsTrigger>
+            <TabsTrigger value="orders" className="justify-start gap-2"><ClipboardList2/> Boletos</TabsTrigger>
             <TabsTrigger value="inventory" className="justify-start gap-2"><Package2/> Inventario</TabsTrigger>
             <TabsTrigger value="numbering" className="justify-start gap-2"><Hash/> Numeración</TabsTrigger>
             <TabsTrigger value="tax" className="justify-start gap-2"><DollarSign/> Impuestos & Recibos</TabsTrigger>
@@ -1022,7 +1022,7 @@ function SettingsPage() {
             </TabsContent>
 
             <TabsContent value="orders">
-              <SettingsCard title="Órdenes de Trabajo" description="Flujo, pagos y captura de evidencia.">
+              <SettingsCard title="Boletos de Trabajo" description="Flujo, pagos y captura de evidencia.">
                 <Row label="Flujo de estados (CSV)" description="Ej: Recepción,Diagnóstico,En Reparación,Listo,Entregado"
                      control={<Input value={statusFlow} onChange={e=>setStatusFlow(e.target.value)} className="h-11" />} />
                 <Row label="Permitir retroceder estado" control={<Switch checked={allowBackStatus} onCheckedChange={setAllowBackStatus} />} />
@@ -1069,7 +1069,7 @@ function SettingsPage() {
 
             <TabsContent value="numbering">
               <SettingsCard title="Numeración" description="Prefijos y secuencias.">
-                <Row label="Prefijo de Órdenes" control={<Input value={orderPrefix} onChange={e=>setOrderPrefix(e.target.value)} className="h-11" />} />
+                <Row label="Prefijo de Boletos" control={<Input value={orderPrefix} onChange={e=>setOrderPrefix(e.target.value)} className="h-11" />} />
                 <Row label="Prefijo de Ventas" control={<Input value={salePrefix} onChange={e=>setSalePrefix(e.target.value)} className="h-11" />} />
                 <Row label="Prefijo de Clientes" control={<Input value={customerPrefix} onChange={e=>setCustomerPrefix(e.target.value)} className="h-11" />} />
                 <Row label="Comenzar desde #" control={<Input type="number" value={startNumbersAt} onChange={e=>setStartNumbersAt(e.target.value)} className="h-11" />} />

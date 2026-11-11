@@ -206,7 +206,7 @@ export default function WorkOrderProgress({ order, onUpdate, user, changeStatus,
     <div className="w-full bg-white/5 border border-white/10 rounded-[24px] p-6 backdrop-blur-xl shadow-lg">
       <div className="flex items-center gap-3 mb-6">
         <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
-        <h3 className="text-lg font-bold text-white tracking-tight">Estado de la Orden</h3>
+        <h3 className="text-lg font-bold text-white tracking-tight">Estado del Boleto</h3>
       </div>
 
       {/* Estado Actual Card Animated */}
@@ -388,7 +388,7 @@ export default function WorkOrderProgress({ order, onUpdate, user, changeStatus,
                 />
               </div>
               <div>
-                <label className="text-xs text-gray-400">Fecha de orden</label>
+                <label className="text-xs text-gray-400">Fecha de boleto</label>
                 <Input
                   type="date"
                   className="h-9 bg-black/40 border-white/10"

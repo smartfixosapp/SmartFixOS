@@ -24,10 +24,10 @@ NO uses markdown. Texto plano.`,
 - Ingreso hoy: $${d.todayIncome || 0}
 - Gastos hoy: $${d.todayExpenses || 0}
 - Ingreso del mes: $${d.monthIncome || 0}
-- Ordenes activas: ${d.activeOrders || 0}
+- Boletos activos: ${d.activeOrders || 0}
 - Listas para recoger: ${d.readyToPickup || 0}
 - Entregadas hoy: ${d.deliveredToday || 0}
-- Ordenes atrasadas: ${d.overdue || 0}
+- Boletos atrasados: ${d.overdue || 0}
 Analiza el rendimiento y da una recomendacion.`,
     },
     financial: {
@@ -64,7 +64,7 @@ NO uses markdown. Texto plano.`,
 - Ventas hoy: ${d.salesToday || 0}
 - Monto total: $${d.totalToday || 0}
 - Producto mas vendido: ${d.topProduct || "N/A"}
-- Ordenes listas para cobrar: ${d.readyToPay || 0}
+- Boletos listos para cobrar: ${d.readyToPay || 0}
 Sugiere como aumentar las ventas.`,
     },
     customers: {
@@ -73,7 +73,7 @@ Maximo 3 oraciones. Incluye: retencion, clientes en riesgo, y accion para traer 
 NO uses markdown. Texto plano.`,
       user: (d) => `Base de clientes:
 - Total clientes: ${d.totalCustomers || 0}
-- Clientes VIP (3+ ordenes): ${d.vipCount || 0}
+- Clientes VIP (3+ boletos): ${d.vipCount || 0}
 - Inactivos (30+ dias): ${d.inactiveCount || 0}
 - Nuevos este mes: ${d.newThisMonth || 0}
 - Cliente top: ${d.topCustomer || "N/A"}

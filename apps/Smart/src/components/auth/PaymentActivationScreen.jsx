@@ -97,7 +97,7 @@ export default function PaymentActivationScreen({
           {/* Beneficios */}
           <div className="space-y-2">
             {[
-              "Órdenes de reparación ilimitadas",
+              "Boletos de reparación ilimitados",
               "POS y gestión de caja",
               "Inventario y stock",
               "Clientes y historial",

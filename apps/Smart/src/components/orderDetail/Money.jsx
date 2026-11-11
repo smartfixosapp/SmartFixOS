@@ -52,7 +52,7 @@ export function CobrarMenuSheet({ open, onClose, order, onFull, onDeposit, onRef
   return (
     <Sheet open={open} onClose={onClose} title="Cobrar" width={480}>
       <div className="flex flex-col items-center text-center" style={{ padding: "8px 0 18px" }}>
-        <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", color: C.sub }}>{paid ? "ORDEN SALDADA" : "BALANCE PENDIENTE"}</p>
+        <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", color: C.sub }}>{paid ? "BOLETO SALDADO" : "BALANCE PENDIENTE"}</p>
         <p style={{ fontSize: 44, fontWeight: 900, color: paid ? C.green : C.text, lineHeight: 1.1 }}>{paid ? "✓" : money(balance)}</p>
         <p style={{ fontSize: 13, color: C.sub }}>{order.order_number} · {displayDevice(order)}</p>
       </div>
@@ -194,7 +194,7 @@ export function QuickPaySheet({ open, onClose, order, tenant, onSubmit, prefillA
       )}
     >
       <div style={{ background: C.card2, borderRadius: 16, padding: "4px 16px" }}>
-        <div className="flex justify-between" style={{ padding: "10px 0", fontSize: 15 }}><span style={{ color: C.sub }}>Total orden</span><span>{money(total)}</span></div>
+        <div className="flex justify-between" style={{ padding: "10px 0", fontSize: 15 }}><span style={{ color: C.sub }}>Total boleto</span><span>{money(total)}</span></div>
         {Number(order.amount_paid || 0) > 0 && <div className="flex justify-between" style={{ padding: "10px 0", fontSize: 15 }}><span style={{ color: C.sub }}>Ya pagado</span><span style={{ color: C.green }}>{money(order.amount_paid)}</span></div>}
         <div className="flex justify-between" style={{ padding: "10px 0", fontSize: 16, fontWeight: 800, borderTop: `0.5px solid ${C.sep}` }}><span>Balance pendiente</span><span style={{ color: balance > 0 ? C.red : C.green }}>{money(balance)}</span></div>
       </div>
@@ -362,7 +362,7 @@ export function DepositsSheet({ open, onClose, order, tenant, onAdd, onEdit, onD
           {remaining <= 0 ? (
             <div className="flex flex-col items-center text-center" style={{ padding: "22px 0" }}>
               <BadgeCheck className="w-10 h-10" style={{ color: C.green }} />
-              <p style={{ fontSize: 17, fontWeight: 800, marginTop: 8 }}>Orden saldada</p>
+              <p style={{ fontSize: 17, fontWeight: 800, marginTop: 8 }}>Boleto saldado</p>
               <p style={{ fontSize: 14, color: C.sub }}>No hay saldo pendiente por cobrar.</p>
               <p style={{ fontSize: 14, marginTop: 8 }}>Total pagado {money(totalPaid)}</p>
             </div>
@@ -451,7 +451,7 @@ export function RefundSheet({ open, onClose, order, onRefund }) {
       <div className="grid gap-5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" }}>
         <div>
           <div style={{ background: C.card2, borderRadius: 14, padding: "2px 14px" }}>
-            <div className="flex justify-between" style={{ padding: "10px 0" }}><span style={{ color: C.sub }}>Orden</span><span>{order.order_number}</span></div>
+            <div className="flex justify-between" style={{ padding: "10px 0" }}><span style={{ color: C.sub }}>Boleto</span><span>{order.order_number}</span></div>
             <div className="flex justify-between" style={{ padding: "10px 0" }}><span style={{ color: C.sub }}>Cliente</span><span>{order.customer_name || "—"}</span></div>
             <div className="flex justify-between" style={{ padding: "10px 0", borderTop: `0.5px solid ${C.sep}` }}><span>Pagado hasta ahora</span><span style={{ color: C.green, fontSize: 20, fontWeight: 800 }}>{money(paid)}</span></div>
           </div>

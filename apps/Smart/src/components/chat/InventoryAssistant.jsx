@@ -205,7 +205,7 @@ export default function InventoryAssistant() {
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Buscar producto, análisis, crear orden..."
+            placeholder="Buscar producto, análisis, crear boleto..."
             className="apple-input apple-text-footnote"
             disabled={loading}
           />

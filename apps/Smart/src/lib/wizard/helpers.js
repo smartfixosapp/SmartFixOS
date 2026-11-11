@@ -12,15 +12,15 @@ export const STEPS = {
   5: { key: "checklist", title: "Checklist", subtitle: "Síntomas comunes — escoge los que aplican", color: IOS.yellow },
   6: { key: "security", title: "Seguridad", subtitle: "PIN, patrón o contraseña del dispositivo", color: IOS.red },
   7: { key: "estimate", title: "Cotización", subtitle: "Mano de obra y costo estimado", color: IOS.green },
-  8: { key: "assignment", title: "Asignación", subtitle: "¿Quién va a trabajar esta orden?", color: IOS.teal },
+  8: { key: "assignment", title: "Asignación", subtitle: "¿Quién va a trabajar este boleto?", color: IOS.teal },
   9: { key: "signature", title: "Firma", subtitle: "Firma + aceptación de términos", color: IOS.purple },
-  10: { key: "confirm", title: "Confirmar", subtitle: "Revisa los datos antes de crear la orden", color: IOS.mint },
+  10: { key: "confirm", title: "Confirmar", subtitle: "Revisa los datos antes de crear el boleto", color: IOS.mint },
 };
 export const TOTAL_STEPS = 10;
 
 export const MODES = {
-  regular: { label: "Orden regular", color: IOS.blue },
-  quick: { label: "Orden rápida", color: IOS.orange },
+  regular: { label: "Boleto regular", color: IOS.blue },
+  quick: { label: "Boleto rápido", color: IOS.orange },
   recharge: { label: "Recarga", color: IOS.green },
   unlock: { label: "Desbloqueo", color: IOS.purple },
 };

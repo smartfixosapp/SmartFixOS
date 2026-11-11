@@ -289,7 +289,7 @@ export default function CustomerSelector({ open, onClose, selectedCustomer, onSe
               {/* Stats cards estilo Apple dashboard */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
                 <div className="apple-card p-3.5">
-                  <p className="apple-text-caption1 apple-label-secondary mb-1">Total órdenes</p>
+                  <p className="apple-text-caption1 apple-label-secondary mb-1">Total boletos</p>
                   <p className="apple-text-title2 apple-label-primary tabular-nums">{customerHistory.orderCount}</p>
                 </div>
                 <div className="apple-card p-3.5">
@@ -307,10 +307,10 @@ export default function CustomerSelector({ open, onClose, selectedCustomer, onSe
               </div>
 
               <div className="space-y-2">
-                <h3 className="apple-text-footnote apple-label-secondary px-1">Órdenes recientes</h3>
+                <h3 className="apple-text-footnote apple-label-secondary px-1">Boletos recientes</h3>
                 {customerHistory.orders.length === 0 ? (
                   <div className="text-center py-8 apple-label-tertiary">
-                    <p className="apple-text-callout">No hay órdenes registradas</p>
+                    <p className="apple-text-callout">No hay boletos registrados</p>
                   </div>
                 ) : (
                   <div className="apple-list max-h-96 overflow-y-auto apple-scroll">

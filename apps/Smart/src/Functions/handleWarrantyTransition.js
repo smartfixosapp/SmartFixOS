@@ -60,7 +60,7 @@ export async function handleWarrantyTransitionHandler(req) {
 
     return Response.json({
       success: true,
-      message: isExitingWarranty ? 'Orden marcada como pasada por garantía' : 'Estatus actualizado',
+      message: isExitingWarranty ? 'Boleto marcado como pasado por garantía' : 'Estatus actualizado',
       order_id,
       new_status,
       marked_warranty: isExitingWarranty,

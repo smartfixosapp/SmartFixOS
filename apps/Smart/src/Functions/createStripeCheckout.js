@@ -50,7 +50,7 @@ export async function createStripeCheckoutHandler(req) {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: `Orden de Reparación #${order.order_number}`,
+              name: `Boleto de Reparación #${order.order_number}`,
               description: `${order.device_brand || ''} ${order.device_model || ''} - ${order.customer_name}`,
             },
             unit_amount: Math.round(finalAmount * 100), // cents

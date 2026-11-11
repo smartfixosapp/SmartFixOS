@@ -18,7 +18,7 @@ const DEFAULTS = {
   send_print: true,
   email_from_name: "",
   email_subject_sale: "🧾 Tu recibo de venta #{number}",
-  email_subject_order: "🔧 Tu orden de reparación #{number}",
+  email_subject_order: "🔧 Tu boleto de reparación #{number}",
 };
 
 // ── Mock sale para la vista previa ────────────────────────────────────────────
@@ -444,10 +444,10 @@ export default function POSReceiptTab() {
               onChange={e => set("email_subject_sale", e.target.value)}
               className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/25 text-sm focus:outline-none focus:border-cyan-500/50"
             />
-            <FieldLabel label="Asunto email — Orden" hint="Usa {number} para el número de orden" />
+            <FieldLabel label="Asunto email — Boleto" hint="Usa {number} para el número de boleto" />
             <input
               type="text"
-              placeholder="🔧 Tu orden de reparación #{number}"
+              placeholder="🔧 Tu boleto de reparación #{number}"
               value={config.email_subject_order}
               onChange={e => set("email_subject_order", e.target.value)}
               className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/25 text-sm focus:outline-none focus:border-cyan-500/50"

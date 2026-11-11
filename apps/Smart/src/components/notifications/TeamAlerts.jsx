@@ -54,7 +54,7 @@ export default function TeamAlerts() {
         const key = `${o.id}:${last.timestamp}`;
         if (seen.has(key)) return;
         seen.add(key);
-        show(`${o.order_number || "Orden"} · ${statusInfo(o.status).label}`, [o.customer_name, last.changed_by ? `por ${last.changed_by}` : null].filter(Boolean).join(" · "), `order-${o.id}`);
+        show(`${o.order_number || "Boleto"} · ${statusInfo(o.status).label}`, [o.customer_name, last.changed_by ? `por ${last.changed_by}` : null].filter(Boolean).join(" · "), `order-${o.id}`);
       })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "transaction", filter: `tenant_id=eq.${tenantId}` }, (payload) => {
         const t = payload.new;

@@ -189,7 +189,7 @@ export default function CommunicationHistory({ customerId }) {
                 <Input
                   value={formData.subject}
                   onChange={(e) => setFormData({...formData, subject: e.target.value})}
-                  placeholder="ej: Seguimiento de orden"
+                  placeholder="ej: Seguimiento de boleto"
                   className="apple-input"
                 />
               </div>

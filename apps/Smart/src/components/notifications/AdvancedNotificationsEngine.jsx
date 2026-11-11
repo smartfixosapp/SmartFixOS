@@ -315,7 +315,7 @@ class AdvancedNotificationsEngine {
       case "pending_order":
         actions.push({
           id: "view_order",
-          label: "Ver Orden",
+          label: "Ver Boleto",
           action_type: "navigate",
           action_data: { 
             page: "Orders",

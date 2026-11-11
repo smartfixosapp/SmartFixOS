@@ -12,7 +12,7 @@ import { VIEWPORT, fadeUp, staggerList } from "../motion";
 const STATS = [
   { value: 1, suffix: "", label: "taller real corriéndolo todos los días" },
   { value: 11.5, suffix: "%", decimals: 1, label: "IVU calculado al peso" },
-  { value: 30, suffix: "s", label: "para hacer una orden" },
+  { value: 30, suffix: "s", label: "para hacer un boleto" },
   { value: 100, suffix: "%", label: "en español, hecho en Puerto Rico" },
 ];
 

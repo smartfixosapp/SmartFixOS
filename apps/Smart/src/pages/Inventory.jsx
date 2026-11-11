@@ -428,12 +428,12 @@ function HistorialMovimientosDialog({ open, onClose }) {
     { k: "adjustment", label: "Ajustes" },
     { k: "sale", label: "Ventas" },
     { k: "purchase", label: "Compras" },
-    { k: "order_add", label: "Órdenes" },
+    { k: "order_add", label: "Boletos" },
   ];
 
   const filtered = filterType === "all" ? movements : movements.filter(m => m.movement_type === filterType);
 
-  const typeLabel = (t) => ({ sale: "Venta", order_add: "Orden+", order_remove: "Orden-",
+  const typeLabel = (t) => ({ sale: "Venta", order_add: "Boleto+", order_remove: "Boleto-",
     void_return: "Devolución", adjustment: "Ajuste", purchase: "Compra", initial: "Inicial" })[t] || t;
 
   const typeColor = (t) => t === "sale" || t === "order_remove" ? "text-red-400 bg-red-500/10 border-red-500/20"
@@ -1835,7 +1835,7 @@ export default function Inventory() {
             onClick={() => setSortKey(k => (k === "name" ? "stock" : k === "stock" ? "price" : "name"))}
             className="apple-press h-11"
             style={{ ...pillStyle, color: "#F2662E", padding: "0 14px" }}
-            title="Cambiar orden"
+            title="Cambiar boleto"
           >
             <ArrowUpDown className="w-4 h-4" /> {SORT_LABELS[sortKey]}
           </button>
@@ -2127,14 +2127,14 @@ export default function Inventory() {
         <AlertDialog
           open={bulkConfirm}
           title="Eliminar productos"
-          message="Se ocultarán del inventario y del POS. Las órdenes y ventas pasadas mantienen los productos."
+          message="Se ocultarán del inventario y del POS. Los boletos y ventas pasados mantienen los productos."
           onClose={() => setBulkConfirm(false)}
           actions={[{ label: "Eliminar", destructive: true, onPress: bulkArchive }, { label: "Cancelar", bold: true }]}
         />
         <AlertDialog
           open={!!deleteTarget}
           title="Eliminar producto"
-          message="Se ocultará del inventario y del POS. Las órdenes y ventas pasadas mantienen el producto."
+          message="Se ocultará del inventario y del POS. Los boletos y ventas pasados mantienen el producto."
           onClose={() => setDeleteTarget(null)}
           actions={[{ label: "Eliminar", destructive: true, onPress: confirmDeleteItem }, { label: "Cancelar", bold: true }]}
         />

@@ -21,7 +21,7 @@ const DEVICE_ICON = (type = "") => {
 
 const NAV_ITEMS = [
   { label: "Dashboard",    path: "Dashboard",    icon: Zap },
-  { label: "Órdenes",      path: "Orders",       icon: ClipboardList },
+  { label: "Boletos",      path: "Orders",       icon: ClipboardList },
   { label: "Clientes",     path: "Customers",    icon: Users },
   { label: "Inventario",   path: "Inventory",    icon: Package },
   { label: "Finanzas",     path: "Financial",    icon: BarChart3 },
@@ -149,7 +149,7 @@ export default function GlobalSearchPalette({ open, onClose }) {
             ref={inputRef}
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Buscar órdenes, clientes, páginas..."
+            placeholder="Buscar boletos, clientes, páginas..."
             className="flex-1 bg-transparent apple-label-primary apple-text-body outline-none"
           />
           {loading && (
@@ -194,7 +194,7 @@ export default function GlobalSearchPalette({ open, onClose }) {
           {/* Orders */}
           {orders.length > 0 && (
             <div>
-              <p className="apple-text-footnote apple-label-tertiary px-4 pt-3 pb-1">Órdenes</p>
+              <p className="apple-text-footnote apple-label-tertiary px-4 pt-3 pb-1">Boletos</p>
               {orders.map(o => {
                 const DevIcon = DEVICE_ICON(o.device_type || o.device_family);
                 const isSelected = flatIdx === selectedIdx;
@@ -263,7 +263,7 @@ export default function GlobalSearchPalette({ open, onClose }) {
           {/* Default empty */}
           {query.length === 0 && (
             <div className="py-6 text-center">
-              <p className="apple-label-tertiary apple-text-footnote">Escribe para buscar órdenes, clientes o navegar</p>
+              <p className="apple-label-tertiary apple-text-footnote">Escribe para buscar boletos, clientes o navegar</p>
             </div>
           )}
         </div>

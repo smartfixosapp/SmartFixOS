@@ -31,7 +31,7 @@ export default function ClientInfoCard({ order, compact = false, onViewHistory }
       channel: "whatsapp",
       target: order.customer_phone
     });
-    openWhatsApp(order.customer_phone, `Hola ${order.customer_name}, te escribimos de ${tenantBrandName()} sobre tu orden ${order.order_number}.`);
+    openWhatsApp(order.customer_phone, `Hola ${order.customer_name}, te escribimos de ${tenantBrandName()} sobre tu boleto ${order.order_number}.`);
   };
 
   const handleEmailClick = (e) => {

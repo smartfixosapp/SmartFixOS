@@ -312,7 +312,7 @@ export async function applyCancelPlan(plan, { tenantId, employeeName }) {
       }
     }
   } else {
-    failures.push("No se pudo actualizar el carrito de la orden, así que ninguna pieza volvió al inventario. Vuelve a elegir Cancelada en la orden para intentarlo de nuevo.");
+    failures.push("No se pudo actualizar el carrito del boleto, así que ninguna pieza volvió al inventario. Vuelve a elegir Cancelada en el boleto para intentarlo de nuevo.");
   }
 
   const excludedArrived = new Set(plan.arrivedParts.filter((p) => !p.include).map((p) => p.id));
@@ -323,7 +323,7 @@ export async function applyCancelPlan(plan, { tenantId, employeeName }) {
 
   for (const purchaseId of purchaseIds) {
     let po;
-    try { po = await fetchPO(purchaseId); } catch { failures.push("No se pudo revisar una compra ligada a la orden. Revísala en Compras."); continue; }
+    try { po = await fetchPO(purchaseId); } catch { failures.push("No se pudo revisar una compra ligada al boleto. Revísala en Compras."); continue; }
     if (!po || po.status === "cancelled") continue;
 
     if (po.status === "draft") {
@@ -345,7 +345,7 @@ export async function applyCancelPlan(plan, { tenantId, employeeName }) {
 
   if (released.size) await deletePartLinks(plan.orderId, tenantId, released);
   if (flipped && !(await writeCleanupMarker(number, excludedArrived, tenantId, who))) {
-    failures.push("No se pudo dejar constancia de esta limpieza. Si vuelves a cancelar esta orden, revisa bien las piezas que te ofrezca.");
+    failures.push("No se pudo dejar constancia de esta limpieza. Si vuelves a cancelar este boleto, revisa bien las piezas que te ofrezca.");
   }
   return failures;
 }
