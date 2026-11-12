@@ -151,7 +151,6 @@ export default function BoletosPage() {
     [data, flash, navigate],
   );
 
-  const showList = wide || !orderId;
   const showDetail = !!orderId;
   const listNode = (
     <ListPane
@@ -172,14 +171,16 @@ export default function BoletosPage() {
 
   return (
     <div className="rb">
-      {wide && showDetail ? (
+      {wide ? (
         <div className="rb-split">
-          <div className={`rb-lp${folded ? " fold" : ""}`}>{listNode}</div>
-          {current ? (
-            <DetailPane order={current} canSeeCosts={costs} wide busy={busy} onBack={back} onToggleList={() => setFolded((f) => !f)} onChangeStatus={onChangeStatus} onNote={onNote} onPhotos={onPhotos} />
-          ) : (
-            <div className="rb-dp"><div className="rb-loading">Abriendo boleto...</div></div>
-          )}
+          <div className={`rb-lp${showDetail ? (folded ? " fold" : "") : " full"}`} aria-hidden={showDetail && folded ? true : undefined}>{listNode}</div>
+          {showDetail ? (
+            current ? (
+              <DetailPane order={current} canSeeCosts={costs} wide busy={busy} onBack={back} onToggleList={() => setFolded((f) => !f)} onChangeStatus={onChangeStatus} onNote={onNote} onPhotos={onPhotos} />
+            ) : (
+              <div className="rb-dp enter"><div className="rb-loading">Abriendo boleto...</div></div>
+            )
+          ) : null}
         </div>
       ) : null}
       {!wide && showDetail ? (
@@ -189,7 +190,7 @@ export default function BoletosPage() {
           <div className="rb-loading">Abriendo boleto...</div>
         )
       ) : null}
-      {showList && !showDetail ? listNode : null}
+      {!wide && !showDetail ? listNode : null}
       {creating ? <NewTicket session={data.session} onClose={() => setCreating(false)} onCreated={onCreated} /> : null}
       {toast ? <div className={`rb-toast${toast.error ? " err" : ""}`} role="status">{toast.text}</div> : null}
     </div>

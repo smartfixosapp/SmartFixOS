@@ -167,7 +167,7 @@ export function DetailPane({ order, canSeeCosts, wide, busy, onBack, onToggleLis
   );
 
   return (
-    <div className="rb-dp">
+    <div className={`rb-dp${wide ? " enter" : ""}`}>
       <div className="rb-dh">
         {wide ? (
           <button type="button" className="rb-ib ghost" onClick={onToggleList} aria-label="Plegar o abrir la lista"><Icon name="side" /></button>
