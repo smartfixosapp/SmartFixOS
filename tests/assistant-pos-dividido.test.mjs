@@ -293,6 +293,27 @@ test('articulo manual: topes de precio y cantidad, nombre obligatorio y gravable
   assert.equal(fake.sales[0].items[0].product_name.length, 120);
 });
 
+test('producto de inventario sin IVU por linea: gravable false quita el impuesto y descuenta inventario', async () => {
+  const fake = fakeSupabase();
+  const r = await venta(fake, { origen: 'android', metodo: 'efectivo', monto_recibido: 100, items: [{ producto_id: PID, cantidad: 1, gravable: false }] });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.deepEqual({ subtotal: r.body.venta.subtotal, ivu: r.body.venta.ivu, total: r.body.venta.total }, { subtotal: 20, ivu: 0, total: 20 });
+  assert.equal(fake.sales[0].items[0].tax_rate, 0);
+  assert.deepEqual(fake.stockPatches, [4]);
+});
+
+test('producto de inventario: gravable invalido se rechaza y sin gravable conserva el IVU del producto', async () => {
+  const bad = fakeSupabase();
+  const r1 = await venta(bad, { origen: 'android', metodo: 'efectivo', monto_recibido: 100, items: [{ producto_id: PID, cantidad: 1, gravable: 'no' }] });
+  assert.equal(r1.status, 400);
+  assert.match(JSON.stringify(r1.body), /gravable/);
+  assert.equal(bad.sales.length, 0);
+  const ok = fakeSupabase();
+  const r2 = await venta(ok, { origen: 'android', metodo: 'efectivo', monto_recibido: 100, items: [{ producto_id: PID, cantidad: 1 }] });
+  assert.equal(r2.status, 200, JSON.stringify(r2.body));
+  assert.equal(r2.body.venta.ivu, 2.3);
+});
+
 test('articulo manual mezclado con producto de inventario descuenta solo el producto', async () => {
   const fake = fakeSupabase();
   const r = await venta(fake, { origen: 'android', metodo: 'efectivo', monto_recibido: 100, items: [{ producto_id: PID, cantidad: 1 }, { nombre: 'Servicio extra', precio: 10, cantidad: 1, gravable: false }] });
@@ -411,16 +432,16 @@ test('contrato anterior intacto: un metodo, monto_recibido, sin campos nuevos en
   assert.match(noMethod.body.error, /metodo invalido/);
 });
 
-test('pos/config declara las cuatro capacidades y pago dividido solo si existe sale.payments', async () => {
+test('pos/config declara las cinco capacidades y pago dividido solo si existe sale.payments', async () => {
   const on = fakeSupabase();
   const a = await withFetch(on, () => call('pos/config'));
-  assert.deepEqual(a.body.capacidades, { articulo_manual: true, pago_dividido: true, cliente_en_venta: true, descuento_venta: true });
+  assert.deepEqual(a.body.capacidades, { articulo_manual: true, pago_dividido: true, cliente_en_venta: true, descuento_venta: true, iva_linea: true });
   const off = fakeSupabase({ paymentsColumn: false });
   const warn = console.warn;
   console.warn = () => {};
   let b;
   try { b = await withFetch(off, () => call('pos/config')); } finally { console.warn = warn; }
-  assert.deepEqual(b.body.capacidades, { articulo_manual: true, pago_dividido: false, cliente_en_venta: true, descuento_venta: true });
+  assert.deepEqual(b.body.capacidades, { articulo_manual: true, pago_dividido: false, cliente_en_venta: true, descuento_venta: true, iva_linea: true });
 });
 
 test('anular una venta dividida registra un reembolso por metodo con su monto', async () => {

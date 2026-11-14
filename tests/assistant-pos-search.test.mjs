@@ -410,7 +410,7 @@ test('pos/config sin configuracion del taller usa los valores del iPad', async (
       umbral_confirmacion: 500,
       descuento_max_empleado: 20,
       tienda: { nombre: 'Mi taller' },
-      capacidades: { articulo_manual: true, pago_dividido: true, cliente_en_venta: true, descuento_venta: true },
+      capacidades: { articulo_manual: true, pago_dividido: true, cliente_en_venta: true, descuento_venta: true, iva_linea: true },
     });
   });
   const read = fake.calls.find((c) => c.url.includes('/tenant?'));

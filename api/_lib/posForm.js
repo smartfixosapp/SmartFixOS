@@ -204,7 +204,7 @@ async function capabilities(deps) {
   } catch (e) {
     console.warn('pago dividido desactivado, falta la columna sale.payments:', e.message);
   }
-  return { articulo_manual: true, pago_dividido: splitReady, cliente_en_venta: true, descuento_venta: true };
+  return { articulo_manual: true, pago_dividido: splitReady, cliente_en_venta: true, descuento_venta: true, iva_linea: true };
 }
 
 export async function posConfig({ tenantId }, deps) {
@@ -339,6 +339,10 @@ export function readSaleForm(b, customMethods = []) {
       line = { manual: true, nombre, precio: money(raw.precio), cantidad, gravable: raw.gravable !== false };
     } else {
       line = { producto_id: productoId, cantidad };
+    }
+    if (!manual && present(raw.gravable)) {
+      if (typeof raw.gravable !== 'boolean') throw bad(`items[${i}].gravable debe ser true o false`);
+      line.gravable = raw.gravable;
     }
     if (!manual && present(raw.precio)) {
       const precio = Number(raw.precio);
