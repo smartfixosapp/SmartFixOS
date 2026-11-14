@@ -27,6 +27,7 @@ import {
   saveEbayConfig,
 } from './connections.js';
 import { comparePrices, recordFromSearch, addWatch, listWatch, removeWatch } from './priceCatalog.js';
+import { buildQuoteOptions, laborFor } from './quotePricing.js';
 import { searchCustomers, createTicketFromForm } from './ticketForm.js';
 import { universalSearch } from './search.js';
 import { posProductList, cashRegisterState, createSaleFromForm, posConfig, posQr } from './posForm.js';
@@ -668,6 +669,28 @@ export const TOOLS = [
     local: (a, ctx) => comparePrices(ctx.tenantId, a),
   },
   {
+    name: 'cotizar_pieza',
+    description: 'Cotiza una pieza para un equipo: toma los precios guardados de los proveedores (costo SIN IVU) y calcula el precio de venta al cliente con la regla del taller: (costo + mano de obra + manejo) x 1.115 de IVU, y el deposito = el mayor entre 50% del total y el costo. Devuelve opciones de menor a mayor precio al cliente. Si no hay precios guardados, busca primero con proveedor_buscar_precio o ebay_buscar. Los costos y proveedores son SOLO para el dueno: nunca los reveles a un cliente. Si falta la mano de obra, pidesela al usuario.',
+    input_schema: { type: 'object', required: ['consulta'], properties: { consulta: str('Equipo y pieza, por ejemplo "iPhone 14 pantalla" o "A2389 bateria"'), tipo_equipo: str('Para la mano de obra: laptop, macbook, macbook viejo, ipad, plegable, puerto de carga'), mano_obra: { type: 'number', description: 'Mano de obra en dolares SIN IVU; si la envias manda sobre la tabla' }, bateria_dhl: { type: 'boolean', description: 'true si la bateria viaja por DHL: suma 25 de manejo' }, proveedor: str('Opcional: limitar a un proveedor'), limite: { type: 'integer' } } },
+    mutating: false,
+    local: async (a, ctx) => {
+      let labor = Number(a.mano_obra);
+      let laborKey = null;
+      if (!Number.isFinite(labor) || labor < 0) {
+        const found = laborFor(`${a.tipo_equipo || ''} ${a.consulta || ''}`);
+        labor = found ? found.monto : NaN;
+        laborKey = found ? found.clave : null;
+      }
+      const r = await comparePrices(ctx.tenantId, { consulta: a.consulta, proveedor: a.proveedor, limite: a.limite || 12 });
+      if (r.status !== 200 || !r.body?.ok) return r;
+      if (!Number.isFinite(labor)) {
+        return { status: 200, body: { ok: true, requiere_mano_obra: true, nota: 'No hay una mano de obra definida para este tipo de equipo. Pregunta al usuario cuanto cobra de mano de obra (sin IVU) y vuelve a llamar con mano_obra.', precios_guardados: r.body.articulos } };
+      }
+      const opciones = buildQuoteOptions(r.body.articulos, { manoObra: labor, bateriaDhl: a.bateria_dhl === true });
+      return { status: 200, body: { ok: true, consulta: a.consulta, mano_obra: labor, mano_obra_regla: laborKey, total: opciones.length, opciones, nota: opciones.length ? 'Precio al cliente con IVU 11.5%. El deposito es el mayor entre 50% del total y el costo. Confirma modelo y numero de parte exactos antes de comprar y verifica los precios desactualizados en vivo. Costos y proveedores no se muestran al cliente.' : 'No hay precios guardados para esa pieza. Busca con proveedor_buscar_precio o ebay_buscar y vuelve a cotizar.' } };
+    },
+  },
+  {
     name: 'vigilar_pieza',
     description: 'Agrega una pieza a la lista de vigilancia de precios: el sistema revisara su precio cada semana y avisara cuando suba o baje. Usala cuando el usuario diga "vigila", "monitorea" o "avisame si cambia el precio de".',
     input_schema: { type: 'object', required: ['consulta'], properties: { consulta: str('Pieza y modelo a vigilar, por ejemplo "iPhone 15 pantalla OLED"'), proveedor: str('Opcional: solo en este proveedor') } },
@@ -1167,6 +1190,7 @@ const SYSTEM_RULES = [
   'ALCANCE COMPLETO: tienes casi todo lo que hace el dueno en la app y la API del taller: boletos, fotos, piezas e inventario, clientes (buscar_clientes, ver_cliente, editar_cliente), cobros y reversos, ventas de mostrador y anulaciones, ingresos y gastos, resumen del dia o de un rango, tareas (crear_tarea), WhatsApp y avisos. Usa cada herramienta sin pedirle al usuario que lo haga en la app. Solo di que algo se hace desde la app cuando de verdad no tienes herramienta (abrir o cerrar caja, nomina, ponches, cotizaciones formales, citas).',
   'CREAR UN BOLETO NUEVO: cuando el usuario diga "crear boleto" o "llego un cliente", esto es un flujo aparte que puede ocurrir en medio de otro trabajo: NO toques el boleto activo, y no mezcles sus datos. Pregunta UNA cosa a la vez, corta y amable, en este orden: nombre, apellido, telefono, email (o que no tiene), equipo y problema; luego pide las fotos del equipo ("mandame las fotos aqui mismo"). Si el usuario manda varios datos juntos, no los vuelvas a pedir. Cuando tengas lo minimo (nombre, apellido, telefono, equipo y problema) crea el boleto sin pedir otra confirmacion, adjunta las fotos que lleguen y ofrece volver al boleto anterior en una frase ("Listo el WO-xxx. Seguimos con el WO-yyy?"). Si el cliente ya existe (busca con buscar_clientes por telefono), usalo en vez de duplicarlo.',
   'CATALOGO DE PRECIOS: para cualquier pregunta de precio de una pieza llama primero precios_catalogo; ahi estan los precios ya guardados de cada proveedor con su fecha. Responde con el precio en cada proveedor, cual es el mas barato y una recomendacion de precio de venta, aclarando la fecha del dato. Si no hay datos, o estan marcados como desactualizados y el usuario necesita precio firme, consulta en vivo con proveedor_buscar_precio o ebay_buscar (lo que consultes se guarda solo en el catalogo). Si el usuario pide vigilar o monitorear una pieza usa vigilar_pieza.',
+  'COTIZAR PIEZAS: cuando pidan cotizar o el precio de una pieza para un equipo, fija primero el modelo exacto (numero de modelo o de parte; si solo dicen "iPhone 14" pidelo del boleto o pregunta), llama cotizar_pieza y presenta las opciones de menor a mayor precio al cliente con: calidad o variante, precio final con IVU, deposito y disponibilidad. Los costos y los proveedores son solo para el dueno. Si cotizar_pieza no trae precios guardados, busca en vivo con proveedor_buscar_precio y ebay_buscar y vuelve a cotizar; nunca cotices con un estimado: si un proveedor no respondio di no verificado. Si te falta la mano de obra, preguntala. Nunca compres ni agregues al carrito de un proveedor: solo agrega la pieza al boleto si el usuario lo pide.',
   'COMPRAS Y PRECIOS DE PROVEEDORES: cuando cotices una pieza o compares proveedores aplica las reglas que ya conoce el dueno. Verifica el modelo y la generacion exactos en la ficha (hay fichas casi iguales con precios muy distintos, como iPad Pro 3 y 4 gen contra 5 y 6 gen). En MobileSentrix toma el precio de la variante exacta (calidad, version y color) y cuidado con la coma decimal ($344,45 es $344.45). El precio del proveedor no incluye envio: reporta precio mas envio cuando lo sepas. En eBay solo vendedores de EE. UU. con envio domestico y descarta anuncios con envio internacional. Las pantallas de laptop de PhoneLCDParts tardan unas 2 semanas: dilo en la cotizacion. Los correos de ETA no son fiables, manda el rastreo del transportista. Los costos del proveedor son internos: nunca se los digas a un cliente. Nunca compres ni pagues nada; solo cotizas y preparas.',
   'AYUDA PROACTIVA: ademas de obedecer, propone. Al empezar el dia o si dicen "briefing", "que tengo hoy" o "que hay pendiente": usa resumen_del_dia, alertas y buscar_boletos y da una lista priorizada y corta (cobros pendientes, listos sin recoger, esperando al cliente, piezas que llegaron). Para cobranza o seguimientos arma los mensajes de WhatsApp uno por cliente con whatsapp_abrir. Al ver un gasto, un recibo o una factura en una foto, ofrece registrarlo con registrar_gasto. Si el usuario dicta algo que suena a recordatorio ("recuerdame llamar a X el jueves") usa crear_tarea. Nunca inventes datos: si no los encuentras con las herramientas, dilo.',
   'PROACTIVIDAD: trabaja como un asistente de taller que piensa por delante. Despues de cada accion ofrece el siguiente paso logico en UNA frase y con una pregunta corta (ejemplos: "Anadi la foto al WO-410, la dejo como foto de reparacion?", "Ya esta en reparacion, le aviso al cliente por WhatsApp?", "Hay balance pendiente de $40, lo cobro?"). Cuando el usuario manda varias fotos y ya hay boleto activo, adjuntalas todas, describe brevemente cada una y pregunta que mas quiere hacer. Si falta un dato para actuar (a cual boleto va, que estatus), pregunta lo minimo, nunca un formulario largo. Nunca digas que algo requiere una API de pago de WhatsApp (Meta, Twilio): para WhatsApp siempre usas whatsapp_abrir.',
@@ -1238,6 +1262,32 @@ function noteClientAction(executed, toolUse, body) {
   }
 }
 
+export function noteQuote(quotes, toolUse, body) {
+  if (toolUse?.name !== 'cotizar_pieza' || !body || body.ok !== true || !Array.isArray(body.opciones) || body.opciones.length === 0) return;
+  quotes.push({
+    id: toolUse.id,
+    consulta: String(body.consulta || toolUse.input?.consulta || '').slice(0, 160),
+    mano_obra: body.mano_obra,
+    opciones: body.opciones.slice(0, 6).map((o) => ({
+      proveedor: String(o.proveedor || '').slice(0, 80),
+      nombre: String(o.nombre || '').slice(0, 160),
+      sku: o.sku || null,
+      costo: o.costo,
+      envio: o.envio ?? null,
+      existencia: o.existencia ?? null,
+      url: typeof o.url === 'string' && /^https:\/\//i.test(o.url) ? o.url : null,
+      visto_hace_dias: o.visto_hace_dias ?? null,
+      desactualizado: o.desactualizado === true,
+      mano_obra: o.mano_obra,
+      manejo_bateria: o.manejo_bateria || 0,
+      subtotal_sin_ivu: o.subtotal_sin_ivu,
+      ivu: o.ivu,
+      total_con_ivu: o.total_con_ivu,
+      deposito: o.deposito,
+    })),
+  });
+}
+
 function isMutatingCall(blocks) {
   return (blocks || []).some((b) => b.type === 'tool_use' && TOOL_BY_NAME.get(b.name)?.mutating);
 }
@@ -1247,6 +1297,7 @@ export async function runAgent({ config, apiKey, messages, decisions, actor, sho
   const produced = [];
   const executed = [];
   const steps = [];
+  const quotes = [];
   const usage = { entrada: 0, salida: 0, cache_lectura: 0, cache_escritura: 0, usd: 0, usd_ahorrado_cache: 0, llamadas: 0 };
   const canEscalate = Boolean(router) && router.ligero !== router.completo;
   let model = canEscalate && router.inicio === 'ligero' ? router.ligero : config.model;
@@ -1266,7 +1317,7 @@ export async function runAgent({ config, apiKey, messages, decisions, actor, sho
     }
   };
   const callModel = (m) => deps.provider(m === config.model ? config : { ...config, model: m }, apiKey, system, history, tools);
-  const done = (out) => ({ ...out, modelo: model, escalado });
+  const done = (out) => ({ ...out, modelo: model, escalado, cotizaciones: quotes });
   const system = systemPrompt(shopName, actor);
   if (screenContext) system.variable = `${system.variable}\n${screenContext}`;
   const last = history[history.length - 1];
@@ -1282,6 +1333,7 @@ export async function runAgent({ config, apiKey, messages, decisions, actor, sho
         payload = (await execTool(tu, actor, deps)).body;
         steps.push({ herramienta: tu.name, ok: payload?.ok !== false });
         noteClientAction(executed, tu, payload);
+        noteQuote(quotes, tu, payload);
       } else if ((decisions || []).some((d) => d.id === tu.id && d.aprobar === true)) {
         const r = await execTool(tu, actor, deps);
         steps.push({ herramienta: tu.name, ok: r.body?.ok !== false });
@@ -1335,6 +1387,7 @@ export async function runAgent({ config, apiKey, messages, decisions, actor, sho
         executed.push({ id: tu.id, herramienta: tu.name, ok: Boolean(r.body?.ok), resumen: (tool.hecho && tool.hecho(r)) || (r.body?.ok ? 'Hecho' : r.body?.error || 'No se pudo completar') });
       }
       noteClientAction(executed, tu, r.body);
+      noteQuote(quotes, tu, r.body);
       results.push({ type: 'tool_result', tool_use_id: tu.id, content: trimResult(r.body) });
     }
     const resultMsg = { role: 'user', content: results };
@@ -1787,7 +1840,7 @@ export async function assistantHandler(req, res) {
         const avisos = [];
         if (avisarAhorro) avisos.push('Modo ahorro: usando un modelo mas economico hasta el proximo mes.');
         if (out.truncado && b.paso_a_paso !== true) avisos.push('La respuesta se corto por limite de pasos');
-        return res.status(200).json({ ok: true, mensajes: out.produced, pendientes: out.pending, ejecutadas: out.executed, pasos: out.steps || [], continuar: Boolean(out.truncado && b.paso_a_paso === true), consumo, modo_ahorro: ahorro || { activo: false }, modo_ia: { modo: plan.modo, modelo: out.modelo || runConfig.model, escalado: out.escalado === true, motivo: plan.motivo }, ...(boletoActivo ? { boleto_activo: boletoActivo } : {}), ...(avisos.length ? { aviso: avisos.join(' ') } : {}) });
+        return res.status(200).json({ ok: true, mensajes: out.produced, pendientes: out.pending, ejecutadas: out.executed, ...(out.cotizaciones?.length ? { cotizaciones: out.cotizaciones } : {}), pasos: out.steps || [], continuar: Boolean(out.truncado && b.paso_a_paso === true), consumo, modo_ahorro: ahorro || { activo: false }, modo_ia: { modo: plan.modo, modelo: out.modelo || runConfig.model, escalado: out.escalado === true, motivo: plan.motivo }, ...(boletoActivo ? { boleto_activo: boletoActivo } : {}), ...(avisos.length ? { aviso: avisos.join(' ') } : {}) });
       } catch (e) {
         if (e.provider) return fail(res, 502, `El proveedor de IA respondio con error: ${e.message}`, 'provider_error');
         throw e;
