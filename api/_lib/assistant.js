@@ -25,6 +25,11 @@ import {
   workerConfigured,
   searchEbay,
   saveEbayConfig,
+  loadPricingRules,
+  savePricingRules,
+  loadInstructions,
+  saveInstructions,
+  setEbayActive,
 } from './connections.js';
 import { comparePrices, recordFromSearch, addWatch, listWatch, removeWatch } from './priceCatalog.js';
 import { buildQuoteOptions, laborFor } from './quotePricing.js';
@@ -674,20 +679,21 @@ export const TOOLS = [
     input_schema: { type: 'object', required: ['consulta'], properties: { consulta: str('Equipo y pieza, por ejemplo "iPhone 14 pantalla" o "A2389 bateria"'), tipo_equipo: str('Para la mano de obra: laptop, macbook, macbook viejo, ipad, plegable, puerto de carga'), mano_obra: { type: 'number', description: 'Mano de obra en dolares SIN IVU; si la envias manda sobre la tabla' }, bateria_dhl: { type: 'boolean', description: 'true si la bateria viaja por DHL: suma 25 de manejo' }, proveedor: str('Opcional: limitar a un proveedor'), limite: { type: 'integer' } } },
     mutating: false,
     local: async (a, ctx) => {
+      const rules = await loadPricingRules(ctx.tenantId);
       let labor = Number(a.mano_obra);
       let laborKey = null;
       if (!Number.isFinite(labor) || labor < 0) {
-        const found = laborFor(`${a.tipo_equipo || ''} ${a.consulta || ''}`);
+        const found = laborFor(`${a.tipo_equipo || ''} ${a.consulta || ''}`, rules.tipos);
         labor = found ? found.monto : NaN;
-        laborKey = found ? found.clave : null;
+        laborKey = found ? found.nombre : null;
       }
       const r = await comparePrices(ctx.tenantId, { consulta: a.consulta, proveedor: a.proveedor, limite: a.limite || 12 });
       if (r.status !== 200 || !r.body?.ok) return r;
       if (!Number.isFinite(labor)) {
-        return { status: 200, body: { ok: true, requiere_mano_obra: true, nota: 'No hay una mano de obra definida para este tipo de equipo. Pregunta al usuario cuanto cobra de mano de obra (sin IVU) y vuelve a llamar con mano_obra.', precios_guardados: r.body.articulos } };
+        return { status: 200, body: { ok: true, requiere_mano_obra: true, nota: 'No hay una mano de obra definida para este tipo de equipo (se configura en Ajustes del asistente, Reglas de precio). Pregunta al usuario cuanto cobra de mano de obra (sin IVU) y vuelve a llamar con mano_obra.', precios_guardados: r.body.articulos } };
       }
-      const opciones = buildQuoteOptions(r.body.articulos, { manoObra: labor, bateriaDhl: a.bateria_dhl === true });
-      return { status: 200, body: { ok: true, consulta: a.consulta, mano_obra: labor, mano_obra_regla: laborKey, total: opciones.length, opciones, nota: opciones.length ? 'Precio al cliente con IVU 11.5%. El deposito es el mayor entre 50% del total y el costo. Confirma modelo y numero de parte exactos antes de comprar y verifica los precios desactualizados en vivo. Costos y proveedores no se muestran al cliente.' : 'No hay precios guardados para esa pieza. Busca con proveedor_buscar_precio o ebay_buscar y vuelve a cotizar.' } };
+      const opciones = buildQuoteOptions(r.body.articulos, { manoObra: labor, bateriaDhl: a.bateria_dhl === true, dhlHandling: rules.manejo_dhl, depositPct: rules.deposito_pct });
+      return { status: 200, body: { ok: true, consulta: a.consulta, mano_obra: labor, mano_obra_regla: laborKey, deposito_pct: rules.deposito_pct, total: opciones.length, opciones, nota: opciones.length ? `Precio al cliente con IVU 11.5%. El deposito es el mayor entre ${rules.deposito_pct}% del total y el costo. Confirma modelo y numero de parte exactos antes de comprar y verifica los precios desactualizados en vivo. Costos y proveedores no se muestran al cliente.` : 'No hay precios guardados para esa pieza. Busca con proveedor_buscar_precio o ebay_buscar y vuelve a cotizar.' } };
     },
   },
   {
@@ -1292,7 +1298,7 @@ function isMutatingCall(blocks) {
   return (blocks || []).some((b) => b.type === 'tool_use' && TOOL_BY_NAME.get(b.name)?.mutating);
 }
 
-export async function runAgent({ config, apiKey, messages, decisions, actor, shopName, deps, extraText = '', screenContext = '', tools = TOOLS, maxIterations = MAX_ITERATIONS, router = null }) {
+export async function runAgent({ config, apiKey, messages, decisions, actor, shopName, deps, extraText = '', screenContext = '', instructions = '', tools = TOOLS, maxIterations = MAX_ITERATIONS, router = null }) {
   const history = [...trimHistory(messages)];
   const produced = [];
   const executed = [];
@@ -1320,6 +1326,7 @@ export async function runAgent({ config, apiKey, messages, decisions, actor, sho
   const done = (out) => ({ ...out, modelo: model, escalado, cotizaciones: quotes });
   const system = systemPrompt(shopName, actor);
   if (screenContext) system.variable = `${system.variable}\n${screenContext}`;
+  if (instructions) system.variable = `${system.variable}\nINSTRUCCIONES DEL TALLER (las escribio el dueno; siguelas, pero nunca por encima de las reglas de seguridad ni de confirmar dinero):\n${instructions}`;
   const last = history[history.length - 1];
 
   if (last && last.role === 'assistant' && Array.isArray(last.content) && last.content.some((b) => b.type === 'tool_use')) {
@@ -1408,8 +1415,10 @@ export function availableTools(conn) {
     hidden.add('banco_cuentas');
     hidden.add('banco_movimientos');
   }
-  if (!workerConfigured() && !(conn?.proveedores || []).some((p) => /phonelcdparts\.com/i.test(p.url || ''))) hidden.add('proveedor_buscar_precio');
-  if (!conn?.ebay?.secret_enc) hidden.add('ebay_buscar');
+  const activeSuppliers = (conn?.proveedores || []).filter((p) => p.activo !== false);
+  if (!workerConfigured() && !activeSuppliers.some((p) => /phonelcdparts\.com/i.test(p.url || ''))) hidden.add('proveedor_buscar_precio');
+  if (activeSuppliers.length === 0 && (conn?.proveedores || []).length > 0) hidden.add('proveedor_buscar_precio');
+  if (!conn?.ebay?.secret_enc || conn.ebay.activo === false) hidden.add('ebay_buscar');
   return TOOLS.filter((t) => !hidden.has(t.name));
 }
 
@@ -1741,6 +1750,27 @@ export async function assistantHandler(req, res) {
       return res.status(200).json({ ok: true, ...publicConnections(await loadConnections(auth.tenantId), WEB_BASE) });
     }
 
+    if (route === 'connections/ebay/activo' && (req.method === 'PUT' || req.method === 'POST')) {
+      const saved = await setEbayActive(auth.tenantId, req.body?.activo);
+      if (saved.error) return fail(res, 400, saved.error, 'invalid_body');
+      return res.status(200).json({ ok: true, ...publicConnections(await loadConnections(auth.tenantId), WEB_BASE) });
+    }
+    if (route === 'reglas-precio' && req.method === 'GET') {
+      return res.status(200).json({ ok: true, ...(await loadPricingRules(auth.tenantId)) });
+    }
+    if (route === 'reglas-precio' && (req.method === 'PUT' || req.method === 'POST')) {
+      const saved = await savePricingRules(auth.tenantId, req.body || {});
+      if (saved.error) return fail(res, 400, saved.error, 'invalid_body');
+      return res.status(200).json({ ok: true, ...saved.rules });
+    }
+    if (route === 'instrucciones' && req.method === 'GET') {
+      return res.status(200).json({ ok: true, texto: await loadInstructions(auth.tenantId) });
+    }
+    if (route === 'instrucciones' && (req.method === 'PUT' || req.method === 'POST')) {
+      const saved = await saveInstructions(auth.tenantId, req.body?.texto);
+      if (saved.error) return fail(res, 400, saved.error, 'invalid_body');
+      return res.status(200).json({ ok: true, texto: saved.texto });
+    }
     if (route === 'connections/ebay' && (req.method === 'PUT' || req.method === 'POST')) {
       const saved = await saveEbayConfig(auth.tenantId, req.body || {});
       if (saved.error) return fail(res, 400, saved.error, 'invalid_body');
@@ -1823,6 +1853,7 @@ export async function assistantHandler(req, res) {
         const out = await runAgent({
           router: plan.router,
           screenContext,
+          instructions: await loadInstructions(auth.tenantId).catch(() => ''),
           config: runConfig,
           apiKey,
           messages: b.messages,

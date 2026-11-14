@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { sb, money } from './muse.js';
+import { DEFAULT_TIPOS, DEFAULT_DEPOSIT_PCT, DEFAULT_DHL_HANDLING } from './quotePricing.js';
 
 const SECRET = process.env.ASSISTANT_KEY_SECRET || '';
 const GRAPH = 'https://graph.facebook.com/v23.0';
@@ -39,6 +40,64 @@ async function saveSlug(slug, payload) {
   const row = await loadSlug(slug);
   if (row) await sb(`app_settings?id=eq.${row.id}`, { method: 'PATCH', body: { payload }, prefer: 'return=minimal' });
   else await sb('app_settings', { method: 'POST', body: { slug, payload }, prefer: 'return=minimal' });
+}
+
+const TIPO_LIMIT = 30;
+
+function slugify(text) {
+  return String(text || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 40);
+}
+
+export function normalizePricingRules(raw) {
+  const src = raw && typeof raw === 'object' ? raw : {};
+  const list = Array.isArray(src.tipos) ? src.tipos : DEFAULT_TIPOS;
+  const tipos = [];
+  const seen = new Set();
+  for (const t of list.slice(0, TIPO_LIMIT)) {
+    const nombre = clip(t?.nombre, 60);
+    if (!nombre) continue;
+    let clave = slugify(t?.clave) || slugify(nombre) || `tipo_${tipos.length + 1}`;
+    while (seen.has(clave)) clave = `${clave}_2`;
+    seen.add(clave);
+    const montoRaw = t?.monto;
+    const monto = montoRaw === null || montoRaw === undefined || montoRaw === '' ? null : Number(montoRaw);
+    if (monto !== null && (!Number.isFinite(monto) || monto < 0 || monto > 5000)) return { error: `La mano de obra de ${nombre} debe estar entre 0 y 5000` };
+    const palabras = (Array.isArray(t?.palabras) ? t.palabras : []).map((w) => clip(w, 40).toLowerCase()).filter(Boolean).slice(0, 12);
+    tipos.push({ clave, nombre, monto: monto === null ? null : Math.round(monto * 100) / 100, palabras });
+  }
+  const deposito = src.deposito_pct === undefined ? DEFAULT_DEPOSIT_PCT : Number(src.deposito_pct);
+  if (!Number.isFinite(deposito) || deposito < 0 || deposito > 100) return { error: 'El deposito debe estar entre 0 y 100' };
+  const manejo = src.manejo_dhl === undefined ? DEFAULT_DHL_HANDLING : Number(src.manejo_dhl);
+  if (!Number.isFinite(manejo) || manejo < 0 || manejo > 500) return { error: 'El manejo debe estar entre 0 y 500' };
+  return { rules: { tipos, deposito_pct: Math.round(deposito * 100) / 100, manejo_dhl: Math.round(manejo * 100) / 100 } };
+}
+
+export async function loadPricingRules(tenantId) {
+  const row = await loadSlug(`ai-pricing-rules-${tenantId}`);
+  const parsed = normalizePricingRules(row?.payload);
+  return parsed.rules || normalizePricingRules({}).rules;
+}
+
+export async function savePricingRules(tenantId, body) {
+  const parsed = normalizePricingRules(body);
+  if (parsed.error) return { error: parsed.error };
+  await saveSlug(`ai-pricing-rules-${tenantId}`, parsed.rules);
+  return { ok: true, rules: parsed.rules };
+}
+
+const INSTRUCTIONS_MAX = 8000;
+
+export async function loadInstructions(tenantId) {
+  const row = await loadSlug(`ai-instructions-${tenantId}`);
+  return typeof row?.payload?.texto === 'string' ? row.payload.texto : '';
+}
+
+export async function saveInstructions(tenantId, texto) {
+  if (texto !== undefined && texto !== null && typeof texto !== 'string') return { error: 'texto debe ser texto' };
+  const clean = String(texto || '').replace(/\u0000/g, '').trim();
+  if (clean.length > INSTRUCTIONS_MAX) return { error: `Las instrucciones no pueden pasar de ${INSTRUCTIONS_MAX} caracteres` };
+  await saveSlug(`ai-instructions-${tenantId}`, { texto: clean, actualizado: new Date().toISOString() });
+  return { ok: true, texto: clean };
 }
 
 export async function loadConnections(tenantId) {
@@ -86,8 +145,8 @@ export function publicConnections(conn, webhookBase) {
           conexiones: (plaid.items || []).map((i) => ({ id: i.item_id, institucion: i.institution || 'Banco', cuentas: (i.accounts || []).map((a) => ({ nombre: a.name, mascara: a.mask })) })),
         }
       : { configurado: false, client_id: '', entorno: 'sandbox', conexiones: [] },
-    ebay: { configurado: Boolean(conn.ebay?.client_id && conn.ebay?.secret_enc), client_id: conn.ebay?.client_id || '' },
-    proveedores: (conn.proveedores || []).map((p) => ({ id: p.id, nombre: p.nombre, url: p.url, busqueda: p.busqueda || '', usuario: p.usuario || '', tiene_clave: Boolean(p.clave_enc), notas: p.notas || '' })),
+    ebay: { configurado: Boolean(conn.ebay?.client_id && conn.ebay?.secret_enc), client_id: conn.ebay?.client_id || '', activo: conn.ebay?.activo !== false },
+    proveedores: (conn.proveedores || []).map((p) => ({ id: p.id, nombre: p.nombre, url: p.url, activo: p.activo !== false, busqueda: p.busqueda || '', usuario: p.usuario || '', tiene_clave: Boolean(p.clave_enc), notas: p.notas || '' })),
     navegador_configurado: Boolean(WORKER_URL && WORKER_TOKEN),
   };
 }
@@ -398,7 +457,7 @@ export async function saveSuppliers(tenantId, list) {
     const prev = current.get(id) || {};
     const busqueda = clip(raw?.busqueda ?? prev.busqueda, 400);
     if (busqueda && (!/^https:\/\//i.test(busqueda) || !busqueda.includes('{q}'))) return { error: `La busqueda de ${nombre} debe ser una direccion https con {q} donde va el texto a buscar` };
-    const item = { id, nombre, url, busqueda, usuario: clip(raw?.usuario, 120), notas: clip(raw?.notas, 300), clave_enc: prev.clave_enc || null };
+    const item = { id, nombre, url, busqueda, usuario: clip(raw?.usuario, 120), notas: clip(raw?.notas, 300), clave_enc: prev.clave_enc || null, activo: typeof raw?.activo === 'boolean' ? raw.activo : prev.activo !== false };
     if (typeof raw?.clave === 'string' && raw.clave.trim()) item.clave_enc = encryptSecret(raw.clave.trim());
     next.push(item);
   }
@@ -409,7 +468,7 @@ export async function saveSuppliers(tenantId, list) {
 
 export async function listSuppliers(tenantId) {
   const conn = await loadConnections(tenantId);
-  return { status: 200, body: { ok: true, proveedores: (conn.proveedores || []).map((p) => ({ nombre: p.nombre, url: p.url, notas: p.notas || '', tiene_acceso: Boolean(p.usuario && p.clave_enc), busca_precios: Boolean(searchTemplate(p)) })) } };
+  return { status: 200, body: { ok: true, proveedores: (conn.proveedores || []).map((p) => ({ nombre: p.nombre, url: p.url, activo: p.activo !== false, notas: p.notas || '', tiene_acceso: Boolean(p.usuario && p.clave_enc), busca_precios: Boolean(searchTemplate(p)) })) } };
 }
 
 export async function verifySetup(tenantId, tipo, nombre) {
@@ -474,6 +533,7 @@ export async function searchSupplier(tenantId, { proveedor, consulta } = {}) {
   const wanted = String(proveedor || '').trim().toLowerCase();
   const supplier = (conn.proveedores || []).find((p) => p.nombre.toLowerCase() === wanted) || (conn.proveedores || []).find((p) => wanted && p.nombre.toLowerCase().includes(wanted));
   if (!supplier) return { status: 404, body: { ok: false, error: 'Proveedor no encontrado. Revisa proveedores_listar.' } };
+  if (supplier.activo === false) return { status: 409, body: { ok: false, error: `${supplier.nombre} esta desactivado en Ajustes del asistente. No lo busques hasta que el dueno lo active.` } };
   const template = searchTemplate(supplier);
   if (!template) return { status: 409, body: { ok: false, error: `Falta la direccion de busqueda de ${supplier.nombre}. Pidele al usuario la direccion de una busqueda de ejemplo en su pagina para guardarla.` } };
   if (hostOf(supplier.url) === 'phonelcdparts.com' || hostOf(template) === 'phonelcdparts.com') {
@@ -578,6 +638,7 @@ export async function searchEbay(tenantId, { consulta, limite, solo_nuevos } = {
   if (!q) return { status: 400, body: { ok: false, error: 'consulta es requerida' } };
   const conn = await loadConnections(tenantId);
   if (!conn.ebay?.secret_enc) return { status: 409, body: { ok: false, error: 'eBay no esta conectado. Conectalo desde el chat.' } };
+  if (conn.ebay.activo === false) return { status: 409, body: { ok: false, error: 'eBay esta desactivado en Ajustes del asistente.' } };
   try {
     const token = await ebayToken(conn, tenantId, fetchImpl);
     const filters = ['itemLocationCountry:US', 'deliveryCountry:US', 'buyingOptions:{FIXED_PRICE}'];
@@ -607,4 +668,13 @@ export async function searchEbay(tenantId, { consulta, limite, solo_nuevos } = {
   } catch (e) {
     return { status: 502, body: { ok: false, error: `No se pudo consultar eBay: ${e.message}` } };
   }
+}
+
+export async function setEbayActive(tenantId, activo) {
+  if (typeof activo !== 'boolean') return { error: 'activo debe ser true o false' };
+  const conn = await loadConnections(tenantId);
+  if (!conn.ebay) return { error: 'eBay no esta conectado' };
+  conn.ebay = { ...conn.ebay, activo };
+  await saveConnections(tenantId, conn);
+  return { ok: true };
 }

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { priceQuote, buildQuoteOptions, laborFor } from '../api/_lib/quotePricing.js';
+import { priceQuote, buildQuoteOptions, laborFor, DEFAULT_TIPOS } from '../api/_lib/quotePricing.js';
 
 test('bateria A2389 de PhoneLCDParts: (46.49 + 125) x 1.115 y deposito de la mitad', () => {
   const p = priceQuote({ costo: 46.49, manoObra: 125 });
@@ -43,11 +43,26 @@ test('las opciones salen ordenadas por precio al cliente y conservan proveedor, 
   assert.equal(opts[1].url, 'https://ms.test/a');
 });
 
-test('mano de obra por tipo de equipo con alias y sin inventar tipos desconocidos', () => {
-  assert.deepEqual(laborFor('MacBook Air M1 bateria'), { clave: 'macbook', monto: 125 });
-  assert.deepEqual(laborFor('MacBook Pro 2015 pantalla'), { clave: 'macbook_viejo', monto: 85 });
-  assert.deepEqual(laborFor('iPad 9 pantalla'), { clave: 'ipad', monto: 75 });
-  assert.deepEqual(laborFor('Galaxy Z Flip 6'), { clave: 'plegable', monto: 100 });
+test('mano de obra por tipo de equipo con palabras clave y sin inventar tipos sin monto', () => {
+  assert.deepEqual(laborFor('MacBook Air M1 bateria'), { clave: 'macbook', nombre: 'Laptop y MacBook', monto: 125 });
+  assert.equal(laborFor('MacBook Pro 2015 pantalla').monto, 85);
+  assert.equal(laborFor('iPad 9 pantalla').monto, 75);
+  assert.equal(laborFor('Galaxy Z Flip 6').monto, 100);
   assert.equal(laborFor('iPhone 14 pantalla'), null);
-  assert.deepEqual(laborFor('iPhone 14 pantalla', { iphone: 99 }), null);
+  assert.equal(laborFor('iPhone 14 bateria'), null);
+});
+
+test('un tipo con monto definido y palabras con + exige todas las palabras', () => {
+  const tipos = [...DEFAULT_TIPOS.map((t) => (t.clave === 'pantalla_iphone' ? { ...t, monto: 60 } : t))];
+  assert.equal(laborFor('iPhone 14 pantalla', tipos).monto, 60);
+  assert.equal(laborFor('Samsung pantalla', tipos), null);
+  assert.equal(laborFor('PANTALLA de iPhone 15 Pro', tipos).clave, 'pantalla_iphone');
+});
+
+test('el deposito y el manejo salen de las reglas configuradas', () => {
+  const p = priceQuote({ costo: 46.49, manoObra: 125, depositPct: 30 });
+  assert.equal(p.total_con_ivu, 191.21);
+  assert.equal(p.deposito, 57.36);
+  const [o] = buildQuoteOptions([{ proveedor: 'x', nombre: 'y', precio: 46.49 }], { manoObra: 125, bateriaDhl: true, dhlHandling: 30, depositPct: 50 });
+  assert.equal(o.manejo_bateria, 30);
 });

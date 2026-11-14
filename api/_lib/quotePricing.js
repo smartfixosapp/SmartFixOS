@@ -1,44 +1,48 @@
 export const IVU_RATE = 0.115;
-export const DHL_BATTERY_HANDLING = 25;
-export const DEPOSIT_SHARE = 0.5;
+export const DEFAULT_DHL_HANDLING = 25;
+export const DEFAULT_DEPOSIT_PCT = 50;
 
-export const LABOR = {
-  laptop: 125,
-  macbook: 125,
-  macbook_viejo: 85,
-  ipad: 75,
-  plegable: 100,
-  puerto_carga_iphone: 85,
-};
-
-export const LABOR_ALIASES = [
-  [/macbook.*(2015|2016|2017|viej)/, 'macbook_viejo'],
-  [/macbook|mac book/, 'macbook'],
-  [/laptop|portatil|notebook/, 'laptop'],
-  [/ipad|tablet/, 'ipad'],
-  [/flip|fold|plegable/, 'plegable'],
-  [/puerto.*carga|charging port|usb.?c|lightning/, 'puerto_carga_iphone'],
+export const DEFAULT_TIPOS = [
+  { clave: 'macbook_viejo', nombre: 'MacBook viejas', monto: 85, palabras: ['macbook+2015', 'macbook+2016', 'macbook+2017', 'macbook+viej'] },
+  { clave: 'macbook', nombre: 'Laptop y MacBook', monto: 125, palabras: ['macbook', 'mac book', 'laptop', 'portatil', 'notebook'] },
+  { clave: 'ipad', nombre: 'iPad y tabletas', monto: 75, palabras: ['ipad', 'tablet'] },
+  { clave: 'plegable', nombre: 'Plegables', monto: 100, palabras: ['flip', 'fold', 'plegable'] },
+  { clave: 'puerto_carga_iphone', nombre: 'Puerto de carga iPhone', monto: 85, palabras: ['puerto+carga', 'charging port', 'lightning'] },
+  { clave: 'pantalla_iphone', nombre: 'Pantalla iPhone', monto: null, palabras: ['iphone+pantalla', 'iphone+screen', 'iphone+lcd', 'iphone+oled', 'iphone+display'] },
+  { clave: 'bateria_iphone', nombre: 'Bateria iPhone', monto: null, palabras: ['iphone+bateria', 'iphone+battery'] },
 ];
 
 const cents = (n) => Math.round(Number(n) * 100);
 
-export function laborFor(text, overrides = {}) {
-  const table = { ...LABOR, ...overrides };
-  const t = String(text || '').toLowerCase();
-  for (const [re, key] of LABOR_ALIASES) {
-    if (re.test(t) && table[key] !== undefined) return { clave: key, monto: Number(table[key]) };
+function norm(text) {
+  return String(text || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+export function tipoMatches(tipo, text) {
+  const t = norm(text);
+  return (tipo.palabras || []).some((entry) => {
+    const parts = norm(entry).split('+').map((p) => p.trim()).filter(Boolean);
+    return parts.length > 0 && parts.every((p) => t.includes(p));
+  });
+}
+
+export function laborFor(text, tipos = DEFAULT_TIPOS) {
+  for (const tipo of tipos || []) {
+    if (tipo.monto === null || tipo.monto === undefined) continue;
+    if (tipoMatches(tipo, text)) return { clave: tipo.clave, nombre: tipo.nombre, monto: Number(tipo.monto) };
   }
   return null;
 }
 
-export function priceQuote({ costo, manoObra, extras = 0, ivuRate = IVU_RATE }) {
+export function priceQuote({ costo, manoObra, extras = 0, ivuRate = IVU_RATE, depositPct = DEFAULT_DEPOSIT_PCT }) {
   const costC = cents(costo);
   const laborC = cents(manoObra);
   const extraC = cents(extras);
   if (!Number.isFinite(costC) || !Number.isFinite(laborC) || !Number.isFinite(extraC) || costC < 0 || laborC < 0 || extraC < 0) return null;
   const subtotalC = costC + laborC + extraC;
   const totalC = Math.round(subtotalC * (1 + ivuRate));
-  const depositC = Math.max(Math.round(totalC * DEPOSIT_SHARE), costC);
+  const share = Math.min(Math.max(Number(depositPct), 0), 100) / 100;
+  const depositC = Math.max(Math.round(totalC * share), costC);
   return {
     subtotal_sin_ivu: subtotalC / 100,
     ivu: (totalC - subtotalC) / 100,
@@ -47,13 +51,13 @@ export function priceQuote({ costo, manoObra, extras = 0, ivuRate = IVU_RATE }) 
   };
 }
 
-export function buildQuoteOptions(articles, { manoObra, bateriaDhl = false, ivuRate = IVU_RATE } = {}) {
-  const extras = bateriaDhl ? DHL_BATTERY_HANDLING : 0;
+export function buildQuoteOptions(articles, { manoObra, bateriaDhl = false, ivuRate = IVU_RATE, dhlHandling = DEFAULT_DHL_HANDLING, depositPct = DEFAULT_DEPOSIT_PCT } = {}) {
+  const extras = bateriaDhl ? Number(dhlHandling) : 0;
   const out = [];
   for (const a of articles || []) {
     const costo = Number(a.precio);
     if (!Number.isFinite(costo) || costo <= 0) continue;
-    const price = priceQuote({ costo, manoObra, extras, ivuRate });
+    const price = priceQuote({ costo, manoObra, extras, ivuRate, depositPct });
     if (!price) continue;
     out.push({
       proveedor: a.proveedor,
