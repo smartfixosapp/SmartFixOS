@@ -619,3 +619,53 @@ test('al final restaura el reloj', () => {
   console.log = realLog;
   assert.ok(true);
 });
+
+const PIEZA_ID = '923847b4-5ecc-4124-8a67-5708035a73f4';
+const pieza = (extra = {}) => ({ id: PIEZA_ID, tenant_id: TENANT, name: 'Pantalla Galaxy S22', stock: 2, min_stock: 1, cost: 40, price: 90, supplier_name: 'PR Mobile', device_brand: 'Samsung', device_model_tag: 'S22', category: 'screen', image_url: null, type: 'product', active: true, ...extra });
+
+test('foto_url: PATCH guarda el enlace en image_url y lo devuelve como foto_url', async () => {
+  const t = world({ product: [pieza()] });
+  const r = await run(t, ['piezas', PIEZA_ID], { method: 'PATCH', body: { foto_url: 'https://cdn.prmobile.test/s22.jpg' } });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(r.body.ok, true);
+  assert.equal(t.product[0].image_url, 'https://cdn.prmobile.test/s22.jpg');
+  assert.equal(r.body.pieza.foto_url, 'https://cdn.prmobile.test/s22.jpg');
+});
+
+test('foto_url vacio quita la foto y es una actualizacion valida', async () => {
+  const t = world({ product: [pieza({ image_url: 'https://cdn.prmobile.test/s22.jpg' })] });
+  const r = await run(t, ['piezas', PIEZA_ID], { method: 'PATCH', body: { foto_url: '' } });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(t.product[0].image_url, null);
+  assert.equal(r.body.pieza.foto_url, null);
+});
+
+test('foto_url invalido se rechaza sin escribir: http, espacios, no texto y demasiado largo', async () => {
+  for (const bad of ['http://x.test/a.jpg', 'https://x.test/a b.jpg', 'ftp://x.test/a.jpg', 123, 'https://' + 'a'.repeat(2001)]) {
+    const t = world({ product: [pieza()] });
+    const r = await run(t, ['piezas', PIEZA_ID], { method: 'PATCH', body: { foto_url: bad } });
+    assert.equal(r.status, 400, String(bad).slice(0, 30));
+    assert.equal(writes(r).length, 0);
+    assert.equal(t.product[0].image_url, null);
+  }
+});
+
+test('foto_url: POST crea la pieza con foto y sin foto no manda image_url', async () => {
+  const con = world({ product: [] });
+  const r1 = await run(con, ['piezas'], { body: { nombre: 'Bateria iPhone 13', precio: 60, costo: 25, foto_url: 'https://cdn.prmobile.test/b13.jpg' } });
+  assert.equal(r1.status, 200, JSON.stringify(r1.body));
+  assert.equal(con.product[0].image_url, 'https://cdn.prmobile.test/b13.jpg');
+  assert.equal(r1.body.pieza.foto_url, 'https://cdn.prmobile.test/b13.jpg');
+  const sin = world({ product: [] });
+  const r2 = await run(sin, ['piezas'], { body: { nombre: 'Bateria iPhone 14', precio: 65 } });
+  assert.equal(r2.status, 200, JSON.stringify(r2.body));
+  assert.equal('image_url' in sin.product[0], false);
+  assert.equal(r2.body.pieza.foto_url, null);
+});
+
+test('foto_url: GET /piezas la incluye en cada pieza', async () => {
+  const t = world({ product: [pieza({ image_url: 'https://cdn.prmobile.test/s22.jpg', tipo_principal: 'dispositivos', subcategoria: 'piezas_servicios' })] });
+  const r = await run(t, ['piezas'], { method: 'GET' });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(r.body.piezas[0].foto_url, 'https://cdn.prmobile.test/s22.jpg');
+});

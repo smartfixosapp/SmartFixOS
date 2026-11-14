@@ -866,7 +866,7 @@ async function catalog(req, res) {
   const page = Math.max(parseInt(q.pagina, 10) || 1, 1);
   let url =
     `product?tenant_id=eq.${TENANT_ID}&active=eq.true&type=eq.product` +
-    `&select=id,name,stock,min_stock,cost,price,supplier_name,device_brand,device_model_tag,category,part_type&order=name.asc&limit=${limit}&offset=${(page - 1) * limit}`;
+    `&select=id,name,stock,min_stock,cost,price,supplier_name,device_brand,device_model_tag,category,part_type,image_url&order=name.asc&limit=${limit}&offset=${(page - 1) * limit}`;
   if (String(q.todos) !== 'true') url += '&tipo_principal=eq.dispositivos&subcategoria=eq.piezas_servicios';
   const term = cleanFilter(q.q);
   if (term) url += `&name=ilike.*${term}*`;
@@ -887,6 +887,7 @@ async function catalog(req, res) {
       marca: p.device_brand || null,
       modelo: p.device_model_tag || null,
       categoria: p.category || null,
+      foto_url: p.image_url || null,
     })),
   });
 }
@@ -1067,10 +1068,11 @@ function productShape(p) {
     marca: p.device_brand || null,
     modelo: p.device_model_tag || null,
     categoria: p.category || null,
+    foto_url: p.image_url || null,
   };
 }
 
-const PRODUCT_SHAPE_COLUMNS = 'id,name,stock,min_stock,cost,price,supplier_name,device_brand,device_model_tag,category';
+const PRODUCT_SHAPE_COLUMNS = 'id,name,stock,min_stock,cost,price,supplier_name,device_brand,device_model_tag,category,image_url';
 
 const PRODUCT_CATEGORIES = [
   'accesorios_puertodecarga', 'battery', 'cable', 'case', 'charger', 'consola_de_juegos_servicio', 'diagnostic',
@@ -1099,6 +1101,23 @@ function readNumber(value, label, { min = 0, max = 100000 } = {}) {
     throw err;
   }
   return n;
+}
+
+function readPhotoUrl(value) {
+  if (value === undefined || value === null || value === '') return '';
+  if (typeof value !== 'string') {
+    const err = new Error('foto_url debe ser texto');
+    err.status = 400;
+    throw err;
+  }
+  const t = value.trim();
+  if (!t) return '';
+  if (t.length > 2000 || /\s/.test(t) || !/^https:\/\/[^/]+/i.test(t)) {
+    const err = new Error('foto_url debe ser un enlace https valido sin espacios (maximo 2000 caracteres)');
+    err.status = 400;
+    throw err;
+  }
+  return t;
 }
 
 function readText(value, label, { max = 140, required = false } = {}) {
@@ -1212,6 +1231,12 @@ async function createProduct(req, res) {
   const modelo = readText(b.modelo, 'modelo', { max: 100 });
   const categoria = readText(b.categoria, 'categoria', { max: 60 });
   const suplidor = readText(b.suplidor, 'suplidor', { max: 100 });
+  let fotoUrl = '';
+  try {
+    fotoUrl = readPhotoUrl(b.foto_url);
+  } catch (e) {
+    return fail(res, e.status || 400, e.message, 'invalid_body');
+  }
 
   const exact = exactNameFilter(nombre);
   if (exact) {
@@ -1254,6 +1279,7 @@ async function createProduct(req, res) {
     }
   }
   if (suplidor) row.supplier_name = suplidor;
+  if (fotoUrl) row.image_url = fotoUrl;
   const inserted = await sb('product', { method: 'POST', body: row, prefer: 'return=representation' });
   const created = Array.isArray(inserted) ? inserted[0] : inserted;
   if (created && stock > 0) await logStockMovement({ ...created, cost: costo }, 0, stock, 'api_create', null);
@@ -1281,6 +1307,7 @@ async function patchProduct(req, res, id) {
       }
     }
     if (b.suplidor !== undefined) patch.supplier_name = readText(b.suplidor, 'suplidor', { max: 100 }) || null;
+    if (b.foto_url !== undefined) patch.image_url = readPhotoUrl(b.foto_url) || null;
     if (b.costo !== undefined) patch.cost = money(readNumber(b.costo, 'costo'));
     if (b.precio !== undefined) patch.price = money(readNumber(b.precio, 'precio'));
     if (b.stock !== undefined) patch.stock = readNumber(b.stock, 'stock');
@@ -2988,6 +3015,7 @@ function openapi() {
               nombre: { type: 'string' }, marca: { type: 'string' }, modelo: { type: 'string' }, categoria: { type: 'string' },
               costo: { type: 'number' }, precio: { type: 'number' }, stock: { type: 'number' }, stock_minimo: { type: 'number' },
               suplidor: { type: 'string' },
+              foto_url: { type: 'string', description: 'Enlace https de la foto del producto; texto vacio la quita' },
               activo: { type: 'boolean', description: 'false oculta la pieza del inventario sin borrarla' },
             },
           }),
@@ -3005,6 +3033,7 @@ function openapi() {
               nombre: { type: 'string' }, marca: { type: 'string' }, modelo: { type: 'string' }, categoria: { type: 'string' },
               costo: { type: 'number' }, precio: { type: 'number' }, stock: { type: 'number' }, stock_minimo: { type: 'number' },
               suplidor: { type: 'string' },
+              foto_url: { type: 'string', description: 'Enlace https de la foto del producto' },
             },
           }),
           responses: { 200: { description: 'Producto creado' }, 409: { description: 'Ya existe uno con ese nombre' } },
