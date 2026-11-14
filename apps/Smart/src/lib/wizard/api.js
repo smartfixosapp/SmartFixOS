@@ -412,7 +412,6 @@ export async function createOrder({ s, tenantId, tenant, createdByName, onPhase,
   const payload = {
     tenant_id: tenantId, order_number: orderNumber, customer_name: s.anonymous ? "Anónimo" : customer?.name || "", status: "intake",
     priority: s.highPriority ? "high" : "normal", created_by_name: createdByName || "Usuario", created_date: nowISONoFrac(), updated_date: nowISONoFrac(),
-    is_quick_service: s.mode === "quick",
   };
   if (customer?.id) payload.customer_id = customer.id;
   if (customer?.phone) payload.customer_phone = customer.phone;

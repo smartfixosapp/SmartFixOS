@@ -215,7 +215,6 @@ export async function findOlderUndiagnosed(order) {
     .eq("tenant_id", order.tenant_id)
     .in("status", ["intake", "diagnosing"])
     .eq("is_deleted", false)
-    .eq("is_quick_service", false)
     .lt("created_date", order.created_date)
     .order("created_date", { ascending: true })
     .limit(1);
@@ -256,10 +255,6 @@ export async function fetchOrderEmails(tenantId, orderNumber) {
 export async function openCashRegister(tenantId) {
   const { data } = await supabase.from("cash_register").select("id,status,opened_by").eq("tenant_id", tenantId).eq("status", "open").limit(1);
   return data?.[0] || null;
-}
-
-export function setQuickService(orderId, value) {
-  return patchOrder(orderId, { is_quick_service: !!value }, { touchUpdated: false });
 }
 
 export async function resolveApprovalInPerson(orderId, approved, by) {

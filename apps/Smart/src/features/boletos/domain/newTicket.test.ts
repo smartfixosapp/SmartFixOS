@@ -31,7 +31,7 @@ describe("payload del boleto guiado", () => {
     const b = buildOrderPayload(d, { ...ctx, now: "2026-11-11T12:05:00Z" });
     expect(a.id).toBe(d.id);
     expect(b.id).toBe(a.id);
-    expect(a).toMatchObject({ tenant_id: "t1", order_number: "WO-500", status: "intake", customer_id: "c1", device_type: "Celular", device_brand: "Apple", device_model: "iPhone 13", is_quick_service: false });
+    expect(a).toMatchObject({ tenant_id: "t1", order_number: "WO-500", status: "intake", customer_id: "c1", device_type: "Celular", device_brand: "Apple", device_model: "iPhone 13" });
     expect(a.initial_problem).toBe("Pantalla. El tactil no responde abajo");
   });
 
@@ -57,7 +57,8 @@ describe("payload del boleto guiado", () => {
 
   it("modo rapido marca el boleto y la nota", () => {
     const p = buildOrderPayload({ ...filled(), mode: "quick" }, ctx);
-    expect(p).toMatchObject({ is_quick_service: true, status_note: "[Quick]" });
+    expect(p).toMatchObject({ status_note: "[Quick]" });
+    expect(p).not.toHaveProperty("is_quick_service");
   });
 
   it("tecnico, revision y firma viajan solo si su seccion esta activa", () => {
@@ -73,7 +74,7 @@ describe("payload del boleto guiado", () => {
   it("recarga arma equipo, problema, nota y monto sin datos de equipo", () => {
     const d = { ...filled(), mode: "recharge" as const, recharge: { carrier: "Claro", carrierOther: "", sameNumber: true, phone: "", amount: "20" } };
     const p = buildOrderPayload(d, ctx);
-    expect(p).toMatchObject({ device_type: "Recarga", device_brand: "Claro", device_model: "7875550142", cost_estimate: 20, is_quick_service: false });
+    expect(p).toMatchObject({ device_type: "Recarga", device_brand: "Claro", device_model: "7875550142", cost_estimate: 20 });
     expect(p.initial_problem).toBe("Recarga de $20.00 al 7875550142 (Claro)");
     expect(String(p.status_note)).toContain("[Recarga]");
     expect(p).not.toHaveProperty("device_serial");

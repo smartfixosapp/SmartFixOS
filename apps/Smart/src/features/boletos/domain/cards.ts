@@ -74,7 +74,7 @@ export function toCard(o: OrderRow, now: number = Date.now()): CardView {
   if (isLate(o, now)) flags.push("alert");
   if (o.liquid_damage) flags.push("drop");
   if (o.warranty_claim || o.status === "warranty") flags.push("shield");
-  if (o.priority === "high" || o.is_quick_service) flags.push("bolt");
+  if (o.priority === "high") flags.push("bolt");
   const due = dueAmount(o);
   return {
     id: o.id,

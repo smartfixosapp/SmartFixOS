@@ -108,9 +108,8 @@ export function groupForBoard(orders, hiddenStatuses = []) {
   const oldestFirst = (a, b) => createdAt(a) - createdAt(b);
   const intake = orders.filter((o) => o.status === "intake");
   const diagnosing = orders.filter((o) => o.status === "diagnosing");
-  const regularIntake = intake.filter((o) => !o.is_quick_service).sort(oldestFirst);
-  const regularDiagnosing = diagnosing.filter((o) => !o.is_quick_service).sort(oldestFirst);
-  const quick = [...intake, ...diagnosing].filter((o) => o.is_quick_service).sort(oldestFirst);
+  const regularIntake = [...intake].sort(oldestFirst);
+  const regularDiagnosing = [...diagnosing].sort(oldestFirst);
 
   const groups = [];
   if (regularIntake.length) {
@@ -118,9 +117,6 @@ export function groupForBoard(orders, hiddenStatuses = []) {
   }
   if (regularDiagnosing.length) {
     groups.push({ id: "queue-diagnosis", label: "Diagnóstico — en orden de llegada", tint: ORDER_STATUS.diagnosing.color, subtitle: "Trabaja la más antigua primero", orders: regularDiagnosing });
-  }
-  if (quick.length) {
-    groups.push({ id: "queue-quick", label: "Rápidas — sin restricción", tint: "#30D158", subtitle: null, orders: quick });
   }
   const rest = new Map();
   orders.forEach((o) => {

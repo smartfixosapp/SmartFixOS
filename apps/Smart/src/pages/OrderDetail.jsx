@@ -6,7 +6,7 @@ import { hiddenStatusesOf } from "@/lib/tenantSettings";
 import {
   fetchOrder, fetchTenant, changeStatusRpc, patchOrder, logActivity, addInternalNote, addCustomerAdvisories,
   normalizeRoles, deleteInternalNote, softDeleteOrder, assignTechnician, fetchTechnicians, findUndiagnosedForTech,
-  findOlderUndiagnosed, countPreviousOrders, fetchCustomerOrders, fetchOrderEmails, setQuickService,
+  findOlderUndiagnosed, countPreviousOrders, fetchCustomerOrders, fetchOrderEmails,
   resolveApprovalInPerson, setNotRepairableResolved, confirmPropertyClaim, deferPropertyClaim,
   resolveCurrentEmployee, subscribeToOrder, changedByLabel, uploadOrderPhotos, deleteOrderPhoto,
   deleteAllOrderPhotos, repairEvidence, markPaidNoCharge,
@@ -22,7 +22,7 @@ import CancelPartsSheet from "@/components/orderDetail/CancelPartsSheet";
 import POSheet from "@/components/orderDetail/POSheet";
 import HeaderCard from "@/components/orderDetail/HeaderCard";
 import StatusModule from "@/components/orderDetail/StatusModule";
-import InfoSections, { RatingCard, QuickServiceCard, DeviceCard } from "@/components/orderDetail/InfoSections";
+import InfoSections, { RatingCard, DeviceCard } from "@/components/orderDetail/InfoSections";
 import Timeline, { RecentActivity } from "@/components/orderDetail/Timeline";
 import MoneyCard from "@/components/orderDetail/MoneyCard";
 import { PhotosCaptureSheet, PhotoGateSheet, PhotoStrip, PhotoViewer } from "@/components/orderDetail/Photos";
@@ -281,7 +281,7 @@ export default function OrderDetail() {
     busyRef.current = true;
     setSaving(true);
     try {
-      if (!opts.bypassQueue && (o.status === "intake" || o.status === "diagnosing") && !o.is_quick_service) {
+      if (!opts.bypassQueue && (o.status === "intake" || o.status === "diagnosing")) {
         const older = await findOlderUndiagnosed(o).catch(() => null);
         if (older) {
           setSheet({ name: "queueWarn", older, retry: () => { setSheet(null); changeStatus(newStatus, { ...opts, bypassQueue: true }); } });
@@ -832,7 +832,6 @@ export default function OrderDetail() {
       order={order}
       onOpenHistory={openHistory}
       onTech={() => setSheet({ name: "tech" })}
-      onQuickService={async (v) => { await attempt("No se pudo guardar", () => setQuickService(order.id, v)); reload(); }}
       onPromisedDate={() => setSheet({ name: "promised" })}
     />
   );
@@ -921,7 +920,6 @@ export default function OrderDetail() {
                   {visitCard}
                   {module}
                   {liquidBanner}
-                  <QuickServiceCard order={order} onQuickService={async (v) => { await attempt("No se pudo guardar", () => setQuickService(order.id, v)); reload(); }} />
                   {partsModule}
                   <DeviceCard order={order} compact onPromisedDate={() => setSheet({ name: "promised" })} />
                   {costTasks}
@@ -940,7 +938,6 @@ export default function OrderDetail() {
                 {module}
                 {liquidBanner}
                 {moneyCard}
-                <QuickServiceCard order={order} onQuickService={async (v) => { await attempt("No se pudo guardar", () => setQuickService(order.id, v)); reload(); }} />
                 {partsModule}
                 <DeviceCard order={order} compact onPromisedDate={() => setSheet({ name: "promised" })} />
                 {costTasks}

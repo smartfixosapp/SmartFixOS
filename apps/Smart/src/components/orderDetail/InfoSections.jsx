@@ -1,5 +1,5 @@
 import React from "react";
-import { Star, Lock, Zap, AlertTriangle } from "lucide-react";
+import { Star, AlertTriangle } from "lucide-react";
 import { remainingBalance } from "@/lib/orderEmails";
 import { isTerminal } from "@/lib/orderStatus";
 import { C, Card, SectionHeader, Row, money } from "./ui";
@@ -25,36 +25,6 @@ export function RatingCard({ order }) {
           <Card>
             <Stars rating={rating} />
             {order.review_feedback && <p style={{ fontSize: 14, color: C.text, marginTop: 8 }}>{order.review_feedback}</p>}
-          </Card>
-        </div>
-      )}
-
-    </>
-  );
-}
-
-export function QuickServiceCard({ order, onQuickService }) {
-  const showQuick = order.status === "intake" || order.status === "diagnosing";
-  return (
-    <>
-      {showQuick && (
-        <div>
-          <SectionHeader>Tipo de boleto</SectionHeader>
-          <Card>
-            <div className="grid grid-cols-2 gap-1" style={{ padding: 3, borderRadius: 12, background: C.card2 }}>
-              {[[false, "Regular"], [true, "Rápida"]].map(([v, l]) => {
-                const on = !!order.is_quick_service === v;
-                return (
-                  <button key={l} onClick={() => onQuickService(v)} className="apple-press" style={{ padding: "9px 0", borderRadius: 10, fontSize: 14, fontWeight: 700, background: on ? "#fff" : "transparent", color: on ? "#000" : C.sub }}>
-                    {l}
-                  </button>
-                );
-              })}
-            </div>
-            <p className="flex items-center gap-2" style={{ fontSize: 13, marginTop: 10, color: order.is_quick_service ? C.green : C.sub }}>
-              {order.is_quick_service ? <Zap className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-              {order.is_quick_service ? "Sale de la cola de Diagnóstico — se puede trabajar en cualquier momento" : "Sigue el orden de llegada"}
-            </p>
           </Card>
         </div>
       )}
@@ -89,7 +59,7 @@ export function DeviceCard({ order, onPromisedDate, compact = false }) {
   );
 }
 
-export default function InfoSections({ order, onOpenHistory, onTech, onQuickService, onPromisedDate }) {
+export default function InfoSections({ order, onOpenHistory, onTech, onPromisedDate }) {
   const items = Array.isArray(order.order_items) ? order.order_items : [];
   const balance = remainingBalance(order);
 
@@ -106,7 +76,6 @@ export default function InfoSections({ order, onOpenHistory, onTech, onQuickServ
         </Card>
       </div>
 
-      <QuickServiceCard order={order} onQuickService={onQuickService} />
       <DeviceCard order={order} onPromisedDate={onPromisedDate} />
       {order.initial_problem && (
         <div>

@@ -195,7 +195,6 @@ export function buildOrderPayload(d: NewTicketDraft, ctx: CreateContext): Record
     created_by_name: ctx.createdByName || "Web",
     created_date: now,
     updated_date: now,
-    is_quick_service: d.mode === "quick",
     service_type: "workshop",
   };
   if (ctx.customerId) payload.customer_id = ctx.customerId;

@@ -345,7 +345,7 @@ export default function Orders() {
   const quickStatus = useCallback(async (order, newStatus) => {
     const live = ordersRef.current.find((o) => o.id === order.id) || order;
     if (live.status === newStatus) return;
-    if ((live.status === "intake" || live.status === "diagnosing") && !live.is_quick_service) {
+    if (live.status === "intake" || live.status === "diagnosing") {
       const older = await findOlderUndiagnosed(live).catch(() => null);
       if (older) { setQueueWarn({ older, orderId: live.id, status: newStatus }); return; }
     }
